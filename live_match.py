@@ -703,9 +703,26 @@ class TTSEngine:
                   f"total: {tts_time + drain_time:.2f}s (tts: {tts_time:.2f}s + play: {drain_time:.2f}s)")
 
     async def _tts(self, text, uid, voice_id=None):
-        """Connect to ElevenLabs WebSocket, send text, buffer all PCM."""
+        """Connect to ElevenLabs WebSocket, send text, buffer all PCM.
+        Retries once if no audio received (common with very short phrases)."""
         vid = voice_id or self.voice_id
-        uri = (f"wss://api.elevenlabs.io/v1/text-to-speech/{vid}"
+
+        for attempt in range(2):
+            send_text = text
+            if attempt == 1:
+                # Pad short text on retry — ElevenLabs sometimes fails on very short inputs
+                send_text = text + "..."
+                print(f"  [{_ts()}] [TTS #{uid}] Retrying with padded text")
+
+            chunk_count = await self._tts_once(send_text, uid, vid)
+            if chunk_count > 0 or self._interrupt.is_set():
+                break
+            print(f"  [{_ts()}] [TTS #{uid}] WARNING: No audio received from ElevenLabs"
+                  f"{' (will retry)' if attempt == 0 else ''}")
+
+    async def _tts_once(self, text, uid, voice_id):
+        """Single ElevenLabs WebSocket TTS attempt. Returns chunk count."""
+        uri = (f"wss://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
                f"/stream-input?model_id={self.model}&output_format=pcm_16000")
 
         try:
@@ -727,7 +744,6 @@ class TTSEngine:
                 await ws.send(json.dumps({"text": ""}))
 
                 chunk_count = 0
-                first_chunk_time = None
                 async for message in ws:
                     if self._interrupt.is_set():
                         break
@@ -738,18 +754,17 @@ class TTSEngine:
                         pcm_bytes = base64.b64decode(data["audio"])
                         self._push_audio(pcm_bytes)
                         chunk_count += 1
-                        if first_chunk_time is None:
-                            first_chunk_time = time.monotonic()
+                        if chunk_count == 1:
                             print(f"  [{_ts()}] [TTS #{uid}] First audio chunk received")
 
                     if data.get("isFinal"):
                         break
 
-                if chunk_count == 0:
-                    print(f"  [{_ts()}] [TTS #{uid}] WARNING: No audio received from ElevenLabs")
+                return chunk_count
 
         except Exception as e:
             print(f"  [{_ts()}] [TTS #{uid}] ERROR: {e}")
+            return 0
 
     def stop(self):
         self._stop.set()
@@ -1051,6 +1066,7 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
         # Match time starts now — offset by events-offset
         match_time_start = [time.time() - args.events_offset]
 
+        sr_thread = None
         if args.events:
             sr_thread = threading.Thread(
                 target=run_events_fallback,
@@ -1058,7 +1074,6 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
                       last_stt_time, session.stop_event, match_time_start),
                 kwargs={"lang_file": session.lang_file,
                         "video_delay": args.video_delay},
-                daemon=True,
             )
             sr_thread.start()
             print(f"[{tag}] Events fallback running (offset {args.events_offset}s)")
@@ -1069,6 +1084,15 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
                 oai_client, last_stt_time, session.stop_event,
                 lang_file=session.lang_file,
             )
+        elif sr_thread:
+            # Events-only mode: wait for events to finish, then drain TTS
+            sr_thread.join()
+            print(f"[{tag}] Events finished — waiting for TTS to drain")
+            while tts.queue_size() > 0 or tts.is_speaking.is_set():
+                if session.stop_event.is_set():
+                    break
+                time.sleep(0.2)
+            print(f"[{tag}] TTS drained — pipeline complete")
         else:
             while not session.stop_event.is_set():
                 time.sleep(0.5)

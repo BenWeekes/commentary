@@ -1,0 +1,36 @@
+# Borussia Monchengladbach 2-2 1. FC Heidenheim | 66:00-71:00 | Bundesliga MD28 2026-04-04
+# Synced with video: soccer_germany_bundesliga_8321531_3064k_66m00s_71m00s_720p25_high.h264
+# Stoger forces save at 2:30, Elvedi great tackle at 3:07, subs, crosses
+# Format: offset_seconds|priority|message
+#
+0|APPEND|Kaufmann is down injured. Play is stopped.
+77|APPEND|Substitution for Heidenheim. Gimber replaces Kaufmann.
+78|APPEND|Ramaj to Ibrahimovic.
+85|APPEND|Stoger to Neuhaus.
+94|APPEND|to Reitz.
+96|APPEND|Ibrahimovic to Ramaj.
+101|APPEND|to Fohrenbach.
+103|APPEND|to Fohrenbach.
+108|APPEND|to Dorsch.
+111|APPEND|to Gimber.
+118|APPEND|Elvedi to Reitz.
+119|APPEND|to Honorat.
+125|APPEND|Gimber to Ibrahimovic.
+130|APPEND|Scally to Sander.
+137|APPEND|Busch to Dorsch.
+140|APPEND|Reitz to Stoger.
+143|APPEND|to Honorat.
+145|APPEND|to Stoger.
+150|INTERRUPT|Stoger forces a save with a left-footed effort from 23 meters.
+179|APPEND|Diks to Castrop.
+187|APPEND|Great tackle by Elvedi!
+197|APPEND|Stoger to Honorat.
+199|APPEND|Honorat tries to dribble past but is dispossessed.
+200|APPEND|Foul by Gladbach.
+235|APPEND|Substitution for Gladbach. Tabakovic replaces Scally.
+242|APPEND|Substitution for Gladbach. Bolin replaces Reitz.
+264|APPEND|Pieringer to Dorsch.
+267|APPEND|to Fohrenbach.
+270|APPEND|Fohrenbach sends in a cross, but it's cleared.
+278|APPEND|Throw-in for Gladbach.
+300|APPEND|Honorat to Tabakovic.
