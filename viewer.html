@@ -194,6 +194,47 @@
     }
 
     #status-overlay.hidden { opacity: 0; }
+
+    /* Loading spinner overlay */
+    #spinner-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    #spinner-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: #4ade80;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #spinner-text {
+      margin-top: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.3px;
+    }
   </style>
 </head>
 <body>
@@ -220,7 +261,7 @@
           <option value="en">EN - English</option>
         </select>
       </div>
-      <button id="publish-btn">Start</button>
+      <button id="publish-btn" disabled>Start</button>
     </div>
   </div>
 
@@ -229,34 +270,33 @@
     <div id="video-container"></div>
   </div>
 
+  <!-- Loading spinner -->
+  <div id="spinner-overlay">
+    <div class="spinner"></div>
+    <div id="spinner-text">Preparing commentary...</div>
+  </div>
+
   <!-- Status text -->
   <div id="status-overlay">Connecting...</div>
 
   <script>
-    // URL params — parse token from raw query string to preserve + and = chars
+    // URL params
     var params = new URLSearchParams(window.location.search);
-    var APPID   = params.get('appid') || '9db43e0cd80740a0a9fd9d0000db40d7';
-    var CHANNEL = params.get('channel') || 'sportradar-live';
-    var UID     = parseInt(params.get('uid') || '101');
-    var CTL     = params.get('ctl') || 'http://localhost:8090';
-    var LANG    = params.get('lang') || 'es';
-
-    // Extract token from raw query string to avoid URLSearchParams converting + to space
-    var TOKEN = null;
-    var rawQuery = window.location.search.substring(1);
-    var tokenMatch = rawQuery.match(/(?:^|&)token=([^&]*)/);
-    if (tokenMatch) {
-      TOKEN = decodeURIComponent(tokenMatch[1].replace(/\+/g, '%2B'));
-    }
+    var CTL  = params.get('ctl') || 'http://localhost:8090';
+    var LANG = params.get('lang') || 'es';
 
     var statusEl = document.getElementById('status-overlay');
     var liveBadge = document.getElementById('live-badge');
     var langSelect = document.getElementById('lang-select');
     var publishBtn = document.getElementById('publish-btn');
     var videoContainer = document.getElementById('video-container');
+    var spinnerOverlay = document.getElementById('spinner-overlay');
 
     var client = null;
     var isPublishing = false;
+
+    // Session state — populated by POST /api/session
+    var SESSION = null;
 
     function setStatus(msg) {
       statusEl.textContent = msg;
@@ -267,21 +307,37 @@
       statusEl.classList.add('hidden');
     }
 
+    function showSpinner() {
+      spinnerOverlay.classList.add('visible');
+    }
+
+    function hideSpinner() {
+      spinnerOverlay.classList.remove('visible');
+    }
+
     // Language switching
     langSelect.value = LANG;
 
     langSelect.addEventListener('change', function() {
       var lang = langSelect.value;
-      fetch(CTL + '/set-lang?lang=' + encodeURIComponent(lang), { mode: 'cors' })
+      if (!SESSION) return;
+      fetch(CTL + '/api/session/' + SESSION.sessionId + '/set-lang?lang=' + encodeURIComponent(lang), { mode: 'cors' })
         .then(function() { console.log('Language set to: ' + lang); })
         .catch(function(err) { console.warn('Failed to set language:', err); });
     });
 
-    // Start / Stop publishing
+    // Start / Stop
     publishBtn.addEventListener('click', function() {
+      if (!SESSION) return;
       publishBtn.disabled = true;
       if (!isPublishing) {
-        fetch(CTL + '/start', { mode: 'cors' })
+        showSpinner();
+        // Set a timeout to dismiss spinner even if no video arrives
+        var spinnerTimeout = setTimeout(function() { hideSpinner(); }, 5000);
+        // Listen for first video frame to dismiss spinner early
+        window._spinnerTimeout = spinnerTimeout;
+
+        fetch(CTL + '/api/session/' + SESSION.sessionId + '/start', { mode: 'cors' })
           .then(function(r) { return r.json(); })
           .then(function(data) {
             console.log('Start response:', data);
@@ -293,10 +349,12 @@
           .catch(function(err) {
             console.error('Start failed:', err);
             setStatus('Failed to start publisher. Is live_match.py running?');
+            hideSpinner();
+            clearTimeout(spinnerTimeout);
             publishBtn.disabled = false;
           });
       } else {
-        fetch(CTL + '/stop', { mode: 'cors' })
+        fetch(CTL + '/api/session/' + SESSION.sessionId + '/stop', { mode: 'cors' })
           .then(function(r) { return r.json(); })
           .then(function(data) {
             console.log('Stop response:', data);
@@ -312,9 +370,10 @@
       }
     });
 
-    // Poll status to stay in sync
+    // Poll status
     function pollStatus() {
-      fetch(CTL + '/status', { mode: 'cors' })
+      if (!SESSION) return;
+      fetch(CTL + '/api/session/' + SESSION.sessionId + '/status', { mode: 'cors' })
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.running && !isPublishing) {
@@ -331,13 +390,28 @@
     }
     setInterval(pollStatus, 3000);
 
-    // Agora viewer
-    function startViewer() {
-      if (!TOKEN) {
-        setStatus('Error: missing ?token= param');
-        return;
-      }
+    // Create session, then join Agora
+    function initSession() {
+      setStatus('Creating session...');
 
+      fetch(CTL + '/api/session?lang=' + encodeURIComponent(LANG), {
+        method: 'POST',
+        mode: 'cors',
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          SESSION = data;
+          console.log('Session created:', SESSION);
+          startViewer(data.appid, data.channel, data.token, data.uid);
+        })
+        .catch(function(err) {
+          console.error('Failed to create session:', err);
+          setStatus('Error: could not create session. Is live_match.py running?');
+        });
+    }
+
+    // Agora viewer
+    function startViewer(appid, channel, token, uid) {
       setStatus('Joining channel...');
 
       client = AgoraRTC.createClient({ mode: 'live', codec: 'h264' });
@@ -351,6 +425,12 @@
               user.videoTrack.play(videoContainer);
               liveBadge.classList.add('visible');
               hideStatus();
+              // Dismiss spinner on first video frame
+              hideSpinner();
+              if (window._spinnerTimeout) {
+                clearTimeout(window._spinnerTimeout);
+                window._spinnerTimeout = null;
+              }
             }
 
             if (mediaType === 'audio') {
@@ -371,11 +451,11 @@
           setStatus('Publisher disconnected. Waiting...');
         });
 
-        return client.join(APPID, CHANNEL, TOKEN, UID);
+        return client.join(appid, channel, token, uid);
       }).then(function() {
         setStatus('Waiting for publisher. Click Start when ready.');
-        console.log('Joined channel "' + CHANNEL + '" as UID ' + UID);
-        // Check if pipeline is already running
+        console.log('Joined channel "' + channel + '" as UID ' + uid);
+        publishBtn.disabled = false;
         pollStatus();
       }).catch(function(err) {
         console.error('Failed to start viewer:', err);
@@ -383,7 +463,7 @@
       });
     }
 
-    startViewer();
+    initSession();
   </script>
 </body>
 </html>

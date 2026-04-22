@@ -1,0 +1,48 @@
+# Borussia Monchengladbach 2-2 1. FC Heidenheim | 73:00-78:00 | Bundesliga MD28 2026-04-04
+# Honorat equalizer at 73:39 (offset 39s into this clip)
+# Extracted from full match events, rebased to 0 offset
+# Format: offset_seconds|priority|message
+#
+0|APPEND|Diks to Nicolas.
+5|APPEND|to Stoger.
+8|APPEND|to Neuhaus.
+14|APPEND|to Stoger.
+17|APPEND|to Castrop.
+26|INTERRUPT|Castrop tries a right-footed shot from 17 meters, but it's deflected wide.
+41|INTERRUPT|GOAL! Honorat fires a right-footed shot into the net from 10 meters! Assisted by Machino. It's 2-2!
+41|APPEND|Neuhaus sends in a cross, but it's cleared.
+116|APPEND|Throw-in for Gladbach.
+129|APPEND|Foul by Gladbach.
+155|APPEND|Ramaj to Pieringer.
+158|APPEND|to Ibrahimovic.
+173|APPEND|Throw-in for Gladbach.
+177|APPEND|Honorat to Sander.
+179|APPEND|to Stoger.
+181|APPEND|to Machino.
+184|APPEND|to Bolin.
+187|APPEND|Bolin sends in a cross, but it's cleared.
+206|APPEND|Diks to Nicolas.
+211|APPEND|to Sander.
+213|APPEND|to Honorat.
+220|APPEND|to Stoger.
+222|APPEND|to Diks.
+226|APPEND|to Neuhaus.
+231|APPEND|to Castrop.
+233|APPEND|to Neuhaus.
+238|APPEND|to Bolin.
+242|INTERRUPT|Bolin tries a right-footed shot from 15 meters, but it's deflected wide.
+245|APPEND|Castrop to Stoger.
+249|APPEND|Stoger sends in a cross, but it's cleared.
+253|APPEND|Ramaj to Fohrenbach.
+257|APPEND|to Ibrahimovic.
+261|APPEND|to Dorsch.
+266|APPEND|to Dinkci.
+270|APPEND|to Fohrenbach.
+272|APPEND|to Ibrahimovic.
+274|APPEND|to Dorsch.
+278|APPEND|to Busch.
+280|APPEND|to Stergiou.
+284|APPEND|to Busch.
+288|APPEND|to Ramaj.
+295|APPEND|to Fohrenbach.
+299|APPEND|Throw-in for Gladbach.

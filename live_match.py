@@ -51,16 +51,20 @@ import collections
 import json
 import os
 import queue
+import re as _re_module
 import signal
 import subprocess
 import sys
 import threading
 import time
+import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
 import openai
 import websockets
+
+from tokens import AccessToken, ServiceRtc
 
 # ─── Load .env ───────────────────────────────────────────────────────────
 
@@ -212,71 +216,230 @@ def get_current_lang(lang_file, default_lang):
     return default_lang
 
 
+# ─── Session management ──────────────────────────────────────────────────
+
+def _generate_viewer_token(channel, uid, expire_s=3600):
+    """Generate an Agora v007 token for a viewer to join a channel."""
+    token = AccessToken(AGORA_APP_ID, AGORA_APP_CERT, expire=expire_s)
+    rtc = ServiceRtc(channel, uid)
+    rtc.add_privilege(ServiceRtc.kPrivilegeJoinChannel, expire_s)
+    token.add_service(rtc)
+    return token.build()
+
+
+class Session:
+    """One viewer's session: channel, token, lang file, pipeline state."""
+
+    def __init__(self, lang="es"):
+        self.id = uuid.uuid4().hex
+        self.channel = f"commentary-{self.id[:8]}"
+        self.viewer_uid = 1000 + (hash(self.id) % 9000)
+        self.token = _generate_viewer_token(self.channel, self.viewer_uid)
+        self.lang = lang
+        self.lang_file = f"/tmp/commentary_lang_{self.id}"
+        self.start_event = threading.Event()
+        self.stop_event = threading.Event()
+        self.pipeline_running = False
+        self.pipeline_thread = None
+        self.created_at = time.time()
+        self.last_activity = time.time()
+        # Write initial language
+        with open(self.lang_file, "w") as f:
+            f.write(lang)
+
+    def cleanup(self):
+        try:
+            os.unlink(self.lang_file)
+        except OSError:
+            pass
+
+
+class SessionManager:
+    """Manages multiple concurrent viewer sessions."""
+
+    EXPIRE_S = 1800  # 30 min inactivity
+
+    def __init__(self):
+        self._sessions = {}
+        self._lock = threading.Lock()
+        # Start reaper thread
+        threading.Thread(target=self._reaper, daemon=True).start()
+
+    def create(self, lang="es"):
+        session = Session(lang=lang)
+        with self._lock:
+            self._sessions[session.id] = session
+        print(f"[SESSION] Created {session.id[:8]} — channel={session.channel}")
+        return session
+
+    def get(self, session_id):
+        with self._lock:
+            session = self._sessions.get(session_id)
+        if session:
+            session.last_activity = time.time()
+        return session
+
+    def remove(self, session_id):
+        with self._lock:
+            session = self._sessions.pop(session_id, None)
+        if session:
+            session.stop_event.set()
+            session.cleanup()
+            print(f"[SESSION] Removed {session_id[:8]}")
+
+    def _reaper(self):
+        """Remove expired sessions every 60s."""
+        while True:
+            time.sleep(60)
+            now = time.time()
+            expired = []
+            with self._lock:
+                for sid, s in self._sessions.items():
+                    if not s.pipeline_running and (now - s.last_activity) > self.EXPIRE_S:
+                        expired.append(sid)
+            for sid in expired:
+                print(f"[SESSION] Expiring {sid[:8]} (idle)")
+                self.remove(sid)
+
+
 class ControlHandler(BaseHTTPRequestHandler):
-    """HTTP handler for viewer control: /set-lang, /start, /stop, /status."""
-    lang_file = "/tmp/sportradar_lang"
-    # Shared state — set by main() before starting server
-    start_event = None   # threading.Event — set when /start is called
-    stop_event = None    # threading.Event — set when /stop is called
-    pipeline_running = False
+    """HTTP handler for multi-session viewer control.
+
+    Routes:
+      POST /api/session                     → create session
+      GET  /api/session/{id}/start          → start pipeline
+      GET  /api/session/{id}/stop           → stop pipeline
+      GET  /api/session/{id}/set-lang?lang= → change language
+      GET  /api/session/{id}/status         → poll status
+    """
+    session_mgr = None  # set before server starts
+    args = None         # CLI args — set before server starts
+    h264_file = None
+    oai_client = None
+
+    # Regex to match /api/session/{id}/{action}
+    _SESSION_RE = _re_module.compile(r'^/api/session/([a-f0-9]+)/(\w+)$')
 
     def _respond(self, code, data):
         body = json.dumps(data).encode()
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
         self.wfile.write(body)
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        qs = parse_qs(parsed.query)
+
+        if parsed.path == "/api/session":
+            lang = qs.get("lang", ["es"])[0].lower()
+            if lang not in LANG_NAMES:
+                lang = "es"
+            session = self.session_mgr.create(lang=lang)
+            self._respond(200, {
+                "sessionId": session.id,
+                "channel": session.channel,
+                "token": session.token,
+                "uid": session.viewer_uid,
+                "appid": AGORA_APP_ID,
+            })
+            return
+
+        # Check for session action routes via POST too
+        m = self._SESSION_RE.match(parsed.path)
+        if m:
+            self._handle_session_action(m.group(1), m.group(2), qs)
+            return
+
+        self._respond(404, {"error": "not found"})
 
     def do_GET(self):
         parsed = urlparse(self.path)
         qs = parse_qs(parsed.query)
 
-        if parsed.path == "/set-lang":
+        m = self._SESSION_RE.match(parsed.path)
+        if m:
+            self._handle_session_action(m.group(1), m.group(2), qs)
+            return
+
+        self._respond(404, {"error": "not found"})
+
+    def _handle_session_action(self, session_id, action, qs):
+        session = self.session_mgr.get(session_id)
+        if not session:
+            self._respond(404, {"error": "session not found"})
+            return
+
+        if action == "start":
+            if session.pipeline_running:
+                self._respond(200, {"status": "already_running"})
+            else:
+                session.stop_event.clear()
+                session.start_event.set()
+                # Spawn pipeline thread for this session
+                t = threading.Thread(
+                    target=self._run_session_pipeline,
+                    args=(session,),
+                    daemon=True,
+                )
+                t.start()
+                session.pipeline_thread = t
+                self._respond(200, {"status": "starting"})
+
+        elif action == "stop":
+            if session.pipeline_running:
+                session.stop_event.set()
+                self._respond(200, {"status": "stopping"})
+            else:
+                self._respond(200, {"status": "not_running"})
+
+        elif action == "set-lang":
             lang = qs.get("lang", ["es"])[0].lower()
             try:
-                with open(self.lang_file, "w") as f:
+                with open(session.lang_file, "w") as f:
                     f.write(lang)
                 self._respond(200, {"lang": lang})
             except OSError as e:
                 self._respond(500, {"error": str(e)})
 
-        elif parsed.path == "/start":
-            if ControlHandler.pipeline_running:
-                self._respond(200, {"status": "already_running"})
-            else:
-                ControlHandler.stop_event.clear()
-                ControlHandler.start_event.set()
-                self._respond(200, {"status": "starting"})
-
-        elif parsed.path == "/stop":
-            if ControlHandler.pipeline_running:
-                ControlHandler.stop_event.set()
-                self._respond(200, {"status": "stopping"})
-            else:
-                self._respond(200, {"status": "not_running"})
-
-        elif parsed.path == "/status":
+        elif action == "status":
+            lang = "es"
+            try:
+                with open(session.lang_file) as f:
+                    lang = f.read().strip()
+            except OSError:
+                pass
             self._respond(200, {
-                "running": ControlHandler.pipeline_running,
-                "lang": self._read_lang(),
+                "running": session.pipeline_running,
+                "lang": lang,
             })
 
         else:
-            self._respond(404, {"error": "not found"})
+            self._respond(404, {"error": f"unknown action: {action}"})
 
-    def _read_lang(self):
-        try:
-            with open(self.lang_file) as f:
-                return f.read().strip()
-        except OSError:
-            return "es"
+    @staticmethod
+    def _run_session_pipeline(session):
+        """Run the pipeline for a single session in its own thread."""
+        args = ControlHandler.args
+        h264_file = ControlHandler.h264_file
+        oai_client = ControlHandler.oai_client
+
+        session.start_event.wait()
+        session.start_event.clear()
+
+        print(f"[SESSION {session.id[:8]}] Starting pipeline on channel={session.channel}")
+        run_pipeline_for_session(
+            session, args, h264_file, oai_client,
+        )
+        print(f"[SESSION {session.id[:8]}] Pipeline stopped.")
 
     def do_OPTIONS(self):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
 
@@ -284,16 +447,18 @@ class ControlHandler(BaseHTTPRequestHandler):
         pass
 
 
-def start_control_server(port, lang_file, start_event, stop_event):
+def start_control_server(port, session_mgr, args, h264_file, oai_client):
     """Start the control HTTP server in a daemon thread."""
-    ControlHandler.lang_file = lang_file
-    ControlHandler.start_event = start_event
-    ControlHandler.stop_event = stop_event
+    ControlHandler.session_mgr = session_mgr
+    ControlHandler.args = args
+    ControlHandler.h264_file = h264_file
+    ControlHandler.oai_client = oai_client
     server = HTTPServer(("0.0.0.0", port), ControlHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     print(f"[CTL] Control server on http://localhost:{port}")
-    print(f"      /set-lang?lang=XX  /start  /stop  /status")
+    print(f"      POST /api/session  →  create session")
+    print(f"      GET  /api/session/{{id}}/start|stop|set-lang|status")
     return server
 
 
@@ -692,10 +857,8 @@ def load_events_file(filepath):
     return events
 
 
-import re
-
 # Simple pass pattern: "to Player." or "Player to Player."
-_PASS_RE = re.compile(r'^(to [A-Z]|[A-Z][a-z]+ to [A-Z])\w*\.$')
+_PASS_RE = _re_module.compile(r'^(to [A-Z]|[A-Z][a-z]+ to [A-Z])\w*\.$')
 
 
 def _is_simple_pass(message):
@@ -845,18 +1008,6 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
 
             corrected = apply_corrections(transcript)
 
-            cur_lang = get_current_lang(lang_file, lang) if lang_file else lang
-            cur_voice = voice_for_lang(cur_lang)
-            t_xlat_start = time.time()
-            if cur_lang != "en":
-                try:
-                    translated = translate_text(oai_client, corrected, cur_lang)
-                except Exception:
-                    translated = corrected
-            else:
-                translated = corrected
-            xlat_time = time.time() - t_xlat_start
-
             total_latency = (time.time() - wall_start[0]) - audio_end
 
             if total_latency > MAX_LATENCY_S:
@@ -864,78 +1015,84 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
                 continue
 
             print(f"  [{audio_start:6.1f}s] lat={total_latency:.2f}s "
-                  f"stt={wall_now - audio_end:.2f}s xlat={xlat_time:.2f}s")
-            print(f"           {translated[:60]}")
+                  f"stt={wall_now - audio_end:.2f}s")
+            print(f"           {corrected[:60]}")
 
-            # Speak via ElevenLabs TTS → PCM → Agora
-            # Pass (text, voice_id) tuple via translate_fn for JIT voice selection
-            tts.speak(corrected, translate_fn=lambda t, _l=cur_lang, _v=cur_voice, _tr=translated: (_tr, _v))
+            # JIT translation — translate at TTS time so language switches
+            # take effect immediately, not when STT result was received
+            def make_stt_translate_fn():
+                def translate(text):
+                    cur_lang = get_current_lang(lang_file, lang) if lang_file else lang
+                    vid = voice_for_lang(cur_lang)
+                    if cur_lang == "en":
+                        return (text, vid)
+                    return (translate_text(oai_client, text, cur_lang), vid)
+                return translate
+
+            tts.speak(corrected, translate_fn=make_stt_translate_fn())
             last_stt_time[0] = time.time()
 
     os.unlink(pcm_path)
     print("[STT] Pipeline finished.")
 
 
-# ─── Main ────────────────────────────────────────────────────────────────
+# ─── Pipeline (session-aware) ────────────────────────────────────────────
 
-def run_pipeline(args, h264_file, oai_client, stop_event):
-    """Run one cycle of the publish pipeline. Returns when done or stopped."""
+def run_pipeline_for_session(session, args, h264_file, oai_client):
+    """Run one cycle of the publish pipeline for a specific session."""
     last_stt_time = [time.time()]
     pub_proc = None
     tts = None
+    tag = f"SESSION {session.id[:8]}"
 
     try:
         if h264_file:
-            pub_proc = start_publisher(h264_file, args.channel, delay_s=args.video_delay)
-            # Log publisher stdout/stderr in background (filter noisy lines)
+            pub_proc = start_publisher(h264_file, session.channel, delay_s=args.video_delay)
             def _log_pub(stream, label):
                 for line in stream:
                     text = line.decode(errors='replace').rstrip()
                     if not text or 'PushVideoEncodedData' in text or 'SESS_CTRL' in text:
                         continue
-                    print(f"  [PUB {label}] {text}")
+                    print(f"  [{tag} PUB {label}] {text}")
             threading.Thread(target=_log_pub, args=(pub_proc.stdout, "out"), daemon=True).start()
             threading.Thread(target=_log_pub, args=(pub_proc.stderr, "err"), daemon=True).start()
-            # Wire up TTS immediately — it feeds silence when idle, keeping the pipe alive
             tts = TTSEngine(audio_pipe=pub_proc.stdin)
         else:
             devnull = open(os.devnull, "wb")
             tts = TTSEngine(audio_pipe=devnull)
 
         tts.start()
-        ControlHandler.pipeline_running = True
+        session.pipeline_running = True
 
-        # Match time starts now — offset by events-offset so events file syncs with video
+        # Match time starts now — offset by events-offset
         match_time_start = [time.time() - args.events_offset]
 
-        # Start SR fallback thread
         if args.events:
             sr_thread = threading.Thread(
                 target=run_events_fallback,
                 args=(args.events, tts, args.lang, oai_client,
-                      last_stt_time, stop_event, match_time_start),
-                kwargs={"lang_file": args.lang_file,
+                      last_stt_time, session.stop_event, match_time_start),
+                kwargs={"lang_file": session.lang_file,
                         "video_delay": args.video_delay},
                 daemon=True,
             )
             sr_thread.start()
-            print(f"[SR] Events fallback running (offset {args.events_offset}s)")
+            print(f"[{tag}] Events fallback running (offset {args.events_offset}s)")
 
-        # Run STT pipeline (blocks until audio finishes)
         if args.audio:
             run_stt_pipeline(
                 args.audio, tts, args.deepgram_key, args.lang,
-                oai_client, last_stt_time, stop_event,
-                lang_file=args.lang_file,
+                oai_client, last_stt_time, session.stop_event,
+                lang_file=session.lang_file,
             )
         else:
-            while not stop_event.is_set():
+            while not session.stop_event.is_set():
                 time.sleep(0.5)
 
     finally:
-        print("[MAIN] Cleaning up pipeline...")
-        ControlHandler.pipeline_running = False
-        stop_event.set()
+        print(f"[{tag}] Cleaning up pipeline...")
+        session.pipeline_running = False
+        session.stop_event.set()
         if tts:
             tts.stop()
         kill_publisher(pub_proc)
@@ -950,20 +1107,14 @@ def main():
     parser.add_argument("--video", help="Match video file (mp4, will be converted)")
     parser.add_argument("--events", help="Sportradar events file for fallback")
     parser.add_argument("--lang", default="es", help="Output language (default: es)")
-    parser.add_argument("--channel", default="sportradar-live",
-                        help="Agora channel (default: sportradar-live)")
     parser.add_argument("--deepgram-key",
                         default=os.environ.get("DEEPGRAM_API_KEY", ""))
     parser.add_argument("--video-delay", type=float, default=VIDEO_DELAY_S,
                         help=f"Video delay in seconds (default: {VIDEO_DELAY_S})")
-    parser.add_argument("--lang-file", default="/tmp/sportradar_lang",
-                        help="File for dynamic language switching (default: /tmp/sportradar_lang)")
     parser.add_argument("--lang-port", type=int, default=8090,
                         help="Port for language control HTTP server (default: 8090)")
     parser.add_argument("--events-offset", type=int, default=0,
                         help="Match-time offset in seconds for events replay (default: 0)")
-    parser.add_argument("--autostart", action="store_true",
-                        help="Start pipeline immediately without waiting for /start")
     args = parser.parse_args()
 
     if not args.audio and not args.events:
@@ -971,6 +1122,10 @@ def main():
 
     if not os.environ.get("OPENAI_API_KEY"):
         print("OPENAI_API_KEY not set")
+        sys.exit(1)
+
+    if not AGORA_APP_ID or not AGORA_APP_CERT:
+        print("AGORA_APP_ID and AGORA_APP_CERT must be set for multi-session token generation")
         sys.exit(1)
 
     # Resolve H.264 video file
@@ -993,44 +1148,27 @@ def main():
         ], capture_output=True)
 
     oai_client = openai.OpenAI()
+    session_mgr = SessionManager()
     lang_name = LANG_NAMES.get(args.lang, args.lang)
 
-    # Write initial language and start control server
-    with open(args.lang_file, "w") as f:
-        f.write(args.lang)
-
-    start_event = threading.Event()
-    stop_event = threading.Event()
-    start_control_server(args.lang_port, args.lang_file, start_event, stop_event)
+    start_control_server(args.lang_port, session_mgr, args, h264_file, oai_client)
 
     print(f"\n{'=' * 70}")
-    print(f"  LIVE MATCH — {lang_name} Commentary (Direct TTS)")
+    print(f"  LIVE MATCH — Multi-Session Server ({lang_name} default)")
     print(f"  STT audio: {args.audio or 'None'}")
     print(f"  Video: {h264_file or 'None (TTS audio only)'}")
     print(f"  SR fallback: {args.events or 'None'}")
     print(f"  Events offset: {args.events_offset}s")
     print(f"  Video delay: {args.video_delay}s")
-    print(f"  Control: http://localhost:{args.lang_port}/start")
+    print(f"  API: http://localhost:{args.lang_port}/api/session")
     print(f"{'=' * 70}\n")
-
-    if args.autostart:
-        start_event.set()
+    print("[MAIN] Waiting for viewers to create sessions...")
 
     try:
         while True:
-            if not args.autostart:
-                print("[MAIN] Waiting for /start from viewer... (or --autostart)")
-            start_event.wait()
-            start_event.clear()
-            stop_event.clear()
-
-            print("[MAIN] Starting pipeline...")
-            run_pipeline(args, h264_file, oai_client, stop_event)
-            print("[MAIN] Pipeline stopped. Waiting for next /start...\n")
-
+            time.sleep(1)
     except KeyboardInterrupt:
         print("\n\n  Shutting down...")
-        stop_event.set()
         print("  Done.")
 
 
