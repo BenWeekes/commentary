@@ -15,10 +15,12 @@ commentary/
 ├── data/
 │   ├── events/                    # Match event files (offset|priority|text)
 │   │   ├── bmg_fch_md28_full_match.txt
+│   │   ├── bmg_fch_35_40_clip.txt # Synced clip: match 35:00-40:00
 │   │   ├── replay_*.txt
 │   │   └── *_commentary.txt
 │   ├── audio/                     # Commentary audio samples
-│   │   └── bmg_fch_first_5min.mp3
+│   │   ├── bmg_fch_match_35_40.mp3  # Synced: match 35:00-40:00 (16kHz mono)
+│   │   └── bmg_fch_first_5min.mp3   # Pre-match content (first 5 min of file)
 │   └── json/                      # Full Sportradar API responses
 │       ├── bmg_fch_md28_all_data.json
 │       ├── bayern_real_madrid_2nd_leg.json

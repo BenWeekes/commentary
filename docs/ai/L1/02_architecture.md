@@ -46,14 +46,40 @@ Video is delayed 3 seconds before publishing. This gives the entire STT → tran
 
 Both feed the same TTSEngine queue. Events are scheduled to play at `match_time + video_delay`.
 
-## Threading Model
+## Multi-Session Architecture
+
+The server uses a session-based model. Each viewer gets an isolated pipeline:
+
+```
+Viewer opens page
+  → POST /api/session → backend creates session:
+      - sessionId (uuid)
+      - channel = "commentary-{uuid[:8]}"
+      - viewer token (v007, generated via tokens.py)
+      - lang file = /tmp/commentary_lang_{sessionId}
+  → Returns {sessionId, channel, token, appid}
+  → Viewer joins Agora channel with returned token
+
+Viewer clicks Start
+  → POST /api/session/{id}/start → spawns pipeline for this session
+
+Viewer changes language
+  → GET /api/session/{id}/set-lang?lang=fr → writes to session's lang file
+
+Viewer clicks Stop
+  → POST /api/session/{id}/stop → kills session's pipeline
+```
+
+Multiple viewers can run concurrently with different languages. Each session has its own Agora channel, Go publisher process, TTS engine, and pipeline threads.
+
+## Threading Model (per session)
 
 | Thread | Role |
 |---|---|
-| Main thread | argparse, setup, runs `asyncio` event loop via `run_pipeline()` |
-| Control server | HTTP daemon on port 8090 — `/set-lang`, `/start`, `/stop`, `/status` |
+| Main thread | argparse, setup, HTTP server on port 8090 |
+| Pipeline thread | Per-session: runs `asyncio` event loop via `run_pipeline()` |
 | STT pipeline | Deepgram WebSocket + audio feeder thread |
-| SR events | Sequential event replay thread |
+| SR events | Sequential event replay thread (non-daemon, joins before cleanup) |
 | TTS worker | Processes text queue → ElevenLabs WebSocket → audio buffer |
 | Pipe writer | Drains audio buffer at 10ms rate → Go publisher stdin |
 | Publisher log | 2 threads reading Go publisher stdout/stderr |
@@ -61,17 +87,23 @@ Both feed the same TTSEngine queue. Events are scheduled to play at `match_time 
 ## Component Diagram
 
 ```
-viewer.html ──────────────────────────────────┐
-  │ /set-lang, /start, /stop                  │ Agora Web SDK
-  ▼                                           │ (subscribe)
-ControlHandler (port 8090)                    │
-  │                                           │
-  ▼                                           ▼
-live_match.py ── TTSEngine ── Go publisher ── Agora channel
-  │                │                 │
-  │                ▼                 ▼
-  │           ElevenLabs API    H.264 video file
-  │
-  ├── Deepgram STT (WebSocket)
-  └── Events file reader
+viewer.html ──────────────────────────────────────┐
+  │ POST /api/session                              │ Agora Web SDK
+  │ POST /api/session/{id}/start                   │ (subscribe)
+  │ GET  /api/session/{id}/set-lang?lang=XX        │
+  ▼                                                ▼
+ControlHandler (port 8090) ── SessionManager
+  │                              │
+  │    ┌─────────────────────────┼─────────────┐
+  │    │ Session A               │ Session B    │
+  │    │ channel: commentary-abc │ comm-xyz     │
+  │    │ lang: es                │ lang: fr     │
+  │    ▼                         ▼              │
+  │  TTSEngine ── Go pub ── Agora ch A          │
+  │  TTSEngine ── Go pub ── Agora ch B          │
+  │                                             │
+  ├── Deepgram STT (per session)                │
+  └── Events file reader (per session)          │
+                                                │
+  ElevenLabs API ◀─── TTS engines ─────────────┘
 ```

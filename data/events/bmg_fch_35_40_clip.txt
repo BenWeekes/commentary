@@ -1,5 +1,5 @@
 # Borussia Monchengladbach 2-2 1. FC Heidenheim | 35:00-40:00 | Bundesliga MD28 2026-04-04
-# Synced with video: bundesliga_35_40_720p25_high.h264
+# Synced with video: bmg_fch_match_35_40.h264
 # VAR check at 11s, shots at 1:51 + 1:55, Zivzivadze shot at 4:47
 # Format: offset_seconds|priority|message
 #

@@ -1,5 +1,18 @@
 # L1 — Gotchas
 
+## Source MP4 kickoff offset
+
+The Sportradar BMG vs FCH MP4 (`soccer_germany_bundesliga_8321531_3064k.mp4`) has **29:58 of pre-match content** before kickoff. The second half starts at **1:34:36** file time.
+
+| Moment | File time |
+|---|---|
+| Kickoff | 29:58 |
+| Second half | 1:34:36 |
+
+**Common mistake**: Extracting at `-ss 00:35:00` gives match minute ~5:00, not 35:00. You must add ~30 min to match time: match time 35:00 → file time ~01:05:00.
+
+See `docs/ai/L1/05_workflows.md` for the full extraction formula.
+
 ## Go publisher zombie processes
 
 `live_match.py` launches the Go publisher via `subprocess.Popen` with `preexec_fn=os.setsid` (new process group). The `kill_publisher()` function kills the entire process group with `os.killpg(SIGKILL)`. If the Python process crashes without calling cleanup, the Go publisher and its child processes (Go compiler spawns a child) remain as zombies.
@@ -46,6 +59,10 @@ In the original sportradar repo, data files were at the root. In this repo, they
 
 All CLI examples in the README use the new `data/` prefix paths.
 
+## ElevenLabs TTS returns no audio for short phrases
+
+Very short phrases (e.g., "to Scally.") sometimes produce zero audio bytes from ElevenLabs. The `_tts` method retries once with padded text (`text + "..."`) when this happens. Logs: `[TTS #N] WARNING: No audio received (will retry)`.
+
 ## ElevenLabs WebSocket disconnects
 
 Under load, ElevenLabs WebSocket connections can drop silently. The TTSEngine logs `[TTS #N] WARNING: No audio received` when this happens. The pipeline continues with the next utterance.
@@ -56,7 +73,7 @@ The `TERMS_LIST` contains ~80 terms for keyword boosting. Deepgram has a limit o
 
 ## Hardcoded default App ID in viewer.html
 
-`viewer.html` line 238 has a hardcoded default `APPID`. Override it with `?appid=YOUR_ID` in the URL.
+`viewer.html` has a hardcoded default `APPID`. In multi-session mode, the App ID is returned by `POST /api/session` and overrides the default.
 
 ## Latency drops
 

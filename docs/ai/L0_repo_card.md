@@ -17,12 +17,12 @@
 | File | Topic |
 |---|---|
 | `L1/01_setup.md` | Prerequisites, env vars, install |
-| `L1/02_architecture.md` | 3s delay pipeline, component diagram |
+| `L1/02_architecture.md` | 3s delay pipeline, multi-session architecture, component diagram |
 | `L1/03_code_map.md` | Directory tree, module map |
 | `L1/04_conventions.md` | Naming, voices, pass filtering, JIT translation |
-| `L1/05_workflows.md` | Run modes, add language, generate token |
-| `L1/06_interfaces.md` | Control API, Agora contract, PCM format, events format |
-| `L1/07_gotchas.md` | Zombies, go.mod replace, DYLD_LIBRARY_PATH |
+| `L1/05_workflows.md` | Run modes, clip extraction (with kickoff offset), multi-session viewer |
+| `L1/06_interfaces.md` | Session API, Agora contract, PCM format, events format |
+| `L1/07_gotchas.md` | MP4 kickoff offset, zombies, TTS short phrases, go.mod replace |
 | `L1/08_security.md` | API keys, tokens, CORS |
 
 ## L2 Deep Dives

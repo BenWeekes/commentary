@@ -1,28 +1,41 @@
 # L1 — Interfaces
 
-## Control HTTP API
+## Control HTTP API (Multi-Session)
 
 Served by `ControlHandler` on port 8090 (configurable via `--lang-port`).
 
+### Session management
+
 | Endpoint | Method | Params | Response | Purpose |
 |---|---|---|---|---|
-| `/set-lang` | GET | `?lang=XX` | `{"lang":"XX"}` | Change commentary language |
-| `/start` | GET | none | `{"status":"starting"}` | Start the pipeline |
-| `/stop` | GET | none | `{"status":"stopping"}` | Stop the pipeline |
-| `/status` | GET | none | `{"running":bool,"lang":"XX"}` | Current state |
+| `/api/session` | POST | `?lang=XX` (optional) | `{sessionId, channel, token, appid}` | Create new session |
+| `/api/session/{id}/start` | POST | none | `{"status":"starting"}` | Start session pipeline |
+| `/api/session/{id}/stop` | POST | none | `{"status":"stopping"}` | Stop session pipeline |
+| `/api/session/{id}/set-lang` | GET | `?lang=XX` | `{"lang":"XX"}` | Change session language |
+| `/api/session/{id}/status` | GET | none | `{"running":bool,"lang":"XX"}` | Session state |
 
-All endpoints return JSON with `Access-Control-Allow-Origin: *`.
+### Static file serving
+
+| Endpoint | Method | Response | Purpose |
+|---|---|---|---|
+| `/viewer.html` | GET | HTML | Serves the viewer page |
+
+All endpoints return JSON (except static files) with `Access-Control-Allow-Origin: *`.
 
 ## Agora Channel Contract
 
+Each session gets its own channel (`commentary-{uuid[:8]}`).
+
 | UID | Role | Publishes |
 |---|---|---|
-| 73 | Go publisher | H.264 video + PCM audio (TTS) |
-| 101 | Viewer (browser) | Nothing (audience role) |
+| 73 | Go publisher (per session) | H.264 video + PCM audio (TTS) |
+| Viewer UID | Viewer (browser) | Nothing (audience role) |
 
+- Viewer UID: returned in session creation response
 - Channel profile: live broadcasting
 - Video codec: H.264
 - Audio: PCM 16kHz mono via publisher stdin → Agora SDK
+- Token: v007 format, 1-hour expiry, generated per session via `tokens.py`
 
 ## PCM Audio Format
 
