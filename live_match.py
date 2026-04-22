@@ -870,29 +870,23 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
                         stop_event, match_time_start, lang_file=None,
                         video_delay=VIDEO_DELAY_S):
     """
-    Replay events sequentially — one TTS at a time, no interrupts.
+    Replay events sequentially — one TTS at a time.
 
     Timing: Events fire at match time. Video is delayed by video_delay seconds.
     So we pre-fetch TTS when match time arrives, then schedule playback for
     match_time + video_delay so audio syncs with delayed video.
 
-    Filtering: Simple passes ("to Player." / "Player to Player.") are mostly
-    skipped — only ~1 in 5 are kept to maintain a sense of play-by-play
-    without overwhelming the listener. All INTERRUPT events are always kept.
-
-    Translation is just-in-time (at TTS time, not queue time) so language
-    changes take effect on the next utterance.
+    All events are played including simple passes to fill gaps between
+    live commentary. Translation is just-in-time (at TTS time, not queue
+    time) so language changes take effect on the next utterance.
     """
     events = load_events_file(events_file)
     if not events:
         print(f"[SR] No events in {events_file}")
         return
 
-    # Count types
     total = len(events)
-    passes = sum(1 for _, _, m in events if _is_simple_pass(m))
-    print(f"[SR] Loaded {total} events ({passes} passes, "
-          f"{total - passes} interesting), video_delay={video_delay}s")
+    print(f"[SR] Loaded {total} events, video_delay={video_delay}s")
 
     # Build a translate function that uses current lang + voice at call time
     def make_translate_fn():
@@ -904,19 +898,9 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
             return (translate_text(oai_client, text, cur_lang), vid)
         return translate
 
-    pass_count = 0
-    skipped = 0
-
     for idx, (offset, priority, message) in enumerate(events):
         if stop_event.is_set():
             break
-
-        # Filter simple passes — keep ~1 in 5
-        if priority == "APPEND" and _is_simple_pass(message):
-            pass_count += 1
-            if pass_count % 5 != 0:
-                skipped += 1
-                continue
 
         # Wait until this event's match time arrives
         while not stop_event.is_set():
@@ -946,7 +930,7 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
                   translate_fn=make_translate_fn())
         last_stt_time[0] = time.time()
 
-    print(f"[SR] Events replay finished. Skipped {skipped} simple passes.")
+    print(f"[SR] Events replay finished.")
 
 
 # ─── STT pipeline ────────────────────────────────────────────────────────
