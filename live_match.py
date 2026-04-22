@@ -318,7 +318,7 @@ class ControlHandler(BaseHTTPRequestHandler):
     oai_client = None
 
     # Regex to match /api/session/{id}/{action}
-    _SESSION_RE = _re_module.compile(r'^/api/session/([a-f0-9]+)/(\w+)$')
+    _SESSION_RE = _re_module.compile(r'^/api/session/([a-f0-9]+)/([\w-]+)$')
 
     def _respond(self, code, data):
         body = json.dumps(data).encode()
