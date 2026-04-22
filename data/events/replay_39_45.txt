@@ -1,0 +1,33 @@
+# Real Madrid 1-2 Bayern Munich | Minutes 39-45 | UCL QF 2026-04-07
+# Format: offset_seconds|priority|message
+# Window starts at match clock 38:00 (minute 39)
+# Total speak events: 28
+#
+13|APPEND|Stanisic, Josip whips in a cross but it's cleared.
+68|APPEND|Diaz, Luis whips in a cross but it's cleared.
+107|APPEND|Upamecano, Dayot reads it well and intercepts.
+116|APPEND|Foul by Bayern Munich.
+134|INTERRUPT|Diaz, Luis shoots! It's on target!
+134|INTERRUPT|GOAL! Luis Diaz lashes a right-footed shot home from 10 meters to give Bayern the lead! Gnabry provides the assist for Diaz's fifth goal of the season, making it 1-0 to the visitors.
+232|APPEND|Rudiger, Antonio finds Valverde, Federico.
+277|APPEND|Great tackle by Olise, Michael!
+302|APPEND|Huijsen, Dean finds Carreras, Alvaro.
+308|APPEND|Carreras, Alvaro finds Vinicius Junior.
+314|APPEND|Vinicius Junior takes on his man and beats him!
+335|APPEND|Foul by Bayern Munich.
+335|APPEND|Real Madrid earn a set-piece opportunity out on the flank. This delivery stands approximately 25 meters from the target.
+371|INTERRUPT|Alexander-Arnold unleashes a right-footed rocket from the wing. The 25-meter blast catches a defender and deflects away from the goal frame.
+401|APPEND|Diaz, Luis finds Laimer, Konrad.
+403|APPEND|Laimer, Konrad finds Neuer, Manuel.
+408|APPEND|Neuer, Manuel finds Kimmich, Joshua.
+409|APPEND|Kimmich, Joshua finds Neuer, Manuel.
+410|APPEND|Neuer, Manuel finds Upamecano, Dayot.
+412|APPEND|Upamecano, Dayot finds Stanisic, Josip.
+415|APPEND|Stanisic, Josip loses possession with a stray pass.
+416|APPEND|Carreras, Alvaro finds Guler, Arda.
+420|APPEND|Carreras, Alvaro finds Vinicius Junior.
+420|APPEND|Vinicius Junior finds Guler, Arda.
+420|APPEND|Guler, Arda finds Vinicius Junior.
+420|APPEND|Foul by Real Madrid.
+420|APPEND|Guler, Arda finds Valverde, Federico.
+420|APPEND|Bayern Munich take a narrow 1-0 lead into the halftime interval after Luis Diaz fired home a crucial opening goal in the closing stages of the half. Real Madrid consistently tested the opposition defense with a barrage of attempts from Vinicius Junior and Kylian Mbappe, but the hosts lacked the finishing touch required to find an equalizer. The home side must sharpen their offensive execution to overturn this deficit in the second forty-five, while Bayern will likely look to exploit gaps on the counter utilizing Serge Gnabry's playmaking abilities.

@@ -1,0 +1,35 @@
+# Real Madrid 1-2 Bayern Munich | Minutes 73-75 | UCL QF 2026-04-07
+# Mbappe pulls one back! Variable spacing by sentence length
+# Format: offset_seconds|priority|message
+# Total speak events: 30
+#
+0|APPEND|Great tackle by Alexander-Arnold!
+3|APPEND|Alexander-Arnold to Bellingham.
+6|APPEND|Foul by Bayern Munich.
+11|APPEND|Free kick for Real Madrid.
+14|APPEND|Militao to Alexander-Arnold.
+17|APPEND|Alexander-Arnold to Bellingham.
+21|APPEND|Bellingham to Tchouameni.
+25|APPEND|Tchouameni to Rudiger.
+29|APPEND|Rudiger to Tchouameni.
+35|APPEND|Tchouameni to Bellingham.
+39|APPEND|Bellingham to Alexander-Arnold.
+43|APPEND|Alexander-Arnold to Valverde.
+46|APPEND|Valverde to Alexander-Arnold.
+49|APPEND|Alexander-Arnold to Bellingham.
+52|APPEND|Bellingham to Valverde.
+55|APPEND|Valverde to Alexander-Arnold.
+60|APPEND|Alexander-Arnold delivers a dangerous cross into the box!
+69|INTERRUPT|Mbappe meets a sharp Trent Alexander-Arnold delivery ten meters out, directing a left-footed shot toward the middle of the goal, but the keeper reacts to save and protect the two-goal cushion!
+74|INTERRUPT|Save! The keeper denies Mbappe!
+77|INTERRUPT|Mbappe shoots! On target!
+86|INTERRUPT|MBAPPE! Kylian Mbappe clinicaly converts an Alexander-Arnold delivery from 5 meters to reduce the deficit! He records his 14th goal of the season to make it 1-2.
+108|APPEND|Olise to Musiala.
+111|APPEND|Musiala to Kimmich.
+114|APPEND|Kimmich to Kane.
+121|INTERRUPT|Kane latches on to Kimmich’s delivery ten meters away, but his low right-footed effort pulled past the left upright.
+126|APPEND|Goal kick for Real Madrid.
+138|APPEND|Lunin to Alexander-Arnold.
+141|APPEND|Alexander-Arnold to Bellingham.
+146|APPEND|Stanisic to Kane.
+151|APPEND|Kane whips in a cross but it's cleared.

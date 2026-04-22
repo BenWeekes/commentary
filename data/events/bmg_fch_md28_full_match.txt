@@ -1,0 +1,903 @@
+# Borussia Monchengladbach 2-2 1. FC Heidenheim | Full Match | Bundesliga MD28 2026-04-04
+# Generated from Sportradar Extended API (1089 events)
+# Format: mm:ss|priority|message
+# Total speak events: 898
+#
+00:00|INTERRUPT|Kick-off! Gladbach versus Heidenheim is underway at Borussia-Park!
+00:06|APPEND|Machino to Nicolas.
+00:12|APPEND|Dorsch to Niehues.
+00:19|APPEND|to Busch.
+00:28|APPEND|Elvedi to Nicolas.
+00:30|APPEND|to Diks.
+00:36|APPEND|to Sander.
+00:38|APPEND|to Nicolas.
+00:56|APPEND|Engelhardt to Reitz.
+00:59|APPEND|to Elvedi.
+01:00|APPEND|to Engelhardt.
+01:06|APPEND|to Diks.
+01:09|APPEND|to Engelhardt.
+01:11|APPEND|to Reitz.
+01:12|APPEND|to Honorat.
+01:15|APPEND|to Engelhardt.
+01:22|APPEND|Dorsch to Behrens.
+01:26|APPEND|to Pieringer.
+01:28|APPEND|to Niehues.
+01:30|APPEND|to Dorsch.
+01:33|APPEND|to Busch.
+01:37|APPEND|to Dinkci.
+01:40|APPEND|to Zivzivadze.
+01:43|APPEND|to Busch.
+01:46|APPEND|to Mainka.
+01:48|APPEND|to Busch.
+01:53|APPEND|to Mainka.
+01:56|APPEND|to Ramaj.
+01:58|APPEND|to Fohrenbach.
+02:08|APPEND|Throw-in for Gladbach.
+02:19|APPEND|Nicolas to Engelhardt.
+02:23|APPEND|to Elvedi.
+02:28|APPEND|to Nicolas.
+02:36|APPEND|to Mohya.
+02:56|APPEND|Goal kick for Heidenheim.
+03:10|APPEND|Niehues to Ramaj.
+03:13|APPEND|to Busch.
+03:15|APPEND|to Mainka.
+03:20|APPEND|Castrop to Honorat.
+03:22|APPEND|to Scally.
+03:26|APPEND|to Engelhardt.
+03:30|APPEND|to Elvedi.
+03:33|APPEND|to Diks.
+03:36|APPEND|to Mohya.
+03:37|APPEND|to Castrop.
+03:39|APPEND|to Reitz.
+03:44|APPEND|to Mohya.
+03:47|APPEND|to Sander.
+03:53|APPEND|to Honorat.
+03:55|APPEND|to Scally.
+04:01|APPEND|Smart interception by Behrens.
+04:04|APPEND|Niehues to Ramaj.
+04:14|APPEND|Engelhardt to Honorat.
+04:19|APPEND|Smart interception by Dorsch.
+04:23|APPEND|Honsak to Zivzivadze.
+04:28|APPEND|Foul by Gladbach.
+04:59|APPEND|Mainka to Ramaj.
+05:02|APPEND|to Fohrenbach.
+05:04|APPEND|to Behrens.
+05:05|APPEND|to Fohrenbach.
+05:07|APPEND|to Ramaj.
+05:22|APPEND|Sander to Elvedi.
+05:26|APPEND|to Sander.
+05:29|APPEND|to Elvedi.
+05:40|APPEND|to Mohya.
+05:44|APPEND|to Nicolas.
+05:48|APPEND|to Diks.
+05:54|APPEND|to Honorat.
+06:02|APPEND|Dorsch to Zivzivadze.
+06:08|APPEND|to Dorsch.
+06:10|INTERRUPT|Dinkci tries a right-footed shot from 10 meters, but it's deflected wide.
+06:10|APPEND|Dorsch to Dinkci.
+06:16|APPEND|Niehues to Busch.
+06:24|APPEND|to Mainka.
+06:28|APPEND|to Dorsch.
+06:31|APPEND|to Mainka.
+06:35|APPEND|to Niehues.
+06:37|APPEND|to Mainka.
+06:38|APPEND|to Fohrenbach.
+06:42|APPEND|to Zivzivadze.
+06:46|APPEND|Sander to Scally.
+06:48|APPEND|to Sander.
+06:52|APPEND|to Nicolas.
+06:54|APPEND|to Scally.
+07:00|APPEND|Behrens to Fohrenbach.
+07:03|APPEND|to Ramaj.
+07:06|APPEND|to Mainka.
+07:11|APPEND|to Niehues.
+07:13|APPEND|to Fohrenbach.
+07:19|APPEND|to Ramaj.
+07:36|APPEND|Nicolas to Elvedi.
+07:38|APPEND|to Sander.
+07:41|APPEND|to Reitz.
+07:43|APPEND|to Elvedi.
+07:50|APPEND|to Castrop.
+07:57|APPEND|Great tackle by Dinkci!
+08:12|APPEND|Foul by Gladbach.
+08:54|APPEND|Ramaj to Fohrenbach.
+08:58|APPEND|to Niehues.
+09:08|APPEND|Busch to Pieringer.
+09:09|APPEND|Great tackle by Engelhardt!
+09:10|APPEND|Engelhardt to Diks.
+09:11|APPEND|to Elvedi.
+09:18|APPEND|Behrens to Fohrenbach.
+09:20|APPEND|to Behrens.
+09:22|APPEND|to Dorsch.
+09:26|APPEND|to Niehues.
+09:28|APPEND|to Busch.
+09:31|APPEND|to Mainka.
+09:34|APPEND|to Dorsch.
+09:39|APPEND|to Niehues.
+09:41|APPEND|to Ramaj.
+09:47|APPEND|to Fohrenbach.
+10:02|APPEND|Reitz to Machino.
+10:05|APPEND|Busch to Ramaj.
+10:12|APPEND|Elvedi to Scally.
+10:14|APPEND|to Elvedi.
+10:16|APPEND|to Reitz.
+10:18|APPEND|to Diks.
+10:22|APPEND|to Castrop.
+10:27|APPEND|to Mohya.
+10:35|INTERRUPT|Mohya forces a save with a right-footed effort from 11 meters.
+10:53|APPEND|Ramaj to Dorsch.
+11:00|APPEND|to Fohrenbach.
+11:03|APPEND|to Ramaj.
+11:12|APPEND|Diks to Engelhardt.
+11:15|APPEND|Niehues to Busch.
+11:17|APPEND|to Niehues.
+11:19|APPEND|to Behrens.
+11:21|APPEND|to Pieringer.
+11:25|APPEND|Great tackle by Scally!
+11:29|APPEND|Honorat to Sander.
+11:31|APPEND|to Nicolas.
+11:34|APPEND|to Diks.
+11:39|APPEND|to Engelhardt.
+11:42|APPEND|to Reitz.
+11:47|APPEND|to Elvedi.
+11:50|APPEND|to Engelhardt.
+11:53|APPEND|to Reitz.
+11:56|APPEND|to Sander.
+11:59|APPEND|to Nicolas.
+12:03|APPEND|to Elvedi.
+12:05|APPEND|to Diks.
+12:08|APPEND|to Mohya.
+12:16|APPEND|Smart interception by Busch.
+12:27|APPEND|Sander to Nicolas.
+12:33|APPEND|to Diks.
+12:38|APPEND|to Reitz.
+12:47|APPEND|to Sander.
+13:00|APPEND|Fohrenbach to Ramaj.
+13:01|APPEND|to Fohrenbach.
+13:04|APPEND|to Niehues.
+13:08|APPEND|to Mainka.
+13:11|APPEND|to Busch.
+13:12|APPEND|to Mainka.
+13:15|APPEND|to Ramaj.
+13:17|APPEND|to Fohrenbach.
+13:19|APPEND|to Niehues.
+13:22|APPEND|to Busch.
+13:27|APPEND|to Dinkci.
+13:31|APPEND|Throw-in for Gladbach.
+13:47|APPEND|Sander to Engelhardt.
+13:48|APPEND|to Scally.
+13:54|APPEND|to Sander.
+13:59|APPEND|to Elvedi.
+14:02|APPEND|to Diks.
+14:07|APPEND|to Castrop.
+14:20|APPEND|Foul by Gladbach.
+14:49|APPEND|Ramaj to Busch.
+14:55|APPEND|Reitz to Elvedi.
+15:03|APPEND|Honorat beats his man with a skillful dribble!
+15:05|APPEND|Honorat to Castrop.
+15:11|APPEND|to Mohya.
+15:13|INTERRUPT|GOAL! Mohya fires a right-footed shot into the net from 10 meters! Assisted by Castrop. It's 1-0!
+16:28|APPEND|Engelhardt to Machino.
+16:33|APPEND|Pieringer to Zivzivadze.
+16:34|APPEND|to Dorsch.
+16:37|APPEND|Diks to Machino.
+16:42|APPEND|to Diks.
+16:46|APPEND|Foul by Heidenheim.
+17:03|APPEND|Reitz to Elvedi.
+17:05|APPEND|to Diks.
+17:08|APPEND|to Mohya.
+17:09|APPEND|to Diks.
+17:12|APPEND|to Nicolas.
+17:14|APPEND|to Engelhardt.
+17:19|APPEND|to Machino.
+17:20|APPEND|to Sander.
+17:28|APPEND|Throw-in for Heidenheim.
+17:46|APPEND|Sander to Machino.
+17:48|APPEND|Tackle attempted by Behrens.
+17:48|APPEND|Machino to Honorat.
+17:53|APPEND|Fohrenbach to Ramaj.
+17:57|APPEND|to Fohrenbach.
+18:00|APPEND|to Behrens.
+18:06|APPEND|Engelhardt to Reitz.
+18:13|APPEND|Mainka to Behrens.
+18:17|APPEND|to Niehues.
+18:20|APPEND|to Dorsch.
+18:25|APPEND|to Busch.
+18:28|APPEND|to Mainka.
+18:30|APPEND|to Niehues.
+18:33|APPEND|to Ramaj.
+18:35|APPEND|to Niehues.
+18:37|APPEND|to Mainka.
+18:41|APPEND|to Dorsch.
+18:45|APPEND|to Fohrenbach.
+18:47|APPEND|to Behrens.
+18:50|APPEND|to Ramaj.
+19:02|APPEND|Mainka to Busch.
+19:05|APPEND|to Dorsch.
+19:11|APPEND|to Busch.
+19:15|APPEND|Busch whips in a cross and finds a teammate.
+19:28|INTERRUPT|Behrens tries a right-footed shot from 10 meters, but it's deflected wide.
+20:06|INTERRUPT|Corner kick for Heidenheim, taken by Dorsch.
+20:09|APPEND|Dorsch sends in a cross, but it's cleared.
+20:11|INTERRUPT|Fohrenbach's shot from 12 meters is deflected wide.
+20:17|APPEND|Busch to Dinkci.
+20:18|INTERRUPT|Mainka forces a save from 9 meters.
+20:18|APPEND|Dinkci whips in a cross and finds a teammate.
+20:24|APPEND|Nicolas to Elvedi.
+20:27|APPEND|to Sander.
+20:29|APPEND|to Scally.
+20:31|APPEND|to Machino.
+20:41|APPEND|Scally sends in a cross, but it's cleared.
+20:49|APPEND|Throw-in for Gladbach.
+20:56|APPEND|Scally to Reitz.
+21:00|APPEND|to Diks.
+21:03|APPEND|to Mohya.
+21:05|APPEND|to Castrop.
+21:07|APPEND|to Mohya.
+21:09|APPEND|to Engelhardt.
+21:11|APPEND|to Mohya.
+21:13|APPEND|to Diks.
+21:15|APPEND|to Nicolas.
+21:19|APPEND|to Honorat.
+21:22|APPEND|to Engelhardt.
+21:32|APPEND|Foul by Gladbach.
+22:45|APPEND|Fohrenbach is down injured. Play is stopped.
+23:33|APPEND|Foul by Heidenheim.
+24:17|APPEND|Castrop to Diks.
+24:18|APPEND|to Engelhardt.
+24:20|APPEND|to Castrop.
+24:32|APPEND|Foul by Gladbach.
+24:32|APPEND|Free kick for Heidenheim in a dangerous position, 11 meters from goal.
+25:31|APPEND|Dorsch whips in a cross and finds a teammate.
+25:34|INTERRUPT|GOAL! Mainka scores! Assisted by Dorsch. It's 1-1!
+26:56|APPEND|Goal kick for Gladbach.
+27:08|APPEND|Diks to Nicolas.
+27:12|APPEND|to Machino.
+27:15|APPEND|to Reitz.
+27:23|APPEND|Great tackle by Behrens!
+27:26|APPEND|Throw-in for Gladbach.
+28:02|INTERRUPT|Engelhardt forces a save from 5 meters.
+28:02|APPEND|Scally to Engelhardt.
+28:20|APPEND|Foul by Gladbach.
+28:52|APPEND|Dorsch to Fohrenbach.
+28:54|APPEND|to Mainka.
+28:56|APPEND|to Busch.
+28:59|APPEND|to Fohrenbach.
+29:03|APPEND|to Behrens.
+29:09|APPEND|to Honsak.
+29:18|APPEND|Honorat to Scally.
+29:21|APPEND|to Honorat.
+29:22|APPEND|Honorat sends in a cross, but it's cleared.
+29:30|APPEND|Mohya to Diks.
+29:32|APPEND|to Mohya.
+29:33|APPEND|to Castrop.
+29:35|APPEND|to Mohya.
+29:39|APPEND|to Diks.
+29:41|APPEND|to Mohya.
+29:43|APPEND|to Elvedi.
+29:46|APPEND|to Engelhardt.
+29:48|APPEND|to Mohya.
+29:51|APPEND|to Reitz.
+29:54|APPEND|to Nicolas.
+29:56|APPEND|to Elvedi.
+30:00|APPEND|to Scally.
+30:05|APPEND|to Sander.
+30:07|APPEND|to Reitz.
+30:13|APPEND|to Sander.
+30:15|APPEND|to Scally.
+30:20|APPEND|to Mohya.
+30:22|APPEND|to Machino.
+30:30|APPEND|Dorsch to Busch.
+30:44|APPEND|Reitz to Sander.
+30:48|APPEND|to Reitz.
+30:50|APPEND|to Engelhardt.
+30:52|APPEND|to Honorat.
+30:55|APPEND|to Sander.
+30:58|APPEND|to Reitz.
+31:01|APPEND|to Mohya.
+31:08|APPEND|Mainka to Ramaj.
+31:14|APPEND|Throw-in for Gladbach.
+31:21|APPEND|Sander to Nicolas.
+31:27|APPEND|to Reitz.
+31:30|APPEND|to Engelhardt.
+31:34|APPEND|to Reitz.
+31:37|APPEND|to Engelhardt.
+31:44|APPEND|to Diks.
+31:45|APPEND|to Castrop.
+31:49|APPEND|to Diks.
+31:52|INTERRUPT|Diks forces a save with a right-footed effort from 18 meters.
+32:20|APPEND|Sander to Scally.
+32:21|APPEND|Niehues to Fohrenbach.
+32:25|APPEND|to Ramaj.
+32:35|APPEND|Sander to Nicolas.
+32:39|APPEND|to Castrop.
+32:50|APPEND|to Elvedi.
+32:55|APPEND|Sander to Scally.
+33:02|APPEND|to Reitz.
+33:06|APPEND|Niehues to Pieringer.
+33:11|APPEND|to Dinkci.
+33:25|APPEND|Elvedi to Mohya.
+33:56|APPEND|Fohrenbach to Behrens.
+33:59|APPEND|to Honsak.
+34:02|APPEND|to Fohrenbach.
+34:04|APPEND|to Ramaj.
+34:07|APPEND|to Dorsch.
+34:10|APPEND|to Ramaj.
+34:14|APPEND|to Niehues.
+34:17|APPEND|to Mainka.
+34:18|APPEND|to Dorsch.
+34:34|APPEND|Throw-in for Gladbach.
+35:11|INTERRUPT|VAR check in progress.
+35:15|APPEND|Castrop to Engelhardt.
+35:17|APPEND|to Machino.
+35:19|APPEND|to Scally.
+35:20|APPEND|to Sander.
+35:29|APPEND|to Reitz.
+35:33|APPEND|to Machino.
+35:37|APPEND|Dorsch to Dinkci.
+35:48|APPEND|Foul by Heidenheim.
+36:17|APPEND|Elvedi to Sander.
+36:19|APPEND|to Scally.
+36:23|APPEND|to Nicolas.
+36:32|APPEND|to Diks.
+36:37|APPEND|to Castrop.
+36:40|APPEND|Foul by Heidenheim.
+36:46|APPEND|Castrop to Reitz.
+36:51|INTERRUPT|Reitz's shot from 19 meters is deflected wide.
+36:55|INTERRUPT|Honorat fires a right-footed shot from 17 meters, but it goes wide.
+36:56|APPEND|Goal kick for Heidenheim.
+37:39|APPEND|Dorsch to Fohrenbach.
+37:41|APPEND|to Mainka.
+37:47|APPEND|to Pieringer.
+37:52|APPEND|Throw-in for Gladbach.
+37:56|APPEND|Mohya to Reitz.
+37:57|APPEND|to Diks.
+38:09|APPEND|Zivzivadze to Behrens.
+38:14|APPEND|Behrens sends in a cross, but it's cleared.
+38:19|APPEND|Dinkci to Busch.
+38:20|APPEND|to Mainka.
+38:22|APPEND|to Fohrenbach.
+38:27|APPEND|to Mainka.
+38:30|APPEND|to Busch.
+38:39|APPEND|to Pieringer.
+38:45|APPEND|Throw-in for Gladbach.
+39:00|APPEND|Castrop to Engelhardt.
+39:12|APPEND|Throw-in for Heidenheim.
+39:45|APPEND|Mainka to Zivzivadze.
+39:47|INTERRUPT|Zivzivadze tries a right-footed shot from 8 meters, but it's deflected wide.
+40:02|APPEND|Nicolas to Elvedi.
+40:05|APPEND|to Diks.
+40:07|APPEND|to Mohya.
+40:08|APPEND|to Castrop.
+40:29|APPEND|Niehues to Pieringer.
+40:35|APPEND|Behrens sends in a cross, but it's cleared.
+40:39|APPEND|Nicolas to Elvedi.
+40:42|APPEND|to Scally.
+40:44|APPEND|to Sander.
+40:48|APPEND|to Reitz.
+40:54|APPEND|to Diks.
+40:59|APPEND|to Elvedi.
+41:04|APPEND|to Engelhardt.
+41:06|APPEND|to Elvedi.
+41:08|APPEND|to Reitz.
+41:11|APPEND|to Engelhardt.
+41:12|APPEND|to Machino.
+41:14|APPEND|to Mohya.
+41:18|APPEND|to Castrop.
+41:24|APPEND|Great tackle by Dinkci!
+41:29|INTERRUPT|Yellow card! Castrop is booked for serious foul play.
+41:34|APPEND|Foul by Gladbach.
+42:05|APPEND|Ramaj to Fohrenbach.
+42:07|APPEND|to Mainka.
+42:11|APPEND|to Busch.
+42:14|APPEND|to Mainka.
+42:17|APPEND|to Ramaj.
+42:26|APPEND|Nicolas to Elvedi.
+42:29|APPEND|to Reitz.
+42:31|APPEND|to Nicolas.
+42:48|APPEND|to Mohya.
+42:52|APPEND|Dinkci to Pieringer.
+42:54|APPEND|Tackle attempted by Engelhardt.
+42:54|APPEND|Pieringer to Dinkci.
+42:57|APPEND|to Honsak.
+43:01|INTERRUPT|Honsak forces a save with a left-footed effort from 6 meters.
+43:17|INTERRUPT|Yellow card! Engelhardt is booked for serious foul play.
+43:52|INTERRUPT|Corner kick for Heidenheim, taken by Dorsch.
+43:59|APPEND|Dorsch whips in a cross and finds a teammate.
+44:14|APPEND|Foul by Heidenheim.
+45:00|APPEND|Throw-in for Gladbach.
+45:00|APPEND|Scally to Reitz.
+45:00|APPEND|to Sander.
+45:00|APPEND|to Elvedi.
+45:00|APPEND|Foul by Gladbach.
+45:00|APPEND|Elvedi to Sander.
+45:00|APPEND|to Nicolas.
+45:00|APPEND|to Sander.
+45:00|APPEND|Scally to Diks.
+45:00|INTERRUPT|Mainka forces a save from 9 meters.
+45:00|INTERRUPT|Corner kick for Heidenheim, taken by Dorsch.
+45:00|APPEND|Pieringer whips in a cross and finds a teammate.
+45:00|APPEND|Foul by Heidenheim.
+45:00|APPEND|Dorsch sends in a cross, but it's cleared.
+45:00|INTERRUPT|The second half is underway!
+45:04|APPEND|Pieringer to Ramaj.
+45:21|APPEND|Zivzivadze to Pieringer.
+45:22|APPEND|Elvedi to Sander.
+45:24|APPEND|to Scally.
+45:27|APPEND|to Sander.
+45:29|APPEND|to Nicolas.
+45:39|APPEND|Engelhardt to Reitz.
+45:41|APPEND|to Diks.
+45:42|APPEND|to Castrop.
+45:47|APPEND|Busch to Dinkci.
+45:51|APPEND|Castrop to Diks.
+45:54|APPEND|to Engelhardt.
+45:56|APPEND|to Mohya.
+45:58|APPEND|to Machino.
+46:00|APPEND|Foul by Heidenheim.
+46:18|APPEND|Reitz to Diks.
+46:20|APPEND|to Honorat.
+46:21|APPEND|to Sander.
+46:25|APPEND|to Scally.
+46:26|APPEND|to Honorat.
+46:28|APPEND|to Scally.
+46:30|APPEND|Great tackle by Honsak!
+46:32|APPEND|Niehues to Honsak.
+46:34|APPEND|to Zivzivadze.
+46:40|APPEND|Scally to Honorat.
+46:45|APPEND|Great tackle by Zivzivadze!
+46:46|APPEND|Niehues to Dinkci.
+46:49|INTERRUPT|Dinkci fires a right-footed shot from 22 meters, but it goes wide.
+46:50|APPEND|Goal kick for Gladbach.
+47:10|APPEND|Diks to Nicolas.
+47:20|APPEND|Scally sends in a cross, but it's cleared.
+48:24|APPEND|Substitution for Heidenheim. Stergiou replaces Behrens.
+48:51|INTERRUPT|Corner kick for Gladbach, taken by Honorat.
+48:55|APPEND|Honorat sends in a cross, but it's cleared.
+49:05|APPEND|Scally to Nicolas.
+49:10|APPEND|to Reitz.
+49:20|APPEND|to Honorat.
+49:24|APPEND|to Elvedi.
+49:28|APPEND|to Engelhardt.
+49:33|APPEND|Smart interception by Pieringer.
+49:40|APPEND|Zivzivadze to Dorsch.
+49:43|APPEND|to Fohrenbach.
+49:45|APPEND|to Mainka.
+49:46|APPEND|to Honsak.
+49:52|APPEND|to Fohrenbach.
+50:00|APPEND|to Ramaj.
+50:01|APPEND|to Fohrenbach.
+50:10|APPEND|to Dorsch.
+50:15|APPEND|to Zivzivadze.
+50:23|APPEND|Honorat to Reitz.
+50:29|APPEND|Dorsch to Honsak.
+50:30|APPEND|to Dorsch.
+50:36|APPEND|to Busch.
+50:40|APPEND|Diks to Castrop.
+50:50|APPEND|Dorsch to Dinkci.
+50:54|APPEND|to Mainka.
+50:56|APPEND|to Busch.
+50:59|APPEND|to Mainka.
+51:01|APPEND|to Dorsch.
+51:03|APPEND|to Mainka.
+51:06|APPEND|to Busch.
+51:09|APPEND|to Mainka.
+51:13|APPEND|to Ramaj.
+51:16|APPEND|to Fohrenbach.
+51:19|APPEND|to Mainka.
+51:21|APPEND|to Stergiou.
+51:26|APPEND|to Busch.
+51:27|APPEND|to Dinkci.
+51:29|APPEND|to Stergiou.
+51:33|APPEND|to Fohrenbach.
+51:37|APPEND|to Zivzivadze.
+51:40|APPEND|Nicolas to Sander.
+51:42|APPEND|to Scally.
+51:44|APPEND|to Reitz.
+51:53|APPEND|Elvedi to Nicolas.
+52:25|APPEND|Offside called against Reitz of Gladbach.
+52:37|APPEND|Throw-in for Heidenheim.
+52:52|APPEND|Honsak to Zivzivadze.
+52:57|APPEND|to Fohrenbach.
+52:59|APPEND|Smart interception by Machino.
+53:00|APPEND|Throw-in for Heidenheim.
+53:01|APPEND|Fohrenbach to Ramaj.
+53:03|APPEND|to Fohrenbach.
+53:06|APPEND|to Ramaj.
+53:14|APPEND|Pieringer to Dinkci.
+53:15|APPEND|to Niehues.
+53:18|APPEND|to Stergiou.
+53:20|APPEND|to Dinkci.
+53:22|APPEND|to Stergiou.
+53:23|APPEND|to Niehues.
+53:25|APPEND|to Dorsch.
+53:29|APPEND|to Fohrenbach.
+53:36|APPEND|Throw-in for Heidenheim.
+53:46|APPEND|Fohrenbach to Dorsch.
+53:51|APPEND|to Fohrenbach.
+53:53|APPEND|to Mainka.
+53:55|APPEND|to Ramaj.
+53:57|APPEND|to Fohrenbach.
+54:03|APPEND|to Pieringer.
+54:09|APPEND|to Niehues.
+54:11|APPEND|to Dinkci.
+54:13|APPEND|to Zivzivadze.
+54:20|INTERRUPT|Niehues fires a right-footed shot from 23 meters, but it goes wide.
+54:21|APPEND|Goal kick for Gladbach.
+54:43|APPEND|Diks to Nicolas.
+54:49|APPEND|to Machino.
+54:52|APPEND|to Mohya.
+54:55|APPEND|to Reitz.
+54:58|APPEND|to Machino.
+55:01|APPEND|to Engelhardt.
+55:03|APPEND|to Mohya.
+55:07|APPEND|to Machino.
+55:10|APPEND|to Honorat.
+55:13|APPEND|Honorat sends in a cross, but it's cleared.
+55:31|APPEND|Throw-in for Gladbach.
+55:59|APPEND|Fohrenbach to Ramaj.
+56:14|APPEND|Niehues to Fohrenbach.
+56:16|APPEND|to Dorsch.
+56:20|APPEND|to Mainka.
+56:22|APPEND|to Dorsch.
+56:24|APPEND|to Pieringer.
+56:27|APPEND|to Honsak.
+56:31|APPEND|to Niehues.
+56:33|APPEND|to Dorsch.
+56:35|APPEND|to Niehues.
+56:37|APPEND|to Dinkci.
+56:38|APPEND|to Dorsch.
+56:39|APPEND|to Honsak.
+56:40|APPEND|to Fohrenbach.
+56:44|APPEND|to Dinkci.
+56:48|APPEND|to Honsak.
+56:53|APPEND|to Dorsch.
+56:57|APPEND|to Stergiou.
+56:58|APPEND|to Busch.
+57:00|APPEND|to Mainka.
+57:02|APPEND|to Fohrenbach.
+57:04|APPEND|to Honsak.
+57:07|APPEND|to Mainka.
+57:10|APPEND|to Busch.
+57:15|APPEND|to Stergiou.
+57:17|APPEND|to Dinkci.
+57:20|APPEND|to Mainka.
+57:22|APPEND|to Dorsch.
+57:24|APPEND|to Fohrenbach.
+57:26|APPEND|to Mainka.
+57:29|APPEND|to Ramaj.
+57:31|APPEND|to Busch.
+57:41|APPEND|Diks to Reitz.
+57:45|APPEND|to Mohya.
+57:49|APPEND|to Honorat.
+57:54|APPEND|Busch to Dorsch.
+57:57|APPEND|Dorsch beats his man with a skillful dribble!
+58:03|APPEND|Dorsch to Dinkci.
+58:08|APPEND|Elvedi to Elvedi.
+58:08|APPEND|Smart interception by Elvedi.
+58:10|APPEND|Engelhardt to Mohya.
+58:11|APPEND|to Elvedi.
+58:12|APPEND|Throw-in for Heidenheim.
+58:14|APPEND|Elvedi to Mohya.
+58:53|APPEND|Stergiou to Dorsch.
+58:55|APPEND|to Ramaj.
+59:05|APPEND|Scally to Nicolas.
+59:08|APPEND|to Elvedi.
+59:15|APPEND|to Sander.
+59:25|APPEND|Ramaj to Busch.
+59:28|APPEND|to Ramaj.
+59:39|APPEND|to Stergiou.
+59:50|APPEND|Nicolas to Diks.
+59:52|APPEND|to Elvedi.
+59:56|APPEND|to Nicolas.
+60:03|APPEND|to Castrop.
+60:11|APPEND|Mainka to Busch.
+60:19|APPEND|Zivzivadze to Honsak.
+60:21|APPEND|to Zivzivadze.
+60:23|APPEND|to Honsak.
+60:27|APPEND|to Fohrenbach.
+60:28|APPEND|to Dorsch.
+60:30|APPEND|to Fohrenbach.
+60:32|APPEND|to Honsak.
+60:33|APPEND|to Dorsch.
+60:36|APPEND|to Fohrenbach.
+60:37|APPEND|to Mainka.
+60:39|APPEND|to Fohrenbach.
+60:42|APPEND|to Honsak.
+60:44|APPEND|to Niehues.
+60:47|APPEND|to Dorsch.
+60:51|APPEND|to Fohrenbach.
+60:57|APPEND|to Dinkci.
+61:01|APPEND|to Dorsch.
+61:03|APPEND|to Stergiou.
+61:04|APPEND|to Mainka.
+61:06|APPEND|to Pieringer.
+61:15|APPEND|to Busch.
+61:18|APPEND|Busch sends in a cross, but it's cleared.
+61:19|INTERRUPT|Dinkci fires a right-footed shot from 21 meters, but it goes wide.
+61:21|APPEND|Goal kick for Gladbach.
+61:41|APPEND|Substitution for Heidenheim. Ibrahimovic replaces Honsak.
+61:45|APPEND|Substitution for Heidenheim. Kaufmann replaces Zivzivadze.
+62:14|APPEND|Substitution for Gladbach. Stoger replaces Engelhardt.
+62:20|APPEND|Substitution for Gladbach. Neuhaus replaces Mohya.
+62:39|APPEND|Diks to Nicolas.
+62:42|APPEND|to Sander.
+62:48|APPEND|to Machino.
+62:53|APPEND|Niehues to Pieringer.
+63:00|INTERRUPT|Pieringer tries a right-footed shot from 18 meters, but it's deflected wide.
+63:04|INTERRUPT|GOAL! Busch fires a left-footed shot into the net from 10 meters! It's 1-2!
+64:13|APPEND|Foul by Heidenheim.
+64:33|APPEND|Elvedi to Diks.
+64:36|APPEND|to Stoger.
+64:38|APPEND|to Diks.
+64:50|APPEND|to Elvedi.
+64:55|APPEND|to Scally.
+65:00|APPEND|to Sander.
+65:02|APPEND|to Machino.
+65:14|INTERRUPT|Machino tries a right-footed shot from 17 meters, but it's deflected wide.
+65:22|INTERRUPT|Corner kick for Gladbach, taken by Sander.
+65:34|INTERRUPT|Reitz fires a right-footed shot from 18 meters, but it goes wide.
+65:35|APPEND|Goal kick for Heidenheim.
+65:35|APPEND|Reitz sends in a cross, but it's cleared.
+65:38|APPEND|Neuhaus to Reitz.
+65:54|APPEND|Kaufmann is down injured. Play is stopped.
+67:17|APPEND|Substitution for Heidenheim. Gimber replaces Kaufmann.
+67:18|APPEND|Ramaj to Ibrahimovic.
+67:25|APPEND|Stoger to Neuhaus.
+67:34|APPEND|to Reitz.
+67:36|APPEND|Ibrahimovic to Ramaj.
+67:41|APPEND|to Fohrenbach.
+67:43|APPEND|to Fohrenbach.
+67:48|APPEND|to Dorsch.
+67:51|APPEND|to Gimber.
+67:58|APPEND|Elvedi to Reitz.
+67:59|APPEND|to Honorat.
+68:05|APPEND|Gimber to Ibrahimovic.
+68:10|APPEND|Scally to Sander.
+68:17|APPEND|Busch to Dorsch.
+68:20|APPEND|Reitz to Stoger.
+68:23|APPEND|to Honorat.
+68:25|APPEND|to Stoger.
+68:30|INTERRUPT|Stoger forces a save with a left-footed effort from 23 meters.
+68:59|APPEND|Diks to Castrop.
+69:07|APPEND|Great tackle by Elvedi!
+69:17|APPEND|Stoger to Honorat.
+69:19|APPEND|Honorat tries to dribble past but is dispossessed.
+69:20|APPEND|Foul by Gladbach.
+69:55|APPEND|Substitution for Gladbach. Tabakovic replaces Scally.
+70:02|APPEND|Substitution for Gladbach. Bolin replaces Reitz.
+70:24|APPEND|Pieringer to Dorsch.
+70:27|APPEND|to Fohrenbach.
+70:30|APPEND|Fohrenbach sends in a cross, but it's cleared.
+70:38|APPEND|Throw-in for Gladbach.
+71:00|APPEND|Honorat to Tabakovic.
+71:03|APPEND|to Bolin.
+71:07|APPEND|Bolin sends in a cross, but it's cleared.
+71:20|APPEND|Ramaj to Fohrenbach.
+71:24|APPEND|to Pieringer.
+71:29|APPEND|Honorat to Bolin.
+71:31|APPEND|to Sander.
+71:32|APPEND|to Elvedi.
+71:34|APPEND|to Nicolas.
+71:36|APPEND|to Diks.
+71:37|APPEND|to Neuhaus.
+71:43|APPEND|Smart interception by Gimber.
+71:45|APPEND|Dorsch to Niehues.
+71:47|APPEND|to Dorsch.
+71:50|APPEND|to Stergiou.
+71:51|APPEND|to Busch.
+71:54|APPEND|to Gimber.
+71:56|APPEND|to Ibrahimovic.
+71:58|APPEND|to Fohrenbach.
+72:01|APPEND|to Pieringer.
+72:06|APPEND|to Dorsch.
+72:10|APPEND|Offside called against Dorsch of Heidenheim.
+72:17|APPEND|Foul by Heidenheim.
+72:28|APPEND|Stoger to Neuhaus.
+72:31|APPEND|to Bolin.
+72:35|APPEND|Ibrahimovic to Niehues.
+72:37|APPEND|to Ibrahimovic.
+72:38|APPEND|to Fohrenbach.
+72:41|APPEND|to Niehues.
+72:45|APPEND|to Gimber.
+72:46|APPEND|to Ramaj.
+72:58|APPEND|Diks to Nicolas.
+73:03|APPEND|to Stoger.
+73:06|APPEND|to Neuhaus.
+73:12|APPEND|to Stoger.
+73:15|APPEND|to Castrop.
+73:24|INTERRUPT|Castrop tries a right-footed shot from 17 meters, but it's deflected wide.
+73:39|INTERRUPT|GOAL! Honorat fires a right-footed shot into the net from 10 meters! Assisted by Machino. It's 2-2!
+73:39|APPEND|Neuhaus sends in a cross, but it's cleared.
+74:54|APPEND|Throw-in for Gladbach.
+75:07|APPEND|Foul by Gladbach.
+75:33|APPEND|Ramaj to Pieringer.
+75:36|APPEND|to Ibrahimovic.
+75:51|APPEND|Throw-in for Gladbach.
+75:55|APPEND|Honorat to Sander.
+75:57|APPEND|to Stoger.
+75:59|APPEND|to Machino.
+76:02|APPEND|to Bolin.
+76:05|APPEND|Bolin sends in a cross, but it's cleared.
+76:24|APPEND|Diks to Nicolas.
+76:29|APPEND|to Sander.
+76:31|APPEND|to Honorat.
+76:38|APPEND|to Stoger.
+76:40|APPEND|to Diks.
+76:44|APPEND|to Neuhaus.
+76:49|APPEND|to Castrop.
+76:51|APPEND|to Neuhaus.
+76:56|APPEND|to Bolin.
+77:00|INTERRUPT|Bolin tries a right-footed shot from 15 meters, but it's deflected wide.
+77:03|APPEND|Castrop to Stoger.
+77:07|APPEND|Stoger sends in a cross, but it's cleared.
+77:11|APPEND|Ramaj to Fohrenbach.
+77:15|APPEND|to Ibrahimovic.
+77:19|APPEND|to Dorsch.
+77:24|APPEND|to Dinkci.
+77:28|APPEND|to Fohrenbach.
+77:30|APPEND|to Ibrahimovic.
+77:32|APPEND|to Dorsch.
+77:36|APPEND|to Busch.
+77:38|APPEND|to Stergiou.
+77:42|APPEND|to Busch.
+77:46|APPEND|to Ramaj.
+77:53|APPEND|to Fohrenbach.
+77:57|APPEND|Throw-in for Gladbach.
+78:06|APPEND|Sander to Neuhaus.
+78:08|APPEND|to Machino.
+78:12|APPEND|to Bolin.
+78:14|APPEND|to Honorat.
+78:17|APPEND|to Stoger.
+78:26|APPEND|Honorat sends in a cross, but it's cleared.
+78:42|APPEND|Ramaj to Fohrenbach.
+78:47|APPEND|to Pieringer.
+78:49|APPEND|Throw-in for Gladbach.
+79:02|APPEND|Sander to Nicolas.
+79:04|APPEND|to Neuhaus.
+79:10|APPEND|to Tabakovic.
+79:14|APPEND|Niehues to Busch.
+79:16|APPEND|to Dinkci.
+79:18|APPEND|to Dorsch.
+79:21|APPEND|to Mainka.
+79:25|APPEND|to Gimber.
+79:37|APPEND|Dinkci to Ibrahimovic.
+79:46|INTERRUPT|Yellow card! Elvedi is booked for serious foul play.
+79:52|APPEND|Foul by Gladbach.
+80:43|APPEND|Busch sends in a cross, but it's cleared.
+80:49|APPEND|Bolin to Honorat.
+80:58|APPEND|Great tackle by Stergiou!
+81:01|APPEND|Ibrahimovic to Mainka.
+81:15|APPEND|to Gimber.
+81:16|APPEND|to Ramaj.
+81:22|APPEND|to Busch.
+81:25|APPEND|to Stergiou.
+81:27|APPEND|to Ramaj.
+81:33|APPEND|Elvedi to Diks.
+81:42|APPEND|to Stoger.
+81:44|APPEND|to Machino.
+81:46|APPEND|to Stoger.
+81:51|APPEND|Foul by Heidenheim.
+82:08|APPEND|Tabakovic to Diks.
+82:11|APPEND|to Tabakovic.
+82:12|INTERRUPT|Tabakovic forces a save with a right-footed effort from 15 meters.
+82:19|APPEND|Honorat sends in a cross, but it's cleared.
+82:49|APPEND|Castrop to Neuhaus.
+82:52|APPEND|to Castrop.
+83:03|APPEND|Mainka to Dinkci.
+83:11|APPEND|Diks to Nicolas.
+83:12|APPEND|to Stoger.
+83:29|APPEND|to Castrop.
+83:31|APPEND|to Diks.
+83:34|APPEND|to Neuhaus.
+83:36|APPEND|to Stoger.
+83:40|APPEND|to Sander.
+83:42|APPEND|to Stoger.
+84:16|APPEND|Throw-in for Heidenheim.
+84:37|APPEND|Substitution for Gladbach. Reyna replaces Machino.
+84:45|APPEND|Niehues to Busch.
+84:46|INTERRUPT|Busch tries a right-footed shot from 15 meters, but it's deflected wide.
+84:51|APPEND|Castrop to Reyna.
+84:58|APPEND|Stergiou whips in a cross and finds a teammate.
+85:04|APPEND|Elvedi to Reyna.
+85:10|APPEND|Honorat to Neuhaus.
+85:16|APPEND|to Castrop.
+85:21|APPEND|Mainka to Ramaj.
+85:25|APPEND|to Niehues.
+85:27|APPEND|to Mainka.
+85:29|APPEND|to Gimber.
+85:35|APPEND|to Ibrahimovic.
+85:37|APPEND|to Gimber.
+85:40|APPEND|to Dorsch.
+85:43|APPEND|to Busch.
+85:46|APPEND|to Stergiou.
+85:48|APPEND|to Busch.
+85:51|APPEND|to Stergiou.
+85:53|APPEND|to Ramaj.
+86:05|APPEND|Nicolas to Diks.
+86:09|APPEND|to Reyna.
+86:13|APPEND|to Stoger.
+86:20|APPEND|Smart interception by Niehues.
+86:21|APPEND|Niehues to Ibrahimovic.
+86:24|APPEND|to Pieringer.
+86:30|APPEND|Elvedi to Nicolas.
+86:32|APPEND|to Reyna.
+86:34|APPEND|to Castrop.
+86:36|APPEND|to Reyna.
+86:39|APPEND|to Stoger.
+86:41|APPEND|to Neuhaus.
+86:43|APPEND|to Reyna.
+86:46|APPEND|to Diks.
+86:50|APPEND|to Neuhaus.
+86:55|APPEND|to Sander.
+87:01|APPEND|to Diks.
+87:04|APPEND|to Reyna.
+87:07|APPEND|to Diks.
+87:09|APPEND|to Bolin.
+87:13|APPEND|to Bolin.
+87:16|APPEND|to Tabakovic.
+87:19|APPEND|to Stoger.
+87:20|APPEND|to Castrop.
+87:22|APPEND|to Tabakovic.
+87:31|INTERRUPT|Tabakovic fires a left-footed shot from 5 meters, but it goes wide.
+87:32|APPEND|Goal kick for Heidenheim.
+88:12|APPEND|Throw-in for Gladbach.
+88:15|APPEND|Honorat to Stoger.
+88:18|APPEND|to Elvedi.
+88:20|APPEND|to Diks.
+88:22|APPEND|to Castrop.
+88:25|APPEND|to Diks.
+88:28|APPEND|to Castrop.
+88:33|APPEND|Stergiou to Ramaj.
+88:38|APPEND|Castrop to Tabakovic.
+88:40|APPEND|to Neuhaus.
+88:42|APPEND|to Stoger.
+88:46|APPEND|to Reyna.
+88:49|APPEND|to Diks.
+88:53|APPEND|to Neuhaus.
+88:57|APPEND|to Bolin.
+88:59|APPEND|Bolin sends in a cross, but it's cleared.
+88:59|APPEND|Dinkci to Busch.
+89:05|APPEND|Nicolas to Stoger.
+89:20|INTERRUPT|Reyna's effort from 13 meters goes wide of the target.
+89:23|APPEND|Goal kick for Heidenheim.
+90:00|INTERRUPT|Bolin forces a save with a left-footed effort from 7 meters.
+90:00|APPEND|Throw-in for Gladbach.
+90:00|APPEND|Throw-in for Gladbach.
+90:00|APPEND|Honorat to Nicolas.
+90:00|APPEND|to Tabakovic.
+90:00|APPEND|Ramaj to Gimber.
+90:00|APPEND|to Ibrahimovic.
+90:00|APPEND|Honorat to Bolin.
+90:00|APPEND|to Neuhaus.
+90:00|APPEND|to Honorat.
+90:00|APPEND|Honorat sends in a cross, but it's cleared.
+90:00|APPEND|Stoger to Castrop.
+90:00|APPEND|to Neuhaus.
+90:00|APPEND|to Bolin.
+90:00|APPEND|Castrop to Stoger.
+90:00|APPEND|to Tabakovic.
+90:00|APPEND|Tabakovic sends in a cross, but it's cleared.
+90:00|APPEND|Castrop to Diks.
+90:00|APPEND|to Elvedi.
+90:00|APPEND|to Honorat.
+90:00|APPEND|to Tabakovic.
+90:00|APPEND|Foul by Gladbach.
+90:00|APPEND|Free kick for Heidenheim in a dangerous position, 21 meters from goal.
+90:00|APPEND|Tabakovic to Bolin.
+90:00|APPEND|to Stoger.
+90:00|APPEND|Stoger sends in a cross, but it's cleared.
+90:00|APPEND|Ramaj to Fohrenbach.
+90:00|APPEND|Sander to Reyna.
+90:00|APPEND|to Neuhaus.
+90:00|INTERRUPT|Yellow card for Diks!
+90:00|APPEND|Neuhaus to Reyna.
+90:00|APPEND|to Neuhaus.
+90:00|APPEND|Neuhaus sends in a cross, but it's cleared.
+90:00|APPEND|Honorat to Bolin.
+90:00|APPEND|to Neuhaus.
+90:00|APPEND|Ramaj to Pieringer.
+90:00|APPEND|Ibrahimovic whips in a cross and finds a teammate.
+90:00|APPEND|Nicolas to Bolin.
+90:00|APPEND|Busch to Stergiou.
+90:00|INTERRUPT|The final whistle blows! It ends 2-2! A thrilling draw at Borussia-Park!

@@ -1,0 +1,18 @@
+# Real Madrid 1-2 Bayern Munich | Minutes 73-75 | UCL QF 2026-04-07
+# Mbappe pulls one back! Cross, save, rebound GOAL, then Bayern respond
+# Format: offset_seconds|priority|message
+# Total speak events: 13
+#
+0|APPEND|Great tackle by Alexander-Arnold, Trent!
+6|APPEND|Foul by Bayern Munich.
+16|APPEND|Alexander-Arnold, Trent finds Bellingham, Jude.
+48|APPEND|Bellingham, Jude finds Valverde, Federico.
+51|APPEND|Valverde, Federico finds Alexander-Arnold, Trent.
+55|APPEND|Alexander-Arnold, Trent delivers a dangerous cross into the box!
+60|INTERRUPT|Mbappe meets a sharp Trent Alexander-Arnold delivery ten meters out, directing a left-footed shot toward the middle of the goal, but the keeper reacts to save and protect the two-goal cushion!
+60|INTERRUPT|Save! The keeper denies ?!
+65|INTERRUPT|Mbappe, Kylian shoots! It's on target!
+65|INTERRUPT|MBAPPE! Kylian Mbappe clinicaly converts an Alexander-Arnold delivery from 5 meters to reduce the deficit! He records his 14th goal of the season to make it 1-2.
+118|INTERRUPT|Kane latches on to Kimmich’s delivery ten meters away, but his low right-footed effort pulled past the left upright.
+121|APPEND|Goal kick for Real Madrid.
+149|APPEND|Kane, Harry whips in a cross but it's cleared.

@@ -1,0 +1,25 @@
+# Environment and secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+*.egg-info/
+
+# Go publisher large assets
+go-audio-video-publisher/clips/
+go-audio-video-publisher/encoded_assets/
+go-audio-video-publisher/raw_assets/
+go-audio-video-publisher/agora_rtc_log/
+go-audio-video-publisher/go-audio-video-publisher
+
+# Logs
+*.log
+agora_rtc_log/
+sportradar.live
+
+# OS
+.DS_Store
+Thumbs.db

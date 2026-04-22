@@ -1,0 +1,3 @@
+openai>=1.0.0
+websockets>=12.0
+deepgram-sdk>=3.0.0

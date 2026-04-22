@@ -1,0 +1,1051 @@
+# Real Madrid 1-2 Bayern Munich | Full Match | UCL QF 1st Leg 2026-04-07
+# Generated from Sportradar Extended API (1141 events)
+# Format: mm:ss|priority|message
+# Total speak events: 1046
+#
+00:02|APPEND|Diaz to Neuer.
+00:07|APPEND|Neuer loses possession with a stray pass.
+00:11|APPEND|Pavlovic to Diaz.
+00:12|APPEND|to Upamecano.
+00:13|APPEND|to Stanisic.
+00:14|APPEND|to Olise.
+00:16|APPEND|to Stanisic.
+00:21|APPEND|Throw-in for Real Madrid.
+00:36|APPEND|Carreras loses possession with a stray pass.
+00:41|APPEND|Stanisic to Kimmich.
+00:44|INTERRUPT|Kimmich picks out Laimer 15 meters from goal, but the midfielder's right-footed attempt sailed well over the frame.
+00:46|APPEND|Goal kick for Real Madrid.
+00:47|APPEND|Kimmich to Laimer.
+01:08|APPEND|Huijsen to Lunin.
+01:10|APPEND|to Rudiger.
+01:11|APPEND|to Alexander-Arnold.
+01:14|APPEND|Alexander-Arnold loses possession with a stray pass.
+01:31|APPEND|Laimer to Diaz.
+01:34|APPEND|Throw-in for Bayern Munich.
+01:35|APPEND|Diaz loses possession with a stray pass.
+01:38|APPEND|Throw-in for Real Madrid.
+01:44|APPEND|Alexander-Arnold to Guler.
+01:48|APPEND|to Alexander-Arnold.
+01:54|APPEND|Throw-in for Bayern Munich.
+01:59|APPEND|Laimer to Tah.
+02:00|APPEND|to Upamecano.
+02:01|APPEND|to Laimer.
+02:05|APPEND|to Pavlovic.
+02:06|APPEND|to Pavlovic.
+02:07|APPEND|to Neuer.
+02:09|APPEND|to Upamecano.
+02:15|APPEND|Upamecano loses possession with a stray pass.
+02:16|APPEND|Carreras to Tchouameni.
+02:19|APPEND|to Pitarch Pinar.
+02:20|APPEND|to Carreras.
+02:27|APPEND|Mbappe to Alexander-Arnold.
+02:31|APPEND|Alexander-Arnold loses possession with a stray pass.
+02:36|APPEND|Valverde to Vinicius Junior.
+02:45|APPEND|Throw-in for Real Madrid.
+02:47|APPEND|Great tackle by Upamecano!
+02:50|APPEND|Carreras to Tchouameni.
+02:52|APPEND|to Pitarch Pinar.
+02:53|APPEND|to Rudiger.
+02:56|APPEND|to Huijsen.
+03:01|APPEND|to Rudiger.
+03:06|APPEND|to Huijsen.
+03:10|APPEND|to Guler.
+03:16|APPEND|to Vinicius Junior.
+03:19|APPEND|to Valverde.
+03:28|APPEND|Great tackle by Vinicius Junior!
+03:29|APPEND|to Carreras.
+03:32|APPEND|to Huijsen.
+03:34|APPEND|to Tchouameni.
+03:37|APPEND|to Rudiger.
+03:40|APPEND|to Huijsen.
+03:45|APPEND|to Guler.
+03:47|APPEND|to Vinicius Junior.
+03:52|APPEND|to Huijsen.
+03:54|APPEND|to Rudiger.
+03:57|APPEND|to Pitarch Pinar.
+04:03|APPEND|to Carreras.
+04:09|APPEND|to Pitarch Pinar.
+04:12|APPEND|to Huijsen.
+04:13|APPEND|to Lunin.
+04:16|APPEND|Lunin loses possession with a stray pass.
+04:24|APPEND|Laimer to Tah.
+04:25|APPEND|Throw-in for Bayern Munich.
+04:28|APPEND|Tah to Pavlovic.
+04:30|APPEND|to Tah.
+04:32|APPEND|to Kimmich.
+04:35|APPEND|to Tah.
+04:37|APPEND|to Upamecano.
+04:40|APPEND|to Olise.
+05:00|APPEND|Foul by Real Madrid.
+05:01|APPEND|Bayern Munich earn a dead-ball opportunity in a high-leverage pocket of the final third. The ball is positioned 20 meters from goal in the half-space as the defensive line adjusts.
+06:14|INTERRUPT|Michael Olise crafts an opening in the half-space and unleashes a left-footed strike from 25 meters, but the effort rises too steeply and clears the crossbar.
+06:15|APPEND|Goal kick for Real Madrid.
+06:40|APPEND|Olise prepares to swing in the corner, aiming to record his fifth assist of the campaign and reward the visitors' early dominance.
+07:21|APPEND|Kimmich stands over the quadrant, looking to capitalize on Bayern's persistent early pressure with this delivery.
+07:45|APPEND|Kimmich positions the delivery as Bayern Munich maintain their relentless assault on the Madrid penalty area.
+07:51|APPEND|Upamecano to Pavlovic.
+07:52|APPEND|Valverde to Vinicius Junior.
+07:53|APPEND|Pavlovic to Gnabry.
+08:20|APPEND|Foul by Real Madrid.
+08:46|APPEND|Kimmich to Kimmich.
+08:47|APPEND|to Diaz.
+08:51|APPEND|to Tah.
+09:04|APPEND|Kane to Upamecano.
+09:32|APPEND|Rudiger to Lunin.
+09:34|INTERRUPT|Upamecano finds space in a central channel ten meters from the goal line and steers the effort wide.
+09:35|APPEND|Lunin to Tchouameni.
+09:36|APPEND|to Lunin.
+09:38|APPEND|to Vinicius Junior.
+09:40|APPEND|to Guler.
+09:42|APPEND|to Vinicius Junior.
+09:47|APPEND|Olise loses possession with a stray pass.
+09:49|APPEND|Vinicius Junior to Carreras.
+09:51|APPEND|to Tchouameni.
+09:53|APPEND|to Pitarch Pinar.
+09:58|APPEND|to Huijsen.
+10:00|APPEND|to Carreras.
+10:03|APPEND|to Vinicius Junior.
+10:07|APPEND|to Tchouameni.
+10:12|APPEND|to Lunin.
+10:15|APPEND|to Rudiger.
+10:18|APPEND|Rudiger loses possession with a stray pass.
+10:21|APPEND|Laimer to Diaz.
+10:24|APPEND|to Kimmich.
+10:28|APPEND|to Laimer.
+10:29|APPEND|to Kimmich.
+10:30|APPEND|to Diaz.
+10:34|APPEND|to Pavlovic.
+10:37|APPEND|to Upamecano.
+10:39|APPEND|to Diaz.
+10:44|APPEND|to Stanisic.
+10:47|APPEND|to Diaz.
+10:51|APPEND|Alexander-Arnold loses possession with a stray pass.
+11:01|APPEND|Diaz loses possession with a stray pass.
+11:13|APPEND|Stanisic to Upamecano.
+11:16|APPEND|to Kimmich.
+11:18|APPEND|to Diaz.
+11:24|APPEND|to Laimer.
+11:26|APPEND|to Kimmich.
+11:30|APPEND|to Olise.
+11:43|APPEND|Guler loses possession with a stray pass.
+11:45|APPEND|Upamecano to Neuer.
+11:48|APPEND|to Stanisic.
+11:52|APPEND|to Diaz.
+11:55|APPEND|to Tah.
+11:57|APPEND|to Stanisic.
+12:00|APPEND|to Olise.
+12:05|APPEND|to Pavlovic.
+12:11|APPEND|Guler to Tchouameni.
+12:13|APPEND|Pavlovic loses possession with a stray pass.
+12:14|APPEND|Tchouameni to Carreras.
+12:15|APPEND|to Guler.
+12:20|APPEND|to Valverde.
+12:22|APPEND|to Pitarch Pinar.
+12:26|APPEND|to Alexander-Arnold.
+12:27|APPEND|to Rudiger.
+12:29|APPEND|to Tchouameni.
+12:32|APPEND|to Vinicius Junior.
+12:36|APPEND|to Carreras.
+12:39|APPEND|to Huijsen.
+13:03|APPEND|Goal kick for Bayern Munich.
+13:23|APPEND|Huijsen to Lunin.
+13:27|APPEND|Lunin loses possession with a stray pass.
+13:43|APPEND|Throw-in for Real Madrid.
+13:50|APPEND|Tchouameni to Huijsen.
+13:53|APPEND|to Mbappe.
+13:54|APPEND|to Alexander-Arnold.
+13:58|APPEND|Alexander-Arnold loses possession with a stray pass.
+14:00|APPEND|Laimer to Neuer.
+14:03|APPEND|to Gnabry.
+14:05|APPEND|to Tah.
+14:08|APPEND|to Gnabry.
+14:11|APPEND|to Tah.
+14:12|APPEND|Valverde reads it well and intercepts.
+14:13|APPEND|to Mbappe.
+14:22|APPEND|Foul by Bayern Munich.
+15:09|APPEND|Vinicius Junior to Mbappe.
+15:21|APPEND|Mbappe loses possession with a stray pass.
+15:30|APPEND|Neuer loses possession with a stray pass.
+15:34|APPEND|Alexander-Arnold to Guler.
+15:38|APPEND|to Mbappe.
+15:43|INTERRUPT|Kylian Mbappe bursts through the middle of the final third and strikes from 10 meters, but the shot is saved.
+15:47|INTERRUPT|Vinicius Junior cuts into the half-space and hammers a right-footed shot from 20 meters that rises over the right side of the frame.
+15:50|APPEND|Goal kick for Bayern Munich.
+16:16|APPEND|Neuer to Olise.
+16:18|APPEND|Olise loses possession with a stray pass.
+16:27|APPEND|Foul by Real Madrid.
+16:52|APPEND|Kimmich to Pavlovic.
+16:56|APPEND|to Diaz.
+16:58|APPEND|to Laimer.
+17:01|APPEND|to Diaz.
+17:03|APPEND|to Kimmich.
+17:05|APPEND|to Stanisic.
+17:13|APPEND|to Gnabry.
+17:16|INTERRUPT|Stanisic picks out Gnabry in a central channel 20 meters out; the attacker's left-footed hit deflected off a defender and spiraled wide.
+17:17|APPEND|Gnabry to Kimmich.
+17:20|APPEND|to Olise.
+17:25|APPEND|Laimer to Pavlovic.
+17:27|APPEND|Huijsen to Guler.
+17:28|APPEND|to Mbappe.
+17:29|APPEND|Pavlovic loses possession with a stray pass.
+17:30|APPEND|Arda Guler stands over the set-piece, poised to carve out a definitive opening in this tight quarterfinal clash.
+17:34|APPEND|Mbappe to Vinicius Junior.
+17:42|INTERRUPT|Mbappe feeds Vinicius Junior centrally within the attacking third. Vinicius Junior strikes a low right-footed drive at a distance of 20 meters toward the bottom right corner, forcing a save.
+18:00|APPEND|Guler to Alexander-Arnold.
+18:02|APPEND|to Valverde.
+18:03|APPEND|to Alexander-Arnold.
+18:10|INTERRUPT|Trent Alexander-Arnold feeds Aurelien Tchouameni in a dangerous central position. Tchouameni strikes from 15 meters out, but the ball blazes high and wide of the top right corner.
+18:12|APPEND|Goal kick for Bayern Munich.
+18:31|APPEND|Tah to Upamecano.
+18:35|APPEND|Upamecano loses possession with a stray pass.
+18:47|APPEND|Throw-in for Bayern Munich.
+18:49|APPEND|Olise to Upamecano.
+18:53|APPEND|to Pavlovic.
+18:54|APPEND|to Stanisic.
+18:58|APPEND|to Kimmich.
+19:01|APPEND|to Stanisic.
+19:03|APPEND|to Pavlovic.
+19:07|APPEND|to Tah.
+19:15|APPEND|to Pavlovic.
+19:21|APPEND|to Upamecano.
+19:26|APPEND|to Stanisic.
+19:28|APPEND|to Gnabry.
+19:33|APPEND|to Olise.
+19:44|APPEND|Kimmich loses possession with a stray pass.
+20:07|APPEND|Foul by Bayern Munich.
+20:40|APPEND|Lunin loses possession with a stray pass.
+20:46|APPEND|Tah to Gnabry.
+20:49|APPEND|to Tah.
+20:50|APPEND|to Olise.
+20:53|APPEND|to Stanisic.
+20:55|APPEND|to Olise.
+20:58|APPEND|to Tah.
+21:02|APPEND|to Pavlovic.
+21:05|APPEND|to Laimer.
+21:06|APPEND|to Diaz.
+21:16|APPEND|to Pavlovic.
+21:21|APPEND|to Kimmich.
+21:25|APPEND|to Olise.
+21:28|APPEND|to Stanisic.
+21:31|APPEND|to Upamecano.
+21:33|APPEND|to Diaz.
+21:36|APPEND|to Kimmich.
+21:38|APPEND|to Pavlovic.
+21:43|APPEND|to Gnabry.
+21:44|APPEND|to Pavlovic.
+21:45|APPEND|to Diaz.
+21:50|APPEND|to Pavlovic.
+21:54|APPEND|to Kimmich.
+21:55|APPEND|to Stanisic.
+21:56|APPEND|to Kimmich.
+22:00|APPEND|to Olise.
+22:01|APPEND|to Kane.
+22:07|APPEND|to Laimer.
+22:09|APPEND|to Gnabry.
+22:13|APPEND|to Diaz.
+22:15|APPEND|to Laimer.
+22:21|APPEND|Stanisic to Kimmich.
+22:23|APPEND|to Stanisic.
+22:24|APPEND|to Olise.
+22:30|APPEND|to Stanisic.
+22:33|APPEND|to Upamecano.
+22:36|APPEND|to Tah.
+22:39|APPEND|to Pavlovic.
+22:41|APPEND|to Kimmich.
+22:46|APPEND|to Olise.
+22:50|APPEND|to Kimmich.
+22:53|APPEND|to Upamecano.
+22:55|APPEND|to Gnabry.
+22:56|APPEND|to Upamecano.
+22:57|APPEND|to Pavlovic.
+23:00|APPEND|Mbappe reads it well and intercepts.
+23:02|APPEND|Pavlovic to Tah.
+23:04|APPEND|to Gnabry.
+23:05|APPEND|to Upamecano.
+23:06|APPEND|to Olise.
+23:15|APPEND|Great tackle by Guler!
+23:39|APPEND|Michael Olise readies the delivery at the quadrant as Bayern Munich attempt to convert their set-piece dominance into an advantage.
+23:44|APPEND|Lunin to Guler.
+23:50|APPEND|to Tchouameni.
+23:56|APPEND|to Huijsen.
+23:58|APPEND|to Valverde.
+24:00|APPEND|to Huijsen.
+24:02|APPEND|to Mbappe.
+24:03|APPEND|to Vinicius Junior.
+24:05|APPEND|to Mbappe.
+24:08|APPEND|Mbappe loses possession with a stray pass.
+24:14|APPEND|Goal kick for Bayern Munich.
+24:23|APPEND|Neuer to Tah.
+24:25|APPEND|to Kimmich.
+24:27|APPEND|to Neuer.
+24:28|APPEND|to Upamecano.
+24:35|APPEND|to Olise.
+24:38|APPEND|to Gnabry.
+24:42|APPEND|Great tackle by Huijsen!
+24:43|APPEND|to Pitarch Pinar.
+24:48|APPEND|to Valverde.
+24:49|APPEND|to Mbappe.
+24:51|APPEND|to Valverde.
+24:54|APPEND|to Vinicius Junior.
+25:02|APPEND|Neuer loses possession with a stray pass.
+25:06|APPEND|Alexander-Arnold reads it well and intercepts.
+25:08|INTERRUPT|Trent Alexander-Arnold hammers a low effort from 15 meters in the half-space, but the ball deflected wide after clipping a defender.
+25:27|APPEND|Neuer to Kane.
+25:28|APPEND|Carreras to Valverde.
+25:30|APPEND|Valverde loses possession with a stray pass.
+25:31|APPEND|Kane loses possession with a stray pass.
+25:40|APPEND|Pavlovic to Kane.
+25:41|APPEND|to Upamecano.
+25:44|APPEND|to Stanisic.
+25:50|APPEND|to Pavlovic.
+25:51|APPEND|to Pavlovic.
+25:53|APPEND|to Kimmich.
+25:57|APPEND|to Olise.
+26:05|APPEND|to Kimmich.
+26:12|APPEND|Tchouameni loses possession with a stray pass.
+26:29|APPEND|Goal kick for Real Madrid.
+26:31|APPEND|Lunin to Rudiger.
+26:35|APPEND|to Alexander-Arnold.
+26:37|APPEND|Alexander-Arnold loses possession with a stray pass.
+26:38|APPEND|Kimmich to Olise.
+26:50|APPEND|to Gnabry.
+26:51|APPEND|Lunin to Rudiger.
+26:52|APPEND|to Tchouameni.
+26:55|APPEND|to Lunin.
+26:57|APPEND|to Pitarch Pinar.
+27:12|APPEND|Pitarch Pinar loses possession with a stray pass.
+27:22|INTERRUPT|Gnabry carves out space 15 meters from target. He struck a right-footed attempt, but this effort flew wide.
+27:54|APPEND|Joshua Kimmich stands over the corner flag to deliver a set-piece that could finally break the deadlock in this quarterfinal encounter.
+28:02|APPEND|Lunin to Carreras.
+28:03|APPEND|Goal kick for Real Madrid.
+28:05|APPEND|Carreras to Guler.
+28:08|APPEND|to Vinicius Junior.
+28:09|APPEND|to Valverde.
+28:13|APPEND|to Mbappe.
+28:19|INTERRUPT|Federico Valverde picks out Kylian Mbappe in a central pocket. Mbappe strikes with his right foot from 15 meters, but his effort is saved.
+28:21|APPEND|Pitarch Pinar to Guler.
+28:24|APPEND|to Vinicius Junior.
+28:26|APPEND|to Alexander-Arnold.
+28:28|APPEND|to Mbappe.
+29:17|APPEND|Trent Alexander-Arnold prepares to swing this corner into the box as Real Madrid search for the opening goal.
+29:26|INTERRUPT|Rudiger latches on to the delivery inside the penalty area, but his right-footed strike clears the woodwork and veers wide of the frame from nearly 15 meters out.
+29:28|APPEND|Goal kick for Bayern Munich.
+29:47|APPEND|Tah to Neuer.
+29:52|APPEND|to Pavlovic.
+29:56|APPEND|to Tah.
+29:57|APPEND|to Neuer.
+30:00|APPEND|to Gnabry.
+30:01|APPEND|to Kimmich.
+30:03|APPEND|to Gnabry.
+30:09|APPEND|to Kane.
+30:16|APPEND|to Upamecano.
+30:18|APPEND|to Pavlovic.
+30:20|APPEND|to Kane.
+30:30|APPEND|Kane loses possession with a stray pass.
+30:36|APPEND|Alexander-Arnold to Rudiger.
+30:38|APPEND|Rudiger loses possession with a stray pass.
+30:44|APPEND|Tah to Pavlovic.
+30:47|APPEND|to Kimmich.
+30:50|APPEND|to Pavlovic.
+30:52|APPEND|to Diaz.
+30:53|APPEND|to Pavlovic.
+30:55|APPEND|to Kimmich.
+30:56|APPEND|to Olise.
+30:58|APPEND|to Stanisic.
+31:01|APPEND|to Pavlovic.
+31:04|APPEND|to Diaz.
+31:08|APPEND|to Olise.
+31:09|APPEND|to Kimmich.
+31:24|APPEND|Olise to Kimmich.
+31:28|APPEND|to Pavlovic.
+31:32|APPEND|to Diaz.
+31:33|APPEND|to Kane.
+31:35|APPEND|to Pavlovic.
+31:37|APPEND|to Tah.
+31:40|APPEND|to Upamecano.
+31:41|APPEND|to Gnabry.
+31:43|APPEND|to Upamecano.
+31:45|APPEND|to Kimmich.
+31:48|APPEND|to Olise.
+31:55|APPEND|to Diaz.
+31:59|APPEND|to Kane.
+32:01|APPEND|to Olise.
+32:03|APPEND|to Kimmich.
+32:05|APPEND|to Laimer.
+32:08|APPEND|to Kimmich.
+32:11|APPEND|Kimmich loses possession with a stray pass.
+32:19|APPEND|Carreras to Vinicius Junior.
+32:27|APPEND|to Mbappe.
+32:31|APPEND|to Alexander-Arnold.
+32:35|APPEND|to Mbappe.
+32:37|APPEND|to Guler.
+32:39|APPEND|to Tchouameni.
+32:40|APPEND|to Carreras.
+32:42|APPEND|to Huijsen.
+32:43|APPEND|to Tchouameni.
+32:45|APPEND|to Pitarch Pinar.
+32:47|APPEND|to Rudiger.
+32:51|APPEND|to Huijsen.
+32:54|APPEND|to Guler.
+32:56|APPEND|to Mbappe.
+33:01|APPEND|Vinicius Junior to Guler.
+33:12|APPEND|Huijsen to Lunin.
+33:15|APPEND|to Rudiger.
+33:20|APPEND|to Lunin.
+33:26|APPEND|to Alexander-Arnold.
+33:31|APPEND|to Pitarch Pinar.
+33:33|APPEND|to Tchouameni.
+33:38|APPEND|to Huijsen.
+33:42|APPEND|to Vinicius Junior.
+33:46|APPEND|Vinicius Junior loses possession with a stray pass.
+33:54|APPEND|Laimer to Diaz.
+34:03|APPEND|Pitarch Pinar to Valverde.
+34:06|APPEND|to Guler.
+34:09|APPEND|to Vinicius Junior.
+34:16|INTERRUPT|Arda Guler finds Vinicius Junior drifting into the half-space. Vinicius Junior unleashes a right-footed strike from 25 meters, but the low effort is saved.
+34:17|APPEND|Neuer to Kane.
+34:25|APPEND|Kane loses possession with a stray pass.
+34:30|APPEND|Lunin to Rudiger.
+34:37|APPEND|to Huijsen.
+34:41|APPEND|to Tchouameni.
+34:44|APPEND|to Guler.
+34:46|APPEND|to Huijsen.
+34:50|APPEND|to Tchouameni.
+34:52|APPEND|to Rudiger.
+34:57|APPEND|to Huijsen.
+35:05|APPEND|to Carreras.
+35:08|APPEND|Carreras loses possession with a stray pass.
+35:13|APPEND|Throw-in for Bayern Munich.
+35:18|APPEND|Throw-in for Real Madrid.
+35:30|APPEND|Rudiger to Alexander-Arnold.
+35:33|APPEND|to Lunin.
+35:39|APPEND|Lunin loses possession with a stray pass.
+35:41|APPEND|Olise to Stanisic.
+35:46|APPEND|to Kimmich.
+35:48|APPEND|to Olise.
+35:59|INTERRUPT|Aurelien Tchouameni enters the referee's notebook, picking up his third yellow card of the season with the match still level at zero-zero.
+36:34|APPEND|Foul by Real Madrid.
+36:35|APPEND|Bayern Munich earn a set-piece in a menacing pocket of the half-space. The ball is spotted 25 meters out as the visitors look to capitalize on this dead-ball opportunity.
+36:59|APPEND|Diaz to Pavlovic.
+37:03|APPEND|to Diaz.
+37:08|APPEND|to Gnabry.
+37:10|APPEND|to Kimmich.
+37:16|APPEND|to Stanisic.
+37:18|APPEND|to Olise.
+37:24|APPEND|to Tah.
+37:27|APPEND|to Neuer.
+37:28|APPEND|to Upamecano.
+37:32|APPEND|to Laimer.
+37:33|APPEND|to Pavlovic.
+37:35|APPEND|to Kimmich.
+37:37|APPEND|to Stanisic.
+37:39|APPEND|to Tah.
+37:42|APPEND|to Olise.
+37:47|APPEND|to Kane.
+37:52|APPEND|to Pavlovic.
+37:56|APPEND|to Diaz.
+37:58|APPEND|to Pavlovic.
+38:00|APPEND|to Kimmich.
+38:02|APPEND|to Pavlovic.
+38:05|APPEND|to Kimmich.
+38:07|APPEND|to Olise.
+38:10|APPEND|to Stanisic.
+38:19|APPEND|Mbappe to Carreras.
+38:27|APPEND|Throw-in for Bayern Munich.
+38:32|APPEND|Kimmich to Olise.
+38:33|APPEND|to Kimmich.
+38:34|APPEND|to Olise.
+38:36|APPEND|to Tah.
+38:38|APPEND|to Pavlovic.
+38:40|APPEND|to Gnabry.
+38:43|APPEND|to Pavlovic.
+38:46|APPEND|to Upamecano.
+38:50|APPEND|to Stanisic.
+38:54|APPEND|to Gnabry.
+38:56|APPEND|to Upamecano.
+38:57|APPEND|to Pavlovic.
+39:01|APPEND|to Tah.
+39:03|APPEND|to Laimer.
+39:04|APPEND|to Diaz.
+39:08|APPEND|Diaz loses possession with a stray pass.
+39:15|APPEND|Neuer to Pavlovic.
+39:19|APPEND|Pavlovic loses possession with a stray pass.
+39:24|APPEND|Throw-in for Bayern Munich.
+39:41|APPEND|Alexander-Arnold to Valverde.
+39:43|APPEND|to Alexander-Arnold.
+39:47|APPEND|Upamecano reads it well and intercepts.
+39:55|APPEND|Guler to Tchouameni.
+39:56|APPEND|Foul by Bayern Munich.
+39:59|APPEND|Tchouameni to Carreras.
+40:00|APPEND|to Vinicius Junior.
+40:02|APPEND|Vinicius Junior loses possession with a stray pass.
+40:06|APPEND|Olise to Gnabry.
+40:07|APPEND|to Kane.
+40:08|APPEND|to Gnabry.
+40:10|APPEND|to Diaz.
+40:14|INTERRUPT|GOAL! Luis Diaz lashes a right-footed shot home from 10 meters to give Bayern the lead! Gnabry provides the assist for Diaz's fifth goal of the season, making it 1-0 to the visitors.
+41:39|APPEND|Mbappe to Tchouameni.
+41:42|APPEND|to Carreras.
+41:45|APPEND|to Huijsen.
+41:46|APPEND|to Rudiger.
+41:48|APPEND|to Alexander-Arnold.
+41:50|APPEND|to Rudiger.
+41:52|APPEND|to Valverde.
+41:53|APPEND|Kimmich to Pavlovic.
+41:54|APPEND|to Kimmich.
+41:55|APPEND|Valverde to Guler.
+42:00|APPEND|Diaz to Pavlovic.
+42:03|APPEND|to Upamecano.
+42:07|APPEND|to Kimmich.
+42:09|APPEND|to Olise.
+42:15|APPEND|to Kimmich.
+42:17|APPEND|Kimmich loses possession with a stray pass.
+42:21|APPEND|Carreras loses possession with a stray pass.
+42:25|APPEND|Throw-in for Real Madrid.
+42:36|APPEND|Tchouameni to Huijsen.
+42:37|APPEND|Great tackle by Olise!
+42:39|APPEND|Huijsen to Tchouameni.
+42:43|APPEND|Tchouameni loses possession with a stray pass.
+42:44|APPEND|Throw-in for Real Madrid.
+42:47|APPEND|Carreras to Huijsen.
+42:51|APPEND|to Tchouameni.
+42:54|APPEND|to Valverde.
+42:57|APPEND|to Tchouameni.
+42:59|APPEND|to Huijsen.
+43:02|APPEND|to Carreras.
+43:08|APPEND|to Vinicius Junior.
+43:35|APPEND|Foul by Bayern Munich.
+43:36|APPEND|Real Madrid earn a set-piece opportunity out on the flank. This delivery stands approximately 25 meters from the target.
+44:11|INTERRUPT|Alexander-Arnold unleashes a right-footed rocket from the wing. The 25-meter blast catches a defender and deflects away from the goal frame.
+44:14|APPEND|Mbappe to Pitarch Pinar.
+44:29|APPEND|to Alexander-Arnold.
+44:34|APPEND|Alexander-Arnold loses possession with a stray pass.
+44:41|APPEND|Diaz to Laimer.
+44:43|APPEND|to Neuer.
+44:48|APPEND|to Kimmich.
+44:49|APPEND|to Neuer.
+44:50|APPEND|to Upamecano.
+44:52|APPEND|to Stanisic.
+44:55|APPEND|Stanisic loses possession with a stray pass.
+44:56|APPEND|Carreras to Guler.
+45:00|INTERRUPT|1 minutes of added time.
+45:01|APPEND|Rudiger to Lunin.
+45:02|APPEND|to Huijsen.
+45:03|APPEND|to Carreras.
+45:04|APPEND|to Vinicius Junior.
+45:05|APPEND|to Guler.
+45:06|APPEND|to Vinicius Junior.
+45:07|APPEND|Foul by Real Madrid.
+45:08|APPEND|Guler to Valverde.
+45:09|INTERRUPT|The referee blows for half-time.
+45:15|INTERRUPT|The second half kicks off!
+45:23|APPEND|Mbappe to Tchouameni.
+45:27|APPEND|Great tackle by Pavlovic!
+45:29|APPEND|Tchouameni to Guler.
+45:30|APPEND|Pavlovic to Olise.
+45:32|APPEND|to Kane.
+45:42|INTERRUPT|KANE! Bayern double their advantage as the forward drills a right-footed shot into the bottom corner from 20 meters! Michael Olise provides the assist for the striker to register his 11th goal this campaign.
+46:53|APPEND|Kane to Stanisic.
+46:56|APPEND|to Olise.
+47:17|INTERRUPT|Michael Olise squanders a massive opportunity to further punish Madrid, dragging his shot wide of the target from just 10 meters out in a central position.
+47:28|APPEND|Michael Olise readies the cross from the quadrant, threatening to swing the ball in and further distance Bayern Munich from their shell-shocked opponents.
+47:34|INTERRUPT|Josip Stanisic drives a right-footed effort from 15 meters, but his strike from the half-space took a deflection and skipped wide of the lower left corner.
+47:45|APPEND|Lunin to Guler.
+47:46|APPEND|to Mbappe.
+47:50|APPEND|to Rudiger.
+47:54|APPEND|to Alexander-Arnold.
+47:58|APPEND|to Pitarch Pinar.
+48:02|APPEND|to Rudiger.
+48:03|APPEND|to Huijsen.
+48:08|APPEND|to Vinicius Junior.
+48:11|APPEND|Vinicius Junior loses possession with a stray pass.
+48:13|APPEND|Upamecano to Upamecano.
+48:14|APPEND|Upamecano reads it well and intercepts.
+48:17|APPEND|Great tackle by Guler!
+48:18|APPEND|to Mbappe.
+48:21|APPEND|to Alexander-Arnold.
+48:24|APPEND|to Valverde.
+48:27|APPEND|to Alexander-Arnold.
+48:31|APPEND|to Rudiger.
+48:34|APPEND|to Tchouameni.
+48:36|APPEND|to Huijsen.
+48:38|APPEND|to Guler.
+48:41|APPEND|to Huijsen.
+48:43|APPEND|to Vinicius Junior.
+48:45|APPEND|to Huijsen.
+48:48|APPEND|to Tchouameni.
+48:50|APPEND|to Rudiger.
+48:52|APPEND|to Alexander-Arnold.
+48:55|APPEND|to Valverde.
+49:11|APPEND|Huijsen to Tchouameni.
+49:16|APPEND|to Pitarch Pinar.
+49:20|APPEND|to Mbappe.
+49:24|APPEND|to Tchouameni.
+49:26|APPEND|Tackle by Pavlovic.
+49:27|APPEND|Tchouameni to Mbappe.
+49:28|APPEND|to Tchouameni.
+49:30|APPEND|to Carreras.
+49:32|APPEND|to Vinicius Junior.
+49:42|APPEND|Tchouameni to Guler.
+49:44|APPEND|Throw-in for Real Madrid.
+49:45|APPEND|Guler to Valverde.
+49:48|APPEND|to Carreras.
+49:50|APPEND|to Vinicius Junior.
+49:52|APPEND|to Valverde.
+49:54|APPEND|to Pitarch Pinar.
+49:56|APPEND|to Rudiger.
+50:12|APPEND|Tchouameni to Rudiger.
+50:15|APPEND|to Tchouameni.
+50:19|APPEND|to Carreras.
+50:22|APPEND|to Vinicius Junior.
+50:24|APPEND|to Guler.
+50:26|APPEND|to Vinicius Junior.
+50:39|APPEND|Great tackle by Carreras!
+50:40|APPEND|to Guler.
+50:43|APPEND|to Tchouameni.
+50:49|INTERRUPT|Tchouameni connects with Arda Guler’s pass in the half-space and unleashes a right-footed strike from 30 meters that deflects away from the goal.
+51:07|APPEND|Arda Guler positions himself at the arc, aiming for his fifth assist of the campaign to spark a necessary recovery for Madrid.
+51:12|APPEND|Valverde to Guler.
+51:16|APPEND|to Vinicius Junior.
+51:20|APPEND|Upamecano to Upamecano.
+51:21|APPEND|Great tackle by Upamecano!
+51:22|APPEND|Stanisic to Olise.
+51:24|APPEND|Olise loses possession with a stray pass.
+51:33|APPEND|Guler to Mbappe.
+51:37|APPEND|Throw-in for Bayern Munich.
+51:42|APPEND|Pavlovic to Tah.
+51:43|APPEND|to Pavlovic.
+51:48|APPEND|to Laimer.
+51:52|APPEND|Great tackle by Mbappe!
+51:53|APPEND|to Alexander-Arnold.
+51:55|APPEND|to Rudiger.
+51:58|APPEND|to Huijsen.
+52:03|APPEND|to Rudiger.
+52:06|APPEND|to Huijsen.
+52:11|APPEND|to Tchouameni.
+52:18|APPEND|to Alexander-Arnold.
+52:23|APPEND|to Mbappe.
+52:28|APPEND|Neuer to Kimmich.
+52:31|APPEND|to Olise.
+52:33|APPEND|to Tah.
+52:35|APPEND|to Laimer.
+52:36|APPEND|to Tah.
+52:38|APPEND|to Kimmich.
+52:40|APPEND|Pitarch Pinar reads it well and intercepts.
+52:41|APPEND|Kimmich loses possession with a stray pass.
+52:42|APPEND|Pitarch Pinar to Valverde.
+52:43|APPEND|to Vinicius Junior.
+52:48|INTERRUPT|Vinicius Junior receives a ball from Federico Valverde and drills a left-footed attempt from 25 meters out, but the effort rises too high and clears the crossbar.
+52:52|APPEND|Goal kick for Bayern Munich.
+53:11|APPEND|Foul by Real Madrid.
+53:37|APPEND|Kimmich loses possession with a stray pass.
+53:42|APPEND|Lunin to Rudiger.
+53:46|APPEND|to Alexander-Arnold.
+53:50|APPEND|to Mbappe.
+54:10|APPEND|Foul by Real Madrid.
+54:26|APPEND|Stanisic to Olise.
+54:36|APPEND|Tackle by Alexander-Arnold.
+54:37|APPEND|Kimmich to Laimer.
+54:41|APPEND|to Olise.
+54:42|APPEND|to Laimer.
+54:43|APPEND|to Olise.
+54:44|APPEND|to Pavlovic.
+54:47|APPEND|to Kimmich.
+54:48|APPEND|to Olise.
+54:51|APPEND|to Diaz.
+54:53|APPEND|to Olise.
+54:57|APPEND|to Diaz.
+55:07|APPEND|to Laimer.
+55:11|APPEND|to Tah.
+55:14|APPEND|to Pavlovic.
+55:15|APPEND|to Tah.
+55:16|APPEND|to Gnabry.
+55:18|APPEND|to Tah.
+55:19|APPEND|to Pavlovic.
+55:22|APPEND|to Tah.
+55:23|APPEND|to Kimmich.
+55:27|APPEND|to Upamecano.
+55:30|APPEND|to Stanisic.
+55:31|APPEND|to Neuer.
+55:35|APPEND|to Tah.
+55:37|APPEND|to Pavlovic.
+55:41|APPEND|to Diaz.
+55:46|APPEND|to Olise.
+56:01|INTERRUPT|Michael Olise connects with a pass from Luis Diaz and directs a low, right-footed effort toward the middle of the net from 20 meters, but the attempt is saved.
+56:22|APPEND|Carreras loses possession with a stray pass.
+56:24|APPEND|Throw-in for Real Madrid.
+56:29|APPEND|Carreras to Pitarch Pinar.
+56:31|APPEND|to Carreras.
+56:32|APPEND|to Huijsen.
+56:34|APPEND|Huijsen loses possession with a stray pass.
+56:37|APPEND|Upamecano to Kimmich.
+56:38|APPEND|to Stanisic.
+56:40|APPEND|Stanisic loses possession with a stray pass.
+56:41|APPEND|Rudiger to Lunin.
+56:43|APPEND|to Alexander-Arnold.
+56:47|APPEND|to Rudiger.
+56:50|APPEND|to Tchouameni.
+56:53|APPEND|to Valverde.
+56:55|APPEND|to Huijsen.
+56:57|APPEND|to Pitarch Pinar.
+57:00|APPEND|to Huijsen.
+57:02|APPEND|to Valverde.
+57:03|APPEND|Great tackle by Kane!
+57:07|INTERRUPT|Harry Kane squanders a massive opening from 10 meters as his right-footed effort from the heart of the box rises high and clear of the target!
+57:45|APPEND|Olise prepares to swing a delivery in from the flag, looking for his second assist of the night to potentially kill off the contest.
+57:50|INTERRUPT|Upamecano pounces on the ball in the heart of the area, but the defender sends his effort from 10 meters off target!
+57:55|APPEND|Goal kick for Real Madrid.
+58:11|APPEND|Tah to Kimmich.
+58:12|APPEND|Guler to Pitarch Pinar.
+58:13|APPEND|Kimmich to Upamecano.
+58:14|APPEND|Pitarch Pinar loses possession with a stray pass.
+58:15|APPEND|Upamecano to Kimmich.
+58:18|APPEND|to Stanisic.
+58:21|APPEND|to Upamecano.
+58:24|APPEND|to Neuer.
+58:28|APPEND|to Tah.
+58:34|APPEND|to Kimmich.
+58:36|APPEND|to Gnabry.
+58:49|APPEND|Foul by Real Madrid.
+58:59|APPEND|Pitarch Pinar to Valverde.
+59:00|APPEND|to Alexander-Arnold.
+59:02|APPEND|to Guler.
+59:04|APPEND|to Carreras.
+59:10|APPEND|Throw-in for Bayern Munich.
+59:25|APPEND|Stanisic to Olise.
+59:26|APPEND|to Stanisic.
+59:27|APPEND|to Olise.
+59:29|APPEND|to Olise.
+59:34|APPEND|Foul by Real Madrid.
+60:11|APPEND|Kimmich loses possession with a stray pass.
+60:16|APPEND|Stanisic to Olise.
+60:20|APPEND|to Gnabry.
+60:21|APPEND|to Upamecano.
+60:24|APPEND|to Pavlovic.
+60:28|APPEND|to Laimer.
+60:31|APPEND|to Diaz.
+60:32|APPEND|to Pavlovic.
+60:34|APPEND|to Diaz.
+60:40|APPEND|Diaz loses possession with a stray pass.
+60:42|APPEND|Tchouameni to Tchouameni.
+60:43|APPEND|Tchouameni reads it well and intercepts.
+60:45|APPEND|Alexander-Arnold loses possession with a stray pass.
+60:59|INTERRUPT|Vinicius Junior finds an opening in the half-space but sends his right-footed attempt from 15 meters soaring over the crossbar and beyond the right upright.
+61:05|APPEND|Goal kick for Bayern Munich.
+61:31|APPEND|Substitution for Real Madrid. Bellingham replaces Pitarch Pinar.
+61:45|APPEND|Substitution for Real Madrid. Militao replaces Huijsen.
+61:55|APPEND|Tah to Neuer.
+61:57|APPEND|to Pavlovic.
+62:01|APPEND|to Kimmich.
+62:03|APPEND|to Pavlovic.
+62:05|APPEND|to Kimmich.
+62:07|APPEND|to Neuer.
+62:10|APPEND|Neuer loses possession with a stray pass.
+62:15|APPEND|Kimmich to Neuer.
+62:20|APPEND|Neuer loses possession with a stray pass.
+62:23|APPEND|Gnabry to Laimer.
+62:26|APPEND|to Stanisic.
+62:28|APPEND|to Olise.
+62:38|INTERRUPT|Michael Olise finds space following a pass from Josip Stanisic and lets fly from 20 meters. This left-footed strike lacks precision, sailing over the frame and wide of the left upright.
+62:40|APPEND|Goal kick for Real Madrid.
+62:58|APPEND|Lunin to Alexander-Arnold.
+63:01|APPEND|to Valverde.
+63:04|APPEND|to Bellingham.
+63:05|APPEND|to Militao.
+63:07|APPEND|to Rudiger.
+63:08|APPEND|to Carreras.
+63:13|APPEND|Carreras loses possession with a stray pass.
+63:17|APPEND|Laimer to Pavlovic.
+63:21|APPEND|to Kimmich.
+63:23|APPEND|to Olise.
+64:18|APPEND|Joshua Kimmich positions himself at the flag to deliver a corner, looking to carve out a third goal for the dominant visitors and effectively kill off this quarterfinal tie.
+64:24|INTERRUPT|Luis Diaz pivots in the middle of the final third to unleash a right-footed strike ten meters from goal, seeing a heavy deflection divert it wide of the bottom right corner. Bayern sustain the pressure on a reeling Madrid side.
+64:50|APPEND|Michael Olise prepares the corner as Bayern Munich look to utilize this opportunity to push their two-goal lead toward an unassailable margin.
+64:56|INTERRUPT|Luis Diaz pounces 10 meters from goal but hammers a right-footed strike over the bar and left of the post.
+64:57|APPEND|Goal kick for Real Madrid.
+65:01|APPEND|Lunin to Alexander-Arnold.
+65:04|APPEND|to Guler.
+65:08|APPEND|to Bellingham.
+65:11|APPEND|to Mbappe.
+65:15|APPEND|Arda Guler stands over the set-piece from the quadrant, seeking to craft his fifth assist of the year and haul Real Madrid back into contention.
+65:18|INTERRUPT|Mbappe meets Bellingham’s delivery and tests the goalkeeper with a low, right-footed strike from 15 meters, but the attempt is saved to maintain the two-goal cushion for Munich.
+65:42|APPEND|Arda Guler prepares to whip in a corner that represents a vital opportunity for Real Madrid to ignite a recovery.
+65:43|APPEND|Guler to Valverde.
+65:45|APPEND|to Guler.
+65:53|APPEND|Carreras to Vinicius Junior.
+65:55|APPEND|to Bellingham.
+65:59|APPEND|Bellingham loses possession with a stray pass.
+66:30|INTERRUPT|Eder Militao meets Arda Guler's delivery 15 meters out, but the defender's effort clears the crossbar. Real Madrid's search for a lifeline continues as the attempt sails over the woodwork.
+66:33|APPEND|Goal kick for Bayern Munich.
+66:40|APPEND|Tah to Neuer.
+66:43|APPEND|Neuer loses possession with a stray pass.
+66:49|APPEND|Rudiger to Lunin.
+66:54|APPEND|to Militao.
+66:56|APPEND|to Alexander-Arnold.
+67:00|APPEND|Alexander-Arnold loses possession with a stray pass.
+67:02|APPEND|Kimmich loses possession with a stray pass.
+67:13|APPEND|Foul by Bayern Munich.
+67:31|APPEND|Rudiger to Carreras.
+67:33|APPEND|to Guler.
+67:36|APPEND|to Mbappe.
+67:39|APPEND|Pavlovic to Diaz.
+67:41|APPEND|Great tackle by Alexander-Arnold!
+67:42|APPEND|to Tchouameni.
+67:44|APPEND|to Alexander-Arnold.
+67:45|APPEND|to Bellingham.
+67:49|APPEND|to Militao.
+67:53|APPEND|to Carreras.
+67:55|APPEND|to Mbappe.
+67:57|APPEND|to Vinicius Junior.
+68:00|APPEND|to Mbappe.
+68:05|INTERRUPT|Vinicius Junior feeds Kylian Mbappe in the half-space, but the forward's right-footed drive nearly 15 meters out flashes past the right upright.
+68:08|APPEND|Goal kick for Bayern Munich.
+68:47|APPEND|Substitution for Bayern Munich. Davies replaces Laimer.
+68:54|APPEND|Substitution for Bayern Munich. Musiala replaces Gnabry.
+69:20|APPEND|Tah to Neuer.
+69:25|APPEND|Neuer loses possession with a stray pass.
+69:33|APPEND|Kimmich to Upamecano.
+69:35|APPEND|to Davies.
+69:45|APPEND|to Kane.
+69:47|APPEND|Kane loses possession with a stray pass.
+70:01|APPEND|Rudiger to Carreras.
+70:04|APPEND|to Rudiger.
+70:05|APPEND|to Militao.
+70:11|APPEND|to Mbappe.
+70:18|INTERRUPT|Michael Oliver cautions Jonathan Tah, marking the defender's second booking of the season as Bayern Munich protect a 2-0 lead over Real Madrid.
+70:35|APPEND|Foul by Bayern Munich.
+71:00|APPEND|Substitution for Real Madrid. Diaz replaces Guler.
+71:31|APPEND|Alexander-Arnold to Militao.
+71:34|APPEND|to Alexander-Arnold.
+71:37|APPEND|to Militao.
+71:40|APPEND|to Lunin.
+71:43|APPEND|to Rudiger.
+71:44|APPEND|to Carreras.
+71:48|APPEND|to Diaz.
+71:51|APPEND|to Militao.
+71:55|APPEND|to Bellingham.
+71:57|APPEND|to Mbappe.
+72:00|APPEND|to Diaz.
+72:02|APPEND|Diaz loses possession with a stray pass.
+72:14|APPEND|Foul by Real Madrid.
+72:34|APPEND|Great tackle by Alexander-Arnold!
+72:35|APPEND|to Bellingham.
+72:40|APPEND|Foul by Bayern Munich.
+72:48|APPEND|Militao to Alexander-Arnold.
+72:50|APPEND|to Bellingham.
+72:55|APPEND|to Tchouameni.
+72:59|APPEND|to Rudiger.
+73:03|APPEND|to Tchouameni.
+73:09|APPEND|to Bellingham.
+73:13|APPEND|to Alexander-Arnold.
+73:17|APPEND|to Valverde.
+73:18|APPEND|to Alexander-Arnold.
+73:21|APPEND|to Bellingham.
+73:22|APPEND|to Valverde.
+73:25|APPEND|to Alexander-Arnold.
+73:34|INTERRUPT|Mbappe meets a sharp Trent Alexander-Arnold delivery ten meters out, directing a left-footed shot toward the middle of the goal, but the keeper reacts to save and protect the two-goal cushion!
+73:39|INTERRUPT|MBAPPE! Kylian Mbappe clinicaly converts an Alexander-Arnold delivery from 5 meters to reduce the deficit! He records his 14th goal of the season to make it 1-2.
+74:22|APPEND|Olise to Musiala.
+74:25|APPEND|to Kimmich.
+74:28|APPEND|to Kane.
+74:32|INTERRUPT|Kane latches on to Kimmich’s delivery ten meters away, but his low right-footed effort pulled past the left upright.
+74:35|APPEND|Goal kick for Real Madrid.
+74:52|APPEND|Lunin to Alexander-Arnold.
+74:55|APPEND|to Bellingham.
+75:00|APPEND|Stanisic to Kane.
+75:42|APPEND|Joshua Kimmich prepares the cross at the flag, searching for a clinical response to restore Bayern's comfortable lead and stifle the Madrid resurgence!
+75:46|APPEND|Upamecano loses possession with a stray pass.
+76:08|INTERRUPT|Jonathan Tah unloads a speculative effort from 35 meters out near the touchline, seeing his long-range blast fly harmlessly away from the frame.
+76:09|APPEND|Olise prepares to swing in a delivery that could decisively blunt this Real Madrid resurgence!
+76:12|APPEND|Valverde to Diaz.
+76:16|APPEND|to Vinicius Junior.
+76:30|INTERRUPT|Luis Diaz receives a yellow card, becoming the second Bayern Munich player cautioned as they protect a narrow 2-1 advantage.
+76:35|APPEND|Foul by Bayern Munich.
+76:36|APPEND|Real Madrid earn a set-piece out on the wing. The delivery point is situated roughly 25 meters from the target as the hosts look to level the score.
+77:43|APPEND|Alexander-Arnold prepares to whip in a pivotal corner as Madrid strive for a second to restore parity in this quarterfinal tie!
+77:51|APPEND|Diaz to Alexander-Arnold.
+77:54|APPEND|to Diaz.
+77:55|APPEND|to Carreras.
+77:58|APPEND|to Militao.
+78:02|APPEND|Militao loses possession with a stray pass.
+78:08|APPEND|Pavlovic to Diaz.
+78:12|APPEND|Great tackle by Carreras!
+78:14|APPEND|to Mbappe.
+78:22|APPEND|to Vinicius Junior.
+78:25|APPEND|to Valverde.
+78:27|APPEND|to Tchouameni.
+78:30|APPEND|to Diaz.
+78:33|APPEND|to Alexander-Arnold.
+78:35|APPEND|to Diaz.
+78:42|APPEND|to Rudiger.
+78:43|APPEND|to Diaz.
+78:45|APPEND|to Valverde.
+78:47|APPEND|to Rudiger.
+78:48|APPEND|to Tchouameni.
+78:50|APPEND|to Alexander-Arnold.
+78:51|APPEND|to Bellingham.
+78:57|APPEND|to Diaz.
+79:03|APPEND|to Tchouameni.
+79:05|APPEND|to Alexander-Arnold.
+79:09|APPEND|to Tchouameni.
+79:12|APPEND|to Rudiger.
+79:14|APPEND|to Carreras.
+79:19|APPEND|to Vinicius Junior.
+79:26|APPEND|to Diaz.
+79:30|INTERRUPT|Vinicius Junior finds Brahim Diaz in the heart of the final third. Diaz unleashes a right-footed attempt from 25 meters, but the goalkeeper denies the shot aimed toward the left side of the netting.
+79:44|APPEND|Olise to Stanisic.
+79:45|APPEND|to Kimmich.
+79:49|APPEND|to Diaz.
+79:53|APPEND|to Musiala.
+80:00|APPEND|Militao to Bellingham.
+80:07|APPEND|to Vinicius Junior.
+80:14|APPEND|Vinicius Junior loses possession with a stray pass.
+80:21|APPEND|Stanisic loses possession with a stray pass.
+80:24|APPEND|Rudiger to Militao.
+80:30|APPEND|to Valverde.
+80:37|APPEND|to Vinicius Junior.
+80:47|INTERRUPT|Vinicius Junior drifts beyond the defensive line out on the wing, but the assistant's flag halts the attack 20 meters from the end line. Real Madrid see a promising forward move neutralized as they continue to trail by a single goal.
+81:23|INTERRUPT|Manuel Neuer receives a caution, his second of this continental campaign, as Bayern Munich protect their 2-1 lead in this quarterfinal.
+81:36|APPEND|Neuer loses possession with a stray pass.
+81:41|APPEND|Kimmich to Olise.
+81:43|APPEND|to Neuer.
+81:47|APPEND|to Kimmich.
+81:50|APPEND|to Tah.
+81:53|APPEND|to Pavlovic.
+81:58|APPEND|to Diaz.
+82:01|APPEND|to Pavlovic.
+82:03|APPEND|to Kane.
+82:04|APPEND|to Diaz.
+82:06|APPEND|Diaz loses possession with a stray pass.
+82:07|APPEND|Diaz to Diaz.
+82:08|APPEND|Great tackle by Diaz!
+82:10|APPEND|Tchouameni to Mbappe.
+82:12|APPEND|to Vinicius Junior.
+82:17|INTERRUPT|Vinicius Junior maneuvers into the half-space and connects with a pass from Mbappe to fire a right-footed blast from 20 meters, though the attempt toward the middle of the mouth was denied.
+82:56|APPEND|Alexander-Arnold stands over the quadrant, looking to deliver a set-piece that might pull Madrid level in this high-stakes knockout clash!
+82:58|APPEND|Bellingham loses possession with a stray pass.
+83:01|APPEND|Carreras loses possession with a stray pass.
+83:04|APPEND|Carreras to Rudiger.
+83:07|INTERRUPT|Eder Militao pounces on a pass from Alvaro Carreras in the heart of the offensive zone and hammers a right-footed drive 15 meters out, but the keeper thwarts his blast headed for the upper right corner!
+83:29|APPEND|Foul by Real Madrid.
+83:47|APPEND|Tah to Neuer.
+83:56|APPEND|Neuer loses possession with a stray pass.
+84:03|APPEND|Lunin to Rudiger.
+84:06|APPEND|to Lunin.
+84:11|APPEND|to Alexander-Arnold.
+84:14|APPEND|Alexander-Arnold loses possession with a stray pass.
+84:16|APPEND|Throw-in for Bayern Munich.
+84:31|APPEND|Davies loses possession with a stray pass.
+84:37|APPEND|Diaz to Stanisic.
+84:38|APPEND|to Musiala.
+84:44|APPEND|to Pavlovic.
+84:46|APPEND|to Davies.
+84:49|APPEND|to Musiala.
+84:55|INTERRUPT|Alphonso Davies picks out Jamal Musiala who hammers a low drive from roughly 20 meters out, but Madrid's keeper denies the right-footed attempt aimed inside the bottom-left upright.
+84:58|APPEND|Lunin to Alexander-Arnold.
+85:02|APPEND|to Valverde.
+85:05|APPEND|to Bellingham.
+85:08|APPEND|to Alexander-Arnold.
+85:12|APPEND|Alexander-Arnold loses possession with a stray pass.
+85:17|APPEND|Neuer to Pavlovic.
+85:23|APPEND|to Tah.
+85:26|APPEND|to Neuer.
+85:32|APPEND|to Musiala.
+85:48|INTERRUPT|Jamal Musiala receives his first caution of the campaign for a tactical foul as Bayern Munich struggle to maintain their slender 2-1 lead over Real Madrid.
+85:55|APPEND|Foul by Bayern Munich.
+86:22|APPEND|Alexander-Arnold to Rudiger.
+86:26|APPEND|Rudiger loses possession with a stray pass.
+86:28|APPEND|Goal kick for Bayern Munich.
+86:58|APPEND|Stanisic to Olise.
+86:59|APPEND|to Kimmich.
+87:00|APPEND|to Stanisic.
+87:10|APPEND|to Kimmich.
+87:12|APPEND|to Kane.
+87:14|APPEND|to Olise.
+87:16|APPEND|to Upamecano.
+87:18|APPEND|to Kimmich.
+87:21|APPEND|to Pavlovic.
+87:23|APPEND|to Diaz.
+87:27|APPEND|to Pavlovic.
+87:29|APPEND|to Diaz.
+87:30|APPEND|to Olise.
+87:33|APPEND|Olise loses possession with a stray pass.
+87:37|APPEND|Bellingham to Militao.
+87:41|APPEND|Militao loses possession with a stray pass.
+87:49|APPEND|Pavlovic to Diaz.
+87:51|APPEND|to Kimmich.
+87:52|APPEND|Throw-in for Bayern Munich.
+87:53|APPEND|Kimmich to Diaz.
+87:56|APPEND|to Kane.
+87:57|APPEND|to Kimmich.
+87:58|APPEND|to Diaz.
+88:00|APPEND|to Davies.
+88:09|APPEND|to Musiala.
+88:12|APPEND|Great tackle by Tchouameni!
+88:13|APPEND|to Rudiger.
+88:14|APPEND|to Rudiger.
+88:19|APPEND|Kane to Stanisic.
+88:22|APPEND|to Olise.
+88:31|INTERRUPT|Alphonso Davies picks out Jamal Musiala ten meters out, but the midfielder scuffs his left-footed attempt past the right upright!
+88:33|APPEND|Goal kick for Real Madrid.
+88:34|APPEND|Davies to Musiala.
+88:55|APPEND|Rudiger to Carreras.
+88:56|APPEND|to Vinicius Junior.
+89:02|APPEND|Foul by Bayern Munich.
+89:03|APPEND|Vinicius Junior to Carreras.
+89:04|APPEND|to Mbappe.
+89:12|INTERRUPT|Mbappe connects with Alvaro Carreras' service and hits a right-footed effort from 25 meters that flashes past the post.
+89:15|APPEND|Goal kick for Bayern Munich.
+89:34|APPEND|Neuer to Olise.
+89:39|APPEND|Valverde to Militao.
+89:43|APPEND|to Tchouameni.
+89:47|APPEND|to Militao.
+89:51|APPEND|to Diaz.
+89:56|APPEND|to Bellingham.
+89:58|APPEND|to Alexander-Arnold.
+90:00|INTERRUPT|The final whistle blows! The match is over!
+90:01|APPEND|to Tchouameni.
+90:04|APPEND|to Carreras.
+90:07|APPEND|Carreras loses possession with a stray pass.
+90:10|APPEND|Great tackle by Upamecano!
+90:15|APPEND|Alexander-Arnold prepares to whip in a vital delivery that carries the weight of Madrid's hopes for a last-gasp equalizer!
+90:16|INTERRUPT|4 minutes of added time.
+90:17|APPEND|Pavlovic to Diaz.
+90:18|APPEND|Diaz loses possession with a stray pass.
+90:19|APPEND|Olise to Stanisic.
+90:20|APPEND|to Olise.
+90:21|APPEND|Great tackle by Valverde!
+90:22|APPEND|Throw-in for Bayern Munich.
+90:23|APPEND|Stanisic to Kimmich.
+90:24|APPEND|to Tah.
+90:25|APPEND|to Kimmich.
+90:26|APPEND|to Upamecano.
+90:27|APPEND|to Neuer.
+90:28|APPEND|Neuer loses possession with a stray pass.
+90:29|APPEND|Kane to Davies.
+90:30|APPEND|to Diaz.
+90:31|APPEND|Diaz loses possession with a stray pass.
+90:32|APPEND|Pavlovic to Kimmich.
+90:33|APPEND|to Diaz.
+90:34|INTERRUPT|Luis Diaz mistimes his run and the assistant raises the flag for offside. The Bayern winger strayed behind the defense amidst a congested area, roughly 15 meters from the target.
+90:35|APPEND|Substitution for Bayern Munich. Goretzka replaces Pavlovic.
+90:36|APPEND|Substitution for Bayern Munich. Bischof replaces Diaz.
+90:37|APPEND|Tchouameni loses possession with a stray pass.
+90:38|APPEND|Olise to Kane.
+90:39|APPEND|Foul by Real Madrid.
+90:40|APPEND|Kimmich to Kane.
+90:41|APPEND|Rudiger to Lunin.
+90:42|APPEND|to Carreras.
+90:43|APPEND|Kane to Olise.
+90:44|APPEND|Carreras to Tchouameni.
+90:45|APPEND|to Valverde.
+90:46|APPEND|to Diaz.
+90:47|APPEND|Carreras to Bellingham.
+90:48|APPEND|to Vinicius Junior.
+90:49|APPEND|Vinicius Junior loses possession with a stray pass.
+90:50|APPEND|Stanisic to Neuer.
+90:51|APPEND|Neuer loses possession with a stray pass.
+90:52|APPEND|Rudiger loses possession with a stray pass.
+90:53|APPEND|Alexander-Arnold loses possession with a stray pass.
+90:54|APPEND|Kimmich to Upamecano.
+90:55|APPEND|Rudiger to Militao.

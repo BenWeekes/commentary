@@ -1,0 +1,21 @@
+# Real Madrid 1-2 Bayern Munich | Minutes 74-75 | UCL QF 2026-04-07
+# Mbappe goal sequence — 60s demo cut
+# Format: offset_seconds|priority|message
+# Total speak events: 16
+#
+0|APPEND|Valverde to Alexander-Arnold.
+2|APPEND|Alexander-Arnold to Bellingham.
+4|APPEND|Bellingham to Valverde.
+6|APPEND|Valverde to Alexander-Arnold.
+8|APPEND|Alexander-Arnold delivers a dangerous cross into the box!
+12|INTERRUPT|Mbappe meets a sharp Trent Alexander-Arnold delivery ten meters out, directing a left-footed shot toward the middle of the goal, but the keeper reacts to save and protect the two-goal cushion!
+23|INTERRUPT|Save! The keeper denies Mbappe!
+26|INTERRUPT|Mbappe shoots! On target!
+28|INTERRUPT|MBAPPE! Kylian Mbappe clinicaly converts an Alexander-Arnold delivery from 5 meters to reduce the deficit! He records his 14th goal of the season to make it 1-2.
+40|APPEND|Bayern restart from the centre circle.
+44|APPEND|Olise to Musiala.
+46|APPEND|Musiala to Kimmich.
+48|APPEND|Kimmich to Kane.
+50|INTERRUPT|Kane latches on to Kimmich's delivery ten meters away, but his low right-footed effort pulled past the left upright.
+57|APPEND|Goal kick for Real Madrid.
+60|APPEND|Lunin plays it short to Alexander-Arnold.
