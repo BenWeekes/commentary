@@ -59,25 +59,41 @@ python3 live_match.py \
 
 ## Viewer
 
-Open `viewer.html` in a browser with query params:
+### Local testing with nginx
+
+If you serve `~/work/` over HTTPS with nginx (e.g., root at `/Users/YOU/work`), the viewer is available at:
 
 ```
-viewer.html?appid=YOUR_APP_ID&channel=sportradar-live&token=YOUR_TOKEN&lang=es
+https://localhost/commentary/viewer.html?appid=YOUR_APP_ID&channel=sportradar-live&token=YOUR_TOKEN&lang=es
 ```
 
-Generate a viewer token:
+### Generate a viewer token
 
-```python
+```bash
+cd commentary
+python3 -c "
 from tokens import AccessToken, ServiceRtc
+import os
 
-token = AccessToken("YOUR_APP_ID", "YOUR_APP_CERT")
-rtc = ServiceRtc("sportradar-live", 101)
+# reads from .env or environment
+app_id = os.environ.get('AGORA_APP_ID', '')
+app_cert = os.environ.get('AGORA_APP_CERT', '')
+
+token = AccessToken(app_id, app_cert)
+rtc = ServiceRtc('sportradar-live', 101)
 rtc.add_privilege(ServiceRtc.kPrivilegeJoinChannel, 0)
 token.add_service(rtc)
-print(token.build())
+t = token.build()
+
+print(f'https://localhost/commentary/viewer.html?appid={app_id}&channel=sportradar-live&token={t}&lang=es')
+"
 ```
 
-The viewer connects to the Agora channel as audience UID 101 and subscribes to the publisher's video and translated audio streams. Use the language dropdown to switch commentary language in real time.
+This prints a complete URL you can open directly in your browser.
+
+### How it works
+
+The viewer connects to the Agora channel as audience UID 101 and subscribes to the publisher's video and translated audio streams. Use the language dropdown to switch commentary language in real time. Click **Start** to tell `live_match.py` to begin publishing (or pass `--autostart` to skip the button).
 
 ## Scripts
 
