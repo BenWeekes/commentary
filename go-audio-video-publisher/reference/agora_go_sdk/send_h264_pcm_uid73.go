@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 	"unsafe"
 
@@ -61,6 +62,12 @@ func main() {
 	}
 	if len(args) >= 5 {
 		audioFile = args[4]
+	}
+	videoDelaySec := 0.0
+	if len(args) >= 6 {
+		if v, err := strconv.ParseFloat(args[5], 64); err == nil {
+			videoDelaySec = v
+		}
 	}
 
 	cert := os.Getenv("AGORA_APP_CERTIFICATE")
@@ -153,8 +160,6 @@ func main() {
 	}
 
 	audioErr := make(chan error, 1)
-	audioStarted := false
-	videoStart := time.Now()
 
 	pFormatContext := openMediaFile(videoFile)
 	if pFormatContext == nil {
@@ -167,6 +172,23 @@ func main() {
 	streamInfo := getStreamInfo(pFormatContext)
 	codecParam := (*C.struct_AVCodecParameters)(unsafe.Pointer(streamInfo.codecpar))
 	sendInterval := 1000 * int64(codecParam.framerate.den) / int64(codecParam.framerate.num)
+
+	// Start audio immediately (reads from stdin), before video delay
+	if rc := con.PublishAudio(); rc != 0 {
+		fmt.Printf("PublishAudio failed: %d\n", rc)
+		con.Disconnect()
+		return
+	}
+	go func() {
+		audioErr <- sendRawPCM(con, audioFile, stop)
+	}()
+	fmt.Println("audio publishing started")
+
+	if videoDelaySec > 0 {
+		fmt.Printf("delaying video by %.1fs\n", videoDelaySec)
+		time.Sleep(time.Duration(videoDelaySec * float64(time.Second)))
+		fmt.Println("video delay complete, starting video")
+	}
 
 	for {
 		select {
@@ -183,18 +205,7 @@ func main() {
 		default:
 		}
 
-		if !audioStarted && time.Since(videoStart) >= 2*time.Second {
-			if rc := con.PublishAudio(); rc != 0 {
-				fmt.Printf("PublishAudio failed: %d\n", rc)
-				con.Disconnect()
-				return
-			}
-			go func() {
-				audioErr <- sendRawPCM(con, audioFile, stop)
-			}()
-			audioStarted = true
-			fmt.Println("audio publishing started after video warmup")
-		}
+		// Audio already started before video loop
 
 		ret := int(C.av_read_frame(pFormatContext, packet))
 		if ret < 0 {

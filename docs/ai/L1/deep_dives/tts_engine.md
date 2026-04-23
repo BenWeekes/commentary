@@ -29,7 +29,7 @@ speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf 
 
 ### _pipe_writer thread
 
-- Waits for `_playback_ready` event
+- Blocks on `_playback_ready.wait()` — wakes instantly when event is set (no polling delay)
 - Drains `_audio_buf` at exactly 10ms intervals
 - Writes 320-byte chunks to `self.audio_pipe` (Go publisher stdin)
 - No silence is ever sent — Go publisher handles silence internally
@@ -54,6 +54,14 @@ Timeline for one utterance:
 ```python
 play_at = match_time_start + event_offset + video_delay
 ```
+
+### Precision targeting (±100ms)
+
+The hold uses a two-phase approach for sub-10ms accuracy:
+1. **Coarse sleep**: `time.sleep(wait_s - 0.05)` — sleeps until 50ms before target
+2. **Tight spin**: busy-wait `while time.time() < play_at` — hits ±1ms
+
+The pipe writer blocks on `threading.Event.wait()` instead of polling, so it wakes within microseconds of `_playback_ready.set()`. Combined, the total chain from `play_at` to first PCM byte on stdin is <5ms.
 
 ## Interrupt Flow
 

@@ -15,6 +15,11 @@ go-audio-video-publisher/raw_assets/
 go-audio-video-publisher/agora_rtc_log/
 go-audio-video-publisher/go-audio-video-publisher
 
+# Large media (regenerate from source MP4 — see README)
+*.h264
+*.pcm
+*.wav
+
 # Logs
 *.log
 agora_rtc_log/

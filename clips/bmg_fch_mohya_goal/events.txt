@@ -1,0 +1,11 @@
+# Borussia Monchengladbach 2-2 1. FC Heidenheim | 14:40-15:40 | Bundesliga MD28
+# Synced with video: video.h264 / video_debug.h264
+# Mohya goal at 33s! Build-up: Honorat dribble at 23s, Honorat to Castrop at 25s
+# Format: offset_seconds|priority|message
+#
+9|APPEND|Ramaj to Busch.
+15|APPEND|Reitz to Elvedi.
+23|APPEND|Honorat beats his man with a skillful dribble!
+25|APPEND|Honorat to Castrop.
+31|APPEND|to Mohya.
+33|INTERRUPT|GOAL! Mohya fires a right-footed shot into the net from 10 meters! Assisted by Castrop. It's 1-0!

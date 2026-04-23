@@ -1,0 +1,43 @@
+# Borussia Monchengladbach 2-2 1. FC Heidenheim | 35:00-40:00 | Bundesliga MD28 2026-04-04
+# Synced with video: bmg_fch_match_35_40.h264
+# VAR check at 11s, shots at 1:51 + 1:55, Zivzivadze shot at 4:47
+# Format: offset_seconds|priority|message
+#
+11|INTERRUPT|VAR check in progress.
+15|APPEND|Castrop to Engelhardt.
+17|APPEND|to Machino.
+19|APPEND|to Scally.
+20|APPEND|to Sander.
+29|APPEND|to Reitz.
+33|APPEND|to Machino.
+37|APPEND|Dorsch to Dinkci.
+48|APPEND|Foul by Heidenheim.
+77|APPEND|Elvedi to Sander.
+79|APPEND|to Scally.
+83|APPEND|to Nicolas.
+92|APPEND|to Diks.
+97|APPEND|to Castrop.
+100|APPEND|Foul by Heidenheim.
+106|APPEND|Castrop to Reitz.
+111|INTERRUPT|Reitz's shot from 19 meters is deflected wide.
+115|INTERRUPT|Honorat fires a right-footed shot from 17 meters, but it goes wide.
+116|APPEND|Goal kick for Heidenheim.
+159|APPEND|Dorsch to Fohrenbach.
+161|APPEND|to Mainka.
+167|APPEND|to Pieringer.
+172|APPEND|Throw-in for Gladbach.
+176|APPEND|Mohya to Reitz.
+177|APPEND|to Diks.
+189|APPEND|Zivzivadze to Behrens.
+194|APPEND|Behrens sends in a cross, but it's cleared.
+199|APPEND|Dinkci to Busch.
+200|APPEND|to Mainka.
+202|APPEND|to Fohrenbach.
+207|APPEND|to Mainka.
+210|APPEND|to Busch.
+219|APPEND|to Pieringer.
+225|APPEND|Throw-in for Gladbach.
+240|APPEND|Castrop to Engelhardt.
+252|APPEND|Throw-in for Heidenheim.
+285|APPEND|Mainka to Zivzivadze.
+287|INTERRUPT|Zivzivadze tries a right-footed shot from 8 meters, but it's deflected wide.

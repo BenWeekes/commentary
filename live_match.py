@@ -52,6 +52,7 @@ import json
 import os
 import queue
 import re as _re_module
+import selectors
 import signal
 import subprocess
 import sys
@@ -89,7 +90,7 @@ _load_dotenv()
 
 AGORA_APP_ID = os.environ.get("AGORA_APP_ID", "")
 AGORA_APP_CERT = os.environ.get("AGORA_APP_CERT", "")
-VIDEO_DELAY_S = 3.0
+VIDEO_DELAY_S = 7.0
 MAX_LATENCY_S = 3.5
 SILENCE_GAP_S = 2.0
 
@@ -345,6 +346,7 @@ class ControlHandler(BaseHTTPRequestHandler):
                 "token": session.token,
                 "uid": session.viewer_uid,
                 "appid": AGORA_APP_ID,
+                "videoDelay": ControlHandler.args.video_delay if ControlHandler.args else 0,
             })
             return
 
@@ -359,6 +361,21 @@ class ControlHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         qs = parse_qs(parsed.query)
+
+        # Serve viewer.html
+        if parsed.path in ("/", "/viewer.html"):
+            viewer_path = os.path.join(os.path.dirname(__file__) or ".", "viewer.html")
+            try:
+                with open(viewer_path, "rb") as f:
+                    data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+            except FileNotFoundError:
+                self._respond(404, {"error": "viewer.html not found"})
+            return
 
         m = self._SESSION_RE.match(parsed.path)
         if m:
@@ -377,6 +394,7 @@ class ControlHandler(BaseHTTPRequestHandler):
             if session.pipeline_running:
                 self._respond(200, {"status": "already_running"})
             else:
+                session.pipeline_running = True  # Set before spawn to prevent race
                 session.stop_event.clear()
                 session.start_event.set()
                 # Spawn pipeline thread for this session
@@ -487,9 +505,14 @@ def translate_text(oai_client, text, lang):
 
 # ─── ElevenLabs TTS (WebSocket streaming) ────────────────────────────────
 
-def _ts():
-    """Current clock time for log stamps."""
-    return time.strftime("%H:%M:%S")
+def _ts(video_start=None):
+    """Current clock time for log stamps, with optional video-relative time."""
+    wall = time.strftime("%H:%M:%S")
+    if video_start is not None:
+        vt = time.time() - video_start
+        m, s = divmod(vt, 60)
+        return f"{wall} V+{int(m):02d}:{s:05.2f}"
+    return wall
 
 
 class TTSEngine:
@@ -526,8 +549,22 @@ class TTSEngine:
         self.on_idle = None  # set externally: callable()
         # Track speaking state
         self.is_speaking = threading.Event()
+        # SR (Sportradar) separate audio buffer — fed by SRPrefetcher
+        self._sr_audio_buf = collections.deque()
+        self._sr_buf_lock = threading.Lock()
+        self._sr_playback_ready = threading.Event()
+        # Wakes pipe writer for either STT or SR audio
+        self._any_playback_ready = threading.Event()
+        # When set, TTS worker discards current utterance output (SR GOAL playing)
+        self._stt_suppressed = threading.Event()
         # Stats
         self._utterance_id = 0
+        # Video-relative timestamp (set by pipeline after publisher starts)
+        self.video_start = None
+
+    def _vts(self):
+        """Timestamp with video-relative time if available."""
+        return _ts(self.video_start)
 
     def start(self):
         """Start pipe-writer and TTS worker threads."""
@@ -536,32 +573,55 @@ class TTSEngine:
 
     def _pipe_writer(self):
         """
-        Drains audio buffer at 10ms rate. Waits for _playback_ready before
-        starting each utterance — full pre-buffer eliminates underruns.
+        Drains audio buffers at 10ms rate. Checks both STT (_audio_buf) and
+        SR (_sr_audio_buf). STT has priority: if STT audio becomes ready while
+        SR is playing, SR is interrupted. SR never interrupts STT.
         """
         while not self._stop.is_set():
-            # Wait until a complete utterance is buffered
-            self._playback_ready.wait(timeout=0.1)
+            # Block until either source has audio ready
+            while not self._stop.is_set():
+                if self._any_playback_ready.wait(timeout=0.5):
+                    break
             if self._stop.is_set():
                 break
-            if not self._playback_ready.is_set():
+
+            self._any_playback_ready.clear()
+
+            # Determine source: STT has priority
+            if self._playback_ready.is_set():
+                source = "STT"
+                self._playback_ready.clear()
+                buf = self._audio_buf
+                lock = self._buf_lock
+            elif self._sr_playback_ready.is_set():
+                source = "SR"
+                self._sr_playback_ready.clear()
+                buf = self._sr_audio_buf
+                lock = self._sr_buf_lock
+            else:
                 continue
 
-            self._playback_ready.clear()
-
-            with self._buf_lock:
-                n_chunks = len(self._audio_buf)
+            with lock:
+                n_chunks = len(buf)
             if n_chunks == 0:
                 continue
 
-            print(f"  [{_ts()}] [PIPE] Playback started — {n_chunks * 10}ms buffered")
+            print(f"  [{self._vts()}] [PIPE] {source} playback started — {n_chunks * 10}ms buffered")
             next_tick = time.monotonic()
 
             while not self._stop.is_set() and not self._interrupt.is_set():
+                # During SR playback, check if STT has become ready — interrupt SR
+                if source == "SR" and self._playback_ready.is_set():
+                    with self._sr_buf_lock:
+                        self._sr_audio_buf.clear()
+                    print(f"  [{self._vts()}] [PIPE] SR interrupted by STT")
+                    # Don't clear _any_playback_ready — STT needs it
+                    break
+
                 chunk = None
-                with self._buf_lock:
-                    if self._audio_buf:
-                        chunk = self._audio_buf.popleft()
+                with lock:
+                    if buf:
+                        chunk = buf.popleft()
 
                 if not chunk:
                     break  # utterance done
@@ -570,7 +630,7 @@ class TTSEngine:
                     self.audio_pipe.write(chunk)
                     self.audio_pipe.flush()
                 except (BrokenPipeError, OSError):
-                    print(f"  [{_ts()}] [PIPE] Pipe closed")
+                    print(f"  [{self._vts()}] [PIPE] Pipe closed")
                     self._stop.set()
                     break
 
@@ -579,7 +639,12 @@ class TTSEngine:
                 if sleep_for > 0:
                     time.sleep(sleep_for)
 
-            print(f"  [{_ts()}] [PIPE] Playback ended")
+            print(f"  [{self._vts()}] [PIPE] {source} playback ended")
+
+            # If SR was interrupted by STT, loop back — _any_playback_ready
+            # is still set from the STT _playback_ready.set() call
+            if source == "SR" and self._playback_ready.is_set():
+                self._any_playback_ready.set()
 
     def _push_audio(self, pcm_bytes):
         """Split PCM bytes into 10ms chunks and push to buffer."""
@@ -604,15 +669,49 @@ class TTSEngine:
         """
         if interrupt:
             self._interrupt.set()
+            self._stt_suppressed.clear()
             with self._buf_lock:
                 self._audio_buf.clear()
+            with self._sr_buf_lock:
+                self._sr_audio_buf.clear()
+            self._sr_playback_ready.clear()
             while not self._text_queue.empty():
                 try:
                     self._text_queue.get_nowait()
                 except queue.Empty:
                     break
-            print(f"  [{_ts()}] [TTS] Interrupted — queue cleared")
-        self._text_queue.put((text, play_at, translate_fn))
+            print(f"  [{self._vts()}] [TTS] Interrupted — STT+SR queues cleared")
+        if text:
+            if play_at and not interrupt:
+                discarded = 0
+                while not self._text_queue.empty():
+                    try:
+                        self._text_queue.get_nowait()
+                        discarded += 1
+                    except queue.Empty:
+                        break
+                if discarded:
+                    print(f"  [{self._vts()}] [TTS] Replaced {discarded} stale queued item(s)")
+            self._text_queue.put((text, play_at, translate_fn))
+
+    def clear_stt(self):
+        """
+        Clear STT queue and audio without interrupting SR playback.
+        Used when an SR INTERRUPT event (e.g. GOAL) is already playing
+        in _sr_audio_buf and we want to prevent STT from preempting it.
+        Sets _stt_suppressed so the TTS worker discards its in-flight
+        utterance instead of signaling _playback_ready.
+        """
+        self._stt_suppressed.set()
+        with self._buf_lock:
+            self._audio_buf.clear()
+        self._playback_ready.clear()
+        while not self._text_queue.empty():
+            try:
+                self._text_queue.get_nowait()
+            except queue.Empty:
+                break
+        print(f"  [{self._vts()}] [TTS] STT cleared (SR playback preserved)")
 
     def queue_size(self):
         return self._text_queue.qsize()
@@ -627,7 +726,7 @@ class TTSEngine:
             except queue.Empty:
                 if self.is_speaking.is_set():
                     self.is_speaking.clear()
-                    print(f"  [{_ts()}] [TTS] Queue empty — idle")
+                    print(f"  [{self._vts()}] [TTS] Queue empty — idle")
                     if self.on_idle:
                         self.on_idle()
                 continue
@@ -640,12 +739,14 @@ class TTSEngine:
 
             self._utterance_id += 1
             uid = self._utterance_id
+
             self.is_speaking.set()
             self._interrupt.clear()
             self._playback_ready.clear()
 
             # Just-in-time translation with current language + voice
             voice_id = self.voice_id  # default
+            t_translate = time.monotonic()
             if translate_fn:
                 try:
                     result = translate_fn(text)
@@ -657,19 +758,29 @@ class TTSEngine:
                     translated = text
             else:
                 translated = text
+            translate_time = time.monotonic() - t_translate
 
             queued = self._text_queue.qsize()
-            print(f"  [{_ts()}] [TTS #{uid}] Starting — \"{translated[:50]}\" "
-                  f"(queue: {queued}, voice: {voice_id[:8]})")
+            wc = len(translated.split())
+            print(f"  [{self._vts()}] [TTS #{uid}] Starting — \"{translated[:50]}\" "
+                  f"({wc}w, queue: {queued}, xlat: {translate_time:.2f}s, voice: {voice_id[:8]})")
 
             t0 = time.monotonic()
             self._loop.run_until_complete(self._tts(translated, uid, voice_id=voice_id))
             tts_time = time.monotonic() - t0
 
             if self._interrupt.is_set():
-                print(f"  [{_ts()}] [TTS #{uid}] Interrupted after {tts_time:.2f}s")
+                print(f"  [{self._vts()}] [TTS #{uid}] Interrupted after {tts_time:.2f}s")
                 with self._buf_lock:
                     self._audio_buf.clear()
+                continue
+
+            # SR GOAL is playing — discard this STT utterance
+            if self._stt_suppressed.is_set():
+                print(f"  [{self._vts()}] [TTS #{uid}] Suppressed (SR GOAL playing)")
+                with self._buf_lock:
+                    self._audio_buf.clear()
+                self._stt_suppressed.clear()
                 continue
 
             buf_chunks = len(self._audio_buf)
@@ -679,19 +790,31 @@ class TTSEngine:
             if play_at:
                 wait_s = play_at - time.time()
                 if wait_s > 0:
-                    print(f"  [{_ts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — "
+                    print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — "
                           f"holding {wait_s:.2f}s for sync")
+                    # Coarse sleep for the bulk of the wait
+                    coarse = wait_s - 0.05
+                    if coarse > 0:
+                        time.sleep(coarse)
+                    # Tight spin for the final ~50ms to hit ±1ms
                     while time.time() < play_at and not self._interrupt.is_set():
-                        time.sleep(0.01)
+                        pass
                 else:
                     late = -wait_s
-                    print(f"  [{_ts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — "
+                    # Drop if more than 100ms late — can't sync to original timing
+                    if late > 0.1:
+                        print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at")
+                        with self._buf_lock:
+                            self._audio_buf.clear()
+                        continue
+                    print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — "
                           f"playing now ({late:.2f}s late)")
             else:
-                print(f"  [{_ts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — starting playback")
+                print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — starting playback")
 
             # Signal pipe writer that full utterance is ready
             self._playback_ready.set()
+            self._any_playback_ready.set()
 
             # Wait for playback to drain
             drain_start = time.monotonic()
@@ -699,7 +822,7 @@ class TTSEngine:
                 time.sleep(0.01)
             drain_time = time.monotonic() - drain_start
 
-            print(f"  [{_ts()}] [TTS #{uid}] Done — "
+            print(f"  [{self._vts()}] [TTS #{uid}] Done — "
                   f"total: {tts_time + drain_time:.2f}s (tts: {tts_time:.2f}s + play: {drain_time:.2f}s)")
 
     async def _tts(self, text, uid, voice_id=None):
@@ -712,12 +835,12 @@ class TTSEngine:
             if attempt == 1:
                 # Pad short text on retry — ElevenLabs sometimes fails on very short inputs
                 send_text = text + "..."
-                print(f"  [{_ts()}] [TTS #{uid}] Retrying with padded text")
+                print(f"  [{self._vts()}] [TTS #{uid}] Retrying with padded text")
 
             chunk_count = await self._tts_once(send_text, uid, vid)
             if chunk_count > 0 or self._interrupt.is_set():
                 break
-            print(f"  [{_ts()}] [TTS #{uid}] WARNING: No audio received from ElevenLabs"
+            print(f"  [{self._vts()}] [TTS #{uid}] WARNING: No audio received from ElevenLabs"
                   f"{' (will retry)' if attempt == 0 else ''}")
 
     async def _tts_once(self, text, uid, voice_id):
@@ -755,7 +878,7 @@ class TTSEngine:
                         self._push_audio(pcm_bytes)
                         chunk_count += 1
                         if chunk_count == 1:
-                            print(f"  [{_ts()}] [TTS #{uid}] First audio chunk received")
+                            print(f"  [{self._vts()}] [TTS #{uid}] First audio chunk received")
 
                     if data.get("isFinal"):
                         break
@@ -763,12 +886,255 @@ class TTSEngine:
                 return chunk_count
 
         except Exception as e:
-            print(f"  [{_ts()}] [TTS #{uid}] ERROR: {e}")
+            print(f"  [{self._vts()}] [TTS #{uid}] ERROR: {e}")
             return 0
 
     def stop(self):
         self._stop.set()
         self._interrupt.set()
+
+
+# ─── SR Prefetcher (parallel TTS fetch for Sportradar events) ─────────
+
+class SRPrefetcher:
+    """
+    Fetches ElevenLabs TTS for Sportradar events in parallel with the STT
+    pipeline, then injects audio into the TTSEngine's SR buffer at the
+    scheduled play_at time.
+
+    Architecture:
+      _prefetch_worker: dequeues events, translates, fetches TTS → _ready_events
+      _scheduler_worker: polls _ready_events, waits for play_at, injects into
+                         tts._sr_audio_buf at the right moment
+    """
+
+    def __init__(self, tts_engine, api_key=ELEVENLABS_API_KEY,
+                 model=ELEVENLABS_MODEL):
+        self.tts = tts_engine
+        self.api_key = api_key
+        self.model = model
+        self._stop = threading.Event()
+        self._prefetch_queue = queue.Queue()
+        self._ready_events = {}  # event_id → (pcm_bytes, play_at)
+        self._ready_lock = threading.Lock()
+        self._next_id = 0
+
+    def schedule(self, text, play_at, translate_fn):
+        """Schedule an SR event for prefetching and timed playback."""
+        self._next_id += 1
+        eid = self._next_id
+        self._prefetch_queue.put((eid, text, play_at, translate_fn))
+        return eid
+
+    def cancel_all(self):
+        """Clear all pending and ready events (called on INTERRUPT)."""
+        while not self._prefetch_queue.empty():
+            try:
+                self._prefetch_queue.get_nowait()
+            except queue.Empty:
+                break
+        with self._ready_lock:
+            self._ready_events.clear()
+
+    def cancel_except(self, keep_eid):
+        """Cancel ready events that play before the INTERRUPT, keep future ones.
+
+        The INTERRUPT event (keep_eid) and any events with later play_at are
+        preserved so a GOAL doesn't permanently silence later commentary.
+        The prefetch queue is not drained — future events still get fetched.
+        """
+        with self._ready_lock:
+            if not keep_eid or keep_eid not in self._ready_events:
+                return
+            keep_play_at = self._ready_events[keep_eid][1]
+            # Remove events that play at or before the INTERRUPT
+            to_remove = [eid for eid, (_, play_at) in self._ready_events.items()
+                         if eid != keep_eid and play_at <= keep_play_at]
+            for eid in to_remove:
+                del self._ready_events[eid]
+
+    def start(self):
+        """Spawn prefetch and scheduler worker threads."""
+        threading.Thread(target=self._prefetch_worker, daemon=True).start()
+        threading.Thread(target=self._scheduler_worker, daemon=True).start()
+
+    def stop(self):
+        self._stop.set()
+
+    def _vts(self):
+        return _ts(self.tts.video_start)
+
+    def _prefetch_worker(self):
+        """Dequeue events, translate, fetch TTS audio, store in _ready_events."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        while not self._stop.is_set():
+            try:
+                item = self._prefetch_queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
+
+            eid, text, play_at, translate_fn = item
+
+            # Translate
+            voice_id = self.tts.voice_id
+            if translate_fn:
+                try:
+                    result = translate_fn(text)
+                    if isinstance(result, tuple):
+                        translated, voice_id = result
+                    else:
+                        translated = result
+                except Exception:
+                    translated = text
+            else:
+                translated = text
+
+            lead_time = play_at - time.time()
+            print(f"  [{self._vts()}] [SR PREFETCH #{eid}] Fetching — "
+                  f"\"{translated[:50]}\" (play in {lead_time:.1f}s)")
+
+            # Fetch TTS
+            t0 = time.monotonic()
+            pcm_bytes = loop.run_until_complete(
+                self._fetch_tts(translated, voice_id, eid)
+            )
+            fetch_time = time.monotonic() - t0
+
+            if pcm_bytes and len(pcm_bytes) > 0:
+                with self._ready_lock:
+                    self._ready_events[eid] = (pcm_bytes, play_at)
+                lead = play_at - time.time()
+                print(f"  [{self._vts()}] [SR PREFETCH #{eid}] Ready — "
+                      f"{len(pcm_bytes)}B in {fetch_time:.2f}s, "
+                      f"{lead:.2f}s before play_at")
+            else:
+                print(f"  [{self._vts()}] [SR PREFETCH #{eid}] WARNING: No audio received")
+
+        loop.close()
+
+    async def _fetch_tts(self, text, voice_id, eid):
+        """
+        Fetch TTS from ElevenLabs WebSocket. Same protocol as TTSEngine._tts_once
+        but returns concatenated PCM bytes instead of pushing to shared buffer.
+        Retries once with padded text on zero audio.
+        """
+        for attempt in range(2):
+            send_text = text
+            if attempt == 1:
+                send_text = text + "..."
+                print(f"  [{self._vts()}] [SR PREFETCH #{eid}] Retrying with padded text")
+
+            pcm_parts = []
+            uri = (f"wss://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+                   f"/stream-input?model_id={self.model}&output_format=pcm_16000")
+            try:
+                async with websockets.connect(uri) as ws:
+                    await ws.send(json.dumps({
+                        "text": " ",
+                        "voice_settings": {
+                            "stability": 0.5,
+                            "similarity_boost": 0.8,
+                        },
+                        "xi_api_key": self.api_key,
+                    }))
+                    await ws.send(json.dumps({
+                        "text": send_text,
+                        "try_trigger_generation": True,
+                    }))
+                    await ws.send(json.dumps({"text": ""}))
+
+                    async for message in ws:
+                        if self._stop.is_set():
+                            return b""
+                        data = json.loads(message)
+                        if data.get("audio"):
+                            pcm_parts.append(base64.b64decode(data["audio"]))
+                        if data.get("isFinal"):
+                            break
+
+                result = b"".join(pcm_parts)
+                if len(result) > 0:
+                    return result
+                print(f"  [{self._vts()}] [SR PREFETCH #{eid}] WARNING: No audio"
+                      f"{' (will retry)' if attempt == 0 else ''}")
+
+            except Exception as e:
+                print(f"  [{self._vts()}] [SR PREFETCH #{eid}] ERROR: {e}")
+                if attempt == 0:
+                    continue
+                return b""
+
+        return b""
+
+    def _scheduler_worker(self):
+        """
+        Polls _ready_events for events whose play_at is approaching.
+        Uses two-phase wait: coarse sleep + tight spin for ±1ms precision.
+        Injects PCM chunks into tts._sr_audio_buf at the right moment.
+        """
+        while not self._stop.is_set():
+            # Find the next event to play
+            now = time.time()
+            next_eid = None
+            next_play_at = None
+
+            with self._ready_lock:
+                for eid, (pcm_bytes, play_at) in self._ready_events.items():
+                    if next_play_at is None or play_at < next_play_at:
+                        next_eid = eid
+                        next_play_at = play_at
+
+            if next_eid is None:
+                time.sleep(0.01)
+                continue
+
+            now = time.time()
+            wait = next_play_at - now
+
+            # Not yet time — sleep and re-check
+            if wait > 0.1:
+                time.sleep(min(wait - 0.05, 0.05))
+                continue
+
+            # Close to play_at — extract the event
+            with self._ready_lock:
+                entry = self._ready_events.pop(next_eid, None)
+            if entry is None:
+                continue
+
+            pcm_bytes, play_at = entry
+
+            # Coarse sleep for bulk of remaining wait
+            remaining = play_at - time.time()
+            if remaining > 0.05:
+                time.sleep(remaining - 0.05)
+
+            # Tight spin for final ~50ms
+            while time.time() < play_at and not self._stop.is_set():
+                pass
+
+            delta_ms = (time.time() - play_at) * 1000
+            dur_ms = len(pcm_bytes) / (SAMPLE_RATE * 2) * 1000
+
+            # Split into 10ms chunks and inject into SR buffer
+            with self.tts._sr_buf_lock:
+                offset = 0
+                while offset < len(pcm_bytes):
+                    end = offset + BYTES_PER_10MS
+                    chunk = pcm_bytes[offset:end]
+                    if len(chunk) < BYTES_PER_10MS:
+                        chunk = chunk + b'\x00' * (BYTES_PER_10MS - len(chunk))
+                    self.tts._sr_audio_buf.append(chunk)
+                    offset = end
+
+            # Signal pipe writer
+            self.tts._sr_playback_ready.set()
+            self.tts._any_playback_ready.set()
+
+            print(f"  [{self._vts()}] [SR SCHED #{next_eid}] Injected — "
+                  f"{dur_ms:.0f}ms, delta {delta_ms:+.0f}ms")
 
 
 # ─── Audio helpers ───────────────────────────────────────────────────────
@@ -806,10 +1172,10 @@ def pcm_chunks_realtime(wav_path, chunk_ms=100):
 
 # ─── Video + Audio publisher ────────────────────────────────────────────
 
-def start_publisher(h264_file, channel, delay_s=3.0):
+def start_publisher(h264_file, channel, video_delay=0):
     """
     Launch Go publisher that reads H.264 video from file and
-    PCM audio from stdin. Returns (subprocess, stdin_pipe).
+    PCM audio from stdin. video_delay seconds before sending video frames.
     """
     base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "go-audio-video-publisher")
     sender = os.path.join(base_dir, "reference", "agora_go_sdk", "send_h264_pcm_uid73.go")
@@ -822,13 +1188,14 @@ def start_publisher(h264_file, channel, delay_s=3.0):
     env["AGORA_APP_CERTIFICATE"] = AGORA_APP_CERT
     env["DYLD_LIBRARY_PATH"] = os.path.abspath(sdk_path)
 
-    print(f"[PUB] Waiting {delay_s}s before publishing (video delay)...")
-    time.sleep(delay_s)
-
-    print(f"[PUB] Publishing to channel '{channel}' — video from file, audio from TTS via stdin")
+    print(f"[PUB] Publishing to channel '{channel}' — video from file, audio from TTS via stdin"
+          f" (video_delay={video_delay}s)")
     abs_h264 = os.path.abspath(h264_file)
+    cmd = ["go", "run", sender, AGORA_APP_ID, channel, abs_h264, "stdin"]
+    if video_delay > 0:
+        cmd.append(str(video_delay))
     proc = subprocess.Popen(
-        ["go", "run", sender, AGORA_APP_ID, channel, abs_h264, "stdin"],
+        cmd,
         env=env,
         cwd=base_dir,
         stdin=subprocess.PIPE,
@@ -837,6 +1204,95 @@ def start_publisher(h264_file, channel, delay_s=3.0):
         preexec_fn=os.setsid,  # new process group for clean kill
     )
     return proc
+
+
+def _wait_for_publisher_audio(proc, timeout=15, tag="PUB"):
+    """
+    Wait for Go publisher to connect and start reading audio from stdin.
+    Returns time.time() when "audio publishing started" is detected.
+    After this, the caller should start the STT pipeline (audio feed needs stdin ready).
+    Remaining stdout is read via proc.stdout by the caller.
+    """
+    deadline = time.monotonic() + timeout
+    sel = selectors.DefaultSelector()
+    sel.register(proc.stdout, selectors.EVENT_READ)
+
+    audio_ready_time = None
+    try:
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            events = sel.select(timeout=min(remaining, 0.5))
+            if not events:
+                if proc.poll() is not None:
+                    print(f"  [{tag}] WARNING: Publisher exited (code {proc.returncode}) before audio ready")
+                    break
+                continue
+            line = proc.stdout.readline()
+            if not line:
+                break
+            text = line.decode(errors='replace').rstrip()
+            if not text:
+                continue
+            print(f"  [{tag}] {text}")
+            if "audio publishing started" in text:
+                audio_ready_time = time.time()
+                print(f"  [{tag}] Audio ready — publisher accepting stdin")
+                break
+    finally:
+        sel.unregister(proc.stdout)
+        sel.close()
+
+    if audio_ready_time is None:
+        audio_ready_time = time.time()
+        print(f"  [{tag}] WARNING: Audio ready signal not received within {timeout}s")
+
+    return audio_ready_time
+
+
+def _wait_for_video_start(proc, timeout=30, tag="PUB"):
+    """
+    Wait for Go publisher to finish video delay and start sending frames.
+    Returns time.time() when "video delay complete" is detected.
+    Called after _wait_for_publisher_audio, reads from proc.stdout.
+    """
+    deadline = time.monotonic() + timeout
+    sel = selectors.DefaultSelector()
+    sel.register(proc.stdout, selectors.EVENT_READ)
+
+    video_start = None
+    try:
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            events = sel.select(timeout=min(remaining, 0.5))
+            if not events:
+                if proc.poll() is not None:
+                    print(f"  [{tag}] WARNING: Publisher exited (code {proc.returncode}) before video start")
+                    break
+                continue
+            line = proc.stdout.readline()
+            if not line:
+                break
+            text = line.decode(errors='replace').rstrip()
+            if not text:
+                continue
+            print(f"  [{tag}] {text}")
+            if "video delay complete" in text:
+                video_start = time.time()
+                print(f"  [{tag}] Video started — video_start set")
+                break
+    finally:
+        sel.unregister(proc.stdout)
+        sel.close()
+
+    if video_start is None:
+        video_start = time.time()
+        print(f"  [{tag}] WARNING: Video start signal not received within {timeout}s")
+
+    return video_start
 
 
 def kill_publisher(proc):
@@ -883,17 +1339,15 @@ def _is_simple_pass(message):
 
 def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
                         stop_event, match_time_start, lang_file=None,
-                        video_delay=VIDEO_DELAY_S):
+                        video_delay=VIDEO_DELAY_S, sr_prefetcher=None):
     """
-    Replay events sequentially — one TTS at a time.
+    Replay events with parallel TTS prefetching.
 
-    Timing: Events fire at match time. Video is delayed by video_delay seconds.
-    So we pre-fetch TTS when match time arrives, then schedule playback for
-    match_time + video_delay so audio syncs with delayed video.
+    APPEND events → sr_prefetcher.schedule() (parallel TTS fetch, timed playback)
+    INTERRUPT events → tts.speak(interrupt=True) + sr_prefetcher.cancel_all()
 
-    All events are played including simple passes to fill gaps between
-    live commentary. Translation is just-in-time (at TTS time, not queue
-    time) so language changes take effect on the next utterance.
+    Timing: Events fire at match time. Video is already delayed by the Go publisher.
+    play_at = match_time_start + offset (video_start already includes the delay).
     """
     events = load_events_file(events_file)
     if not events:
@@ -901,7 +1355,8 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
         return
 
     total = len(events)
-    print(f"[SR] Loaded {total} events, video_delay={video_delay}s")
+    print(f"[SR] Loaded {total} events, video_delay={video_delay}s, "
+          f"prefetcher={'yes' if sr_prefetcher else 'no'}")
 
     # Build a translate function that uses current lang + voice at call time
     def make_translate_fn():
@@ -913,37 +1368,75 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
             return (translate_text(oai_client, text, cur_lang), vid)
         return translate
 
-    for idx, (offset, priority, message) in enumerate(events):
-        if stop_event.is_set():
-            break
+    # With prefetcher: schedule ALL events upfront for maximum prefetch
+    # lead time. INTERRUPT events are also pre-fetched but at match time
+    # they clear everything else so they play on time.
+    if sr_prefetcher:
+        # Track INTERRUPT event IDs so we can protect them from cancel_all
+        interrupt_eids = {}  # offset → event_id
 
-        # Wait until this event's match time arrives
-        while not stop_event.is_set():
-            match_elapsed = time.time() - match_time_start[0]
-            if offset <= match_elapsed:
+        # Schedule all events upfront
+        for idx, (offset, priority, message) in enumerate(events):
+            play_at = match_time_start[0] + offset
+            mm, ss = offset // 60, offset % 60
+            delay_to_play = play_at - time.time()
+            tag = "INT" if priority == "INTERRUPT" else "EVT"
+            print(f"  [{_ts(tts.video_start)}] [SR {mm:02d}:{ss:02d} {tag}] "
+                  f"\"{message[:60]}\" (scheduled, play in {delay_to_play:.1f}s)")
+            eid = sr_prefetcher.schedule(message, play_at, make_translate_fn())
+            if priority == "INTERRUPT":
+                interrupt_eids[offset] = eid
+
+        # Wait for INTERRUPT events at their match times to clear STT queue
+        for idx, (offset, priority, message) in enumerate(events):
+            if stop_event.is_set():
                 break
-            time.sleep(0.1)
+            if priority != "INTERRUPT":
+                continue
 
-        if stop_event.is_set():
-            break
+            # Wait until this event's match time
+            while not stop_event.is_set():
+                match_elapsed = time.time() - match_time_start[0]
+                if offset <= match_elapsed:
+                    break
+                time.sleep(0.1)
 
-        # Don't queue more than 1 ahead — keeps language switching responsive
-        while tts.queue_size() >= 1 and not stop_event.is_set():
-            time.sleep(0.3)
+            if stop_event.is_set():
+                break
 
-        # Schedule playback for when video shows this moment
-        play_at = match_time_start[0] + offset + video_delay
+            print(f"  [{_ts(tts.video_start)}] [SR {offset // 60:02d}:{offset % 60:02d} INT] "
+                  f"Clearing STT for INTERRUPT")
 
-        mm = offset // 60
-        ss = offset % 60
-        delay_to_play = play_at - time.time()
-        tag = "INT" if priority == "INTERRUPT" else "EVT"
-        print(f"  [{_ts()}] [SR {mm:02d}:{ss:02d} {tag}] \"{message[:60]}\" "
-              f"(play in {delay_to_play:.1f}s)")
+            # Clear STT without killing SR playback (GOAL is in _sr_audio_buf)
+            tts.clear_stt()
+            # Cancel other pending SR events but keep the INTERRUPT event
+            sr_prefetcher.cancel_except(interrupt_eids.get(offset))
+            last_stt_time[0] = time.time()
+    else:
+        # No prefetcher — old sequential path
+        for idx, (offset, priority, message) in enumerate(events):
+            if stop_event.is_set():
+                break
 
-        tts.speak(message, interrupt=False, play_at=play_at,
-                  translate_fn=make_translate_fn())
-        last_stt_time[0] = time.time()
+            while not stop_event.is_set():
+                match_elapsed = time.time() - match_time_start[0]
+                if offset <= match_elapsed:
+                    break
+                time.sleep(0.1)
+
+            if stop_event.is_set():
+                break
+
+            is_interrupt = (priority == "INTERRUPT")
+            play_at = match_time_start[0] + offset
+            mm, ss = offset // 60, offset % 60
+            delay_to_play = play_at - time.time()
+            tag = "INT" if is_interrupt else "EVT"
+            print(f"  [{_ts(tts.video_start)}] [SR {mm:02d}:{ss:02d} {tag}] "
+                  f"\"{message[:60]}\" (play in {delay_to_play:.1f}s)")
+            tts.speak(message, interrupt=is_interrupt, play_at=play_at,
+                      translate_fn=make_translate_fn())
+            last_stt_time[0] = time.time()
 
     print(f"[SR] Events replay finished.")
 
@@ -951,9 +1444,13 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
 # ─── STT pipeline ────────────────────────────────────────────────────────
 
 def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
-                     last_stt_time, stop_event, lang_file=None):
+                     last_stt_time, stop_event, lang_file=None,
+                     video_delay=3.0):
     """
     Stream audio through Deepgram → Corrections → Translate → ElevenLabs TTS.
+    Uses play_at scheduling: each utterance plays at video_start + audio_start.
+    Video is already delayed by video_delay (Go publisher), so video_start
+    includes the delay and play_at needs no extra offset.
     """
     os.environ["DEEPGRAM_API_KEY"] = deepgram_key
     from deepgram import DeepgramClient
@@ -964,7 +1461,7 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
 
     print(f"[STT] Streaming {audio_path} through Deepgram Nova-3...")
     print(f"[STT] Pipeline: STT → Correct → Translate({lang}) → ElevenLabs TTS → Agora")
-    print(f"[STT] Max latency budget: {MAX_LATENCY_S}s\n")
+    print(f"[STT] Video delay: {video_delay}s (pipeline budget)\n")
 
     wall_start = [None]
 
@@ -976,6 +1473,8 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
         punctuate="true",
         smart_format="true",
         interim_results="true",
+        utterance_end_ms="1000",
+        endpointing="200",
         keyterm=TERMS_LIST,
     ) as ws:
 
@@ -985,6 +1484,8 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
             ws.send_close_stream()
 
         wall_start[0] = time.time()
+        audio_feed_offset = wall_start[0] - tts.video_start
+        print(f"[STT] Audio feed starting — {audio_feed_offset:.2f}s after video_start")
         audio_thread = threading.Thread(target=feed_audio, daemon=True)
         audio_thread.start()
 
@@ -1001,21 +1502,20 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
             if not transcript:
                 continue
 
-            wall_now = time.time() - wall_start[0]
             audio_start = msg.start if hasattr(msg, "start") and msg.start else 0
             audio_end = audio_start + (msg.duration if hasattr(msg, "duration") and msg.duration else 0)
 
             corrected = apply_corrections(transcript)
 
-            total_latency = (time.time() - wall_start[0]) - audio_end
+            # play_at = when the viewer sees this moment
+            # video_start is already delayed by video_delay (Go publisher sleeps first)
+            # so play_at = video_start + audio_start (no extra delay offset)
+            play_at = tts.video_start + audio_start
+            remaining = play_at - time.time()
 
-            if total_latency > MAX_LATENCY_S:
-                print(f"  [DROP {total_latency:.1f}s] {corrected[:40]}")
-                continue
-
-            print(f"  [{audio_start:6.1f}s] lat={total_latency:.2f}s "
-                  f"stt={wall_now - audio_end:.2f}s")
-            print(f"           {corrected[:60]}")
+            print(f"  [{_ts(tts.video_start)}] [STT] audio={audio_start:.1f}-{audio_end:.1f}s "
+                  f"remaining={remaining:.2f}s play_at=V+{audio_start:.1f}")
+            print(f"           \"{corrected[:70]}\"")
 
             # JIT translation — translate at TTS time so language switches
             # take effect immediately, not when STT result was received
@@ -1028,7 +1528,7 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
                     return (translate_text(oai_client, text, cur_lang), vid)
                 return translate
 
-            tts.speak(corrected, translate_fn=make_stt_translate_fn())
+            tts.speak(corrected, play_at=play_at, translate_fn=make_stt_translate_fn())
             last_stt_time[0] = time.time()
 
     os.unlink(pcm_path)
@@ -1046,53 +1546,109 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
 
     try:
         if h264_file:
-            pub_proc = start_publisher(h264_file, session.channel, delay_s=args.video_delay)
+            pub_proc = start_publisher(h264_file, session.channel, video_delay=args.video_delay)
+            pub_tag = f"{tag} PUB"
+
+            # Phase 1: wait for audio ready (publisher accepts stdin)
+            _wait_for_publisher_audio(pub_proc, timeout=15, tag=pub_tag)
+
+            tts = TTSEngine(audio_pipe=pub_proc.stdin)
+            # Temporary video_start — will be updated when video actually starts
+            tts.video_start = time.time() + args.video_delay
+            tts.start()
+
+            # Start STT pipeline NOW so it processes audio during the video delay.
+            # By the time video starts, we have video_delay seconds of translations ready.
+            stt_thread = None
+            if args.audio:
+                stt_thread = threading.Thread(
+                    target=run_stt_pipeline,
+                    args=(args.audio, tts, args.deepgram_key, args.lang,
+                          oai_client, last_stt_time, session.stop_event),
+                    kwargs={"lang_file": session.lang_file,
+                            "video_delay": args.video_delay},
+                    daemon=True,
+                )
+                stt_thread.start()
+                print(f"[{tag}] STT pipeline started (processing during {args.video_delay}s video delay)")
+
+            # Phase 2: wait for video delay to complete
+            video_start = _wait_for_video_start(
+                pub_proc, timeout=int(args.video_delay) + 15, tag=pub_tag)
+
+            # Log remaining stdout/stderr in background threads
             def _log_pub(stream, label):
                 for line in stream:
                     text = line.decode(errors='replace').rstrip()
                     if not text or 'PushVideoEncodedData' in text or 'SESS_CTRL' in text:
                         continue
-                    print(f"  [{tag} PUB {label}] {text}")
+                    print(f"  [{pub_tag} {label}] {text}")
             threading.Thread(target=_log_pub, args=(pub_proc.stdout, "out"), daemon=True).start()
             threading.Thread(target=_log_pub, args=(pub_proc.stderr, "err"), daemon=True).start()
-            tts = TTSEngine(audio_pipe=pub_proc.stdin)
+
+            # Update video_start to actual time video frames start arriving
+            tts.video_start = video_start
+            print(f"[{tag}] video_start updated — viewer sees video now")
         else:
             devnull = open(os.devnull, "wb")
             tts = TTSEngine(audio_pipe=devnull)
+            tts.video_start = time.time()
+            tts.start()
+            stt_thread = None
 
-        tts.start()
-        session.pipeline_running = True
+        # pipeline_running already set True by /start handler (before thread spawn)
 
-        # Match time starts now — offset by events-offset
-        match_time_start = [time.time() - args.events_offset]
+        # Match time anchored to video_start — events fire relative to this
+        match_time_start = [tts.video_start - args.events_offset]
 
+        sr_prefetcher = None
         sr_thread = None
         if args.events:
+            sr_prefetcher = SRPrefetcher(
+                tts_engine=tts, api_key=ELEVENLABS_API_KEY, model=ELEVENLABS_MODEL,
+            )
+            sr_prefetcher.start()
+
             sr_thread = threading.Thread(
                 target=run_events_fallback,
                 args=(args.events, tts, args.lang, oai_client,
                       last_stt_time, session.stop_event, match_time_start),
                 kwargs={"lang_file": session.lang_file,
-                        "video_delay": args.video_delay},
+                        "video_delay": args.video_delay,
+                        "sr_prefetcher": sr_prefetcher},
             )
             sr_thread.start()
-            print(f"[{tag}] Events fallback running (offset {args.events_offset}s)")
+            print(f"[{tag}] SR prefetcher + events running (offset {args.events_offset}s)")
 
-        if args.audio:
+        if stt_thread:
+            # STT already running — wait for it
+            stt_thread.join()
+            # STT finished but video is still playing (video_delay behind audio).
+            # Wait for remaining TTS to drain + video_delay so viewer sees everything.
+            drain_end = time.time() + args.video_delay
+            print(f"[{tag}] STT done — waiting {args.video_delay}s for video to catch up")
+            while time.time() < drain_end and not session.stop_event.is_set():
+                time.sleep(0.5)
+        elif args.audio:
             run_stt_pipeline(
                 args.audio, tts, args.deepgram_key, args.lang,
                 oai_client, last_stt_time, session.stop_event,
                 lang_file=session.lang_file,
+                video_delay=args.video_delay,
             )
         elif sr_thread:
-            # Events-only mode: wait for events to finish, then drain TTS
+            # Events-only mode: wait for events to finish, then drain
             sr_thread.join()
-            print(f"[{tag}] Events finished — waiting for TTS to drain")
-            while tts.queue_size() > 0 or tts.is_speaking.is_set():
+            print(f"[{tag}] Events finished — waiting for SR + TTS to drain")
+            # Wait for SR prefetcher to finish playing all scheduled events
+            while (tts.queue_size() > 0 or tts.is_speaking.is_set()
+                   or tts._sr_audio_buf or tts._sr_playback_ready.is_set()
+                   or (sr_prefetcher and (sr_prefetcher._ready_events
+                       or not sr_prefetcher._prefetch_queue.empty()))):
                 if session.stop_event.is_set():
                     break
                 time.sleep(0.2)
-            print(f"[{tag}] TTS drained — pipeline complete")
+            print(f"[{tag}] All drained — pipeline complete")
         else:
             while not session.stop_event.is_set():
                 time.sleep(0.5)
@@ -1101,6 +1657,8 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
         print(f"[{tag}] Cleaning up pipeline...")
         session.pipeline_running = False
         session.stop_event.set()
+        if sr_prefetcher:
+            sr_prefetcher.stop()
         if tts:
             tts.stop()
         kill_publisher(pub_proc)

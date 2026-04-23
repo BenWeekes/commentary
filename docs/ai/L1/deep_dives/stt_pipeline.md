@@ -2,97 +2,64 @@
 
 ## Overview
 
-The STT pipeline (`live_match.py:791–876`) streams audio through Deepgram, applies corrections, translates, and feeds the TTSEngine.
+The STT pipeline streams live game audio through Deepgram, corrects player/team names, translates to the viewer's language, and schedules TTS playback at the original commentary timing.
 
 ## Pipeline Stages
 
 ```
-Audio file ──▶ ffmpeg ──▶ PCM WAV ──▶ Deepgram WebSocket ──▶ apply_corrections() ──▶ translate_text() ──▶ tts.speak()
-              (convert)   (16kHz)       (Nova-3)               (deterministic)        (GPT-4o-mini)       (ElevenLabs)
-              ~instant    mono S16LE    ~0.8s latency          <1ms                   ~0.8s               ~0.5s
+Audio ──▶ ffmpeg ──▶ PCM ──▶ Deepgram ──▶ corrections ──▶ tts.speak(play_at=...)
+          (16kHz mono)       (Nova-3)      (str.replace)   → translate + TTS in worker
 ```
 
-## Audio Feed Thread
+## play_at Scheduling
 
-`pcm_chunks_realtime()` reads the WAV file and yields 100ms chunks at real-time pace:
+The Go publisher delays video by `--video-delay` seconds while the STT pipeline processes audio immediately. This gives the pipeline a head start. Each Deepgram result includes `audio_start` — when the commentator spoke in the original audio:
 
 ```python
-bytes_per_sec = 32000  # 16kHz * 2 bytes * 1 channel
-chunk_bytes = 3200     # 100ms at 32000 bytes/sec
+play_at = video_start + audio_start
 ```
 
-The feed thread calls `ws.send_media(chunk)` for each chunk, then `ws.send_close_stream()` at EOF.
+`video_start` is set when the Go publisher finishes its delay and starts sending frames. Since the audio feed began `video_delay` seconds earlier, translations are already ready when the viewer sees each moment.
+
+The TTS worker holds the audio until `play_at`, then plays. If translate+TTS takes too long and `play_at` has passed by >100ms, the utterance is dropped.
 
 ## Deepgram Configuration
 
 ```python
-model="nova-3"
-language="en"
-encoding="linear16"
-sample_rate=16000
-punctuate="true"
-smart_format="true"
-interim_results="true"
-keyterm=TERMS_LIST  # ~80 keyword terms for player/team names
+model="nova-3", language="en", encoding="linear16", sample_rate=16000,
+punctuate="true", smart_format="true", interim_results="true",
+endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 ```
 
-- `interim_results=true`: Deepgram sends partial results, but only `is_final=True` results are processed
-- `keyterm`: Boosts recognition of specific words (player names, team names)
-- `smart_format`: Adds punctuation and formatting
-
-## Correction System
-
-`apply_corrections()` runs the `CORRECTIONS` list in order — each is a simple `str.replace()`:
-
-```python
-CORRECTIONS = [
-    ("Flag back", "Gladbach"),
-    ("Saks Paoli", "St. Pauli"),
-    ("Ubijzivzivadze", "Budu Zivzivadze"),
-    ...
-]
-```
-
-Corrections must be ordered carefully — longer phrases should come before shorter substrings. For example, "Flag back all in white" → "Gladbach all in white" must appear before "Flag back" → "Gladbach".
+- `endpointing=200`: Deepgram fires speech_final after 200ms silence (faster turns)
+- `utterance_end_ms=1000`: Minimum allowed by Deepgram API
+- Only `is_final=True` results are processed (interims skipped)
+- `keyterm`: ~80 player/team names for recognition boost
 
 ## Latency Budget
 
-The STT pipeline tracks three latency components:
+With `--video-delay N` (default 7s):
 
-| Component | Measurement |
-|---|---|
-| STT latency | `wall_now - audio_end` (wall clock time minus audio timestamp) |
-| Translation latency | `time.time()` around `translate_text()` call |
-| Total latency | `(time.time() - wall_start) - audio_end` |
+```
+Budget per utterance ≈ N - utterance_duration - ~1.0s (translate + TTS fetch)
 
-If total latency exceeds `MAX_LATENCY_S` (3.5s), the utterance is dropped:
-
-```python
-if total_latency > MAX_LATENCY_S:
-    print(f"  [DROP {total_latency:.1f}s] {corrected[:40]}")
-    continue
+Example: 3s utterance, 7s delay → 7 - 3 - 1.0 = 3.0s margin (comfortable)
+Example: 5s utterance, 7s delay → 7 - 5 - 1.0 = 1.0s margin (ok)
+Example: 5s utterance, 6s delay → 6 - 5 - 1.0 = 0.0s margin (drops likely)
 ```
 
-## Benchmark Script
+At 7s delay, ~12/14 utterances play on time (1 suppressed during GOAL, occasionally 1 long utterance drops).
 
-`stt_realtime_translate.py` measures the same pipeline with detailed per-utterance stats:
+## Correction System
 
-- Per-utterance: STT latency, translation latency, total latency
-- Aggregate: mean, median, P90, P95, min, max
-- 3-second budget analysis: percentage of utterances within 1.5s, 2.0s, 3.0s
-- Saves results to JSON and text files
-
-## Language at Translation Time
-
-In `live_match.py`, the current language is read from a file (`/tmp/sportradar_lang`) at translation time, not at queue time. This allows the viewer to change the language and have it take effect on the next utterance:
+`apply_corrections()` fixes common Deepgram misrecognitions:
 
 ```python
-cur_lang = get_current_lang(lang_file, lang) if lang_file else lang
-cur_voice = voice_for_lang(cur_lang)
-if cur_lang != "en":
-    translated = translate_text(oai_client, corrected, cur_lang)
+CORRECTIONS = [("Flag back", "Gladbach"), ("Saks Paoli", "St. Pauli"), ...]
 ```
 
-## Deepgram vs Soniox
+Longer phrases before shorter substrings. Applied before translation.
 
-The repo originally tested both Deepgram and Soniox STT. Only Deepgram is used in the final system. `soniox_realtime_stt.py` and `soniox_examples/` are excluded from this repo.
+## Language Switching
+
+Language is read from a per-session file at translation time (not queue time), so language changes take effect on the next utterance.

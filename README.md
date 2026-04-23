@@ -1,6 +1,6 @@
 # Live Multilingual Soccer Commentary
 
-Real-time system that takes English soccer commentary audio, translates it into any of 10 languages, and broadcasts the translated speech alongside match video over an Agora channel — all within a 3-second delay budget.
+Real-time system that takes English soccer commentary audio, translates it into any of 10 languages, and broadcasts the translated speech alongside match video over an Agora channel. Video is delayed by a configurable amount (default 7s) giving the STT + translation + TTS pipeline time to produce audio that plays in sync with the video.
 
 ## How it works
 
@@ -12,7 +12,7 @@ Sportradar events ────────────────────�
 Match video (.h264) ───────────────────────────────────────────────────┘
 ```
 
-The pipeline runs inside `live_match.py`. A 3-second video delay gives the STT + translation + TTS chain enough time to produce audio that plays in sync with the video.
+The pipeline runs inside `live_match.py`. The Go publisher delays video by `--video-delay` seconds while the STT pipeline processes audio immediately, giving translations time to be ready before the viewer sees each moment.
 
 ## Supported languages
 
@@ -41,59 +41,30 @@ cp .env.example .env
 # 3. Run events-only mode (no STT, no video — easiest to test)
 python3 live_match.py \
     --events data/events/bmg_fch_md28_full_match.txt \
-    --lang es --autostart
+    --lang es
 
 # 4. Run with STT audio
 python3 live_match.py \
     --audio data/audio/bmg_fch_first_5min.mp3 \
     --events data/events/bmg_fch_md28_full_match.txt \
-    --lang es --autostart
+    --lang es
 
-# 5. Full demo with video + STT + events
+# 5. Full demo with video + STT + events (8s video delay)
 python3 live_match.py \
     --audio data/audio/bmg_fch_first_5min.mp3 \
     --video-h264 go-audio-video-publisher/encoded_assets/bundesliga.h264 \
     --events data/events/bmg_fch_md28_full_match.txt \
-    --lang es --channel sportradar-live
+    --lang es --video-delay 7
 ```
 
 ## Viewer
 
-### Local testing with nginx
+The viewer is built into the server. Open `http://localhost:8090` in your browser.
 
-If you serve `~/work/` over HTTPS with nginx (e.g., root at `/Users/YOU/work`), the viewer is available at:
-
-```
-https://localhost/commentary/viewer.html?appid=YOUR_APP_ID&channel=sportradar-live&token=YOUR_TOKEN&lang=es
-```
-
-### Generate a viewer token
-
-```bash
-cd commentary
-python3 -c "
-from tokens import AccessToken, ServiceRtc
-import os
-
-# reads from .env or environment
-app_id = os.environ.get('AGORA_APP_ID', '')
-app_cert = os.environ.get('AGORA_APP_CERT', '')
-
-token = AccessToken(app_id, app_cert)
-rtc = ServiceRtc('sportradar-live', 101)
-rtc.add_privilege(ServiceRtc.kPrivilegeJoinChannel, 0)
-token.add_service(rtc)
-t = token.build()
-
-print(f'https://localhost/commentary/viewer.html?appid={app_id}&channel=sportradar-live&token={t}&lang=es')
-"
-```
-
-This prints a complete URL you can open directly in your browser.
-
-### How it works
-
-The viewer connects to the Agora channel as audience UID 101 and subscribes to the publisher's video and translated audio streams. Use the language dropdown to switch commentary language in real time. Click **Start** to tell `live_match.py` to begin publishing (or pass `--autostart` to skip the button).
+1. The page creates a session automatically (each tab gets its own Agora channel)
+2. Click **Start** to begin — video appears after `--video-delay` seconds
+3. Use the language dropdown to switch commentary language in real time
+4. Click **Stop** to end the session
 
 ## Scripts
 

@@ -82,13 +82,6 @@
       50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(239,68,68,0); }
     }
 
-    #live-text {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    }
-
     /* Controls group (right side) */
     #controls {
       display: flex;
@@ -234,7 +227,6 @@
   <div id="top-bar">
     <div id="live-badge">
       <div id="live-dot"></div>
-      <span id="live-text">LIVE</span>
     </div>
 
     <div id="controls">
@@ -406,44 +398,42 @@
       setStatus('Joining channel...');
 
       client = AgoraRTC.createClient({ mode: 'live', codec: 'h264' });
-      client.setClientRole('audience', { level: 1 }).then(function() {
+      client.setClientRole('audience', { level: 1 });
 
-        client.on('user-published', function(user, mediaType) {
-          client.subscribe(user, mediaType).then(function() {
-            console.log('Subscribed to user ' + user.uid + ' ' + mediaType);
+      client.on('user-published', function(user, mediaType) {
+        client.subscribe(user, mediaType).then(function() {
+          console.log('Subscribed to user ' + user.uid + ' ' + mediaType);
 
-            if (mediaType === 'video') {
-              user.videoTrack.play(videoContainer);
-              liveBadge.classList.add('visible');
-              hideStatus();
-              // Dismiss spinner on first video frame
-              hideSpinner();
-              if (window._spinnerTimeout) {
-                clearTimeout(window._spinnerTimeout);
-                window._spinnerTimeout = null;
-              }
-            }
-
-            if (mediaType === 'audio') {
-              user.audioTrack.play();
-            }
-          });
-        });
-
-        client.on('user-unpublished', function(user, mediaType) {
           if (mediaType === 'video') {
-            liveBadge.classList.remove('visible');
-            setStatus('Video stream ended. Waiting...');
+            user.videoTrack.play(videoContainer);
+            liveBadge.classList.add('visible');
+            hideStatus();
+            hideSpinner();
+            if (window._spinnerTimeout) {
+              clearTimeout(window._spinnerTimeout);
+              window._spinnerTimeout = null;
+            }
+          }
+
+          if (mediaType === 'audio') {
+            user.audioTrack.play();
           }
         });
+      });
 
-        client.on('user-left', function(user) {
+      client.on('user-unpublished', function(user, mediaType) {
+        if (mediaType === 'video') {
           liveBadge.classList.remove('visible');
-          setStatus('Publisher disconnected. Waiting...');
-        });
+          setStatus('Video stream ended. Waiting...');
+        }
+      });
 
-        return client.join(appid, channel, token, uid);
-      }).then(function() {
+      client.on('user-left', function(user) {
+        liveBadge.classList.remove('visible');
+        setStatus('Publisher disconnected. Waiting...');
+      });
+
+      client.join(appid, channel, token, uid).then(function() {
         setStatus('Waiting for publisher. Click Start when ready.');
         console.log('Joined channel "' + channel + '" as UID ' + uid);
         publishBtn.disabled = false;
