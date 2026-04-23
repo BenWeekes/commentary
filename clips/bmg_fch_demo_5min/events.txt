@@ -1,43 +1,51 @@
-# Borussia Monchengladbach 2-2 1. FC Heidenheim | 35:07-40:07 | Bundesliga MD28
-# Synced with video.h264 (starts at match 35:07)
-# Mohya goal build-up, VAR check, shots on goal
+# Borussia Monchengladbach 2-2 1. FC Heidenheim | 14:47-19:47 | Bundesliga MD28
+# Synced with video.h264 (starts at match 14:47, 7s into mohya_goal clip)
+# Mohya GOAL at offset 26s! Equalizer (Mainka) at ~25:34 match = beyond this clip
 # Format: offset_seconds|priority|message
 #
-4|INTERRUPT|VAR check in progress.
-8|APPEND|Castrop to Engelhardt.
-10|APPEND|to Machino.
-12|APPEND|to Scally.
-13|APPEND|to Sander.
-22|APPEND|to Reitz.
-26|APPEND|to Machino.
-30|APPEND|Dorsch to Dinkci.
-41|APPEND|Foul by Heidenheim.
-70|APPEND|Elvedi to Sander.
-72|APPEND|to Scally.
-76|APPEND|to Nicolas.
-85|APPEND|to Diks.
-90|APPEND|to Castrop.
-93|APPEND|Foul by Heidenheim.
-99|APPEND|Castrop to Reitz.
-104|INTERRUPT|Reitz's shot from 19 meters is deflected wide.
-108|INTERRUPT|Honorat fires a right-footed shot from 17 meters, but it goes wide.
-109|APPEND|Goal kick for Heidenheim.
-152|APPEND|Dorsch to Fohrenbach.
-154|APPEND|to Mainka.
-160|APPEND|to Pieringer.
-165|APPEND|Throw-in for Gladbach.
-169|APPEND|Mohya to Reitz.
-170|APPEND|to Diks.
-182|APPEND|Zivzivadze to Behrens.
-187|APPEND|Behrens sends in a cross, but it's cleared.
-192|APPEND|Dinkci to Busch.
-193|APPEND|to Mainka.
-195|APPEND|to Fohrenbach.
-200|APPEND|to Mainka.
-203|APPEND|to Busch.
-212|APPEND|to Pieringer.
-218|APPEND|Throw-in for Gladbach.
-233|APPEND|Castrop to Engelhardt.
-245|APPEND|Throw-in for Heidenheim.
-278|APPEND|Mainka to Zivzivadze.
-280|INTERRUPT|Zivzivadze tries a right-footed shot from 8 meters, but it's deflected wide.
+2|APPEND|Ramaj to Busch.
+8|APPEND|Reitz to Elvedi.
+16|APPEND|Honorat beats his man with a skillful dribble!
+18|APPEND|Honorat to Castrop.
+24|APPEND|to Mohya.
+26|INTERRUPT|GOAL! Mohya fires a right-footed shot into the net from 10 meters! Assisted by Castrop. It's 1-0!
+101|APPEND|Engelhardt to Machino.
+106|APPEND|Pieringer to Zivzivadze.
+107|APPEND|to Dorsch.
+110|APPEND|Diks to Machino.
+115|APPEND|to Diks.
+119|APPEND|Foul by Heidenheim.
+136|APPEND|Reitz to Elvedi.
+138|APPEND|to Diks.
+141|APPEND|to Mohya.
+142|APPEND|to Diks.
+145|APPEND|to Nicolas.
+147|APPEND|to Engelhardt.
+152|APPEND|to Machino.
+153|APPEND|to Sander.
+161|APPEND|Throw-in for Heidenheim.
+179|APPEND|Sander to Machino.
+181|APPEND|Tackle attempted by Behrens.
+181|APPEND|Machino to Honorat.
+186|APPEND|Fohrenbach to Ramaj.
+190|APPEND|to Fohrenbach.
+193|APPEND|to Behrens.
+199|APPEND|Engelhardt to Reitz.
+206|APPEND|Mainka to Behrens.
+210|APPEND|to Niehues.
+213|APPEND|to Dorsch.
+218|APPEND|to Busch.
+221|APPEND|to Mainka.
+223|APPEND|to Niehues.
+226|APPEND|to Ramaj.
+228|APPEND|to Niehues.
+230|APPEND|to Mainka.
+234|APPEND|to Dorsch.
+238|APPEND|to Fohrenbach.
+240|APPEND|to Behrens.
+243|APPEND|to Ramaj.
+255|APPEND|Mainka to Busch.
+258|APPEND|to Dorsch.
+264|APPEND|to Busch.
+268|APPEND|Busch whips in a cross and finds a teammate.
+281|INTERRUPT|Behrens tries a right-footed shot from 10 meters, but it's deflected wide.

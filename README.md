@@ -49,11 +49,11 @@ python3 live_match.py \
     --events data/events/bmg_fch_md28_full_match.txt \
     --lang es
 
-# 5. Full demo with video + STT + events (8s video delay)
+# 5. Full demo with video + STT + events (7s video delay)
 python3 live_match.py \
-    --audio data/audio/bmg_fch_first_5min.mp3 \
-    --video-h264 go-audio-video-publisher/encoded_assets/bundesliga.h264 \
-    --events data/events/bmg_fch_md28_full_match.txt \
+    --audio clips/bmg_fch_demo_5min/audio.mp3 \
+    --video-h264 clips/bmg_fch_demo_5min/video.h264 \
+    --events clips/bmg_fch_demo_5min/events.txt \
     --lang es --video-delay 7
 ```
 
