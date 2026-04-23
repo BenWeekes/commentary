@@ -99,17 +99,16 @@ export DYLD_LIBRARY_PATH=/path/to/agora_sdk_mac
 
 ## Generating H.264 video
 
-The encoded video assets are not included in this repo. Generate your own:
+The `.h264` files are gitignored (too large). Generate from the included `source.mp4`:
 
 ```bash
-ffmpeg -hide_banner -y -i match.mp4 -an \
-    -vf "scale=1280:720,fps=25" \
-    -pix_fmt yuv420p \
+ffmpeg -hide_banner -y -i clips/bmg_fch_demo_5min/source.mp4 -an \
+    -vf "fps=30" \
     -c:v libx264 -profile:v high -level 3.1 \
     -preset veryfast \
-    -x264-params "keyint=25:min-keyint=25:scenecut=0:ref=1:bframes=0:repeat-headers=1" \
-    -b:v 2800k -maxrate 3200k -bufsize 6400k \
-    -f h264 go-audio-video-publisher/encoded_assets/match_720p25.h264
+    -x264-params "keyint=30:min-keyint=30:scenecut=0:ref=1:bframes=0:repeat-headers=1" \
+    -b:v 2400k -maxrate 2800k -bufsize 5600k \
+    -f h264 clips/bmg_fch_demo_5min/video.h264
 ```
 
 ## Environment variables
