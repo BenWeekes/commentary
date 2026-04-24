@@ -18,6 +18,22 @@ Requires: `OPENAI_API_KEY`, `DEEPGRAM_API_KEY`, `ELEVENLABS_API_KEY`, `AGORA_APP
 
 Open `viewer.html` in a browser, select language, click Start.
 
+### Full demo with atmosphere
+
+```bash
+python3 live_match.py \
+    --audio clips/bmg_fch_demo_5min/audio.mp3 \
+    --video-h264 clips/bmg_fch_demo_5min/video.h264 \
+    --events clips/bmg_fch_demo_5min/events.txt \
+    --atmosphere clips/bmg_fch_demo_5min/atmosphere.wav \
+    --lang es --video-delay 7
+```
+
+Same as full demo but with crowd noise mixed under translated commentary. Viewer controls:
+- **Atmos** toggle: crowd noise under commentary (Mel-Band Roformer separated)
+- **Original** toggle: play source English commentary synced to video (disables lang + atmos)
+- **Language** select: switch translation language on the fly
+
 ### Events only (simplest — no Deepgram key needed)
 
 ```bash

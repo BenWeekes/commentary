@@ -48,8 +48,9 @@ commentary/
 | `LANG_NAMES`, `LANG_VOICES` | 184–201 | Language config, ElevenLabs voice IDs |
 | `ControlHandler` | 215–297 | HTTP server for viewer control |
 | `translate_text()` | 309–320 | GPT-4o-mini translation call |
-| `TTSEngine` | 330–592 | ElevenLabs WebSocket TTS + PCM buffering |
-| Audio helpers | 596–624 | ffmpeg conversion, real-time PCM chunking |
+| `TTSEngine` | 330–600 | ElevenLabs WebSocket TTS + PCM buffering + atmosphere mixing |
+| `load_atmosphere()` | ~1300 | Load 16kHz mono WAV as raw PCM bytes |
+| Audio helpers | ~1315 | ffmpeg conversion, real-time PCM chunking |
 | `start_publisher()` | 629–659 | Launch Go publisher subprocess |
 | Events fallback | 674–786 | Load and replay Sportradar events file |
 | STT pipeline | 791–876 | Deepgram WebSocket → corrections → translate |

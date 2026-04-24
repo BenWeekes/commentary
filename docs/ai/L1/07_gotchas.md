@@ -78,3 +78,19 @@ The `TERMS_LIST` contains ~80 terms for keyword boosting. Deepgram has a limit o
 ## Latency drops
 
 When total pipeline latency exceeds `MAX_LATENCY_S` (3.5s), the STT pipeline drops the utterance with a `[DROP]` log. This prevents audio from falling too far behind video.
+
+## Atmosphere volume tuning
+
+Mel-Band Roformer separated atmosphere has reasonable amplitude. The default `_atmosphere_vol` is 0.5x to sit under commentary without clipping. Increase if crowd noise is too quiet; decrease if it distorts.
+
+## Atmosphere and original audio require restart
+
+Both `--atmosphere` and `--audio` load PCM into memory at startup. Changes to these files or adding them after the server starts require a restart. Check for `[ATMOS] Loaded Xs` and `[ORIG] Loaded Xs` in startup logs.
+
+## Language switch can bleed old-language audio
+
+On language change, queued STT utterances are flushed to prevent old-language playback. SR prefetched events are also flushed and re-translated. However, an utterance already being synthesized by ElevenLabs will complete in the old language.
+
+## WAV header size varies
+
+`convert_to_pcm()` produces WAV files with variable-size headers (typically 78 bytes, not the assumed 44). Always use `wave.open()` to read PCM data, never hardcode header offsets.

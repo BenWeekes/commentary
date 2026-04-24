@@ -12,7 +12,9 @@ Served by `ControlHandler` on port 8090 (configurable via `--lang-port`).
 | `/api/session/{id}/start` | POST | none | `{"status":"starting"}` | Start session pipeline |
 | `/api/session/{id}/stop` | POST | none | `{"status":"stopping"}` | Stop session pipeline |
 | `/api/session/{id}/set-lang` | GET | `?lang=XX` | `{"lang":"XX"}` | Change session language |
-| `/api/session/{id}/status` | GET | none | `{"running":bool,"lang":"XX"}` | Session state |
+| `/api/session/{id}/set-atmosphere` | GET | `?enabled=true\|false` | `{"atmosphere":bool}` | Toggle atmosphere audio |
+| `/api/session/{id}/set-original` | GET | `?enabled=true\|false` | `{"original":bool}` | Toggle original audio pass-through |
+| `/api/session/{id}/status` | GET | none | `{"running":bool,"lang":"XX","atmosphere":bool,"original":bool}` | Session state |
 
 ### Static file serving
 
@@ -48,6 +50,34 @@ Each session gets its own channel (`commentary-{uuid[:8]}`).
 | Bytes per second | 32,000 |
 
 The TTSEngine splits ElevenLabs audio into 10ms chunks and writes them to the Go publisher's stdin at a steady 10ms rate.
+
+## Atmosphere Audio
+
+Stadium atmosphere (crowd noise, whistles, chants) separated from the original broadcast via Mel-Band Roformer. Loaded as raw PCM and mixed into every output chunk.
+
+| Field | Value |
+|---|---|
+| Source format | 16kHz mono S16LE WAV (same as TTS) |
+| Default volume | 0.5x |
+| Mixing | Per-sample addition with int16 clamping |
+| Position sync | Synced to video time on toggle (not from file start) |
+| Looping | Wraps to start when file ends |
+| CLI flag | `--atmosphere path/to/atmosphere.wav` |
+
+When enabled, atmosphere is mixed into both TTS/SR audio and silence (continuous crowd noise). Toggle via `/api/session/{id}/set-atmosphere?enabled=true`.
+
+## Original Audio Pass-Through
+
+Plays the source English commentary audio synced to video, bypassing TTS translation.
+
+| Field | Value |
+|---|---|
+| Source | `--audio` file, converted to 16kHz mono PCM at startup |
+| Position sync | Synced to video time on toggle (`elapsed * 32000`) |
+| Controls | Disables lang select and atmosphere toggle in viewer |
+| API | `/api/session/{id}/set-original?enabled=true` |
+
+When enabled, `_pipe_writer` writes original audio chunks at 10ms rate instead of TTS/SR output. STT and translation still run in background and resume when toggled off.
 
 ## Events File Format
 

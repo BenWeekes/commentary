@@ -29,10 +29,11 @@ speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf 
 
 ### _pipe_writer thread
 
-- Blocks on `_playback_ready.wait()` — wakes instantly when event is set (no polling delay)
-- Drains `_audio_buf` at exactly 10ms intervals
+- Blocks on `_any_playback_ready.wait(timeout=0.005)` — wakes on TTS or SR audio, or times out for atmosphere
+- Drains `_audio_buf` (STT) or `_sr_audio_buf` (SR) at exactly 10ms intervals, STT has priority
 - Writes 320-byte chunks to `self.audio_pipe` (Go publisher stdin)
-- No silence is ever sent — Go publisher handles silence internally
+- When atmosphere is enabled: mixes atmosphere into TTS/SR chunks, and writes atmosphere-only during idle
+- When atmosphere is off and no audio is playing: writes nothing (Go publisher handles silence)
 - Logs underruns if buffer empties mid-playback
 
 ## Buffer Strategy
@@ -55,9 +56,9 @@ Timeline for one utterance:
 play_at = match_time_start + event_offset + video_delay
 ```
 
-### Precision targeting (±100ms)
+### Precision targeting (±2s)
 
-The hold uses a two-phase approach for sub-10ms accuracy:
+Utterances within 2s of play_at are played (slightly late is better than dropped). The hold uses a two-phase approach for sub-10ms accuracy:
 1. **Coarse sleep**: `time.sleep(wait_s - 0.05)` — sleeps until 50ms before target
 2. **Tight spin**: busy-wait `while time.time() < play_at` — hits ±1ms
 
@@ -85,3 +86,29 @@ The pipe writer blocks on `threading.Event.wait()` instead of polling, so it wak
 - If the last chunk is short, it's zero-padded to 320 bytes
 - Chunks are appended to `_audio_buf` under `_buf_lock`
 - The interrupt flag is checked under the same lock to prevent pushing after interrupt
+
+## Atmosphere Mixing
+
+When `--atmosphere` is provided, stadium crowd noise is mixed into the audio output:
+
+- `set_atmosphere(pcm_bytes)`: loads raw PCM into `_atmosphere_pcm`
+- `set_atmosphere_enabled(bool)`: toggles mixing on/off, syncs position to video time
+- `_mix_atmosphere_chunk(chunk)`: per-sample S16LE addition with volume scaling and int16 clamping
+
+Mixing happens in two places within `_pipe_writer`:
+1. **During TTS/SR playback**: atmosphere is mixed into each chunk before writing
+2. **During idle (no TTS/SR)**: atmosphere-only chunks are written at 10ms rate, paced by `atmos_tick`
+
+The atmosphere track loops: when `_atmosphere_pos` reaches the end, it wraps to the start. Position is tracked under `_atmosphere_lock` for thread safety.
+
+Volume is 0.5x (Mel-Band Roformer output has reasonable amplitude).
+
+## Original Audio Pass-Through
+
+When the "Original" toggle is enabled, the pipe writer plays the source English commentary audio synced to video instead of TTS output:
+
+- `set_original_audio(pcm_bytes)`: loads raw PCM from `--audio` file
+- `set_original_enabled(bool)`: toggles on/off, syncs position to video time, disables atmosphere
+- `_get_original_chunk()`: returns next 320-byte chunk, advancing position
+
+When `_original_on` is True, `_pipe_writer`'s idle loop writes original audio chunks at 10ms rate and `continue`s past the TTS/SR check. STT and translation still run in background — queued utterances are ignored but resume naturally when original is toggled off.

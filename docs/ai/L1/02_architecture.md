@@ -28,7 +28,7 @@ For SR events:
   play_at = match_time_start + event_offset
   Prefetched — TTS is ready seconds before play_at. Always ±0ms.
 
-Rule: play within ±100ms of play_at, or drop the utterance.
+Rule: play within ±2s of play_at, or drop the utterance.
 ```
 
 ## Pipeline Overview
@@ -67,7 +67,7 @@ Rule: play within ±100ms of play_at, or drop the utterance.
 ## Playback Rules
 
 - **SR events**: prefetched TTS, scheduled to exact match time. Always ±0ms.
-- **STT utterances**: translated + TTS'd as fast as possible. If ready within ±100ms of play_at, hold and play at exact time. If >100ms late, drop — the moment has passed.
+- **STT utterances**: translated + TTS'd as fast as possible. If ready within ±2s of play_at, hold and play at exact time. If >2s late, drop — the moment has passed.
 - **SR INTERRUPT** (e.g. GOAL): clears STT queue, plays to completion uninterrupted.
 - **STT can interrupt SR APPEND**: if STT audio is ready while SR is playing, STT takes priority (pipe_writer prefers STT buffer). STT plays to completion — the original commentator fit it in, so the translated TTS (which is shorter) will too.
 - **Queue stays at 0-1**: when a new STT utterance arrives with play_at, any stale queued item is replaced.
@@ -85,6 +85,45 @@ POST /session/{id}/stop  → kills pipeline
 
 Multiple viewers run concurrently with different languages. Each has its own Agora channel, Go publisher, TTS engine, and pipeline threads.
 
+## Atmosphere Audio
+
+Optional stadium atmosphere (crowd noise) can be mixed under translated commentary:
+
+```
+atmosphere.wav ──▶ load_atmosphere() ──▶ raw PCM in memory
+                                              │
+                   _pipe_writer ◀──────────────┘
+                        │
+          ┌─────────────┼─────────────┐
+          │             │             │
+     TTS playing    SR playing    Idle (silence)
+          │             │             │
+     mix atmos      mix atmos     write atmos-only
+          │             │             │
+          └─────────────┼─────────────┘
+                        ▼
+                   Go publisher stdin
+```
+
+- Mel-Band Roformer separated from original broadcast audio (16kHz mono S16LE WAV)
+- Mixed at 0.5x volume to avoid clipping
+- Per-sample S16LE addition with int16 clamping
+- Position synced to video time on toggle (not from start of file)
+- Toggled per-session via API: `/api/session/{id}/set-atmosphere?enabled=true`
+- Viewer toggle: "Atmos" switch in top bar
+
+## Original Audio Pass-Through
+
+The "Original" toggle plays the source English commentary audio synced to video, bypassing translation entirely:
+
+- Original audio PCM loaded from `--audio` at startup via `convert_to_pcm()` + `wave.open()`
+- Position synced to video time when toggled on (`elapsed * 32000` aligned to 10ms)
+- When enabled: atmosphere and language controls are disabled in the viewer
+- `_pipe_writer` writes original chunks at 10ms rate, skipping TTS/SR playback
+- STT + translate still runs in background; resumes naturally when toggled off
+- API: `/api/session/{id}/set-original?enabled=true`
+- Viewer toggle: "Original" switch in top bar
+
 ## Key Parameters
 
 | Parameter | Default | Effect |
@@ -92,5 +131,6 @@ Multiple viewers run concurrently with different languages. Each has its own Ago
 | `--video-delay` | 7.0s | Pipeline budget. Longer = more STT utterances survive |
 | `--events-offset` | 0 | Match-time offset for events replay |
 | `--lang` | es | Default translation language |
+| `--atmosphere` | none | Path to atmosphere WAV (16kHz mono) |
 | `endpointing` | 200ms | Deepgram VAD — shorter = faster turn detection |
 | `utterance_end_ms` | 1000ms | Deepgram utterance boundary (minimum 1000ms) |
