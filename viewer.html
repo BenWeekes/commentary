@@ -172,6 +172,62 @@
       cursor: not-allowed;
     }
 
+    /* Atmosphere toggle */
+    .toggle-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-wrapper input { display: none; }
+
+    .toggle-slider {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      transition: background 0.2s;
+    }
+
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .toggle-wrapper input:checked + .toggle-slider {
+      background: rgba(34,197,94,0.4);
+    }
+
+    .toggle-wrapper input:checked + .toggle-slider::after {
+      transform: translateX(16px);
+      background: #4ade80;
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .toggle-wrapper input:disabled + .toggle-slider {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .select-wrapper select:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
     /* Status overlay */
     #status-overlay {
       position: fixed;
@@ -245,6 +301,16 @@
           <option value="en">EN - English</option>
         </select>
       </div>
+      <label class="toggle-wrapper" id="atmosphere-wrapper">
+        <input type="checkbox" id="atmosphere-toggle" />
+        <span class="toggle-slider"></span>
+        <span class="toggle-label">Atmos</span>
+      </label>
+      <label class="toggle-wrapper" id="original-wrapper">
+        <input type="checkbox" id="original-toggle" />
+        <span class="toggle-slider"></span>
+        <span class="toggle-label">Original</span>
+      </label>
       <button id="publish-btn" disabled>Start</button>
     </div>
   </div>
@@ -274,6 +340,9 @@
     var publishBtn = document.getElementById('publish-btn');
     var videoContainer = document.getElementById('video-container');
     var spinnerOverlay = document.getElementById('spinner-overlay');
+
+    var atmosphereToggle = document.getElementById('atmosphere-toggle');
+    var originalToggle = document.getElementById('original-toggle');
 
     var client = null;
     var isPublishing = false;
@@ -307,6 +376,27 @@
       fetch(CTL + '/api/session/' + SESSION.sessionId + '/set-lang?lang=' + encodeURIComponent(lang), { mode: 'cors' })
         .then(function() { console.log('Language set to: ' + lang); })
         .catch(function(err) { console.warn('Failed to set language:', err); });
+    });
+
+    // Atmosphere toggle
+    atmosphereToggle.addEventListener('change', function() {
+      if (!SESSION) return;
+      fetch(CTL + '/api/session/' + SESSION.sessionId + '/set-atmosphere?enabled=' + atmosphereToggle.checked, { mode: 'cors' })
+        .then(function() { console.log('Atmosphere: ' + atmosphereToggle.checked); })
+        .catch(function(err) { console.warn('Failed to set atmosphere:', err); });
+    });
+
+    // Original audio toggle
+    originalToggle.addEventListener('change', function() {
+      if (!SESSION) return;
+      var on = originalToggle.checked;
+      fetch(CTL + '/api/session/' + SESSION.sessionId + '/set-original?enabled=' + on, { mode: 'cors' })
+        .then(function() { console.log('Original: ' + on); })
+        .catch(function(err) { console.warn('Failed to set original:', err); });
+      // Disable/enable dependent controls
+      langSelect.disabled = on;
+      atmosphereToggle.disabled = on;
+      if (on) atmosphereToggle.checked = false;
     });
 
     // Start / Stop
@@ -367,6 +457,14 @@
             isPublishing = false;
             publishBtn.textContent = 'Start';
             publishBtn.classList.remove('running');
+          }
+          if (typeof data.atmosphere === 'boolean') {
+            atmosphereToggle.checked = data.atmosphere;
+          }
+          if (typeof data.original === 'boolean') {
+            originalToggle.checked = data.original;
+            langSelect.disabled = data.original;
+            atmosphereToggle.disabled = data.original;
           }
         })
         .catch(function() {});

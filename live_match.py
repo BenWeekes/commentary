@@ -62,6 +62,9 @@ import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
+import struct
+import wave
+
 import openai
 import websockets
 
@@ -196,7 +199,12 @@ LANG_NAMES = {
 # ElevenLabs voice IDs per language
 LANG_VOICES = {
     "es": "jdSy6qWNc1T4C8czPgat",
+    "fr": "LcKoSBj8CeBInl4bQHtq",
     "de": "g8JjujAzgjLre020BW2u",
+    "pt": "HR2TRGmi4QbMsO5omv7l",
+    "zh": "ImsA1Fn5TNc843fFdz99",
+    "en": "gU0LNdkMOQCOrPrwtbee",
+    "hi": "LcKoSBj8CeBInl4bQHtq",
 }
 DEFAULT_VOICE_ID = "ImsA1Fn5TNc843fFdz99"
 
@@ -242,6 +250,8 @@ class Session:
         self.stop_event = threading.Event()
         self.pipeline_running = False
         self.pipeline_thread = None
+        self.sr_prefetcher = None  # set by pipeline when SR events are active
+        self.tts_engine = None     # set by pipeline for atmosphere API
         self.created_at = time.time()
         self.last_activity = time.time()
         # Write initial language
@@ -317,6 +327,8 @@ class ControlHandler(BaseHTTPRequestHandler):
     args = None         # CLI args — set before server starts
     h264_file = None
     oai_client = None
+    atmosphere_pcm = None  # raw PCM bytes for atmosphere mixing
+    original_pcm = None    # raw PCM bytes for original commentary pass-through
 
     # Regex to match /api/session/{id}/{action}
     _SESSION_RE = _re_module.compile(r'^/api/session/([a-f0-9]+)/([\w-]+)$')
@@ -419,9 +431,32 @@ class ControlHandler(BaseHTTPRequestHandler):
             try:
                 with open(session.lang_file, "w") as f:
                     f.write(lang)
+                # Flush queued STT utterances so they don't play in old language
+                if hasattr(session, 'tts_engine') and session.tts_engine:
+                    tts = session.tts_engine
+                    while not tts._text_queue.empty():
+                        try:
+                            tts._text_queue.get_nowait()
+                        except Exception:
+                            break
+                # Flush prefetched SR events so they re-translate in new language
+                if session.sr_prefetcher:
+                    session.sr_prefetcher.flush()
                 self._respond(200, {"lang": lang})
             except OSError as e:
                 self._respond(500, {"error": str(e)})
+
+        elif action == "set-atmosphere":
+            enabled = qs.get("enabled", ["false"])[0].lower() == "true"
+            if hasattr(session, 'tts_engine') and session.tts_engine:
+                session.tts_engine.set_atmosphere_enabled(enabled)
+            self._respond(200, {"atmosphere": enabled})
+
+        elif action == "set-original":
+            enabled = qs.get("enabled", ["false"])[0].lower() == "true"
+            if hasattr(session, 'tts_engine') and session.tts_engine:
+                session.tts_engine.set_original_enabled(enabled)
+            self._respond(200, {"original": enabled})
 
         elif action == "status":
             lang = "es"
@@ -430,9 +465,16 @@ class ControlHandler(BaseHTTPRequestHandler):
                     lang = f.read().strip()
             except OSError:
                 pass
+            atmos = False
+            orig = False
+            if hasattr(session, 'tts_engine') and session.tts_engine:
+                atmos = session.tts_engine._atmosphere_on
+                orig = session.tts_engine._original_on
             self._respond(200, {
                 "running": session.pipeline_running,
                 "lang": lang,
+                "atmosphere": atmos,
+                "original": orig,
             })
 
         else:
@@ -465,12 +507,15 @@ class ControlHandler(BaseHTTPRequestHandler):
         pass
 
 
-def start_control_server(port, session_mgr, args, h264_file, oai_client):
+def start_control_server(port, session_mgr, args, h264_file, oai_client,
+                         atmosphere_pcm=None, original_pcm=None):
     """Start the control HTTP server in a daemon thread."""
     ControlHandler.session_mgr = session_mgr
     ControlHandler.args = args
     ControlHandler.h264_file = h264_file
     ControlHandler.oai_client = oai_client
+    ControlHandler.atmosphere_pcm = atmosphere_pcm
+    ControlHandler.original_pcm = original_pcm
     server = HTTPServer(("0.0.0.0", port), ControlHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -557,6 +602,17 @@ class TTSEngine:
         self._any_playback_ready = threading.Event()
         # When set, TTS worker discards current utterance output (SR GOAL playing)
         self._stt_suppressed = threading.Event()
+        # Atmosphere mixing
+        self._atmosphere_pcm = None   # raw PCM bytes (entire file)
+        self._atmosphere_pos = 0      # current read position
+        self._atmosphere_on = False   # toggle
+        self._atmosphere_vol = 0.5    # mix volume (half of Mel-Band Roformer output)
+        self._atmosphere_lock = threading.Lock()
+        # Original audio (pass-through of source commentary)
+        self._original_pcm = None        # raw PCM bytes (entire file, 16kHz mono)
+        self._original_pos = 0           # current read position
+        self._original_on = False        # toggle
+        self._original_lock = threading.Lock()
         # Stats
         self._utterance_id = 0
         # Video-relative timestamp (set by pipeline after publisher starts)
@@ -576,12 +632,48 @@ class TTSEngine:
         Drains audio buffers at 10ms rate. Checks both STT (_audio_buf) and
         SR (_sr_audio_buf). STT has priority: if STT audio becomes ready while
         SR is playing, SR is interrupted. SR never interrupts STT.
+
+        When atmosphere is enabled and no TTS/SR audio is playing, writes
+        atmosphere-only chunks at 10ms rate to keep crowd noise continuous.
         """
+        silence = b'\x00' * BYTES_PER_10MS
+        atmos_tick = time.monotonic()
+
         while not self._stop.is_set():
-            # Block until either source has audio ready
+            # Block until either source has audio ready, or write atmosphere/original
             while not self._stop.is_set():
-                if self._any_playback_ready.wait(timeout=0.5):
+                # Original audio mode — write original chunks continuously
+                if self._original_on and self._original_pcm:
+                    now = time.monotonic()
+                    if now >= atmos_tick:
+                        chunk = self._get_original_chunk()
+                        if chunk:
+                            try:
+                                self.audio_pipe.write(chunk)
+                                self.audio_pipe.flush()
+                            except (BrokenPipeError, OSError):
+                                self._stop.set()
+                                break
+                            atmos_tick = now + 0.01
+                        else:
+                            time.sleep(0.005)  # past end of audio
+                    continue  # skip TTS/SR check
+
+                # Use short timeout to check for TTS/SR readiness
+                if self._any_playback_ready.wait(timeout=0.005):
                     break
+                # No TTS/SR ready — write atmosphere at steady 10ms rate
+                if self._atmosphere_on and self._atmosphere_pcm:
+                    now = time.monotonic()
+                    if now >= atmos_tick:
+                        chunk = self._mix_atmosphere_chunk(silence)
+                        try:
+                            self.audio_pipe.write(chunk)
+                            self.audio_pipe.flush()
+                        except (BrokenPipeError, OSError):
+                            self._stop.set()
+                            break
+                        atmos_tick = now + 0.01
             if self._stop.is_set():
                 break
 
@@ -626,6 +718,10 @@ class TTSEngine:
                 if not chunk:
                     break  # utterance done
 
+                # Mix atmosphere into TTS/SR audio
+                if self._atmosphere_on and self._atmosphere_pcm:
+                    chunk = self._mix_atmosphere_chunk(chunk)
+
                 try:
                     self.audio_pipe.write(chunk)
                     self.audio_pipe.flush()
@@ -640,6 +736,7 @@ class TTSEngine:
                     time.sleep(sleep_for)
 
             print(f"  [{self._vts()}] [PIPE] {source} playback ended")
+            atmos_tick = time.monotonic()  # reset so idle atmosphere resumes cleanly
 
             # If SR was interrupted by STT, loop back — _any_playback_ready
             # is still set from the STT _playback_ready.set() call
@@ -715,6 +812,88 @@ class TTSEngine:
 
     def queue_size(self):
         return self._text_queue.qsize()
+
+    def set_atmosphere(self, pcm_bytes):
+        """Set atmosphere PCM data."""
+        self._atmosphere_pcm = pcm_bytes
+
+    def set_atmosphere_enabled(self, enabled):
+        """Toggle atmosphere mixing."""
+        self._atmosphere_on = enabled
+        if enabled:
+            with self._atmosphere_lock:
+                # Sync position to current video time so crowd noise matches the match moment
+                if self.video_start:
+                    elapsed = time.time() - self.video_start
+                    self._atmosphere_pos = max(0, int(elapsed * 32000) // BYTES_PER_10MS * BYTES_PER_10MS)
+                else:
+                    self._atmosphere_pos = 0
+        print(f"  [{self._vts()}] [ATMOS] {'ON' if enabled else 'OFF'} "
+              f"(pcm={'yes' if self._atmosphere_pcm else 'NO'})")
+
+    def set_original_audio(self, pcm_bytes):
+        """Set original commentary PCM data."""
+        self._original_pcm = pcm_bytes
+
+    def set_original_enabled(self, enabled):
+        """Toggle original audio mode. When on, TTS output is suppressed."""
+        self._original_on = enabled
+        if enabled:
+            with self._original_lock:
+                # Sync position to current video time
+                if self.video_start:
+                    elapsed = time.time() - self.video_start
+                    self._original_pos = max(0, int(elapsed * 32000) // BYTES_PER_10MS * BYTES_PER_10MS)
+                else:
+                    self._original_pos = 0
+            # When original on, disable atmosphere
+            self._atmosphere_on = False
+        print(f"  [{self._vts()}] [ORIG] {'ON' if enabled else 'OFF'}")
+
+    def _get_original_chunk(self):
+        """Get next 320-byte chunk of original audio, advancing position."""
+        if not self._original_pcm:
+            return None
+        pcm_len = len(self._original_pcm)
+        with self._original_lock:
+            pos = self._original_pos
+            if pos >= pcm_len:
+                return None  # past end
+            end = min(pos + BYTES_PER_10MS, pcm_len)
+            chunk = self._original_pcm[pos:end]
+            if len(chunk) < BYTES_PER_10MS:
+                chunk = chunk + b'\x00' * (BYTES_PER_10MS - len(chunk))
+            self._original_pos = pos + BYTES_PER_10MS
+        return chunk
+
+    def _mix_atmosphere_chunk(self, chunk):
+        """Mix atmosphere audio into a 320-byte PCM chunk."""
+        if not self._atmosphere_pcm:
+            return chunk
+
+        atmos_len = len(self._atmosphere_pcm)
+        with self._atmosphere_lock:
+            pos = self._atmosphere_pos
+            if pos + BYTES_PER_10MS <= atmos_len:
+                atmos_chunk = self._atmosphere_pcm[pos:pos + BYTES_PER_10MS]
+                self._atmosphere_pos = pos + BYTES_PER_10MS
+            else:
+                remaining = atmos_len - pos
+                atmos_chunk = (self._atmosphere_pcm[pos:]
+                              + self._atmosphere_pcm[:BYTES_PER_10MS - remaining])
+                self._atmosphere_pos = BYTES_PER_10MS - remaining
+
+        n_samples = BYTES_PER_10MS // 2  # 160 samples per 10ms
+        mixed = bytearray(BYTES_PER_10MS)
+        vol = self._atmosphere_vol
+        for i in range(n_samples):
+            off = i * 2
+            s1 = struct.unpack_from('<h', chunk, off)[0]
+            s2 = struct.unpack_from('<h', atmos_chunk, off)[0]
+            val = s1 + int(s2 * vol)
+            val = max(-32768, min(32767, val))
+            struct.pack_into('<h', mixed, off, val)
+        return bytes(mixed)
 
     def _tts_worker(self):
         """Processes TTS requests one at a time, sequentially."""
@@ -801,8 +980,8 @@ class TTSEngine:
                         pass
                 else:
                     late = -wait_s
-                    # Drop if more than 100ms late — can't sync to original timing
-                    if late > 0.1:
+                    # Drop if more than 2s late — play slightly late rather than drop
+                    if late > 2.0:
                         print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at")
                         with self._buf_lock:
                             self._audio_buf.clear()
@@ -903,10 +1082,17 @@ class SRPrefetcher:
     scheduled play_at time.
 
     Architecture:
-      _prefetch_worker: dequeues events, translates, fetches TTS → _ready_events
+      _feeder_worker:    drip-feeds events from _all_events into _prefetch_queue
+                         using a rolling window (PREFETCH_HORIZON_S ahead)
+      _prefetch_worker:  dequeues events, translates, fetches TTS → _ready_events
       _scheduler_worker: polls _ready_events, waits for play_at, injects into
                          tts._sr_audio_buf at the right moment
+
+    On language change, flush() clears prefetched audio and resets the feeder
+    so upcoming events are re-translated in the new language.
     """
+
+    PREFETCH_HORIZON_S = 30  # only prefetch events within this window
 
     def __init__(self, tts_engine, api_key=ELEVENLABS_API_KEY,
                  model=ELEVENLABS_MODEL):
@@ -918,6 +1104,18 @@ class SRPrefetcher:
         self._ready_events = {}  # event_id → (pcm_bytes, play_at)
         self._ready_lock = threading.Lock()
         self._next_id = 0
+        # All events list — feeder drip-feeds from here
+        self._all_events = []    # [(text, play_at, translate_fn_factory)]
+        self._all_events_lock = threading.Lock()
+        self._feed_idx = 0       # next event to feed
+        self._fetched_eids = set()  # event indices already in prefetch/ready
+
+    def set_events(self, events):
+        """Set the full event list. events = [(text, play_at, translate_fn_factory)]"""
+        with self._all_events_lock:
+            self._all_events = list(events)
+            self._feed_idx = 0
+            self._fetched_eids.clear()
 
     def schedule(self, text, play_at, translate_fn):
         """Schedule an SR event for prefetching and timed playback."""
@@ -925,6 +1123,36 @@ class SRPrefetcher:
         eid = self._next_id
         self._prefetch_queue.put((eid, text, play_at, translate_fn))
         return eid
+
+    def flush(self):
+        """Flush prefetched audio and reset feeder (called on language change).
+
+        Drains the prefetch queue, clears ready events, and resets the feeder
+        index so all future events are re-translated in the new language.
+        """
+        # Drain prefetch queue
+        while not self._prefetch_queue.empty():
+            try:
+                self._prefetch_queue.get_nowait()
+            except queue.Empty:
+                break
+        # Clear ready events (already-fetched TTS in old language)
+        with self._ready_lock:
+            cleared = len(self._ready_events)
+            self._ready_events.clear()
+        # Reset feeder — skip events whose play_at already passed
+        with self._all_events_lock:
+            now = time.time()
+            self._fetched_eids.clear()
+            self._feed_idx = 0
+            # Advance past events that already played
+            while self._feed_idx < len(self._all_events):
+                _, play_at, _ = self._all_events[self._feed_idx]
+                if play_at > now:
+                    break
+                self._feed_idx += 1
+        if cleared:
+            print(f"  [{self._vts()}] [SR] Flushed {cleared} prefetched events (language change)")
 
     def cancel_all(self):
         """Clear all pending and ready events (called on INTERRUPT)."""
@@ -936,25 +1164,21 @@ class SRPrefetcher:
         with self._ready_lock:
             self._ready_events.clear()
 
-    def cancel_except(self, keep_eid):
-        """Cancel ready events that play before the INTERRUPT, keep future ones.
+    def cancel_before(self, cutoff_play_at):
+        """Cancel ready events that play before cutoff_play_at, keep the rest.
 
-        The INTERRUPT event (keep_eid) and any events with later play_at are
+        Used by INTERRUPT events: the INTERRUPT and anything after it are
         preserved so a GOAL doesn't permanently silence later commentary.
-        The prefetch queue is not drained — future events still get fetched.
         """
         with self._ready_lock:
-            if not keep_eid or keep_eid not in self._ready_events:
-                return
-            keep_play_at = self._ready_events[keep_eid][1]
-            # Remove events that play at or before the INTERRUPT
             to_remove = [eid for eid, (_, play_at) in self._ready_events.items()
-                         if eid != keep_eid and play_at <= keep_play_at]
+                         if play_at < cutoff_play_at]
             for eid in to_remove:
                 del self._ready_events[eid]
 
     def start(self):
-        """Spawn prefetch and scheduler worker threads."""
+        """Spawn feeder, prefetch, and scheduler worker threads."""
+        threading.Thread(target=self._feeder_worker, daemon=True).start()
         threading.Thread(target=self._prefetch_worker, daemon=True).start()
         threading.Thread(target=self._scheduler_worker, daemon=True).start()
 
@@ -963,6 +1187,32 @@ class SRPrefetcher:
 
     def _vts(self):
         return _ts(self.tts.video_start)
+
+    def _feeder_worker(self):
+        """Drip-feed events into _prefetch_queue using a rolling window.
+
+        Only events whose play_at is within PREFETCH_HORIZON_S of now are
+        submitted for prefetch. Checks every 1s for newly eligible events.
+        """
+        while not self._stop.is_set():
+            now = time.time()
+            horizon = now + self.PREFETCH_HORIZON_S
+
+            with self._all_events_lock:
+                while self._feed_idx < len(self._all_events):
+                    text, play_at, translate_fn_factory = self._all_events[self._feed_idx]
+                    if play_at > horizon:
+                        break  # not yet in window
+                    idx = self._feed_idx
+                    self._feed_idx += 1
+                    if idx in self._fetched_eids:
+                        continue  # already fed (shouldn't happen, but safe)
+                    self._fetched_eids.add(idx)
+                    self._next_id += 1
+                    eid = self._next_id
+                    self._prefetch_queue.put((eid, text, play_at, translate_fn_factory()))
+
+            time.sleep(1.0)
 
     def _prefetch_worker(self):
         """Dequeue events, translate, fetch TTS audio, store in _ready_events."""
@@ -1135,6 +1385,18 @@ class SRPrefetcher:
 
             print(f"  [{self._vts()}] [SR SCHED #{next_eid}] Injected — "
                   f"{dur_ms:.0f}ms, delta {delta_ms:+.0f}ms")
+
+
+# ─── Atmosphere audio ────────────────────────────────────────────────────
+
+def load_atmosphere(wav_path):
+    """Load a 16kHz mono wav file as raw PCM bytes."""
+    with wave.open(wav_path, 'rb') as wf:
+        assert wf.getsampwidth() == 2 and wf.getnchannels() == 1, \
+            f"Atmosphere must be 16-bit mono, got {wf.getsampwidth()}B {wf.getnchannels()}ch"
+        pcm = wf.readframes(wf.getnframes())
+    print(f"[ATMOS] Loaded {len(pcm)/32000:.1f}s of atmosphere from {wav_path}")
+    return pcm
 
 
 # ─── Audio helpers ───────────────────────────────────────────────────────
@@ -1368,27 +1630,26 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
             return (translate_text(oai_client, text, cur_lang), vid)
         return translate
 
-    # With prefetcher: schedule ALL events upfront for maximum prefetch
-    # lead time. INTERRUPT events are also pre-fetched but at match time
-    # they clear everything else so they play on time.
+    # With prefetcher: feed all events into the rolling-window feeder.
+    # The feeder drip-feeds events into the prefetch queue as they approach
+    # (within PREFETCH_HORIZON_S). On language change, flush() resets
+    # the feeder so upcoming events are re-translated.
     if sr_prefetcher:
-        # Track INTERRUPT event IDs so we can protect them from cancel_all
-        interrupt_eids = {}  # offset → event_id
-
-        # Schedule all events upfront
-        for idx, (offset, priority, message) in enumerate(events):
+        # Build event list for feeder: (text, play_at, translate_fn_factory)
+        event_list = []
+        for offset, priority, message in events:
             play_at = match_time_start[0] + offset
+            event_list.append((message, play_at, make_translate_fn))
             mm, ss = offset // 60, offset % 60
             delay_to_play = play_at - time.time()
             tag = "INT" if priority == "INTERRUPT" else "EVT"
             print(f"  [{_ts(tts.video_start)}] [SR {mm:02d}:{ss:02d} {tag}] "
-                  f"\"{message[:60]}\" (scheduled, play in {delay_to_play:.1f}s)")
-            eid = sr_prefetcher.schedule(message, play_at, make_translate_fn())
-            if priority == "INTERRUPT":
-                interrupt_eids[offset] = eid
+                  f"\"{message[:60]}\" (registered, play in {delay_to_play:.1f}s)")
+
+        sr_prefetcher.set_events(event_list)
 
         # Wait for INTERRUPT events at their match times to clear STT queue
-        for idx, (offset, priority, message) in enumerate(events):
+        for offset, priority, message in events:
             if stop_event.is_set():
                 break
             if priority != "INTERRUPT":
@@ -1409,8 +1670,9 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
 
             # Clear STT without killing SR playback (GOAL is in _sr_audio_buf)
             tts.clear_stt()
-            # Cancel other pending SR events but keep the INTERRUPT event
-            sr_prefetcher.cancel_except(interrupt_eids.get(offset))
+            # Cancel SR events that play before the INTERRUPT
+            interrupt_play_at = match_time_start[0] + offset
+            sr_prefetcher.cancel_before(interrupt_play_at)
             last_stt_time[0] = time.time()
     else:
         # No prefetcher — old sequential path
@@ -1553,6 +1815,11 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
             _wait_for_publisher_audio(pub_proc, timeout=15, tag=pub_tag)
 
             tts = TTSEngine(audio_pipe=pub_proc.stdin)
+            if ControlHandler.atmosphere_pcm:
+                tts.set_atmosphere(ControlHandler.atmosphere_pcm)
+            if ControlHandler.original_pcm:
+                tts.set_original_audio(ControlHandler.original_pcm)
+            session.tts_engine = tts
             # Temporary video_start — will be updated when video actually starts
             tts.video_start = time.time() + args.video_delay
             tts.start()
@@ -1592,6 +1859,11 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
         else:
             devnull = open(os.devnull, "wb")
             tts = TTSEngine(audio_pipe=devnull)
+            if ControlHandler.atmosphere_pcm:
+                tts.set_atmosphere(ControlHandler.atmosphere_pcm)
+            if ControlHandler.original_pcm:
+                tts.set_original_audio(ControlHandler.original_pcm)
+            session.tts_engine = tts
             tts.video_start = time.time()
             tts.start()
             stt_thread = None
@@ -1607,6 +1879,7 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
             sr_prefetcher = SRPrefetcher(
                 tts_engine=tts, api_key=ELEVENLABS_API_KEY, model=ELEVENLABS_MODEL,
             )
+            session.sr_prefetcher = sr_prefetcher
             sr_prefetcher.start()
 
             sr_thread = threading.Thread(
@@ -1656,6 +1929,7 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
     finally:
         print(f"[{tag}] Cleaning up pipeline...")
         session.pipeline_running = False
+        session.tts_engine = None
         session.stop_event.set()
         if sr_prefetcher:
             sr_prefetcher.stop()
@@ -1681,6 +1955,7 @@ def main():
                         help="Port for language control HTTP server (default: 8090)")
     parser.add_argument("--events-offset", type=int, default=0,
                         help="Match-time offset in seconds for events replay (default: 0)")
+    parser.add_argument("--atmosphere", help="Atmosphere audio file (16kHz mono wav)")
     args = parser.parse_args()
 
     if not args.audio and not args.events:
@@ -1713,17 +1988,33 @@ def main():
             "-f", "h264", h264_file,
         ], capture_output=True)
 
+    # Load atmosphere audio if provided
+    atmosphere_pcm = None
+    if args.atmosphere:
+        atmosphere_pcm = load_atmosphere(args.atmosphere)
+
+    # Load original commentary audio for pass-through mode
+    original_pcm = None
+    if args.audio:
+        original_pcm_path = convert_to_pcm(args.audio)
+        with wave.open(original_pcm_path, 'rb') as wf:
+            original_pcm = wf.readframes(wf.getnframes())
+        os.unlink(original_pcm_path)
+        print(f"[ORIG] Loaded {len(original_pcm)/32000:.1f}s of original audio")
+
     oai_client = openai.OpenAI()
     session_mgr = SessionManager()
     lang_name = LANG_NAMES.get(args.lang, args.lang)
 
-    start_control_server(args.lang_port, session_mgr, args, h264_file, oai_client)
+    start_control_server(args.lang_port, session_mgr, args, h264_file, oai_client,
+                         atmosphere_pcm=atmosphere_pcm, original_pcm=original_pcm)
 
     print(f"\n{'=' * 70}")
     print(f"  LIVE MATCH — Multi-Session Server ({lang_name} default)")
     print(f"  STT audio: {args.audio or 'None'}")
     print(f"  Video: {h264_file or 'None (TTS audio only)'}")
     print(f"  SR fallback: {args.events or 'None'}")
+    print(f"  Atmosphere: {args.atmosphere or 'None'}")
     print(f"  Events offset: {args.events_offset}s")
     print(f"  Video delay: {args.video_delay}s")
     print(f"  API: http://localhost:{args.lang_port}/api/session")
