@@ -461,6 +461,9 @@ class ControlHandler(BaseHTTPRequestHandler):
         elif action == "set-original":
             enabled = qs.get("enabled", ["false"])[0].lower() == "true"
             if hasattr(session, 'tts_engine') and session.tts_engine:
+                if enabled and not session.tts_engine._original_pcm:
+                    self._respond(400, {"error": "no original audio loaded"})
+                    return
                 session.tts_engine.set_original_enabled(enabled)
             self._respond(200, {"original": enabled})
 
@@ -880,6 +883,12 @@ class TTSEngine:
                     self._original_pos = 0
             # When original on, disable atmosphere
             self._atmosphere_on = False
+            # Clear translated SR and TTS buffers so stale content doesn't play
+            # when original mode is toggled off later
+            with self._sr_buf_lock:
+                self._sr_audio_buf.clear()
+            with self._buf_lock:
+                self._audio_buf.clear()
         print(f"  [{self._vts()}] [ORIG] {'ON' if enabled else 'OFF'}")
 
     def _get_original_chunk(self):
@@ -1061,6 +1070,12 @@ class TTSEngine:
                     continue
             else:
                 print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — starting playback")
+
+            # If original audio is playing, discard translated TTS
+            if self._original_on:
+                with self._buf_lock:
+                    self._audio_buf.clear()
+                continue
 
             # Signal pipe writer that full utterance is ready
             self._playback_ready.set()
@@ -1476,6 +1491,10 @@ class SRPrefetcher:
             delta_ms = (time.time() - play_at) * 1000
             dur_ms = len(pcm_bytes) / (SAMPLE_RATE * 2) * 1000
 
+            # Skip SR injection while original audio mode is active
+            if self.tts._original_on:
+                continue
+
             # Split into 10ms chunks and inject into SR buffer
             with self.tts._sr_buf_lock:
                 offset = 0
@@ -1863,6 +1882,7 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
         # to avoid mega-batches that exhaust the video delay budget.
         MAX_STT_DURATION = max_stt_duration
         force_split_end = [0.0]  # audio_end of the last force-emitted interim
+        force_split_text = [""]   # transcript text that was force-emitted
 
         def emit_utterance(text, audio_start, audio_end, tag=""):
             """Correct, schedule, and queue an STT utterance for TTS."""
@@ -1908,6 +1928,7 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
                               f"at audio={audio_start:.1f}-{audio_end:.1f}s")
                         emit_utterance(transcript, audio_start, audio_end, tag=" SPLIT")
                         force_split_end[0] = audio_end
+                        force_split_text[0] = transcript
                 continue
 
             # is_final result
@@ -1918,21 +1939,41 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
             if audio_end <= force_split_end[0]:
                 print(f"  [{_ts(tts.video_start)}] [STT] Skipping final — already force-emitted "
                       f"(audio={audio_start:.1f}-{audio_end:.1f}s)")
+                force_split_text[0] = ""
                 continue
 
             # If we force-emitted part of this range, adjust start
             if audio_start < force_split_end[0] < audio_end:
-                # The final covers more than what we emitted — emit the remainder
-                # Use the full transcript since translation handles context
+                # The final covers more than what we emitted — emit only the tail
                 adj_start = force_split_end[0]
+                # Try to strip already-spoken text from the final transcript.
+                # Interims can differ slightly from finals, so try prefix match
+                # on normalized text. If no match, use word-count estimation.
+                remainder = transcript
+                split_text = force_split_text[0]
+                if split_text:
+                    # Try exact prefix strip
+                    if transcript.startswith(split_text):
+                        remainder = transcript[len(split_text):].lstrip(" ,.")
+                    else:
+                        # Estimate word split point from timing ratio
+                        words = transcript.split()
+                        split_ratio = (force_split_end[0] - audio_start) / (audio_end - audio_start)
+                        split_idx = max(1, int(len(words) * split_ratio))
+                        remainder = " ".join(words[split_idx:])
+                force_split_text[0] = ""
+                force_split_end[0] = 0.0
+                if not remainder.strip():
+                    print(f"  [{_ts(tts.video_start)}] [STT] Remainder empty after strip — skipping")
+                    continue
                 print(f"  [{_ts(tts.video_start)}] [STT] Partial overlap — emitting remainder "
                       f"from {adj_start:.1f}s (original {audio_start:.1f}-{audio_end:.1f}s)")
-                emit_utterance(transcript, adj_start, audio_end, tag=" REMAINDER")
-                force_split_end[0] = 0.0
+                emit_utterance(remainder, adj_start, audio_end, tag=" REMAINDER")
                 continue
 
             # Normal path — no force split overlap
             force_split_end[0] = 0.0
+            force_split_text[0] = ""
             emit_utterance(transcript, audio_start, audio_end)
 
     os.unlink(pcm_path)
