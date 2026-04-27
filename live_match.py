@@ -444,6 +444,7 @@ class ControlHandler(BaseHTTPRequestHandler):
                     with tts._lookahead_lock:
                         tts._lookahead_buf.clear()
                     tts._lookahead_item = None
+                    tts._lang_version += 1
                 # Flush prefetched SR events so they re-translate in new language
                 if session.sr_prefetcher:
                     session.sr_prefetcher.flush()
@@ -624,7 +625,8 @@ class TTSEngine:
         # Lookahead: pre-translated + pre-TTS'd next utterance (overlaps with playback)
         self._lookahead_buf = collections.deque()
         self._lookahead_lock = threading.Lock()
-        self._lookahead_item = None  # (text, play_at, translate_fn, uid, translated, voice_id, tts_time, translate_time)
+        self._lookahead_item = None  # result dict from _process_item
+        self._lang_version = 0  # bumped on language change to invalidate in-flight lookahead
         # Redirect target for _push_audio — normally _audio_buf, switched to _lookahead_buf during lookahead
         self._tts_target_buf = None  # set dynamically in worker
         self._tts_target_lock = None
@@ -1082,14 +1084,22 @@ class TTSEngine:
                             self._lookahead_buf.clear()
                         self._tts_target_buf = self._lookahead_buf
                         self._tts_target_lock = self._lookahead_lock
+                        lang_v = self._lang_version
                         la_result = self._process_item(next_item)
                         self._tts_target_buf = None
                         self._tts_target_lock = None
 
                         if la_result and not self._interrupt.is_set():
-                            self._lookahead_item = la_result
-                            print(f"  [{self._vts()}] [TTS #{la_result['uid']}] Lookahead ready "
-                                  f"({len(self._lookahead_buf) * 10}ms)")
+                            # Discard if language changed during processing
+                            if self._lang_version != lang_v:
+                                print(f"  [{self._vts()}] [TTS #{la_result['uid']}] "
+                                      f"Lookahead discarded (language changed)")
+                                with self._lookahead_lock:
+                                    self._lookahead_buf.clear()
+                            else:
+                                self._lookahead_item = la_result
+                                print(f"  [{self._vts()}] [TTS #{la_result['uid']}] Lookahead ready "
+                                      f"({len(self._lookahead_buf) * 10}ms)")
                         else:
                             with self._lookahead_lock:
                                 self._lookahead_buf.clear()
