@@ -193,7 +193,7 @@ LANG_NAMES = {
     "es": "Spanish (Latin American)", "fr": "French", "de": "German",
     "pt": "Portuguese (Brazilian)", "it": "Italian", "ar": "Arabic",
     "ja": "Japanese", "ko": "Korean", "zh": "Mandarin Chinese", "hi": "Hindi",
-    "en": "English",
+    "tr": "Turkish", "en": "English",
 }
 
 # ElevenLabs voice IDs per language
@@ -205,6 +205,7 @@ LANG_VOICES = {
     "zh": "ImsA1Fn5TNc843fFdz99",
     "en": "gU0LNdkMOQCOrPrwtbee",
     "hi": "LcKoSBj8CeBInl4bQHtq",
+    "tr": "ImsA1Fn5TNc843fFdz99",
 }
 DEFAULT_VOICE_ID = "ImsA1Fn5TNc843fFdz99"
 
@@ -439,6 +440,10 @@ class ControlHandler(BaseHTTPRequestHandler):
                             tts._text_queue.get_nowait()
                         except Exception:
                             break
+                    # Also discard lookahead (translated in old language)
+                    with tts._lookahead_lock:
+                        tts._lookahead_buf.clear()
+                    tts._lookahead_item = None
                 # Flush prefetched SR events so they re-translate in new language
                 if session.sr_prefetcher:
                     session.sr_prefetcher.flush()
@@ -531,7 +536,9 @@ Translate the English soccer commentary to {lang_name}. Rules:
 2. Maintain the energy and rhythm of live commentary — this will be spoken aloud by TTS
 3. Use natural soccer terminology for the target language
 4. Return ONLY the translation, no explanations
-5. Keep it concise — match the length of the original"""
+5. Keep it concise — match the length of the original
+6. Use only correct, standard verb conjugations and grammar — never invent word forms
+7. Translate every part of the sentence — do not drop or omit words"""
 
 
 def translate_text(oai_client, text, lang):
@@ -542,7 +549,7 @@ def translate_text(oai_client, text, lang):
             {"role": "system", "content": TRANSLATE_SYSTEM.format(lang_name=lang_name)},
             {"role": "user", "content": text},
         ],
-        temperature=0.2,
+        temperature=0.0,
         max_tokens=512,
     )
     return resp.choices[0].message.content.strip()
@@ -565,11 +572,12 @@ class TTSEngine:
     ElevenLabs WebSocket TTS → PCM → Go publisher stdin.
 
     Architecture:
-      - TTS worker processes one utterance at a time from the text queue.
+      - TTS worker processes utterances from the text queue with lookahead:
+        while the current utterance plays, the next one is translated + TTS'd
+        in parallel so playback time doesn't eat into the next item's budget.
       - Each utterance is fully buffered from ElevenLabs before playback begins
         (pre-buffer) to avoid underruns from network jitter.
       - Pipe-writer drains the buffer at a steady 10ms rate to the Go publisher.
-      - When buffer empties mid-playback, it logs an underrun.
       - No silence is ever sent — Go publisher handles silence on its own.
       - speak() queues text. Only real INTERRUPT events clear the queue.
     """
@@ -613,6 +621,13 @@ class TTSEngine:
         self._original_pos = 0           # current read position
         self._original_on = False        # toggle
         self._original_lock = threading.Lock()
+        # Lookahead: pre-translated + pre-TTS'd next utterance (overlaps with playback)
+        self._lookahead_buf = collections.deque()
+        self._lookahead_lock = threading.Lock()
+        self._lookahead_item = None  # (text, play_at, translate_fn, uid, translated, voice_id, tts_time, translate_time)
+        # Redirect target for _push_audio — normally _audio_buf, switched to _lookahead_buf during lookahead
+        self._tts_target_buf = None  # set dynamically in worker
+        self._tts_target_lock = None
         # Stats
         self._utterance_id = 0
         # Video-relative timestamp (set by pipeline after publisher starts)
@@ -744,8 +759,11 @@ class TTSEngine:
                 self._any_playback_ready.set()
 
     def _push_audio(self, pcm_bytes):
-        """Split PCM bytes into 10ms chunks and push to buffer."""
-        with self._buf_lock:
+        """Split PCM bytes into 10ms chunks and push to target buffer.
+        Target defaults to _audio_buf but switches to _lookahead_buf during lookahead."""
+        buf = self._audio_buf if self._tts_target_buf is None else self._tts_target_buf
+        lock = self._buf_lock if self._tts_target_lock is None else self._tts_target_lock
+        with lock:
             if self._interrupt.is_set():
                 return
             offset = 0
@@ -754,7 +772,7 @@ class TTSEngine:
                 chunk = pcm_bytes[offset:end]
                 if len(chunk) < BYTES_PER_10MS:
                     chunk = chunk + b'\x00' * (BYTES_PER_10MS - len(chunk))
-                self._audio_buf.append(chunk)
+                buf.append(chunk)
                 offset = end
 
     def speak(self, text, interrupt=False, play_at=None, translate_fn=None):
@@ -771,6 +789,9 @@ class TTSEngine:
                 self._audio_buf.clear()
             with self._sr_buf_lock:
                 self._sr_audio_buf.clear()
+            with self._lookahead_lock:
+                self._lookahead_buf.clear()
+            self._lookahead_item = None
             self._sr_playback_ready.clear()
             while not self._text_queue.empty():
                 try:
@@ -787,6 +808,12 @@ class TTSEngine:
                         discarded += 1
                     except queue.Empty:
                         break
+                # Also discard lookahead if it was based on a now-stale item
+                if self._lookahead_item:
+                    with self._lookahead_lock:
+                        self._lookahead_buf.clear()
+                    self._lookahead_item = None
+                    discarded += 1
                 if discarded:
                     print(f"  [{self._vts()}] [TTS] Replaced {discarded} stale queued item(s)")
             self._text_queue.put((text, play_at, translate_fn))
@@ -802,6 +829,9 @@ class TTSEngine:
         self._stt_suppressed.set()
         with self._buf_lock:
             self._audio_buf.clear()
+        with self._lookahead_lock:
+            self._lookahead_buf.clear()
+        self._lookahead_item = None
         self._playback_ready.clear()
         while not self._text_queue.empty():
             try:
@@ -895,64 +925,105 @@ class TTSEngine:
             struct.pack_into('<h', mixed, off, val)
         return bytes(mixed)
 
+    def _process_item(self, item):
+        """Translate + fetch TTS for a single queue item. Returns result dict or None on failure.
+        Pushes audio to whatever buffer _tts_target_buf points to."""
+        if isinstance(item, tuple):
+            text, play_at, translate_fn = item
+        else:
+            text, play_at, translate_fn = item, None, None
+
+        self._utterance_id += 1
+        uid = self._utterance_id
+
+        # Just-in-time translation with current language + voice
+        voice_id = self.voice_id
+        t_translate = time.monotonic()
+        if translate_fn:
+            try:
+                result = translate_fn(text)
+                if isinstance(result, tuple):
+                    translated, voice_id = result
+                else:
+                    translated = result
+            except Exception:
+                translated = text
+        else:
+            translated = text
+        translate_time = time.monotonic() - t_translate
+
+        queued = self._text_queue.qsize()
+        wc = len(translated.split())
+        is_lookahead = self._tts_target_buf is self._lookahead_buf
+        tag = "LOOKAHEAD " if is_lookahead else ""
+        print(f"  [{self._vts()}] [TTS #{uid}] {tag}Starting — \"{translated[:50]}\" "
+              f"({wc}w, queue: {queued}, xlat: {translate_time:.2f}s, voice: {voice_id[:8]})")
+
+        t0 = time.monotonic()
+        self._loop.run_until_complete(self._tts(translated, uid, voice_id=voice_id))
+        tts_time = time.monotonic() - t0
+
+        if self._interrupt.is_set():
+            print(f"  [{self._vts()}] [TTS #{uid}] {tag}Interrupted after {tts_time:.2f}s")
+            return None
+
+        return {
+            "uid": uid, "text": text, "translated": translated, "play_at": play_at,
+            "voice_id": voice_id, "tts_time": tts_time, "translate_time": translate_time,
+        }
+
     def _tts_worker(self):
-        """Processes TTS requests one at a time, sequentially."""
+        """Processes TTS requests with lookahead — translates+fetches the next utterance
+        while the current one is playing, so playback time doesn't eat into the next
+        utterance's timing budget."""
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
         while not self._stop.is_set():
-            try:
-                item = self._text_queue.get(timeout=0.1)
-            except queue.Empty:
-                if self.is_speaking.is_set():
-                    self.is_speaking.clear()
-                    print(f"  [{self._vts()}] [TTS] Queue empty — idle")
-                    if self.on_idle:
-                        self.on_idle()
-                continue
-
-            # Unpack — support both old (str) and new (tuple) format
-            if isinstance(item, tuple):
-                text, play_at, translate_fn = item
+            # Check for a lookahead result first (already translated + TTS'd)
+            result = None
+            if self._lookahead_item:
+                result = self._lookahead_item
+                self._lookahead_item = None
+                # Move lookahead audio into main buffer (copy under lock, then swap)
+                with self._lookahead_lock:
+                    la_chunks = list(self._lookahead_buf)
+                    self._lookahead_buf.clear()
+                with self._buf_lock:
+                    self._audio_buf.clear()
+                    self._audio_buf.extend(la_chunks)
+                uid = result["uid"]
+                print(f"  [{self._vts()}] [TTS #{uid}] Using lookahead result "
+                      f"({len(self._audio_buf) * 10}ms buffered)")
             else:
-                text, play_at, translate_fn = item, None, None
+                # Nothing pre-processed — pull from queue
+                try:
+                    item = self._text_queue.get(timeout=0.1)
+                except queue.Empty:
+                    if self.is_speaking.is_set():
+                        self.is_speaking.clear()
+                        print(f"  [{self._vts()}] [TTS] Queue empty — idle")
+                        if self.on_idle:
+                            self.on_idle()
+                    continue
 
-            self._utterance_id += 1
-            uid = self._utterance_id
+                self.is_speaking.set()
+                self._interrupt.clear()
+                self._playback_ready.clear()
+
+                # Process into main audio buffer
+                self._tts_target_buf = None  # default = _audio_buf
+                self._tts_target_lock = None
+                result = self._process_item(item)
+                if not result:
+                    with self._buf_lock:
+                        self._audio_buf.clear()
+                    continue
+
+                uid = result["uid"]
 
             self.is_speaking.set()
             self._interrupt.clear()
             self._playback_ready.clear()
-
-            # Just-in-time translation with current language + voice
-            voice_id = self.voice_id  # default
-            t_translate = time.monotonic()
-            if translate_fn:
-                try:
-                    result = translate_fn(text)
-                    if isinstance(result, tuple):
-                        translated, voice_id = result
-                    else:
-                        translated = result
-                except Exception:
-                    translated = text
-            else:
-                translated = text
-            translate_time = time.monotonic() - t_translate
-
-            queued = self._text_queue.qsize()
-            wc = len(translated.split())
-            print(f"  [{self._vts()}] [TTS #{uid}] Starting — \"{translated[:50]}\" "
-                  f"({wc}w, queue: {queued}, xlat: {translate_time:.2f}s, voice: {voice_id[:8]})")
-
-            t0 = time.monotonic()
-            self._loop.run_until_complete(self._tts(translated, uid, voice_id=voice_id))
-            tts_time = time.monotonic() - t0
-
-            if self._interrupt.is_set():
-                print(f"  [{self._vts()}] [TTS #{uid}] Interrupted after {tts_time:.2f}s")
-                with self._buf_lock:
-                    self._audio_buf.clear()
-                continue
 
             # SR GOAL is playing — discard this STT utterance
             if self._stt_suppressed.is_set():
@@ -964,6 +1035,8 @@ class TTSEngine:
 
             buf_chunks = len(self._audio_buf)
             buf_ms = buf_chunks * 10
+            tts_time = result["tts_time"]
+            play_at = result["play_at"]
 
             # Wait until scheduled play time if set
             if play_at:
@@ -980,14 +1053,10 @@ class TTSEngine:
                         pass
                 else:
                     late = -wait_s
-                    # Drop if more than 2s late — play slightly late rather than drop
-                    if late > 2.0:
-                        print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at")
-                        with self._buf_lock:
-                            self._audio_buf.clear()
-                        continue
-                    print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — "
-                          f"playing now ({late:.2f}s late)")
+                    print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at")
+                    with self._buf_lock:
+                        self._audio_buf.clear()
+                    continue
             else:
                 print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — starting playback")
 
@@ -995,14 +1064,43 @@ class TTSEngine:
             self._playback_ready.set()
             self._any_playback_ready.set()
 
-            # Wait for playback to drain
+            # While playback drains, try to pre-process the next queued item (lookahead)
             drain_start = time.monotonic()
-            while self._audio_buf and not self._interrupt.is_set():
-                time.sleep(0.01)
-            drain_time = time.monotonic() - drain_start
+            lookahead_done = False
 
+            while self._audio_buf and not self._interrupt.is_set():
+                # Try lookahead if we haven't already and there's a queued item
+                if not lookahead_done and not self._text_queue.empty():
+                    try:
+                        next_item = self._text_queue.get_nowait()
+                    except queue.Empty:
+                        next_item = None
+
+                    if next_item:
+                        # Redirect TTS output to lookahead buffer
+                        with self._lookahead_lock:
+                            self._lookahead_buf.clear()
+                        self._tts_target_buf = self._lookahead_buf
+                        self._tts_target_lock = self._lookahead_lock
+                        la_result = self._process_item(next_item)
+                        self._tts_target_buf = None
+                        self._tts_target_lock = None
+
+                        if la_result and not self._interrupt.is_set():
+                            self._lookahead_item = la_result
+                            print(f"  [{self._vts()}] [TTS #{la_result['uid']}] Lookahead ready "
+                                  f"({len(self._lookahead_buf) * 10}ms)")
+                        else:
+                            with self._lookahead_lock:
+                                self._lookahead_buf.clear()
+                    lookahead_done = True
+
+                time.sleep(0.01)
+
+            drain_time = time.monotonic() - drain_start
+            la_tag = " +lookahead" if self._lookahead_item else ""
             print(f"  [{self._vts()}] [TTS #{uid}] Done — "
-                  f"total: {tts_time + drain_time:.2f}s (tts: {tts_time:.2f}s + play: {drain_time:.2f}s)")
+                  f"total: {tts_time + drain_time:.2f}s (tts: {tts_time:.2f}s + play: {drain_time:.2f}s){la_tag}")
 
     async def _tts(self, text, uid, voice_id=None):
         """Connect to ElevenLabs WebSocket, send text, buffer all PCM.
@@ -1680,6 +1778,8 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
             if stop_event.is_set():
                 break
 
+            is_interrupt = (priority == "INTERRUPT")
+
             while not stop_event.is_set():
                 match_elapsed = time.time() - match_time_start[0]
                 if offset <= match_elapsed:
@@ -1688,8 +1788,6 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
 
             if stop_event.is_set():
                 break
-
-            is_interrupt = (priority == "INTERRUPT")
             play_at = match_time_start[0] + offset
             mm, ss = offset // 60, offset % 60
             delay_to_play = play_at - time.time()
@@ -1707,7 +1805,7 @@ def run_events_fallback(events_file, tts, lang, oai_client, last_stt_time,
 
 def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
                      last_stt_time, stop_event, lang_file=None,
-                     video_delay=3.0):
+                     video_delay=3.0, max_stt_duration=5.0):
     """
     Stream audio through Deepgram → Corrections → Translate → ElevenLabs TTS.
     Uses play_at scheduling: each utterance plays at video_start + audio_start.
@@ -1751,47 +1849,81 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
         audio_thread = threading.Thread(target=feed_audio, daemon=True)
         audio_thread.start()
 
+        # Forced split: if an interim grows beyond max_stt_duration, emit it early
+        # to avoid mega-batches that exhaust the video delay budget.
+        MAX_STT_DURATION = max_stt_duration
+        force_split_end = [0.0]  # audio_end of the last force-emitted interim
+
+        def emit_utterance(text, audio_start, audio_end, tag=""):
+            """Correct, schedule, and queue an STT utterance for TTS."""
+            corrected = apply_corrections(text)
+            play_at = tts.video_start + audio_start
+            remaining = play_at - time.time()
+
+            print(f"  [{_ts(tts.video_start)}] [STT{tag}] audio={audio_start:.1f}-{audio_end:.1f}s "
+                  f"remaining={remaining:.2f}s play_at=V+{audio_start:.1f}")
+            print(f"           \"{corrected[:70]}\"")
+
+            def make_stt_translate_fn():
+                def translate(t):
+                    cur_lang = get_current_lang(lang_file, lang) if lang_file else lang
+                    vid = voice_for_lang(cur_lang)
+                    if cur_lang == "en":
+                        return (t, vid)
+                    return (translate_text(oai_client, t, cur_lang), vid)
+                return translate
+
+            tts.speak(corrected, play_at=play_at, translate_fn=make_stt_translate_fn())
+            last_stt_time[0] = time.time()
+
         for msg in ws:
             if stop_event.is_set():
                 break
             if not isinstance(msg, ListenV1Results):
                 continue
-            if not msg.is_final:
-                continue
 
             alt = msg.channel.alternatives[0]
             transcript = alt.transcript
-            if not transcript:
-                continue
-
             audio_start = msg.start if hasattr(msg, "start") and msg.start else 0
             audio_end = audio_start + (msg.duration if hasattr(msg, "duration") and msg.duration else 0)
 
-            corrected = apply_corrections(transcript)
+            if not msg.is_final:
+                # Interim result — check for forced split on long utterances.
+                # Only one forced split per utterance — enough to bring the worst
+                # case (9.4s) into budget. The remainder is handled by the is_final.
+                if transcript and force_split_end[0] <= audio_start:
+                    chunk_dur = audio_end - audio_start
+                    if chunk_dur >= MAX_STT_DURATION:
+                        print(f"  [{_ts(tts.video_start)}] [STT] Force-splitting {chunk_dur:.1f}s interim "
+                              f"at audio={audio_start:.1f}-{audio_end:.1f}s")
+                        emit_utterance(transcript, audio_start, audio_end, tag=" SPLIT")
+                        force_split_end[0] = audio_end
+                continue
 
-            # play_at = when the viewer sees this moment
-            # video_start is already delayed by video_delay (Go publisher sleeps first)
-            # so play_at = video_start + audio_start (no extra delay offset)
-            play_at = tts.video_start + audio_start
-            remaining = play_at - time.time()
+            # is_final result
+            if not transcript:
+                continue
 
-            print(f"  [{_ts(tts.video_start)}] [STT] audio={audio_start:.1f}-{audio_end:.1f}s "
-                  f"remaining={remaining:.2f}s play_at=V+{audio_start:.1f}")
-            print(f"           \"{corrected[:70]}\"")
+            # If we force-emitted an interim that covered this range, skip
+            if audio_end <= force_split_end[0]:
+                print(f"  [{_ts(tts.video_start)}] [STT] Skipping final — already force-emitted "
+                      f"(audio={audio_start:.1f}-{audio_end:.1f}s)")
+                continue
 
-            # JIT translation — translate at TTS time so language switches
-            # take effect immediately, not when STT result was received
-            def make_stt_translate_fn():
-                def translate(text):
-                    cur_lang = get_current_lang(lang_file, lang) if lang_file else lang
-                    vid = voice_for_lang(cur_lang)
-                    if cur_lang == "en":
-                        return (text, vid)
-                    return (translate_text(oai_client, text, cur_lang), vid)
-                return translate
+            # If we force-emitted part of this range, adjust start
+            if audio_start < force_split_end[0] < audio_end:
+                # The final covers more than what we emitted — emit the remainder
+                # Use the full transcript since translation handles context
+                adj_start = force_split_end[0]
+                print(f"  [{_ts(tts.video_start)}] [STT] Partial overlap — emitting remainder "
+                      f"from {adj_start:.1f}s (original {audio_start:.1f}-{audio_end:.1f}s)")
+                emit_utterance(transcript, adj_start, audio_end, tag=" REMAINDER")
+                force_split_end[0] = 0.0
+                continue
 
-            tts.speak(corrected, play_at=play_at, translate_fn=make_stt_translate_fn())
-            last_stt_time[0] = time.time()
+            # Normal path — no force split overlap
+            force_split_end[0] = 0.0
+            emit_utterance(transcript, audio_start, audio_end)
 
     os.unlink(pcm_path)
     print("[STT] Pipeline finished.")
@@ -1833,7 +1965,8 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
                     args=(args.audio, tts, args.deepgram_key, args.lang,
                           oai_client, last_stt_time, session.stop_event),
                     kwargs={"lang_file": session.lang_file,
-                            "video_delay": args.video_delay},
+                            "video_delay": args.video_delay,
+                            "max_stt_duration": args.max_stt_duration},
                     daemon=True,
                 )
                 stt_thread.start()
@@ -1908,6 +2041,7 @@ def run_pipeline_for_session(session, args, h264_file, oai_client):
                 oai_client, last_stt_time, session.stop_event,
                 lang_file=session.lang_file,
                 video_delay=args.video_delay,
+                max_stt_duration=args.max_stt_duration,
             )
         elif sr_thread:
             # Events-only mode: wait for events to finish, then drain
@@ -1956,6 +2090,8 @@ def main():
     parser.add_argument("--events-offset", type=int, default=0,
                         help="Match-time offset in seconds for events replay (default: 0)")
     parser.add_argument("--atmosphere", help="Atmosphere audio file (16kHz mono wav)")
+    parser.add_argument("--max-stt-duration", type=float, default=5.0,
+                        help="Force-split STT interims longer than this (default: 5.0s)")
     args = parser.parse_args()
 
     if not args.audio and not args.events:

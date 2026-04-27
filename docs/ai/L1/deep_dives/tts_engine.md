@@ -11,21 +11,25 @@ speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf 
    │              │                │                     │                │
    │         Queue()           asyncio loop          deque()         10ms timer
    │                          (per thread)        (thread-safe)
-   └── interrupt=True clears queue + buffer
+   │                               │
+   │                          (during drain)
+   │                               ├──▶ _lookahead_buf ──▶ next item pre-processed
+   │                               │     (translate + TTS fetched in parallel)
+   └── interrupt=True clears queue + buffer + lookahead
 ```
 
 ### _tts_worker thread
 
 - Runs its own `asyncio` event loop (`asyncio.new_event_loop()`)
-- Processes `_text_queue` items one at a time
+- Processes `_text_queue` items with **lookahead**: while the current utterance plays, the next one is translated and TTS'd in parallel
 - For each item:
-  1. Calls `translate_fn(text)` if provided (JIT translation)
-  2. Connects to ElevenLabs WebSocket
-  3. Sends text, receives base64-encoded PCM audio chunks
-  4. Pushes all audio into `_audio_buf` via `_push_audio()`
-  5. Sets `_playback_ready` event when all audio is received (full pre-buffer)
-  6. Waits for `play_at` time if scheduled
-  7. Waits for pipe writer to drain the buffer
+  1. Checks `_lookahead_item` — if present, uses pre-processed result (skip to step 5)
+  2. Calls `translate_fn(text)` if provided (JIT translation)
+  3. Connects to ElevenLabs WebSocket
+  4. Sends text, receives base64-encoded PCM audio chunks → `_audio_buf`
+  5. Waits for `play_at` time if scheduled (drops if late)
+  6. Sets `_playback_ready` event when all audio is received (full pre-buffer)
+  7. While pipe writer drains the buffer, grabs next queue item and processes into `_lookahead_buf`
 
 ### _pipe_writer thread
 
@@ -41,24 +45,31 @@ speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf 
 The engine uses **full pre-buffering**: the entire utterance is downloaded from ElevenLabs before playback starts. This eliminates underruns from network jitter.
 
 ```
-Timeline for one utterance:
-  t0 ──── TTS download ────── t1 ── wait for play_at ── t2 ──── playback ──── t3
-  │                            │                          │                     │
-  └── _tts() async method      └── _playback_ready set   └── pipe writer       └── buffer empty
-                                                              starts draining
+Without lookahead (serial):
+  t0 ── xlat+TTS ── t1 ── wait ── t2 ── playback ── t3 ── xlat+TTS ── t4 ── wait ── t5
+                                                      │                               │
+                                                      └── next item blocked until here
+
+With lookahead (overlapped):
+  t0 ── xlat+TTS ── t1 ── wait ── t2 ──── playback ──── t3
+                                    │    ↑ next xlat+TTS ↑ │ ── wait ── t4 ── playback ── t5
+                                    │    (in _lookahead_buf)
+                                    └── pipe writer starts draining
 ```
+
+The lookahead saves the full playback duration (typically 3-5s) from the next item's timing budget.
 
 ## Scheduling
 
 `speak(text, play_at=timestamp)` schedules playback to start at a specific wall-clock time. The TTS worker fetches audio immediately but holds playback until `play_at`. This is used by the events fallback to sync commentary with delayed video:
 
 ```python
-play_at = match_time_start + event_offset + video_delay
+play_at = match_time_start + event_offset
 ```
 
-### Precision targeting (±2s)
+### Precision targeting
 
-Utterances within 2s of play_at are played (slightly late is better than dropped). The hold uses a two-phase approach for sub-10ms accuracy:
+Utterances must play at exact play_at time or be dropped. The hold uses a two-phase approach for sub-10ms accuracy:
 1. **Coarse sleep**: `time.sleep(wait_s - 0.05)` — sleeps until 50ms before target
 2. **Tight spin**: busy-wait `while time.time() < play_at` — hits ±1ms
 
@@ -68,11 +79,12 @@ The pipe writer blocks on `threading.Event.wait()` instead of polling, so it wak
 
 1. `speak(text, interrupt=True)` is called
 2. `_interrupt` event is set
-3. `_audio_buf` is cleared (under lock)
-4. `_text_queue` is drained
-5. New text is queued
-6. `_tts_worker` checks `_interrupt` before and after TTS — skips if set
-7. `_interrupt` is cleared when the next non-interrupt item starts
+3. `_audio_buf`, `_sr_audio_buf`, and `_lookahead_buf` are cleared (under locks)
+4. `_lookahead_item` is discarded
+5. `_text_queue` is drained
+6. New text is queued
+7. `_tts_worker` checks `_interrupt` before and after TTS — skips if set
+8. `_interrupt` is cleared when the next non-interrupt item starts
 
 ## State Tracking
 

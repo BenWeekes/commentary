@@ -28,7 +28,7 @@ For SR events:
   play_at = match_time_start + event_offset
   Prefetched — TTS is ready seconds before play_at. Always ±0ms.
 
-Rule: play within ±2s of play_at, or drop the utterance.
+Rule: play at exact play_at time, or drop the utterance.
 ```
 
 ## Pipeline Overview
@@ -67,9 +67,9 @@ Rule: play within ±2s of play_at, or drop the utterance.
 ## Playback Rules
 
 - **SR events**: prefetched TTS, scheduled to exact match time. Always ±0ms.
-- **STT utterances**: translated + TTS'd as fast as possible. If ready within ±2s of play_at, hold and play at exact time. If >2s late, drop — the moment has passed.
+- **STT utterances**: translated + TTS'd as fast as possible. If ready before play_at, hold and play at exact time. If late, drop — the moment has passed.
 - **SR INTERRUPT** (e.g. GOAL): clears STT queue, plays to completion uninterrupted.
-- **STT can interrupt SR APPEND**: if STT audio is ready while SR is playing, STT takes priority (pipe_writer prefers STT buffer). STT plays to completion — the original commentator fit it in, so the translated TTS (which is shorter) will too.
+- **STT can interrupt SR APPEND**: if STT audio is ready while SR APPEND is playing, STT takes priority. SR APPEND fills gaps without interrupting STT.
 - **Queue stays at 0-1**: when a new STT utterance arrives with play_at, any stale queued item is replaced.
 
 ## Multi-Session Architecture

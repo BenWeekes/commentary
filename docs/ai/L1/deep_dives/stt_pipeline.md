@@ -21,7 +21,7 @@ play_at = video_start + audio_start
 
 `video_start` is set when the Go publisher finishes its delay and starts sending frames. Since the audio feed began `video_delay` seconds earlier, translations are already ready when the viewer sees each moment.
 
-The TTS worker holds the audio until `play_at`, then plays. If translate+TTS takes too long and `play_at` has passed by >100ms, the utterance is dropped.
+The TTS worker holds the audio until `play_at`, then plays at the exact scheduled time. If translate+TTS takes too long and `play_at` has already passed, the utterance is dropped.
 
 ## Deepgram Configuration
 
@@ -33,22 +33,38 @@ endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 
 - `endpointing=200`: Deepgram fires speech_final after 200ms silence (faster turns)
 - `utterance_end_ms=1000`: Minimum allowed by Deepgram API
-- Only `is_final=True` results are processed (interims skipped)
+- `is_final=True` results are processed; interims are monitored for forced splitting
 - `keyterm`: ~80 player/team names for recognition boost
 
 ## Latency Budget
 
-With `--video-delay N` (default 7s):
+With `--video-delay N` (default 8s):
 
 ```
-Budget per utterance ≈ N - utterance_duration - ~1.0s (translate + TTS fetch)
+Budget per utterance ≈ N - utterance_duration - ~1.5s (translate + TTS fetch)
 
-Example: 3s utterance, 7s delay → 7 - 3 - 1.0 = 3.0s margin (comfortable)
-Example: 5s utterance, 7s delay → 7 - 5 - 1.0 = 1.0s margin (ok)
-Example: 5s utterance, 6s delay → 6 - 5 - 1.0 = 0.0s margin (drops likely)
+Example: 3s utterance, 8s delay → 8 - 3 - 1.5 = 3.5s margin (comfortable)
+Example: 5s utterance, 8s delay → 8 - 5 - 1.5 = 1.5s margin (ok)
+Example: 7s utterance, 8s delay → 8 - 7 - 1.5 = -0.5s margin (drops likely)
 ```
 
-At 7s delay, ~12/14 utterances play on time (1 suppressed during GOAL, occasionally 1 long utterance drops).
+The TTS worker uses **lookahead**: while the current utterance plays (3-5s), the next one is already being translated and TTS'd in parallel. This means playback duration of the current item doesn't eat into the next item's budget, recovering 3-5s of margin per utterance.
+
+## Forced Split (Long Utterance Protection)
+
+Stadium crowd noise prevents Deepgram's VAD from detecting commentary pauses — audio levels only drop from -20 dB (speech) to -37 dB (crowd), well above Deepgram's silence threshold. This causes occasional mega-batches (6-10s) that exhaust the video delay budget.
+
+The pipeline monitors interim results and force-splits when duration exceeds `--max-stt-duration` (default 5.0s):
+
+```
+Normal:   is_final(3.5s) → emit → is_final(4.2s) → emit
+Forced:   interim(5.0s) → SPLIT emit → is_final(7.6s) → REMAINDER emit (from 5.0s onward)
+```
+
+- Split uses the interim transcript (slightly unstable but better than dropped)
+- The subsequent `is_final` emits only the remainder portion with adjusted `play_at`
+- One split per utterance — enough to bring 9.4s worst-case batches into budget
+- At 10s delay with forced split: zero drops across 5 languages
 
 ## Correction System
 

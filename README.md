@@ -16,7 +16,7 @@ The pipeline runs inside `live_match.py`. The Go publisher delays video by `--vi
 
 ## Supported languages
 
-Spanish, French, German, Portuguese, Italian, Arabic, Japanese, Korean, Chinese, Hindi, English (passthrough)
+Spanish, French, German, Portuguese, Italian, Arabic, Japanese, Korean, Chinese, Hindi, Turkish, English (passthrough)
 
 ## Prerequisites
 
