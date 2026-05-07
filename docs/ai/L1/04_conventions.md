@@ -13,19 +13,13 @@
 
 ## Voice IDs
 
-Per-language ElevenLabs voice mapping in `live_match.py`:
-
-| Language | Voice ID | Notes |
-|---|---|---|
-| Spanish | `jdSy6qWNc1T4C8czPgat` | Latin American accent |
-| German | `g8JjujAzgjLre020BW2u` | |
-| Default (all others) | `ImsA1Fn5TNc843fFdz99` | Fallback voice |
+Per-language ElevenLabs voice mapping in `live_match.py` (`LANG_VOICES` dict). Languages without an entry fall back to `DEFAULT_VOICE_ID`.
 
 Voice selection is just-in-time: `voice_for_lang()` is called at TTS time, not at queue time, so language changes take effect on the next utterance.
 
 ## Pass Filtering
 
-Simple pass events like "to Diks." or "Elvedi to Nicolas." are filtered to avoid overwhelming the listener. The regex `_PASS_RE` matches these patterns. Only 1 in 5 simple passes are kept (`pass_count % 5 != 0` → skip). All `INTERRUPT` events are always kept.
+Simple pass events like "to Diks." or "Elvedi to Nicolas." can be identified by the regex `_PASS_RE` and the helper `_is_simple_pass()`. These are defined but not currently active — no filtering is applied at runtime. All events are passed through regardless.
 
 ## JIT Translation
 
@@ -37,7 +31,7 @@ Translation is deferred to TTS time, not queue time. This means:
 
 ## Deterministic Corrections
 
-The `CORRECTIONS` list in `live_match.py` (~40 entries) fixes systematic Deepgram misrecognitions:
+The `CORRECTIONS` list in `live_match.py` (~42 entries) fixes systematic Deepgram misrecognitions:
 - Team names: "Flag back" → "Gladbach", "Saks Paoli" → "St. Pauli"
 - Player names: "Ubijzivzivadze" → "Budu Zivzivadze"
 - Commentary phrases: "in the lead." → "in the league."
@@ -67,22 +61,22 @@ Derived constants: 32,000 bytes/second, 1,920,000 bytes/minute.
 
 ## Supported Languages
 
-| Code | Language | Voice | Notes |
+| Code | Language | Voice ID | Notes |
 |---|---|---|---|
 | `es` | Spanish | `jdSy6qWNc1T4C8czPgat` | Latin American accent |
-| `fr` | French | default | |
+| `fr` | French | `LcKoSBj8CeBInl4bQHtq` | |
 | `de` | German | `g8JjujAzgjLre020BW2u` | |
-| `pt` | Portuguese | default | |
+| `pt` | Portuguese | `HR2TRGmi4QbMsO5omv7l` | Brazilian |
 | `it` | Italian | default | |
 | `ar` | Arabic | default | |
 | `ja` | Japanese | default | |
 | `ko` | Korean | default | |
-| `zh` | Chinese | default | |
-| `hi` | Hindi | default | |
-| `tr` | Turkish | default | |
-| `en` | English | default | Passthrough (no translation) |
+| `zh` | Chinese | `ImsA1Fn5TNc843fFdz99` | |
+| `hi` | Hindi | `LcKoSBj8CeBInl4bQHtq` | Shares French voice |
+| `tr` | Turkish | `ImsA1Fn5TNc843fFdz99` | |
+| `en` | English | `gU0LNdkMOQCOrPrwtbee` | Passthrough (no translation) |
 
-Languages without a specific voice ID use the default ElevenLabs voice (`ImsA1Fn5TNc843fFdz99`).
+Languages showing "default" use `DEFAULT_VOICE_ID` (`ImsA1Fn5TNc843fFdz99`).
 
 ## Logging Prefixes
 

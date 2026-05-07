@@ -20,9 +20,10 @@
 
 ## Agora Tokens
 
-- Tokens are generated server-side via `tokens.py` (v007 format)
-- Token privileges: join channel, publish audio/video/data, RTM login
-- Tokens have configurable expiry (default 900s for `AccessToken`, 3600s for `build_token_with_rtm`)
+- Viewer tokens are generated server-side via `_generate_viewer_token()` using `AccessToken` + `ServiceRtc` from `tokens.py` (v007 format)
+- Viewer tokens grant only `kPrivilegeJoinChannel` — viewers cannot publish
+- Go publisher tokens use `build_token_with_rtm()` with full RTC+RTM privileges
+- Token expiry: 3600s (1 hour) for both viewer and publisher tokens
 - The `APP_CERT` is used for HMAC-SHA256 signing — never expose it to clients
 - If `APP_CERT` is empty, `build_token_with_rtm()` returns the `APP_ID` as the token (testing mode only)
 
@@ -30,28 +31,29 @@
 
 ```
 POST /api/session
-  → tokens.build_token_with_rtm(app_id, app_cert, channel, uid, expire=3600)
+  → _generate_viewer_token(channel, uid, expire_s=3600)
+  → AccessToken + ServiceRtc(kPrivilegeJoinChannel only)
   → HMAC-SHA256 sign + zlib compress + base64 encode
-  → return token in JSON response
+  → return token, channel, uid, appid in JSON response
   → viewer uses token to join Agora channel
 ```
 
-### Token privileges granted
+### Viewer token privileges
 
-| Privilege | Value | Purpose |
-|---|---|---|
-| `kPrivilegeJoinChannel` | 1 | Join the RTC channel |
-| `kPrivilegePublishAudioStream` | 2 | Publish audio (Go publisher only) |
-| `kPrivilegePublishVideoStream` | 3 | Publish video (Go publisher only) |
-| `kPrivilegePublishDataStream` | 4 | Publish data stream |
-| RTM `kPrivilegeLogin` | 1 | RTM login for signalling |
+| Privilege | Value | Viewer | Go Publisher |
+|---|---|---|---|
+| `kPrivilegeJoinChannel` | 1 | Yes | Yes |
+| `kPrivilegePublishAudioStream` | 2 | No | Yes |
+| `kPrivilegePublishVideoStream` | 3 | No | Yes |
+| `kPrivilegePublishDataStream` | 4 | No | Yes |
+| RTM `kPrivilegeLogin` | 1 | No | Yes |
 
 ## Viewer Security
 
-- `viewer.html` accepts `appid`, `channel`, `token` as URL query parameters
-- The token must be pre-generated server-side and passed to the viewer
-- The viewer connects as audience (UID 101) — it cannot publish
-- Default App ID is hardcoded in `viewer.html` — override with `?appid=` param
+- `viewer.html` accepts only `ctl` (control server URL) and `lang` (initial language) as URL query parameters
+- On load, the viewer creates a session via `POST /api/session` which returns `appid`, `channel`, `token`, `uid`
+- Viewer UID is randomly generated per session (1000–9999 range)
+- The viewer connects as audience — its token only permits joining, not publishing
 
 ## CORS
 

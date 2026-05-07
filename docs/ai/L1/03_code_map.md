@@ -6,7 +6,7 @@
 
 ```
 commentary/
-├── live_match.py                  # Main orchestrator (1038 lines)
+├── live_match.py                  # Main orchestrator (2226 lines)
 ├── commentary_feeder.py           # Sportradar API poller → avatar agent
 ├── match_replay.py                # Events file replay → avatar agent
 ├── stt_realtime_translate.py      # STT latency benchmark
@@ -43,21 +43,21 @@ commentary/
 
 | Section | Lines | Purpose |
 |---|---|---|
-| `_load_dotenv()` | 67–82 | Load `.env` into `os.environ` |
-| Config constants | 86–103 | App IDs, delays, audio params |
-| `TERMS_LIST` | 107–126 | Deepgram keyword boosting |
-| `CORRECTIONS` | 130–173 | Deterministic STT error corrections |
-| `LANG_NAMES`, `LANG_VOICES` | 184–201 | Language config, ElevenLabs voice IDs |
-| `ControlHandler` | 215–297 | HTTP server for viewer control |
-| `translate_text()` | 309–320 | GPT-4o-mini translation call |
-| `TTSEngine` | 330–600 | ElevenLabs WebSocket TTS + PCM buffering + atmosphere mixing |
-| `load_atmosphere()` | ~1300 | Load 16kHz mono WAV as raw PCM bytes |
-| Audio helpers | ~1315 | ffmpeg conversion, real-time PCM chunking |
-| `start_publisher()` | 629–659 | Launch Go publisher subprocess |
-| Events fallback | 674–786 | Load and replay Sportradar events file |
-| STT pipeline | 791–876 | Deepgram WebSocket → corrections → translate |
-| `run_pipeline()` | 881–941 | Orchestrate one pipeline cycle |
-| `main()` | 944–1038 | CLI args, control server, main loop |
+| `_load_dotenv()` | 75–90 | Load `.env` into `os.environ` |
+| Config constants | 92–111 | App IDs, delays, audio params |
+| `TERMS_LIST` | 115–134 | Deepgram keyword boosting (~67 terms) |
+| `CORRECTIONS` | 138–181 | Deterministic STT error corrections (~42 entries) |
+| `LANG_NAMES`, `LANG_VOICES` | 192–209 | 12 languages, 8 with dedicated ElevenLabs voice IDs |
+| `ControlHandler` | 317–517 | HTTP server for multi-session viewer control |
+| `translate_text()` | 548–559 | GPT-4o-mini translation call |
+| `TTSEngine` | 574–1196 | ElevenLabs WebSocket TTS + PCM buffering + lookahead + atmosphere mixing |
+| `load_atmosphere()` | 1519–1526 | Load 16kHz mono WAV as raw PCM bytes |
+| Audio helpers | 1531–1567 | ffmpeg conversion, real-time PCM chunking |
+| `start_publisher()` | 1569–1595 | Launch Go publisher subprocess |
+| Events fallback | 1735–1836 | Load and replay Sportradar events file |
+| STT pipeline | 1841–1986 | Deepgram WebSocket → corrections → forced split → translate |
+| `run_pipeline_for_session()` | 1991–2130 | Orchestrate one session pipeline |
+| `main()` | 2132–2226 | CLI args, control server, main loop |
 
 ## Module Map — commentary_feeder.py
 
@@ -81,5 +81,5 @@ commentary/
 
 ## Related Deep Dives
 
-- [TTSEngine Internals](L2/tts_engine.md) — detailed breakdown of `TTSEngine` class (lines 330–600)
+- [TTSEngine Internals](L2/tts_engine.md) — detailed breakdown of `TTSEngine` class (lines 574–1196)
 - [STT Pipeline](L2/stt_pipeline.md) — Deepgram integration and correction system

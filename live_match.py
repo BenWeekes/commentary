@@ -1519,8 +1519,8 @@ class SRPrefetcher:
 def load_atmosphere(wav_path):
     """Load a 16kHz mono wav file as raw PCM bytes."""
     with wave.open(wav_path, 'rb') as wf:
-        assert wf.getsampwidth() == 2 and wf.getnchannels() == 1, \
-            f"Atmosphere must be 16-bit mono, got {wf.getsampwidth()}B {wf.getnchannels()}ch"
+        assert wf.getsampwidth() == 2 and wf.getnchannels() == 1 and wf.getframerate() == 16000, \
+            f"Atmosphere must be 16kHz 16-bit mono, got {wf.getframerate()}Hz {wf.getsampwidth()}B {wf.getnchannels()}ch"
         pcm = wf.readframes(wf.getnframes())
     print(f"[ATMOS] Loaded {len(pcm)/32000:.1f}s of atmosphere from {wav_path}")
     return pcm
@@ -1540,23 +1540,28 @@ def convert_to_pcm(audio_path):
 
 
 def pcm_chunks_realtime(wav_path, chunk_ms=100):
+    import wave as _wave
     bytes_per_sec = 32000
     chunk_bytes = int(bytes_per_sec * chunk_ms / 1000)
     chunk_duration = chunk_ms / 1000.0
-    with open(wav_path, "rb") as f:
-        f.read(44)  # skip WAV header
-        audio_offset = 0.0
-        t_start = time.monotonic()
-        while True:
-            data = f.read(chunk_bytes)
-            if not data:
-                break
-            yield data, audio_offset
-            audio_offset += chunk_duration
-            target = t_start + audio_offset
-            sleep_for = target - time.monotonic()
-            if sleep_for > 0:
-                time.sleep(sleep_for)
+    # Use wave.open to read PCM data (handles variable-size WAV headers)
+    wf = _wave.open(wav_path, "rb")
+    pcm_data = wf.readframes(wf.getnframes())
+    wf.close()
+    offset_bytes = 0
+    audio_offset = 0.0
+    t_start = time.monotonic()
+    while offset_bytes < len(pcm_data):
+        data = pcm_data[offset_bytes:offset_bytes + chunk_bytes]
+        if not data:
+            break
+        yield data, audio_offset
+        offset_bytes += chunk_bytes
+        audio_offset += chunk_duration
+        target = t_start + audio_offset
+        sleep_for = target - time.monotonic()
+        if sleep_for > 0:
+            time.sleep(sleep_for)
 
 
 # ─── Video + Audio publisher ────────────────────────────────────────────
@@ -1568,14 +1573,15 @@ def start_publisher(h264_file, channel, video_delay=0):
     """
     base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "go-audio-video-publisher")
     sender = os.path.join(base_dir, "reference", "agora_go_sdk", "send_h264_pcm_uid73.go")
-    sdk_path = os.path.join(
+    default_sdk_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "..", "codex",
         "server-custom-llm", "go-audio-subscriber", "sdk", "agora_sdk_mac"
     )
 
     env = os.environ.copy()
     env["AGORA_APP_CERTIFICATE"] = AGORA_APP_CERT
-    env["DYLD_LIBRARY_PATH"] = os.path.abspath(sdk_path)
+    if "DYLD_LIBRARY_PATH" not in env:
+        env["DYLD_LIBRARY_PATH"] = os.path.abspath(default_sdk_path)
 
     print(f"[PUB] Publishing to channel '{channel}' — video from file, audio from TTS via stdin"
           f" (video_delay={video_delay}s)")

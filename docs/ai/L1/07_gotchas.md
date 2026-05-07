@@ -33,15 +33,13 @@ replace github.com/AgoraIO-Extensions/Agora-Golang-Server-SDK/v2 => /Users/benwe
 
 ## DYLD_LIBRARY_PATH for Agora SDK
 
-`live_match.py:start_publisher()` (line 637) sets `DYLD_LIBRARY_PATH` to a hardcoded relative path (`../codex/server-custom-llm/go-audio-subscriber/sdk/agora_sdk_mac`). This path won't exist in a fresh clone.
+`start_publisher()` uses a default `DYLD_LIBRARY_PATH` pointing to a local dev path (`../codex/server-custom-llm/go-audio-subscriber/sdk/agora_sdk_mac`). This default only applies if `DYLD_LIBRARY_PATH` is not already set in the environment.
 
-**Fix**: Set `DYLD_LIBRARY_PATH` to your Agora SDK native library directory before running:
+**Fix**: Export your own SDK path before running — it will be used instead of the default:
 
 ```bash
 export DYLD_LIBRARY_PATH=/path/to/agora_sdk_mac
 ```
-
-Or update the path in `start_publisher()`.
 
 ## Encoded video assets not included
 
@@ -95,7 +93,11 @@ On language change, queued STT utterances are flushed to prevent old-language pl
 
 ## WAV header size varies
 
-`convert_to_pcm()` produces WAV files with variable-size headers (typically 78 bytes, not the assumed 44). Always use `wave.open()` to read PCM data, never hardcode header offsets.
+`convert_to_pcm()` produces WAV files with variable-size headers (typically 78 bytes, not the assumed 44). `pcm_chunks_realtime()` uses `wave.open()` to read PCM data correctly.
+
+## video_start is estimated before publisher confirms
+
+STT starts processing audio during the video delay, before the Go publisher confirms video has started. The pipeline sets a temporary `video_start = time.time() + video_delay` and schedules early STT utterances against it. Once the publisher confirms, `video_start` is updated to the actual time. This works because the Go publisher's audio-ready to video-start interval is deterministic (`video_delay` seconds). If anything caused that interval to vary (network stall, OS scheduling), early utterances would have slightly wrong `play_at` times.
 
 ## Related Deep Dives
 

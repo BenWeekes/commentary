@@ -194,24 +194,28 @@ def convert_to_pcm(audio_path):
 
 
 def pcm_chunks_realtime(wav_path, chunk_ms=100):
+    import wave as _wave
     bytes_per_sec = 32000
     chunk_bytes = int(bytes_per_sec * chunk_ms / 1000)
     chunk_duration = chunk_ms / 1000.0
-
-    with open(wav_path, "rb") as f:
-        f.read(44)  # skip WAV header
-        audio_offset = 0.0
-        t_start = time.monotonic()
-        while True:
-            data = f.read(chunk_bytes)
-            if not data:
-                break
-            yield data, audio_offset
-            audio_offset += chunk_duration
-            target = t_start + audio_offset
-            sleep_for = target - time.monotonic()
-            if sleep_for > 0:
-                time.sleep(sleep_for)
+    # Use wave.open to read PCM data (handles variable-size WAV headers)
+    wf = _wave.open(wav_path, "rb")
+    pcm_data = wf.readframes(wf.getnframes())
+    wf.close()
+    offset_bytes = 0
+    audio_offset = 0.0
+    t_start = time.monotonic()
+    while offset_bytes < len(pcm_data):
+        data = pcm_data[offset_bytes:offset_bytes + chunk_bytes]
+        if not data:
+            break
+        yield data, audio_offset
+        offset_bytes += chunk_bytes
+        audio_offset += chunk_duration
+        target = t_start + audio_offset
+        sleep_for = target - time.monotonic()
+        if sleep_for > 0:
+            time.sleep(sleep_for)
 
 
 # ─── Main pipeline ────────────────────────────────────────────────────────

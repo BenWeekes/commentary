@@ -36,18 +36,18 @@ endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 - `endpointing=200`: Deepgram fires speech_final after 200ms silence (faster turns)
 - `utterance_end_ms=1000`: Minimum allowed by Deepgram API
 - `is_final=True` results are processed; interims are monitored for forced splitting
-- `keyterm`: ~80 player/team names for recognition boost
+- `keyterm`: ~67 player/team names for recognition boost
 
 ## Latency Budget
 
-With `--video-delay N` (default 8s):
+With `--video-delay N` (default 7s):
 
 ```
 Budget per utterance ≈ N - utterance_duration - ~1.5s (translate + TTS fetch)
 
-Example: 3s utterance, 8s delay → 8 - 3 - 1.5 = 3.5s margin (comfortable)
-Example: 5s utterance, 8s delay → 8 - 5 - 1.5 = 1.5s margin (ok)
-Example: 7s utterance, 8s delay → 8 - 7 - 1.5 = -0.5s margin (drops likely)
+Example: 3s utterance, 7s delay → 7 - 3 - 1.5 = 2.5s margin (comfortable)
+Example: 5s utterance, 7s delay → 7 - 5 - 1.5 = 0.5s margin (tight)
+Example: 7s utterance, 7s delay → 7 - 7 - 1.5 = -1.5s margin (drops likely)
 ```
 
 The TTS worker uses **lookahead**: while the current utterance plays (3-5s), the next one is already being translated and TTS'd in parallel. This means playback duration of the current item doesn't eat into the next item's budget, recovering 3-5s of margin per utterance.

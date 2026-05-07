@@ -61,10 +61,13 @@ Rule: play at exact play_at time, or drop the utterance.
 ## Startup Sequence
 
 1. Go publisher connects to Agora, starts reading audio from stdin immediately
-2. STT pipeline starts — audio feed begins, Deepgram processes in real-time
-3. Go publisher sleeps `video_delay` seconds (video frames held back)
-4. After delay, publisher starts sending video → `video_start` is set
-5. Translations from step 2 are already ready → play in sync with video
+2. `video_start` is estimated as `time.time() + video_delay` (before publisher confirms)
+3. STT pipeline starts — audio feed begins, Deepgram processes in real-time
+4. Go publisher sleeps `video_delay` seconds (video frames held back)
+5. After delay, publisher starts sending video → `video_start` is updated to actual time
+6. Translations from step 3 are already ready → play in sync with video
+
+**Timing invariant**: STT utterances scheduled before step 5 use the estimated `video_start`. This works because the Go publisher's delay is deterministic — audio-ready to video-start is always `video_delay` seconds. The estimate and actual value converge to within a few milliseconds.
 
 ## Playback Rules
 
