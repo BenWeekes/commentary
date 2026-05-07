@@ -1,5 +1,7 @@
 # L1 — Code Map
 
+> Directory layout, file purposes, and module-level maps for every script in the repo.
+
 ## Directory Tree
 
 ```
@@ -76,3 +78,8 @@ commentary/
 | `ServiceRtm` | RTM privileges (login) |
 | `AccessToken` | Token builder — HMAC-SHA256 signing, zlib compression |
 | `build_token_with_rtm()` | Convenience function for RTC+RTM tokens |
+
+## Related Deep Dives
+
+- [TTSEngine Internals](L2/tts_engine.md) — detailed breakdown of `TTSEngine` class (lines 330–600)
+- [STT Pipeline](L2/stt_pipeline.md) — Deepgram integration and correction system

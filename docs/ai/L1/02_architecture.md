@@ -1,5 +1,7 @@
 # L1 — Architecture
 
+> How the STT-translate-TTS pipeline works, its timing model, and the multi-session viewer architecture.
+
 ## What We're Building
 
 A live commentary translation service for live football matches. Two audio sources feed translated commentary to viewers via Agora:
@@ -134,3 +136,8 @@ The "Original" toggle plays the source English commentary audio synced to video,
 | `--atmosphere` | none | Path to atmosphere WAV (16kHz mono) |
 | `endpointing` | 200ms | Deepgram VAD — shorter = faster turn detection |
 | `utterance_end_ms` | 1000ms | Deepgram utterance boundary (minimum 1000ms) |
+
+## Related Deep Dives
+
+- [TTSEngine Internals](L2/tts_engine.md) — threading, buffer strategy, atmosphere mixing
+- [STT Pipeline](L2/stt_pipeline.md) — Deepgram config, forced split, correction system

@@ -1,5 +1,7 @@
 # L2 — STT Pipeline
 
+> **When to Read This:** You are modifying the Deepgram integration, adding or editing STT corrections, changing the forced split logic, or debugging translation latency.
+
 ## Overview
 
 The STT pipeline streams live game audio through Deepgram, corrects player/team names, translates to the viewer's language, and schedules TTS playback at the original commentary timing.

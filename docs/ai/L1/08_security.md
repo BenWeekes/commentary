@@ -1,5 +1,7 @@
 # L1 — Security
 
+> API key management, token generation, CORS policy, and network exposure considerations.
+
 ## API Keys
 
 | Key | Risk if leaked | Storage |
@@ -24,6 +26,26 @@
 - The `APP_CERT` is used for HMAC-SHA256 signing — never expose it to clients
 - If `APP_CERT` is empty, `build_token_with_rtm()` returns the `APP_ID` as the token (testing mode only)
 
+### Token generation flow
+
+```
+POST /api/session
+  → tokens.build_token_with_rtm(app_id, app_cert, channel, uid, expire=3600)
+  → HMAC-SHA256 sign + zlib compress + base64 encode
+  → return token in JSON response
+  → viewer uses token to join Agora channel
+```
+
+### Token privileges granted
+
+| Privilege | Value | Purpose |
+|---|---|---|
+| `kPrivilegeJoinChannel` | 1 | Join the RTC channel |
+| `kPrivilegePublishAudioStream` | 2 | Publish audio (Go publisher only) |
+| `kPrivilegePublishVideoStream` | 3 | Publish video (Go publisher only) |
+| `kPrivilegePublishDataStream` | 4 | Publish data stream |
+| RTM `kPrivilegeLogin` | 1 | RTM login for signalling |
+
 ## Viewer Security
 
 - `viewer.html` accepts `appid`, `channel`, `token` as URL query parameters
@@ -42,3 +64,20 @@
 - Control server listens on `0.0.0.0:8090` by default — exposed to local network
 - No authentication on control endpoints (`/start`, `/stop`, `/set-lang`)
 - For production, add authentication or bind to `127.0.0.1`
+
+## WebSocket Security
+
+- ElevenLabs: API key sent in the initial WebSocket handshake (`xi_api_key` field in JSON)
+- Deepgram: API key sent as a query parameter or header on WebSocket connect
+- Both connections use `wss://` (TLS)
+
+## Subprocess Isolation
+
+- Each session's Go publisher runs in its own process group (`preexec_fn=os.setsid`)
+- `kill_publisher()` sends `SIGKILL` to the entire process group via `os.killpg()`
+- If the Python process crashes without cleanup, Go publishers become orphaned (see gotchas)
+- No shell injection risk: `subprocess.Popen` uses argument lists, not shell strings
+
+## Related Deep Dives
+
+None — security considerations are self-contained.

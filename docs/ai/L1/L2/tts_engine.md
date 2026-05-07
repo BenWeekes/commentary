@@ -1,5 +1,7 @@
 # L2 — TTSEngine Internals
 
+> **When to Read This:** You are modifying the TTSEngine class, debugging audio playback or buffering issues, changing the atmosphere mixing logic, or investigating pipe writer timing.
+
 ## Overview
 
 `TTSEngine` (`live_match.py:330–592`) manages ElevenLabs WebSocket TTS and PCM audio delivery to the Go publisher.

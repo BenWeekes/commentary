@@ -1,5 +1,7 @@
 # L1 — Gotchas
 
+> Known pitfalls, hardcoded paths, edge cases, and their workarounds.
+
 ## Source MP4 kickoff offset
 
 The Sportradar BMG vs FCH MP4 (`soccer_germany_bundesliga_8321531_3064k.mp4`) has **29:58 of pre-match content** before kickoff. The second half starts at **1:34:36** file time.
@@ -94,3 +96,8 @@ On language change, queued STT utterances are flushed to prevent old-language pl
 ## WAV header size varies
 
 `convert_to_pcm()` produces WAV files with variable-size headers (typically 78 bytes, not the assumed 44). Always use `wave.open()` to read PCM data, never hardcode header offsets.
+
+## Related Deep Dives
+
+- [TTSEngine Internals](L2/tts_engine.md) — buffer underrun and interrupt edge cases
+- [STT Pipeline](L2/stt_pipeline.md) — forced split and latency drop details

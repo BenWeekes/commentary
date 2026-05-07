@@ -1,5 +1,7 @@
 # L1 — Interfaces
 
+> HTTP API endpoints, Agora channel contract, PCM audio format, and external service protocols.
+
 ## Control HTTP API (Multi-Session)
 
 Served by `ControlHandler` on port 8090 (configurable via `--lang-port`).
@@ -135,3 +137,7 @@ POST /speak
 ```
 
 This pushes text to an Agora Conversational AI avatar's TTS queue.
+
+## Related Deep Dives
+
+- [TTSEngine Internals](L2/tts_engine.md) — ElevenLabs WebSocket protocol details and buffer strategy

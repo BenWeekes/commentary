@@ -1,5 +1,7 @@
 # L1 — Conventions
 
+> Naming rules, audio format constants, event file syntax, and runtime behaviours like JIT translation.
+
 ## Naming
 
 - Python files: `snake_case.py`
@@ -60,3 +62,40 @@ All PCM audio in the system is:
 - 16 kHz sample rate
 - Mono (1 channel)
 - Chunked into 10ms frames (320 bytes per chunk)
+
+Derived constants: 32,000 bytes/second, 1,920,000 bytes/minute.
+
+## Supported Languages
+
+| Code | Language | Voice | Notes |
+|---|---|---|---|
+| `es` | Spanish | `jdSy6qWNc1T4C8czPgat` | Latin American accent |
+| `fr` | French | default | |
+| `de` | German | `g8JjujAzgjLre020BW2u` | |
+| `pt` | Portuguese | default | |
+| `it` | Italian | default | |
+| `ar` | Arabic | default | |
+| `ja` | Japanese | default | |
+| `ko` | Korean | default | |
+| `zh` | Chinese | default | |
+| `hi` | Hindi | default | |
+| `tr` | Turkish | default | |
+| `en` | English | default | Passthrough (no translation) |
+
+Languages without a specific voice ID use the default ElevenLabs voice (`ImsA1Fn5TNc843fFdz99`).
+
+## Logging Prefixes
+
+| Prefix | Source |
+|---|---|
+| `[TTS #N]` | TTSEngine utterance processing (N = utterance counter) |
+| `[PIPE]` | Pipe writer thread (audio delivery to Go publisher) |
+| `[STT]` | Deepgram transcription results |
+| `[SR]` | Sportradar event playback |
+| `[DROP Xs]` | STT utterance dropped (exceeded latency budget by X seconds) |
+| `[ATMOS]` | Atmosphere audio loading and toggle |
+| `[ORIG]` | Original audio pass-through |
+
+## Related Deep Dives
+
+- [TTS Timeline Format](L2/tts_timeline_format.md) — log analysis format for verifying audio timing

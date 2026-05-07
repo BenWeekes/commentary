@@ -1,4 +1,6 @@
-# TTS Timeline Analysis Format
+# L2 — TTS Timeline Analysis Format
+
+> **When to Read This:** You are analysing TTS playback logs, debugging audio/video sync issues, or verifying that SR events and STT utterances play at the correct times.
 
 Use this format when analysing TTS playback logs. It correlates what the viewer hears with what was expected and when playout completes.
 

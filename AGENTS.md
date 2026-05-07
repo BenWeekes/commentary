@@ -1,30 +1,44 @@
-# Commentary — AI Agent Entry Point
+# AI Agent Instructions
 
-Real-time multilingual soccer commentary system: STT → translate → TTS → Agora.
+This repository uses progressive disclosure documentation. Docs live under
+`docs/ai/` in three levels.
 
-## Loading Protocol
+## How to Load
 
-1. **Always read first**: `docs/ai/L0_repo_card.md` — identity, tech stack, L1 index
-2. **Then read all L1 files**: `docs/ai/L1/01_setup.md` through `docs/ai/L1/08_security.md`
-3. **Read L2 on demand**: deep dives in `docs/ai/L1/deep_dives/` — only when working on TTS engine internals or STT pipeline
+1. Read [docs/ai/L0_repo_card.md](docs/ai/L0_repo_card.md) to identify the repo.
+2. Load ALL 8 files in `docs/ai/L1/`. They are small — load all upfront.
+3. Follow L2 deep-dive links only when L1 isn't detailed enough.
 
-## Quick Reference
+## Git Conventions
 
-| What | Where |
+### Commit messages — conventional commits
+
+- **Format:** `type: description` or `type(scope): description`
+- **Types:** `feat:` (new feature), `fix:` (bug fix), `chore:` (maintenance, version bumps), `test:` (test additions/changes), `docs:` (documentation)
+- **Scoped variant:** `feat(scope):`, `fix(scope):` — e.g. `feat(auth): add token refresh`
+- **Lowercase after prefix** — `feat: add feature`, not `feat: Add feature`
+- **Present tense** — "add feature", not "added feature"
+
+### Branch names
+
+- **Format:** `type/short-description` — lowercase, hyphen-separated
+- **Types match commit types:** `feat/`, `fix/`, `chore/`, `test/`, `docs/`
+- **Examples:** `feat/token-refresh`, `fix/null-pointer`, `docs/progressive-disclosure`
+
+### General rules
+
+- **No AI tool names** — never mention claude, cursor, copilot, cody, aider, gemini, codex, chatgpt, or gpt-3/4
+- **No Co-Authored-By trailers** — omit AI attribution lines
+- **No --no-verify** — let git hooks run normally
+- **No git config changes** — do not modify user.name or user.email
+- **No force push** — no `--force` or `--force-with-lease`
+
+## Doc Commands
+
+| Command | When to use |
 |---|---|
-| Main orchestrator | `live_match.py` |
-| Architecture overview | `docs/ai/L1/02_architecture.md` |
-| File/module map | `docs/ai/L1/03_code_map.md` |
-| Run modes and workflows | `docs/ai/L1/05_workflows.md` |
-| API keys and env vars | `docs/ai/L1/01_setup.md` |
-| Known gotchas | `docs/ai/L1/07_gotchas.md` |
-| TTS engine internals | `docs/ai/L1/deep_dives/tts_engine.md` |
-| STT pipeline details | `docs/ai/L1/deep_dives/stt_pipeline.md` |
+| generate docs | no `docs/ai/` directory exists yet |
+| update docs | code changed since last `last_reviewed` date |
+| test docs | verify docs give agents the right context |
 
-## Conventions
-
-- Python 3.10+, no type annotations in existing code
-- `.env` file loaded by `_load_dotenv()` in `live_match.py` — never commit `.env`
-- Events format: `offset_seconds|PRIORITY|message text`
-- PCM audio: 16-bit signed LE, 16 kHz, mono, 10ms chunks (320 bytes)
-- Data files live in `data/events/`, `data/audio/`, `data/json/`
+For detailed procedures, use the `ai-dev-kit:generate`, `ai-dev-kit:update`, or `ai-dev-kit:test` skills.

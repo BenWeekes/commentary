@@ -1,5 +1,7 @@
 # L1 — Workflows
 
+> Run modes, clip extraction recipes, multi-session viewer usage, and common operational tasks.
+
 ## Run Modes
 
 All modes use the multi-session architecture: the server waits for viewers to create sessions via the HTTP API. Each viewer gets its own Agora channel, token, and language preference.
@@ -187,3 +189,8 @@ python3 stt_realtime_translate.py \
 ```
 
 Measures per-utterance latency: STT time, translation time, total pipeline latency.
+
+## Related Deep Dives
+
+- [STT Pipeline](L2/stt_pipeline.md) — latency budget breakdown and forced split logic
+- [TTS Timeline Format](L2/tts_timeline_format.md) — log format for analysing playback timing
