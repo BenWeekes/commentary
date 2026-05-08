@@ -26,6 +26,7 @@ import (
 
 	agoraservice "github.com/AgoraIO-Extensions/Agora-Golang-Server-SDK/v2/go_sdk/rtc"
 	rtctokenbuilder "github.com/AgoraIO/Tools/DynamicKey/AgoraDynamicKey/go/src/rtctokenbuilder2"
+	"github.com/benweekes/go-audio-video-publisher/internal/localstream"
 )
 
 type config struct {
@@ -58,6 +59,8 @@ type config struct {
 	audioFromStdin                bool
 	startAt                       time.Time
 	sourceBuffer                  time.Duration
+	pcmListen                     string
+	videoListen                   string
 	debugSleep                    bool
 }
 
@@ -119,6 +122,8 @@ func parseConfig() (*config, error) {
 	var sourceBufferSeconds float64
 	flag.Float64Var(&startAtUnix, "start-at", 0, "Absolute Unix timestamp to start source video")
 	flag.Float64Var(&sourceBufferSeconds, "source-buffer-seconds", 0, "Extra delay applied before source media is sent")
+	flag.StringVar(&cfg.pcmListen, "pcm-listen", "", "Local TCP listen address for raw PCM fanout (for example 127.0.0.1:0)")
+	flag.StringVar(&cfg.videoListen, "video-listen", "", "Local TCP listen address for cleaned H264 fanout (for example 127.0.0.1:0)")
 	flag.BoolVar(&cfg.debugSleep, "debug-sleep-log", false, "Log pacing sleeps while sending media")
 	flag.Parse()
 
@@ -135,8 +140,12 @@ func parseConfig() (*config, error) {
 		return nil, errors.New("--audio-from-stdin requires --input")
 	case cfg.audioFromStdin && (cfg.hasEncodedInputs() || cfg.hasRawInputs()):
 		return nil, errors.New("--audio-from-stdin only supports --input media mode")
+	case (cfg.pcmListen != "" || cfg.videoListen != "") && cfg.input == "":
+		return nil, errors.New("--pcm-listen/--video-listen require --input")
 	case cfg.videoMode != "encoded" && cfg.videoMode != "yuv" && cfg.videoMode != "reencode":
 		return nil, errors.New("--video-mode must be one of: encoded, yuv, reencode")
+	case cfg.videoListen != "" && cfg.videoMode == "yuv":
+		return nil, errors.New("--video-listen requires --video-mode encoded or reencode")
 	case cfg.hasRawInputs() && cfg.rawSampleRate <= 0:
 		return nil, errors.New("--raw-sample-rate must be greater than 0")
 	case cfg.hasRawInputs() && cfg.rawChannels <= 0:
@@ -246,6 +255,28 @@ func isRemoteInput(value string) bool {
 func run(cfg *config, stop <-chan os.Signal) error {
 	if err := os.MkdirAll("agora_rtc_log", 0o755); err != nil {
 		return fmt.Errorf("create agora log directory: %w", err)
+	}
+
+	pcmServer, err := startPCMServer(cfg.pcmListen)
+	if err != nil {
+		return err
+	}
+	defer pcmServer.close()
+	videoFanout, err := startVideoFanout(cfg.videoListen)
+	if err != nil {
+		return err
+	}
+	defer videoFanout.close()
+	if pcmServer != nil || videoFanout != nil {
+		pcmAddr := ""
+		videoAddr := ""
+		if pcmServer != nil {
+			pcmAddr = pcmServer.addr
+		}
+		if videoFanout != nil {
+			videoAddr = videoFanout.addr
+		}
+		fmt.Printf("local sources ready pcm=%s video=%s\n", pcmAddr, videoAddr)
 	}
 
 	svcCfg := agoraservice.NewAgoraServiceConfig()
@@ -392,6 +423,8 @@ func run(cfg *config, stop <-chan os.Signal) error {
 			err = streamEncodedAssets(con, cfg, stop, disconnected)
 		} else if cfg.hasRawInputs() {
 			err = streamRawAssets(con, cfg, stop, disconnected)
+		} else if pcmServer != nil || videoFanout != nil {
+			err = streamMediaWithLocalFanout(con, cfg, stop, disconnected, pcmServer, videoFanout)
 		} else if cfg.audioFromStdin {
 			err = streamMediaWithPCMStdin(con, cfg, stop, disconnected)
 		} else {
@@ -532,6 +565,143 @@ func streamMediaWithPCMStdin(con *agoraservice.RtcConnection, cfg *config, stop 
 			}
 		case <-done:
 			return nil
+		}
+	}
+}
+
+func streamMediaWithLocalFanout(
+	con *agoraservice.RtcConnection,
+	cfg *config,
+	stop <-chan os.Signal,
+	disconnected <-chan string,
+	pcmServer *pcmServer,
+	videoFanout *videoFanout,
+) error {
+	fileName := C.CString(cfg.input)
+	defer C.free(unsafe.Pointer(fileName))
+
+	decoder := C.open_media_file(fileName)
+	if decoder == nil {
+		return fmt.Errorf("open media file %q", cfg.input)
+	}
+	defer C.close_media_file(decoder)
+
+	audioPublisher := startDelayedAudioPublisher(con)
+	defer audioPublisher.close()
+	videoPublisher := startDelayedVideoPublisher(con)
+	defer videoPublisher.close()
+
+	var packet *C.struct__MediaPacket
+	frame := C.struct__MediaFrame{}
+	C.memset(unsafe.Pointer(&frame), 0, C.sizeof_struct__MediaFrame)
+	audioChunker := &audioChunker{}
+	h264Parser := &h264AUParser{}
+	h264Cleaner := &h264Repacketizer{}
+
+	var firstPTS int64 = -1
+	var localBase time.Time
+	var originalBase time.Time
+
+	for {
+		select {
+		case <-stop:
+			return errors.New("interrupted")
+		case msg := <-disconnected:
+			return errors.New(msg)
+		default:
+		}
+
+		ret := C.get_packet(decoder, &packet)
+		if ret != 0 {
+			fmt.Printf("finished reading input: code=%d\n", int(ret))
+			return nil
+		}
+		if packet == nil {
+			continue
+		}
+
+		switch packet.media_type {
+		case C.AVMEDIA_TYPE_AUDIO:
+			if cfg.videoOnly {
+				C.free_packet(&packet)
+				continue
+			}
+		case C.AVMEDIA_TYPE_VIDEO:
+			if cfg.audioOnly {
+				C.free_packet(&packet)
+				continue
+			}
+		default:
+			C.free_packet(&packet)
+			continue
+		}
+
+		sendPTS := int64(packet.pts)
+		if sendPTS < 0 {
+			sendPTS = 0
+		}
+		if firstPTS < 0 {
+			firstPTS = sendPTS
+			localBase = time.Now()
+			originalBase = localBase.Add(cfg.sourceBuffer)
+			fmt.Printf("starting media stream at pts=%dms\n", firstPTS)
+		}
+		delta := time.Duration(sendPTS-firstPTS) * time.Millisecond
+		localTarget := localBase.Add(delta)
+		if wait := time.Until(localTarget); wait > 0 {
+			if cfg.debugSleep {
+				fmt.Printf("pacing sleep: %s for packet pts=%d\n", wait, sendPTS)
+			}
+			time.Sleep(wait)
+		}
+
+		switch packet.media_type {
+		case C.AVMEDIA_TYPE_AUDIO:
+			chunks, err := decodeAudioChunks(decoder, packet, &frame, audioChunker)
+			packet = nil
+			if err != nil {
+				return err
+			}
+			chunkPublishAt := originalBase.Add(delta)
+			for _, chunk := range chunks {
+				if pcmServer != nil {
+					pcmServer.writeChunk(chunk)
+				}
+				audioPublisher.enqueue(delayedAudioChunk{
+					pcm:       append([]byte(nil), chunk...),
+					publishAt: chunkPublishAt,
+				})
+				chunkPublishAt = chunkPublishAt.Add(10 * time.Millisecond)
+			}
+		case C.AVMEDIA_TYPE_VIDEO:
+			frames, err := extractEncodedVideoFramesForFanout(cfg, decoder, packet, &frame, h264Parser, h264Cleaner, localTarget)
+			packet = nil
+			if err != nil {
+				return err
+			}
+			for _, videoFrame := range frames {
+				if videoFanout != nil {
+					videoFanout.broadcast(videoFrame)
+				}
+				frameType := agoraservice.VideoFrameTypeDeltaFrame
+				if videoFrame.KeyFrame {
+					frameType = agoraservice.VideoFrameTypeKeyFrame
+				}
+				videoPublisher.enqueue(delayedVideoFrame{
+					data: append([]byte(nil), videoFrame.Data...),
+					frameInfo: &agoraservice.EncodedVideoFrameInfo{
+						CodecType:       agoraservice.VideoCodecTypeH264,
+						Width:           videoFrame.Width,
+						Height:          videoFrame.Height,
+						FramesPerSecond: videoFrame.FPS,
+						FrameType:       frameType,
+						Rotation:        agoraservice.VideoOrientation0,
+						CaptureTimeMs:   time.Now().UnixMilli(),
+						StreamType:      int(agoraservice.VideoStreamHigh),
+					},
+					publishAt: originalBase.Add(delta),
+				})
+			}
 		}
 	}
 }
@@ -1230,25 +1400,32 @@ func sendEncodedVideoLoop(con *agoraservice.RtcConnection, cfg *config, stop <-c
 	}
 }
 
-func sendAudioPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, chunker *audioChunker) error {
+func decodeAudioChunks(decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, chunker *audioChunker) ([][]byte, error) {
 	ret := C.decode_packet(decoder, packet, frame)
 	C.free_packet(&packet)
 	if ret != 0 {
 		if ret == C.AVERROR_EAGAIN {
-			return nil
+			return nil, nil
 		}
-		return fmt.Errorf("decode audio packet: %d", int(ret))
+		return nil, fmt.Errorf("decode audio packet: %d", int(ret))
 	}
 	if frame.format != C.AV_SAMPLE_FMT_S16 {
-		return fmt.Errorf("unsupported decoded audio sample format: %d", int(frame.format))
+		return nil, fmt.Errorf("unsupported decoded audio sample format: %d", int(frame.format))
 	}
 
 	audioData := unsafe.Slice((*byte)(unsafe.Pointer(frame.buffer)), frame.buffer_size)
 	sampleRate := int(frame.sample_rate)
 	channels := int(frame.channels)
+	return chunker.append(audioData, sampleRate, channels), nil
+}
 
-	for _, chunk := range chunker.append(audioData, sampleRate, channels) {
-		if rc := con.PushAudioPcmData(chunk, sampleRate, channels, 0); rc != 0 {
+func sendAudioPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, chunker *audioChunker) error {
+	chunks, err := decodeAudioChunks(decoder, packet, frame, chunker)
+	if err != nil {
+		return err
+	}
+	for _, chunk := range chunks {
+		if rc := con.PushAudioPcmData(chunk, 16000, 1, 0); rc != 0 {
 			return fmt.Errorf("push audio pcm data: %d", rc)
 		}
 		signalSourcePublishingStarted()
@@ -1266,56 +1443,153 @@ func sendVideoPacket(con *agoraservice.RtcConnection, cfg *config, decoder unsaf
 	return sendYUVVideoPacket(con, decoder, packet, frame)
 }
 
-func sendReencodedVideoPacket(con *agoraservice.RtcConnection, cfg *config, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, h264Parser *h264AUParser, h264Cleaner *h264Repacketizer) error {
+func extractEncodedVideoFramesForFanout(
+	cfg *config,
+	decoder unsafe.Pointer,
+	packet *C.struct__MediaPacket,
+	frame *C.struct__MediaFrame,
+	h264Parser *h264AUParser,
+	h264Cleaner *h264Repacketizer,
+	receiveAt time.Time,
+) ([]localstream.VideoFrame, error) {
+	if cfg.videoMode == "reencode" {
+		return extractReencodedVideoFramesForFanout(cfg, decoder, packet, frame, h264Parser, h264Cleaner, receiveAt)
+	}
+	if cfg.videoMode == "encoded" {
+		return extractEncodedVideoFramesForFanoutDirect(decoder, packet, h264Parser, h264Cleaner, receiveAt)
+	}
+	return nil, fmt.Errorf("local video fanout requires encoded or reencode mode")
+}
+
+func extractReencodedVideoFramesForFanout(
+	cfg *config,
+	decoder unsafe.Pointer,
+	packet *C.struct__MediaPacket,
+	frame *C.struct__MediaFrame,
+	h264Parser *h264AUParser,
+	h264Cleaner *h264Repacketizer,
+	receiveAt time.Time,
+) ([]localstream.VideoFrame, error) {
 	ret := C.decode_packet(decoder, packet, frame)
 	C.free_packet(&packet)
 	if ret != 0 {
 		if ret == C.AVERROR_EAGAIN {
-			return nil
+			return nil, nil
 		}
-		return fmt.Errorf("decode video packet for reencode: %d", int(ret))
+		return nil, fmt.Errorf("decode video packet for reencode: %d", int(ret))
 	}
 	if frame.format != C.AV_PIX_FMT_YUV420P {
-		return fmt.Errorf("unsupported decoded video pixel format for reencode: %d", int(frame.format))
+		return nil, fmt.Errorf("unsupported decoded video pixel format for reencode: %d", int(frame.format))
 	}
 
 	ret = C.init_video_reencoder(decoder, C.int(cfg.reencodeVideoFPS), C.int(cfg.reencodeVideoBitrate))
 	if ret != 0 {
-		return fmt.Errorf("init video reencoder: %d", int(ret))
+		return nil, fmt.Errorf("init video reencoder: %d", int(ret))
 	}
 
 	var encPacket *C.struct__MediaPacket
 	ret = C.encode_video_frame(decoder, frame, &encPacket)
 	if ret != 0 {
 		if ret == C.AVERROR_EAGAIN {
-			return nil
+			return nil, nil
 		}
-		return fmt.Errorf("encode video frame: %d", int(ret))
+		return nil, fmt.Errorf("encode video frame: %d", int(ret))
 	}
 	if encPacket == nil || encPacket.pkt == nil || encPacket.pkt.size <= 0 {
-		return nil
+		return nil, nil
 	}
 	defer C.free_packet(&encPacket)
 
 	data := C.GoBytes(unsafe.Pointer(encPacket.pkt.data), encPacket.pkt.size)
+	frames := make([]localstream.VideoFrame, 0)
 	for _, au := range h264Parser.appendAndExtract(data, true) {
 		cleaned := h264Cleaner.repacketize(au)
 		if len(cleaned.data) == 0 {
 			continue
 		}
+		frames = append(frames, localstream.VideoFrame{
+			Data:      cleaned.data,
+			Width:     int(encPacket.width),
+			Height:    int(encPacket.height),
+			FPS:       cfg.reencodeVideoFPS,
+			KeyFrame:  cleaned.isKeyFrame,
+			ReceiveAt: receiveAt,
+		})
+	}
+	return frames, nil
+}
+
+func extractEncodedVideoFramesForFanoutDirect(
+	decoder unsafe.Pointer,
+	packet *C.struct__MediaPacket,
+	h264Parser *h264AUParser,
+	h264Cleaner *h264Repacketizer,
+	receiveAt time.Time,
+) ([]localstream.VideoFrame, error) {
+	ret := C.h264_to_annexb(decoder, &packet)
+	if ret != 0 {
+		if ret == C.AVERROR_EAGAIN {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("convert h264 packet to annexb: %d", int(ret))
+	}
+	if packet == nil || packet.pkt == nil || packet.pkt.size <= 0 {
+		return nil, nil
+	}
+	defer C.free_packet(&packet)
+	if packet.pts <= 0 {
+		packet.pts = 1
+	}
+
+	data := C.GoBytes(unsafe.Pointer(packet.pkt.data), packet.pkt.size)
+	fps := 25
+	if packet.framerate_den > 0 && packet.framerate_num > 0 {
+		fps = int(packet.framerate_num / packet.framerate_den)
+		if fps <= 0 {
+			fps = 25
+		}
+	}
+	frames := make([]localstream.VideoFrame, 0)
+	for _, au := range h264Parser.appendAndExtract(data, false) {
+		cleaned := h264Cleaner.repacketize(au)
+		if len(cleaned.data) == 0 {
+			continue
+		}
+		frames = append(frames, localstream.VideoFrame{
+			Data:      cleaned.data,
+			Width:     int(packet.width),
+			Height:    int(packet.height),
+			FPS:       fps,
+			KeyFrame:  cleaned.isKeyFrame,
+			ReceiveAt: receiveAt,
+		})
+	}
+	return frames, nil
+}
+
+func sendReencodedVideoPacket(con *agoraservice.RtcConnection, cfg *config, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, h264Parser *h264AUParser, h264Cleaner *h264Repacketizer) error {
+	frames, err := extractReencodedVideoFramesForFanout(cfg, decoder, packet, frame, h264Parser, h264Cleaner, time.Now())
+	if err != nil {
+		return err
+	}
+	for _, videoFrame := range frames {
 		frameType := agoraservice.VideoFrameTypeDeltaFrame
-		if cleaned.isKeyFrame {
+		if videoFrame.KeyFrame {
 			frameType = agoraservice.VideoFrameTypeKeyFrame
 		}
-		if rc := con.PushVideoEncodedData(cleaned.data, &agoraservice.EncodedVideoFrameInfo{
+		frameInfo := &agoraservice.EncodedVideoFrameInfo{
 			CodecType:       agoraservice.VideoCodecTypeH264,
-			Width:           int(encPacket.width),
-			Height:          int(encPacket.height),
-			FramesPerSecond: 0,
+			Width:           videoFrame.Width,
+			Height:          videoFrame.Height,
+			FramesPerSecond: videoFrame.FPS,
 			FrameType:       frameType,
 			Rotation:        agoraservice.VideoOrientation0,
-		}); rc != 0 {
-			fmt.Printf("PushVideoEncodedData ret=%d reencoded pts=%d size=%d au=%d cleaned=%d key=%t\n", rc, int64(encPacket.pts), len(data), len(au.data), len(cleaned.data), cleaned.isKeyFrame)
+			CaptureTimeMs:   time.Now().UnixMilli(),
+			StreamType:      int(agoraservice.VideoStreamHigh),
+		}
+		if rc := con.PushVideoEncodedData(videoFrame.Data, frameInfo); rc != 0 {
+			fmt.Printf("PushVideoEncodedData ret=%d reencoded size=%d key=%t\n", rc, len(videoFrame.Data), videoFrame.KeyFrame)
+			continue
 		}
 		signalSourcePublishingStarted()
 	}
@@ -1354,48 +1628,28 @@ func sendYUVVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer,
 }
 
 func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer, packet *C.struct__MediaPacket, h264Parser *h264AUParser, h264Cleaner *h264Repacketizer) error {
-	ret := C.h264_to_annexb(decoder, &packet)
-	if ret != 0 {
-		if ret == C.AVERROR_EAGAIN {
-			return nil
-		}
-		return fmt.Errorf("convert h264 packet to annexb: %d", int(ret))
+	frames, err := extractEncodedVideoFramesForFanoutDirect(decoder, packet, h264Parser, h264Cleaner, time.Now())
+	if err != nil {
+		return err
 	}
-	if packet == nil || packet.pkt == nil || packet.pkt.size <= 0 {
-		return nil
-	}
-	defer C.free_packet(&packet)
-	if packet.pts <= 0 {
-		packet.pts = 1
-	}
-
-	fps := 0
-	if packet.framerate_den > 0 {
-		fps = int(packet.framerate_num / packet.framerate_den)
-	}
-	if fps <= 0 {
-		fps = 25
-	}
-
-	data := C.GoBytes(unsafe.Pointer(packet.pkt.data), packet.pkt.size)
-	for _, au := range h264Parser.appendAndExtract(data, false) {
-		cleaned := h264Cleaner.repacketize(au)
-		if len(cleaned.data) == 0 {
-			continue
-		}
+	for _, videoFrame := range frames {
 		frameType := agoraservice.VideoFrameTypeDeltaFrame
-		if cleaned.isKeyFrame {
+		if videoFrame.KeyFrame {
 			frameType = agoraservice.VideoFrameTypeKeyFrame
 		}
-		if rc := con.PushVideoEncodedData(cleaned.data, &agoraservice.EncodedVideoFrameInfo{
+		frameInfo := &agoraservice.EncodedVideoFrameInfo{
 			CodecType:       agoraservice.VideoCodecTypeH264,
-			Width:           int(packet.width),
-			Height:          int(packet.height),
-			FramesPerSecond: fps,
+			Width:           videoFrame.Width,
+			Height:          videoFrame.Height,
+			FramesPerSecond: videoFrame.FPS,
 			FrameType:       frameType,
 			Rotation:        agoraservice.VideoOrientation0,
-		}); rc != 0 {
-			fmt.Printf("PushVideoEncodedData ret=%d pts=%d size=%d au=%d cleaned=%d key=%t\n", rc, int64(packet.pts), len(data), len(au.data), len(cleaned.data), cleaned.isKeyFrame)
+			CaptureTimeMs:   time.Now().UnixMilli(),
+			StreamType:      int(agoraservice.VideoStreamHigh),
+		}
+		if rc := con.PushVideoEncodedData(videoFrame.Data, frameInfo); rc != 0 {
+			fmt.Printf("PushVideoEncodedData ret=%d size=%d key=%t\n", rc, len(videoFrame.Data), videoFrame.KeyFrame)
+			continue
 		}
 		signalSourcePublishingStarted()
 	}

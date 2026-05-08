@@ -34,7 +34,7 @@ commentary/
 │   ├── scheduler.py               # Live-match scheduler: SR refresh cadence, kickoff countdown, auto-start
 │   ├── match_worker.py            # MatchWorker: 1 STT → N language pipelines (~530 lines)
 │   ├── sr_data.py                 # Sportradar refresh helpers: lineups/summary fetch, roster/keyterms derivation
-│   ├── srt_ingest.py              # Launch helper for SRT → internal Agora ingest process
+│   ├── srt_ingest.py              # Launch helper for SRT source-side publisher processes (internal ingest or srt_direct original+local fanout)
 │   ├── status_api.py              # HTTP API + static file serving
 │   └── token_api.py               # generate_viewer_token()
 ├── lib/                           # Shared library (extracted from live_match.py)
@@ -52,10 +52,12 @@ commentary/
 │   ├── audio/                     # Commentary audio samples
 │   └── json/                      # Full Sportradar API responses
 ├── go-audio-video-publisher/      # Go H.264+PCM → Agora publisher
-│   ├── main.go                    # Publisher entry point (1211 lines)
+│   ├── main.go                    # Publisher entry point: MP4/SRT ingest, optional local PCM/H264 fanout, Agora publish
 │   ├── decode_media.c/h           # FFmpeg C bindings
 │   ├── h264au.go                  # Annex B access-unit parser + keyframe gating for encoded send paths
 │   ├── h264_repacketizer.go       # Cleans SRT-derived H.264 AUs (drops AUD/filler, keeps SPS/PPS before IDR)
+│   ├── local_outputs.go           # Local TCP PCM server, local H264 fanout, delayed original-channel publishers
+│   ├── internal/localstream/      # Shared local H264 frame protocol between source publisher and relay_publish
 │   ├── go.mod, go.sum             # Go module (has local replace directive)
 │   ├── Makefile
 │   └── reference/agora_go_sdk/    # Standalone Go sender examples
@@ -73,13 +75,13 @@ commentary/
 |---|---|---|
 | `server/main.py` | `_load_dotenv()`, `main()` — CLI args, config load, orchestrator init, scheduler startup, signal handling | `server.config`, `server.orchestrator`, `server.status_api` |
 | `server/config.py` | `LiveSourceConfig`, `MatchConfig` (dataclass), `ServerConfig` (dataclass), `_resolve_path()`, `load_config()`, `validate_config()`, `get_live_source()` | `yaml` (pyyaml) |
-| `server/live_source.py` | `ResolvedLiveSource`, `resolve_live_source()`, `stop_resolved_live_source()` — normalize `agora`, `srt`, and `srt_direct` live inputs and own any SRT-side publisher lifecycle | `server.config`, `server.srt_ingest` |
+| `server/live_source.py` | `ResolvedLiveSource`, `resolve_live_source()`, `stop_resolved_live_source()` — normalize `agora`, `srt`, and `srt_direct` live inputs, capture any local PCM/H264 endpoints, and own any SRT-side publisher lifecycle | `server.config`, `server.srt_ingest` |
 | `server/match_store.py` | `MatchStore` class — persistent per-match folder management, atomic JSON writes, keyterms I/O, run directory creation / listing | `json`, `os`, `time` |
 | `server/orchestrator.py` | `Orchestrator` class — owns `MatchStore`, per-match worker locks, `Scheduler`, `start_match()`, `stop_match()`, `get_all_status()`, `get_worker()` | `server.match_store`, `server.match_worker`, `server.scheduler` |
 | `server/scheduler.py` | `MatchSchedule` (dataclass), `Scheduler` class — refresh cadence, kickoff countdown, prestart-based auto-start/stop state tracking for live matches | `server.config`, `server.sr_data` |
 | `server/match_worker.py` | `LangTelemetry`, `MatchStatus` (dataclasses), `_LangPipeline`, `_start_publisher()`, `_wait_for_publisher_signal()`, `_kill_publisher()`, `MatchWorker` class — match lifecycle, live source resolution, STT fan-out, structured JSONL log creation (`_setup_log_dir()`, `_open_stt_log()`, `_open_lang_log()`), telemetry aggregation (`_on_telemetry()`), cleanup | `lib.*`, `server.config`, `server.live_source`, `server.match_store`, `openai` |
 | `server/sr_data.py` | `fetch_lineups()`, `fetch_summary()`, `derive_roster()`, `derive_keyterms()`, `refresh_match_data()` — fixture refresh path for live matches | `urllib.request`, `json`, `time` |
-| `server/srt_ingest.py` | `start_srt_ingest()`, `start_srt_original_publish()` — starts wrapper processes that publish remote SRT into Agora channels | `subprocess`, `os` |
+| `server/srt_ingest.py` | `start_srt_ingest()`, `start_srt_original_publish()` — starts wrapper processes that publish remote SRT into Agora channels and, for `srt_direct`, expose local PCM/H264 fanout | `subprocess`, `os` |
 | `server/status_api.py` | `StatusHandler` (HTTP handler), `start_status_server()` — GET/POST routes for match status, scheduler overview, channels, transcript, detail, refresh-data, static files | `server.token_api`, `server.sr_data` |
 | `server/token_api.py` | `generate_viewer_token()` — Agora v007 audience-only token | `tokens` |
 

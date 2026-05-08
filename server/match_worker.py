@@ -6,6 +6,7 @@ import json
 import os
 import selectors
 import signal
+import socket
 import subprocess
 import threading
 import time
@@ -521,6 +522,8 @@ class MatchWorker:
         self._status.started_at = time.time()
 
         subscribe_proc = None
+        live_audio_sock = None
+        live_audio_pipe = None
         relay_procs = {}  # lang -> proc
         resolved = None
 
@@ -542,32 +545,39 @@ class MatchWorker:
             if "DYLD_LIBRARY_PATH" not in env:
                 env["DYLD_LIBRARY_PATH"] = os.path.abspath(default_sdk_path)
 
-            # --- Start subscribe_audio.go ---
-            subscribe_cmd = [
-                "go", "run", "./cmd/subscribe_audio",
-                "--app-id", self._server.agora_app_id,
-                "--channel", resolved.channel,
-                "--uid", str(resolved.commentary_uid),
-            ]
-            print(f"[{tag}] Starting subscribe_audio on "
-                  f"channel={resolved.channel} uid={resolved.commentary_uid}")
-            subscribe_proc = subprocess.Popen(
-                subscribe_cmd,
-                env=env, cwd=base_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                preexec_fn=os.setsid,
-            )
-            # subscribe_audio signals on stderr (stdout carries PCM)
-            _wait_for_stderr_signal(
-                subscribe_proc, "audio subscribing started",
-                timeout=15, tag=f"{tag} SUB")
-
-            # Start stderr log reader for subscribe_audio
-            threading.Thread(
-                target=_log_pub_stream,
-                args=(subscribe_proc.stderr, f"{tag} SUB err"),
-                daemon=True).start()
+            live_audio_source = None
+            if resolved.source_type == "srt_direct":
+                if not resolved.local_pcm_addr or not resolved.local_video_addr:
+                    raise RuntimeError("srt_direct source missing local PCM/video endpoints")
+                print(f"[{tag}] Connecting STT PCM socket {resolved.local_pcm_addr}")
+                pcm_host, pcm_port = resolved.local_pcm_addr.rsplit(":", 1)
+                live_audio_sock = socket.create_connection((pcm_host, int(pcm_port)), timeout=10.0)
+                live_audio_pipe = live_audio_sock.makefile("rb")
+                live_audio_source = live_audio_pipe
+            else:
+                subscribe_cmd = [
+                    "go", "run", "./cmd/subscribe_audio",
+                    "--app-id", self._server.agora_app_id,
+                    "--channel", resolved.channel,
+                    "--uid", str(resolved.commentary_uid),
+                ]
+                print(f"[{tag}] Starting subscribe_audio on "
+                      f"channel={resolved.channel} uid={resolved.commentary_uid}")
+                subscribe_proc = subprocess.Popen(
+                    subscribe_cmd,
+                    env=env, cwd=base_dir,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    preexec_fn=os.setsid,
+                )
+                _wait_for_stderr_signal(
+                    subscribe_proc, "audio subscribing started",
+                    timeout=15, tag=f"{tag} SUB")
+                threading.Thread(
+                    target=_log_pub_stream,
+                    args=(subscribe_proc.stderr, f"{tag} SUB err"),
+                    daemon=True).start()
+                live_audio_source = subscribe_proc.stdout
 
             if self._stop.is_set():
                 return
@@ -597,14 +607,19 @@ class MatchWorker:
                 relay_cmd = [
                     "go", "run", "./cmd/relay_publish",
                     "--app-id", self._server.agora_app_id,
-                    "--source-channel", resolved.channel,
                     "--output-channel", output_channel,
-                    "--video-uid", str(resolved.video_uid),
                     "--atmos-uid", str(resolved.atmosphere_uid),
                     "--atmos-enabled", "true" if resolved.source_atmos_enabled else "false",
                     "--video-delay", str(relay_delay),
                     "--start-at", f"{target_start:.3f}",
                 ]
+                if resolved.source_type == "srt_direct":
+                    relay_cmd.extend(["--video-source-tcp", resolved.local_video_addr])
+                else:
+                    relay_cmd.extend([
+                        "--source-channel", resolved.channel,
+                        "--video-uid", str(resolved.video_uid),
+                    ])
                 relay_tag = f"{tag} {lang.upper()} RELAY"
                 print(f"[{tag}] Starting relay_publish for {lang} → {output_channel}")
 
@@ -643,13 +658,10 @@ class MatchWorker:
                     on_telemetry=make_telemetry_cb(),
                 )
 
-                # No local atmosphere — atmosphere comes from source UID via relay_publish
-
                 # Shared target_start for all languages
                 tts.video_start = target_start
                 tts.start()
 
-                # No SR prefetcher in live spike (SR gap-fill is Phase 4)
                 pipe = _LangPipeline(lang, output_channel, tts, sr_prefetcher=None,
                                      publisher=relay_proc)
                 pipe.video_start = target_start
@@ -665,11 +677,10 @@ class MatchWorker:
             self._status.state = "running"
             self._start_recordings(tag)
 
-            # Start STT from subscribe_audio stdout
-            print(f"[{tag}] Starting STT from live audio pipe...")
+            print(f"[{tag}] Starting STT from live audio source...")
             stt_thread = threading.Thread(
                 target=self._run_stt_live,
-                args=(subscribe_proc.stdout,),
+                args=(live_audio_source,),
                 daemon=True)
             stt_thread.start()
 
@@ -707,7 +718,7 @@ class MatchWorker:
                 print(f"[{tag}] video_start_ref updated to mean={mean_vs:.3f} "
                       f"(spread={max(actual_vs_values) - min(actual_vs_values):.3f}s)")
 
-            # Wait for STT to finish (pipe closes when subscribe_audio exits)
+            # Wait for STT to finish (pipe closes when source audio ends)
             stt_thread.join()
 
             # Drain TTS queues
@@ -724,6 +735,16 @@ class MatchWorker:
             traceback.print_exc()
         finally:
             # Kill subscribe_audio
+            if live_audio_pipe:
+                try:
+                    live_audio_pipe.close()
+                except Exception:
+                    pass
+            if live_audio_sock:
+                try:
+                    live_audio_sock.close()
+                except Exception:
+                    pass
             if subscribe_proc:
                 _kill_publisher(subscribe_proc, tag=f"{tag} SUB")
             # Kill relay publishers and TTS engines

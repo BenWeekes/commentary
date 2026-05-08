@@ -322,6 +322,10 @@ def validate_config(cfg: ServerConfig, dry_run=False):
                     errors.append(f"{prefix}: source.original_channel required for live srt_direct source")
                 if not source.publish_uid:
                     errors.append(f"{prefix}: source.publish_uid required for live srt_direct source")
+                if source.original_buffer_seconds < 0:
+                    errors.append(f"{prefix}: source.original_buffer_seconds must be >= 0")
+                if source.original_buffer_seconds >= m.video_delay:
+                    errors.append(f"{prefix}: source.original_buffer_seconds must be less than video_delay")
             else:
                 errors.append(f"{prefix}: invalid live source type '{source.type}'")
         if not m.languages:

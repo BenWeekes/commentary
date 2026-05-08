@@ -85,7 +85,7 @@ Live matches support three source modes:
 - `source.type = srt`
   Pulls one remote SRT feed, republishes it into an internal Agora channel, then runs the normal live worker from there.
 - `source.type = srt_direct`
-  Pulls one remote SRT feed once, republishes a buffered original channel into Agora using encoded video, then runs STT and translated relays from that same original channel.
+  Pulls one remote SRT feed once, exposes local PCM + cleaned H.264 fanout for the translated path, and separately republishes a buffered original channel into Agora for viewer "original".
 
 Agora-backed live matches use a source channel where the broadcaster publishes three UIDs:
 
@@ -140,11 +140,12 @@ For `source.type = srt`:
 
 For `source.type = srt_direct`:
 
-- the source is pulled once and published into `source.original_channel` using encoded H.264 with `source.original_buffer_seconds` of source-side buffering
-- STT subscribes to that buffered original channel
-- translated relays also subscribe to that same buffered original channel
-- downstream relay delay is reduced by `source.original_buffer_seconds` so total end-to-end delay still matches `video_delay`
-- there is still no separate source-atmosphere bed; outputs are delayed video + translated TTS only
+- the source is pulled once by a single Go process
+- that process decodes commentary/program audio to local PCM for Python STT immediately
+- the same process repacketizes encoded H.264 and exposes it over a local TCP fanout for per-language `relay_publish`
+- the viewer-facing original channel is still published into `source.original_channel` with `source.original_buffer_seconds` of source-side buffering
+- translated relays use the full configured `video_delay`; the original-channel buffer is only for original viewing jitter smoothing
+- there is still no separate source-atmosphere bed; translated outputs are delayed video + translated TTS only
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
 

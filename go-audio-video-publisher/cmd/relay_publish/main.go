@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"net"
 	"os"
 	"os/signal"
 	"sync"
@@ -15,6 +16,7 @@ import (
 
 	agoraservice "github.com/AgoraIO-Extensions/Agora-Golang-Server-SDK/v2/go_sdk/rtc"
 	rtctokenbuilder "github.com/AgoraIO/Tools/DynamicKey/AgoraDynamicKey/go/src/rtctokenbuilder2"
+	"github.com/benweekes/go-audio-video-publisher/internal/localstream"
 )
 
 // videoFrame holds a received encoded video frame for delay buffering.
@@ -35,6 +37,7 @@ func main() {
 	appCert := flag.String("app-certificate", envOr("AGORA_APP_CERTIFICATE", ""), "Agora App Certificate")
 	sourceChannel := flag.String("source-channel", "", "Source Agora channel to subscribe to")
 	outputChannel := flag.String("output-channel", "", "Output Agora channel to publish to")
+	videoSourceTCP := flag.String("video-source-tcp", "", "Local TCP source for cleaned H264 frames (bypasses Agora video subscription)")
 	videoUID := flag.String("video-uid", "73", "Remote UID for video in source channel")
 	atmosUID := flag.String("atmos-uid", "74", "Remote UID for atmosphere audio in source channel")
 	atmosEnabled := flag.Bool("atmos-enabled", true, "Whether to subscribe to and mix source atmosphere audio")
@@ -47,8 +50,8 @@ func main() {
 	if *appID == "" {
 		fatal("missing --app-id or AGORA_APP_ID")
 	}
-	if *sourceChannel == "" {
-		fatal("missing --source-channel")
+	if *sourceChannel == "" && *videoSourceTCP == "" {
+		fatal("missing --source-channel or --video-source-tcp")
 	}
 	if *outputChannel == "" {
 		fatal("missing --output-channel")
@@ -65,17 +68,18 @@ func main() {
 	}
 
 	cfg := &relayConfig{
-		appID:         *appID,
-		appCert:       *appCert,
-		sourceChannel: *sourceChannel,
-		outputChannel: *outputChannel,
-		videoUID:      *videoUID,
-		atmosUID:      *atmosUID,
-		atmosEnabled:  *atmosEnabled,
-		videoDelay:    time.Duration(*videoDelay * float64(time.Second)),
-		startAt:       startAtTime,
-		subUID:        *subUID,
-		pubUID:        *pubUID,
+		appID:          *appID,
+		appCert:        *appCert,
+		sourceChannel:  *sourceChannel,
+		outputChannel:  *outputChannel,
+		videoSourceTCP: *videoSourceTCP,
+		videoUID:       *videoUID,
+		atmosUID:       *atmosUID,
+		atmosEnabled:   *atmosEnabled && *videoSourceTCP == "",
+		videoDelay:     time.Duration(*videoDelay * float64(time.Second)),
+		startAt:        startAtTime,
+		subUID:         *subUID,
+		pubUID:         *pubUID,
 	}
 
 	if err := run(cfg, stop); err != nil {
@@ -84,17 +88,18 @@ func main() {
 }
 
 type relayConfig struct {
-	appID         string
-	appCert       string
-	sourceChannel string
-	outputChannel string
-	videoUID      string
-	atmosUID      string
-	atmosEnabled  bool
-	videoDelay    time.Duration
-	startAt       time.Time // absolute start time (zero = use relative videoDelay)
-	subUID        string
-	pubUID        string
+	appID          string
+	appCert        string
+	sourceChannel  string
+	outputChannel  string
+	videoSourceTCP string
+	videoUID       string
+	atmosUID       string
+	atmosEnabled   bool
+	videoDelay     time.Duration
+	startAt        time.Time // absolute start time (zero = use relative videoDelay)
+	subUID         string
+	pubUID         string
 }
 
 func run(cfg *relayConfig, stop <-chan os.Signal) error {
@@ -112,63 +117,14 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	agoraservice.Initialize(svcCfg)
 	defer agoraservice.Release()
 
-	// --- Subscriber connection (source channel) ---
-	subToken := ""
-	if cfg.appCert != "" {
-		var err error
-		subToken, err = rtctokenbuilder.BuildTokenWithUserAccount(
-			cfg.appID, cfg.appCert, cfg.sourceChannel, cfg.subUID,
-			rtctokenbuilder.RoleSubscriber, 3600, 3600)
-		if err != nil {
-			return fmt.Errorf("build subscriber token: %w", err)
-		}
-	}
-
-	subConCfg := &agoraservice.RtcConnectionConfig{
-		AutoSubscribeAudio: true,
-		AutoSubscribeVideo: true,
-		ClientRole:         agoraservice.ClientRoleBroadcaster,
-		ChannelProfile:     agoraservice.ChannelProfileLiveBroadcasting,
-	}
-	subPublish := agoraservice.NewRtcConPublishConfig()
-	subPublish.IsPublishAudio = false
-	subPublish.IsPublishVideo = false
-
-	subCon := agoraservice.NewRtcConnection(subConCfg, subPublish)
-	if subCon == nil {
-		return errors.New("failed to create subscriber connection")
-	}
-	defer subCon.Release()
-
-	subConnected := make(chan struct{}, 1)
-	subDisconnected := make(chan string, 1)
-	subCon.RegisterObserver(&agoraservice.RtcConnectionObserver{
-		OnConnected: func(_ *agoraservice.RtcConnection, info *agoraservice.RtcConnectionInfo, reason int) {
-			logStderr("[SUB] connected: channel=%s uid=%s reason=%d", info.ChannelId, info.LocalUserId, reason)
-			select {
-			case subConnected <- struct{}{}:
-			default:
-			}
-		},
-		OnDisconnected: func(_ *agoraservice.RtcConnection, info *agoraservice.RtcConnectionInfo, reason int) {
-			msg := fmt.Sprintf("[SUB] disconnected: channel=%s reason=%d", info.ChannelId, reason)
-			logStderr("%s", msg)
-			select {
-			case subDisconnected <- msg:
-			default:
-			}
-		},
-		OnUserJoined: func(_ *agoraservice.RtcConnection, uid string) {
-			logStderr("[SUB] remote user joined: %s", uid)
-		},
-		OnUserLeft: func(_ *agoraservice.RtcConnection, uid string, reason int) {
-			logStderr("[SUB] remote user left: %s reason=%d", uid, reason)
-		},
-	})
+	// --- Optional subscriber connection (Agora source mode only) ---
+	var subCon *agoraservice.RtcConnection
+	var subDisconnected <-chan string
+	subDisconnectedCh := make(chan string, 1)
 
 	// Delay buffer sizes: capacity = delay * rate * 1.5 headroom
 	delaySec := cfg.videoDelay.Seconds()
-	videoBufferCap := int(delaySec*30*1.5) + 100 // ~30fps assumed, +100 safety
+	videoBufferCap := int(delaySec*30*1.5) + 100  // ~30fps assumed, +100 safety
 	atmosBufferCap := int(delaySec*100*1.5) + 100 // 100 chunks/sec (10ms each)
 
 	videoBuffer := make(chan *videoFrame, videoBufferCap)
@@ -180,94 +136,190 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	var droppedAtmosChunks int64
 	var videoFrameCount int64
 
-	// Register encoded video observer for source UID video
-	subCon.RegisterVideoEncodedFrameObserver(&agoraservice.VideoEncodedFrameObserver{
-		OnEncodedVideoFrame: func(uid string, imageBuffer []byte, frameInfo *agoraservice.EncodedVideoFrameInfo) bool {
-			if uid != cfg.videoUID {
-				return true
+	if cfg.videoSourceTCP == "" {
+		subToken := ""
+		if cfg.appCert != "" {
+			var err error
+			subToken, err = rtctokenbuilder.BuildTokenWithUserAccount(
+				cfg.appID, cfg.appCert, cfg.sourceChannel, cfg.subUID,
+				rtctokenbuilder.RoleSubscriber, 3600, 3600)
+			if err != nil {
+				return fmt.Errorf("build subscriber token: %w", err)
 			}
-			atomic.AddInt64(&videoFrameCount, 1)
-			// Copy data since buffer may be reused by SDK
-			dataCopy := make([]byte, len(imageBuffer))
-			copy(dataCopy, imageBuffer)
-			infoCopy := *frameInfo
+		}
 
-			frame := &videoFrame{
-				data:      dataCopy,
-				frameInfo: &infoCopy,
-				receiveAt: time.Now(),
-			}
-			// Non-blocking send: drop oldest on overflow
-			select {
-			case videoBuffer <- frame:
-			default:
-				<-videoBuffer
-				videoBuffer <- frame
-				atomic.AddInt64(&droppedVideoFrames, 1)
-			}
-			return true
-		},
-	})
+		subConCfg := &agoraservice.RtcConnectionConfig{
+			AutoSubscribeAudio: true,
+			AutoSubscribeVideo: true,
+			ClientRole:         agoraservice.ClientRoleBroadcaster,
+			ChannelProfile:     agoraservice.ChannelProfileLiveBroadcasting,
+		}
+		subPublish := agoraservice.NewRtcConPublishConfig()
+		subPublish.IsPublishAudio = false
+		subPublish.IsPublishVideo = false
 
-	// Subscribe to encoded video only (no decode overhead)
-	subLocalUser := subCon.GetLocalUser()
-	subLocalUser.SubscribeAllVideo(&agoraservice.VideoSubscriptionOptions{
-		EncodedFrameOnly: true,
-	})
+		subCon = agoraservice.NewRtcConnection(subConCfg, subPublish)
+		if subCon == nil {
+			return errors.New("failed to create subscriber connection")
+		}
+		defer subCon.Release()
 
-	if cfg.atmosEnabled {
-		// Register audio observer for atmosphere UID
-		subLocalUser.SetPlaybackAudioFrameBeforeMixingParameters(1, 16000)
-		subCon.RegisterAudioFrameObserver(&agoraservice.AudioFrameObserver{
-			OnPlaybackAudioFrameBeforeMixing: func(
-				_ *agoraservice.LocalUser,
-				channelId string,
-				uid string,
-				frame *agoraservice.AudioFrame,
-				vadResultState agoraservice.VadState,
-				vadResultFrame *agoraservice.AudioFrame,
-			) bool {
-				if uid != cfg.atmosUID {
+		subConnected := make(chan struct{}, 1)
+		subDisconnected = subDisconnectedCh
+		subCon.RegisterObserver(&agoraservice.RtcConnectionObserver{
+			OnConnected: func(_ *agoraservice.RtcConnection, info *agoraservice.RtcConnectionInfo, reason int) {
+				logStderr("[SUB] connected: channel=%s uid=%s reason=%d", info.ChannelId, info.LocalUserId, reason)
+				select {
+				case subConnected <- struct{}{}:
+				default:
+				}
+			},
+			OnDisconnected: func(_ *agoraservice.RtcConnection, info *agoraservice.RtcConnectionInfo, reason int) {
+				msg := fmt.Sprintf("[SUB] disconnected: channel=%s reason=%d", info.ChannelId, reason)
+				logStderr("%s", msg)
+				select {
+				case subDisconnectedCh <- msg:
+				default:
+				}
+			},
+			OnUserJoined: func(_ *agoraservice.RtcConnection, uid string) {
+				logStderr("[SUB] remote user joined: %s", uid)
+			},
+			OnUserLeft: func(_ *agoraservice.RtcConnection, uid string, reason int) {
+				logStderr("[SUB] remote user left: %s reason=%d", uid, reason)
+			},
+		})
+
+		subCon.RegisterVideoEncodedFrameObserver(&agoraservice.VideoEncodedFrameObserver{
+			OnEncodedVideoFrame: func(uid string, imageBuffer []byte, frameInfo *agoraservice.EncodedVideoFrameInfo) bool {
+				if uid != cfg.videoUID {
 					return true
 				}
-				// Split into 10ms (320 byte) chunks
-				now := time.Now()
-				for off := 0; off+320 <= len(frame.Buffer); off += 320 {
-					chunk := make([]byte, 320)
-					copy(chunk, frame.Buffer[off:off+320])
-					ac := &atmosChunk{pcm: chunk, receiveAt: now}
-					select {
-					case atmosBuffer <- ac:
-					default:
-						<-atmosBuffer
-						atmosBuffer <- ac
-						atomic.AddInt64(&droppedAtmosChunks, 1)
-					}
+				atomic.AddInt64(&videoFrameCount, 1)
+				dataCopy := make([]byte, len(imageBuffer))
+				copy(dataCopy, imageBuffer)
+				infoCopy := *frameInfo
+				frame := &videoFrame{
+					data:      dataCopy,
+					frameInfo: &infoCopy,
+					receiveAt: time.Now(),
+				}
+				select {
+				case videoBuffer <- frame:
+				default:
+					<-videoBuffer
+					videoBuffer <- frame
+					atomic.AddInt64(&droppedVideoFrames, 1)
 				}
 				return true
 			},
-		}, 0, nil)
-	}
+		})
 
-	// Connect subscriber to source channel
-	if rc := subCon.Connect(subToken, cfg.sourceChannel, cfg.subUID); rc != 0 {
-		return fmt.Errorf("subscriber connect failed: %d", rc)
-	}
-	select {
-	case <-subConnected:
-	case msg := <-subDisconnected:
-		return errors.New(msg)
-	case <-stop:
-		return errors.New("interrupted before subscriber connected")
-	}
-	if cfg.atmosEnabled {
-		logStderr("[SUB] subscribed to source channel %s (video UID %s, atmos UID %s)", cfg.sourceChannel, cfg.videoUID, cfg.atmosUID)
+		subLocalUser := subCon.GetLocalUser()
+		subLocalUser.SubscribeAllVideo(&agoraservice.VideoSubscriptionOptions{
+			EncodedFrameOnly: true,
+		})
+
+		if cfg.atmosEnabled {
+			subLocalUser.SetPlaybackAudioFrameBeforeMixingParameters(1, 16000)
+			subCon.RegisterAudioFrameObserver(&agoraservice.AudioFrameObserver{
+				OnPlaybackAudioFrameBeforeMixing: func(
+					_ *agoraservice.LocalUser,
+					channelId string,
+					uid string,
+					frame *agoraservice.AudioFrame,
+					vadResultState agoraservice.VadState,
+					vadResultFrame *agoraservice.AudioFrame,
+				) bool {
+					if uid != cfg.atmosUID {
+						return true
+					}
+					now := time.Now()
+					for off := 0; off+320 <= len(frame.Buffer); off += 320 {
+						chunk := make([]byte, 320)
+						copy(chunk, frame.Buffer[off:off+320])
+						ac := &atmosChunk{pcm: chunk, receiveAt: now}
+						select {
+						case atmosBuffer <- ac:
+						default:
+							<-atmosBuffer
+							atmosBuffer <- ac
+							atomic.AddInt64(&droppedAtmosChunks, 1)
+						}
+					}
+					return true
+				},
+			}, 0, nil)
+		}
+
+		if rc := subCon.Connect(subToken, cfg.sourceChannel, cfg.subUID); rc != 0 {
+			return fmt.Errorf("subscriber connect failed: %d", rc)
+		}
+		select {
+		case <-subConnected:
+		case msg := <-subDisconnected:
+			return errors.New(msg)
+		case <-stop:
+			return errors.New("interrupted before subscriber connected")
+		}
+		if cfg.atmosEnabled {
+			logStderr("[SUB] subscribed to source channel %s (video UID %s, atmos UID %s)", cfg.sourceChannel, cfg.videoUID, cfg.atmosUID)
+		} else {
+			logStderr("[SUB] subscribed to source channel %s (video UID %s, atmosphere disabled)", cfg.sourceChannel, cfg.videoUID)
+		}
+		subCon.SendIntraRequest(cfg.videoUID)
 	} else {
-		logStderr("[SUB] subscribed to source channel %s (video UID %s, atmosphere disabled)", cfg.sourceChannel, cfg.videoUID)
+		logStderr("[SRC] using local video source %s", cfg.videoSourceTCP)
+		go func() {
+			for {
+				conn, err := net.Dial("tcp", cfg.videoSourceTCP)
+				if err != nil {
+					select {
+					case <-stop:
+						return
+					case <-time.After(500 * time.Millisecond):
+						continue
+					}
+				}
+				if tcp, ok := conn.(*net.TCPConn); ok {
+					_ = tcp.SetNoDelay(true)
+				}
+				for {
+					frame, err := localstream.ReadVideoFrame(conn)
+					if err != nil {
+						_ = conn.Close()
+						break
+					}
+					atomic.AddInt64(&videoFrameCount, 1)
+					frameType := agoraservice.VideoFrameTypeDeltaFrame
+					if frame.KeyFrame {
+						frameType = agoraservice.VideoFrameTypeKeyFrame
+					}
+					vf := &videoFrame{
+						data: frame.Data,
+						frameInfo: &agoraservice.EncodedVideoFrameInfo{
+							CodecType:       agoraservice.VideoCodecTypeH264,
+							Width:           frame.Width,
+							Height:          frame.Height,
+							FramesPerSecond: frame.FPS,
+							FrameType:       frameType,
+							Rotation:        agoraservice.VideoOrientation0,
+							CaptureTimeMs:   time.Now().UnixMilli(),
+							StreamType:      int(agoraservice.VideoStreamHigh),
+						},
+						receiveAt: frame.ReceiveAt,
+					}
+					select {
+					case videoBuffer <- vf:
+					default:
+						<-videoBuffer
+						videoBuffer <- vf
+						atomic.AddInt64(&droppedVideoFrames, 1)
+					}
+				}
+			}
+		}()
 	}
-
-	// Request initial key frame
-	subCon.SendIntraRequest(cfg.videoUID)
 
 	// --- Publisher connection (output channel) ---
 	pubToken := ""
@@ -547,7 +599,9 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 		}
 	}
 
-	subCon.Disconnect()
+	if subCon != nil {
+		subCon.Disconnect()
+	}
 	pubCon.Disconnect()
 	logStderr("relay exited cleanly")
 	return nil

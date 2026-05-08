@@ -92,7 +92,7 @@ Live mode does **not** currently poll real-time SR commentary endpoints or injec
 
 - Agora live source: delayed video + delayed atmosphere + translated TTS
 - SRT live source: delayed video + translated TTS only
-- SRT direct live source: delayed video + translated TTS only; original viewing uses a separate buffered channel
+- SRT direct live source: delayed video + translated TTS only; Python STT reads local PCM and `relay_publish` reads local cleaned H.264, while original viewing uses a separate buffered Agora channel
 
 ### Publisher UID
 

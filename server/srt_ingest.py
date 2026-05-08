@@ -46,6 +46,8 @@ def start_srt_original_publish(
     publish_uid: int,
     retry_seconds: float,
     source_buffer_seconds: float,
+    pcm_listen: str = "",
+    video_listen: str = "",
     app_id: str,
     app_cert: str,
 ) -> subprocess.Popen:
@@ -59,6 +61,8 @@ def start_srt_original_publish(
         app_cert=app_cert,
         video_mode="encoded",
         source_buffer_seconds=source_buffer_seconds,
+        pcm_listen=pcm_listen,
+        video_listen=video_listen,
     )
 
 
@@ -72,6 +76,8 @@ def _start_srt_publish(
     app_cert: str,
     video_mode: str,
     source_buffer_seconds: float,
+    pcm_listen: str = "",
+    video_listen: str = "",
 ) -> subprocess.Popen:
     """Start a long-running SRT publisher process."""
     env = os.environ.copy()
@@ -93,6 +99,10 @@ def _start_srt_publish(
         "--retry-seconds", str(retry_seconds),
         "--max-attempts", "0",
     ]
+    if pcm_listen:
+        cmd.extend(["--pcm-listen", pcm_listen])
+    if video_listen:
+        cmd.extend(["--video-listen", video_listen])
     return subprocess.Popen(
         cmd,
         cwd=str(ROOT_DIR),
