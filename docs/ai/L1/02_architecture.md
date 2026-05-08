@@ -136,6 +136,7 @@ For first-pass SRT live mode:
 - STT reads that program feed
 - source atmosphere is disabled explicitly in `relay_publish`
 - output channels carry delayed video + translated TTS only
+- when using direct encoded H.264 from SRT, the publisher first repacketizes each access unit: drop `AUD`/filler NALs, preserve SPS/PPS for keyframes, and emit clean IDR/P-slice AUs before `PushVideoEncodedData`
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
 

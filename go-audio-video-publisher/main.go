@@ -401,6 +401,7 @@ func streamMedia(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Si
 	C.memset(unsafe.Pointer(&frame), 0, C.sizeof_struct__MediaFrame)
 	audioChunker := &audioChunker{}
 	h264Parser := &h264AUParser{}
+	h264Cleaner := &h264Repacketizer{}
 
 	var firstPTS int64
 	startedAt := time.Now()
@@ -467,7 +468,7 @@ func streamMedia(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Si
 				return err
 			}
 		case C.AVMEDIA_TYPE_VIDEO:
-			if err := sendVideoPacket(con, cfg, decoder, packet, &frame, h264Parser); err != nil {
+			if err := sendVideoPacket(con, cfg, decoder, packet, &frame, h264Parser, h264Cleaner); err != nil {
 				return err
 			}
 		}
@@ -1054,17 +1055,17 @@ func sendAudioPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer, pa
 	return nil
 }
 
-func sendVideoPacket(con *agoraservice.RtcConnection, cfg *config, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, h264Parser *h264AUParser) error {
+func sendVideoPacket(con *agoraservice.RtcConnection, cfg *config, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, h264Parser *h264AUParser, h264Cleaner *h264Repacketizer) error {
 	if cfg.videoMode == "reencode" {
-		return sendReencodedVideoPacket(con, cfg, decoder, packet, frame, h264Parser)
+		return sendReencodedVideoPacket(con, cfg, decoder, packet, frame, h264Parser, h264Cleaner)
 	}
 	if cfg.videoMode == "encoded" {
-		return sendEncodedVideoPacket(con, decoder, packet, h264Parser)
+		return sendEncodedVideoPacket(con, decoder, packet, h264Parser, h264Cleaner)
 	}
 	return sendYUVVideoPacket(con, decoder, packet, frame)
 }
 
-func sendReencodedVideoPacket(con *agoraservice.RtcConnection, cfg *config, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, h264Parser *h264AUParser) error {
+func sendReencodedVideoPacket(con *agoraservice.RtcConnection, cfg *config, decoder unsafe.Pointer, packet *C.struct__MediaPacket, frame *C.struct__MediaFrame, h264Parser *h264AUParser, h264Cleaner *h264Repacketizer) error {
 	ret := C.decode_packet(decoder, packet, frame)
 	C.free_packet(&packet)
 	if ret != 0 {
@@ -1097,11 +1098,15 @@ func sendReencodedVideoPacket(con *agoraservice.RtcConnection, cfg *config, deco
 
 	data := C.GoBytes(unsafe.Pointer(encPacket.pkt.data), encPacket.pkt.size)
 	for _, au := range h264Parser.appendAndExtract(data, true) {
+		cleaned := h264Cleaner.repacketize(au)
+		if len(cleaned.data) == 0 {
+			continue
+		}
 		frameType := agoraservice.VideoFrameTypeDeltaFrame
-		if au.isKeyFrame {
+		if cleaned.isKeyFrame {
 			frameType = agoraservice.VideoFrameTypeKeyFrame
 		}
-		if rc := con.PushVideoEncodedData(au.data, &agoraservice.EncodedVideoFrameInfo{
+		if rc := con.PushVideoEncodedData(cleaned.data, &agoraservice.EncodedVideoFrameInfo{
 			CodecType:       agoraservice.VideoCodecTypeH264,
 			Width:           int(encPacket.width),
 			Height:          int(encPacket.height),
@@ -1109,7 +1114,7 @@ func sendReencodedVideoPacket(con *agoraservice.RtcConnection, cfg *config, deco
 			FrameType:       frameType,
 			Rotation:        agoraservice.VideoOrientation0,
 		}); rc != 0 {
-			fmt.Printf("PushVideoEncodedData ret=%d reencoded pts=%d size=%d au=%d key=%t\n", rc, int64(encPacket.pts), len(data), len(au.data), au.isKeyFrame)
+			fmt.Printf("PushVideoEncodedData ret=%d reencoded pts=%d size=%d au=%d cleaned=%d key=%t\n", rc, int64(encPacket.pts), len(data), len(au.data), len(cleaned.data), cleaned.isKeyFrame)
 		}
 		signalSourcePublishingStarted()
 	}
@@ -1147,7 +1152,7 @@ func sendYUVVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer,
 	return nil
 }
 
-func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer, packet *C.struct__MediaPacket, h264Parser *h264AUParser) error {
+func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer, packet *C.struct__MediaPacket, h264Parser *h264AUParser, h264Cleaner *h264Repacketizer) error {
 	ret := C.h264_to_annexb(decoder, &packet)
 	if ret != 0 {
 		if ret == C.AVERROR_EAGAIN {
@@ -1165,11 +1170,15 @@ func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Poin
 
 	data := C.GoBytes(unsafe.Pointer(packet.pkt.data), packet.pkt.size)
 	for _, au := range h264Parser.appendAndExtract(data, false) {
+		cleaned := h264Cleaner.repacketize(au)
+		if len(cleaned.data) == 0 {
+			continue
+		}
 		frameType := agoraservice.VideoFrameTypeDeltaFrame
-		if au.isKeyFrame {
+		if cleaned.isKeyFrame {
 			frameType = agoraservice.VideoFrameTypeKeyFrame
 		}
-		if rc := con.PushVideoEncodedData(au.data, &agoraservice.EncodedVideoFrameInfo{
+		if rc := con.PushVideoEncodedData(cleaned.data, &agoraservice.EncodedVideoFrameInfo{
 			CodecType:       agoraservice.VideoCodecTypeH264,
 			Width:           int(packet.width),
 			Height:          int(packet.height),
@@ -1177,7 +1186,7 @@ func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Poin
 			FrameType:       frameType,
 			Rotation:        agoraservice.VideoOrientation0,
 		}); rc != 0 {
-			fmt.Printf("PushVideoEncodedData ret=%d pts=%d size=%d au=%d key=%t\n", rc, int64(packet.pts), len(data), len(au.data), au.isKeyFrame)
+			fmt.Printf("PushVideoEncodedData ret=%d pts=%d size=%d au=%d cleaned=%d key=%t\n", rc, int64(packet.pts), len(data), len(au.data), len(cleaned.data), cleaned.isKeyFrame)
 		}
 		signalSourcePublishingStarted()
 	}

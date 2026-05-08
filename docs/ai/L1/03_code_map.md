@@ -54,12 +54,16 @@ commentary/
 ├── go-audio-video-publisher/      # Go H.264+PCM → Agora publisher
 │   ├── main.go                    # Publisher entry point (1211 lines)
 │   ├── decode_media.c/h           # FFmpeg C bindings
+│   ├── h264au.go                  # Annex B access-unit parser + keyframe gating for encoded send paths
+│   ├── h264_repacketizer.go       # Cleans SRT-derived H.264 AUs (drops AUD/filler, keeps SPS/PPS before IDR)
 │   ├── go.mod, go.sum             # Go module (has local replace directive)
 │   ├── Makefile
 │   └── reference/agora_go_sdk/    # Standalone Go sender examples
 │       ├── send_h264_pcm_uid73.go # H.264 video + PCM stdin audio
 │       ├── send_h264_uid73.go     # H.264 video only
 │       └── send_encoded_audio_uid74.go
+├── tools/
+│   └── repacketize_h264.py        # Offline helper used to inspect / prototype clean Annex B AUs from SRT pulls
 └── docs/ai/                       # Progressive disclosure docs
 ```
 
@@ -168,6 +172,9 @@ Output files: `demo_transcript_en.txt` (English), `demo_transcript.txt` (6 langu
 
 | File | Lines | Purpose |
 |---|---|---|
+| `go-audio-video-publisher/main.go` | ~1211 | Generic standalone publisher for MP4 / raw / encoded assets. Encoded paths now run H.264 AU parsing and SRT-style repacketization before `PushVideoEncodedData`. |
+| `go-audio-video-publisher/h264au.go` | ~211 | Access-unit parser for Annex B H.264. Splits byte stream into whole frames, detects keyframes from slice headers, and drops pre-roll before first keyframe. |
+| `go-audio-video-publisher/h264_repacketizer.go` | ~61 | Rewrites noisy SRT-style H.264 access units into cleaner Agora-friendly ones: removes AUD/filler, carries forward SPS/PPS, keeps one SEI, emits only IDR/P-slice NALs. |
 | `go-audio-video-publisher/cmd/subscribe_audio/main.go` | ~229 | Subscribes to source Agora channel, writes UID 75 (commentary) PCM to stdout for Python STT. Signals readiness on stderr. |
 | `go-audio-video-publisher/cmd/relay_publish/main.go` | ~599 | Subscribes to source channel video plus optional atmosphere UID, delay-buffers source media, reads TTS PCM from stdin, mixes delayed atmosphere + TTS, publishes to per-language output channel. Signals readiness on stdout. |
 

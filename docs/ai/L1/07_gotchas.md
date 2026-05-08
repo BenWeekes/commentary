@@ -84,6 +84,17 @@ The `go-audio-video-publisher/encoded_assets/` and `clips/` directories are excl
 
 **Fix**: Use the ffmpeg command in the README to convert an MP4 to H.264.
 
+## Direct SRT H.264 passthrough needs cleanup
+
+SRT-pulled H.264 can be valid enough for `ffprobe` and still fail to render when sent straight into Agora encoded publish. The source feed we tested carried extra `AUD` and filler NALs, and keyframes needed explicit SPS/PPS carry-forward.
+
+**Fix**: use the built-in H.264 cleanup path in `go-audio-video-publisher`:
+
+- `h264au.go` splits Annex B input into full access units
+- `h264_repacketizer.go` removes `AUD`/filler, keeps SPS/PPS before IDR, and emits cleaner IDR/P-slice AUs
+
+The direct encoded SRT path should go through that cleanup before `PushVideoEncodedData`. The raw YUV path remains the safe fallback.
+
 ## Data file paths changed
 
 In the original sportradar repo, data files were at the root. In this repo, they're under `data/`:
