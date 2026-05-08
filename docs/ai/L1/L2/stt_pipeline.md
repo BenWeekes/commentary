@@ -48,7 +48,7 @@ The `_on_utterance` fan-out pattern sends the same corrected English text to all
 In server mode, `_on_utterance` also feeds the structured match log:
 
 - the English STT utterance is appended to `recent_transcript`
-- the same utterance is written to `logs/{match_id}_{timestamp}/stt.jsonl`
+- the same utterance is written to `match_data/{match_id}/runs/{timestamp}/stt.jsonl`
 - each language pipeline later records its own translated playback outcome in `{lang}.jsonl`
 
 ## play_at Scheduling

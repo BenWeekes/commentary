@@ -134,7 +134,7 @@ Languages showing "default" use `DEFAULT_VOICE_ID` (`ImsA1Fn5TNc843fFdz99`).
 Server mode writes structured JSONL logs per match run:
 
 ```text
-logs/{match_id}_{YYYYMMDD_HHMMSS}/
+match_data/{match_id}/runs/{YYYYMMDD_HHMMSS}/
   stt.jsonl
   es.jsonl
   pt.jsonl

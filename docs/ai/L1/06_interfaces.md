@@ -10,11 +10,11 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 
 | Endpoint | Method | Response | Purpose |
 |---|---|---|---|
-| `/api/matches` | GET | `{match_id: {match_id, state, stt_utterance_count, languages, configured_languages, error, started_at}}` | All match statuses |
+| `/api/matches` | GET | `{match_id: {match_id, display_name, mode, enabled, state, stt_utterance_count, languages, configured_languages, error, started_at}}` | All match statuses |
 | `/api/matches/{id}/status` | GET | `{match_id, state, stt_utterance_count, languages, error, started_at}` | Single match status |
-| `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages + original |
+| `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages; `original` is included for live matches and for demo matches only while the original pipeline is running |
 | `/api/matches/{id}/transcript` | GET | `{match_id, transcript: [{text, ts, audio_start}]}` | Recent English STT text (last 50 utterances) |
-| `/api/matches/{id}/detail` | GET | `{match_id, state, mode, keyterms, log_dir, log_files, runs, ...}` | Match config, keyterms, log directory info |
+| `/api/matches/{id}/detail` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, ...}` | Match config, keyterms, current log directory, and persisted match metadata |
 | `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 500 lines) |
 | `/api/matches/{id}/start` | POST | match status JSON | Start a demo match |
 | `/api/matches/{id}/stop` | POST | match status JSON | Stop a match |
@@ -132,10 +132,12 @@ These are internal runtime files written by `server/match_worker.py`, not HTTP e
 ### Directory layout
 
 ```text
-logs/{match_id}_{YYYYMMDD_HHMMSS}/
+match_data/{match_id}/runs/{YYYYMMDD_HHMMSS}/
   stt.jsonl
   {lang}.jsonl
 ```
+
+`match_data/{match_id}/latest_run.txt` stores the newest run directory name.
 
 ### `stt.jsonl`
 

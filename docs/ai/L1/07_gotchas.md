@@ -146,10 +146,10 @@ On language change, queued STT utterances are flushed to prevent old-language pl
 Each server-mode match start creates a new directory:
 
 ```text
-logs/{match_id}_{YYYYMMDD_HHMMSS}/
+match_data/{match_id}/runs/{YYYYMMDD_HHMMSS}/
 ```
 
-If you restart the same match multiple times, you get multiple directories. Post-match tooling must not assume a single stable `logs/{match_id}/` path.
+If you restart the same match multiple times, you get multiple directories. Post-match tooling must not assume a single stable run path; use `match_data/{match_id}/latest_run.txt` when you need the newest run.
 
 ## `--test-id` is not an Agora token
 

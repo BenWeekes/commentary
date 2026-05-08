@@ -42,20 +42,22 @@ This launches one STT pipeline + N Go publishers (one per language). Each langua
 Each started match creates a log directory:
 
 ```text
-logs/{match_id}_{YYYYMMDD_HHMMSS}/
+match_data/{match_id}/runs/{YYYYMMDD_HHMMSS}/
 ```
 
 Useful files:
 
 - `stt.jsonl` — shared STT utterance log with header, keyterms, roster, and per-utterance timestamps
 - `{lang}.jsonl` — per-language translation/TTS/playback outcomes (`played`, `dropped`, `interrupted`, `suppressed`)
+- `match_data/{match_id}/latest_run.txt` — newest run pointer
 
 Quick inspection:
 
 ```bash
-ls -1 logs/
-tail -20 logs/bmg_fch_demo_20260508_123456/stt.jsonl
-tail -20 logs/bmg_fch_demo_20260508_123456/es.jsonl
+cat match_data/bmg_fch_demo/latest_run.txt
+ls -1 match_data/bmg_fch_demo/runs/
+tail -20 match_data/bmg_fch_demo/runs/20260508_123456/stt.jsonl
+tail -20 match_data/bmg_fch_demo/runs/20260508_123456/es.jsonl
 ```
 
 ### View a match

@@ -22,11 +22,13 @@ commentary/
 ├── control.html                   # Admin control page (start/stop matches)
 ├── viewer_test.html               # Standalone file-based Agora viewer (takes appid/channel/token/uid in query params)
 ├── viewer_live.html               # Production viewer (multi-match, lang select)
-├── logs/                          # Runtime JSONL match logs: one dir per match run
+├── match_data/                    # Per-match persistent data: keyterms, metadata, run logs
+├── logs/                          # Legacy runtime log location kept for older runs / tooling
 ├── server/                        # Production server package
 │   ├── __init__.py                # Package marker
 │   ├── main.py                    # Entry point: arg parse, signal handling
 │   ├── config.py                  # MatchConfig, ServerConfig, YAML loader
+│   ├── match_store.py             # Per-match disk store: keyterms, metadata, run dirs
 │   ├── orchestrator.py            # Orchestrator: start/stop/query MatchWorkers
 │   ├── match_worker.py            # MatchWorker: 1 STT → N language pipelines (~530 lines)
 │   ├── status_api.py              # HTTP API + static file serving
@@ -63,8 +65,9 @@ commentary/
 |---|---|---|
 | `server/main.py` | `_load_dotenv()`, `main()` — CLI args, config load, orchestrator init, signal handling | `server.config`, `server.orchestrator`, `server.status_api` |
 | `server/config.py` | `MatchConfig` (dataclass), `ServerConfig` (dataclass), `_resolve_path()`, `load_config()`, `validate_config()` | `yaml` (pyyaml) |
-| `server/orchestrator.py` | `Orchestrator` class — `start_all()`, `stop_all()`, `start_match()`, `stop_match()`, `get_all_status()`, `get_worker()` | `server.match_worker` |
-| `server/match_worker.py` | `LangTelemetry`, `MatchStatus` (dataclasses), `_LangPipeline`, `_start_publisher()`, `_wait_for_publisher_signal()`, `_kill_publisher()`, `MatchWorker` class — match lifecycle, STT fan-out, structured JSONL log creation (`_setup_log_dir()`, `_open_stt_log()`, `_open_lang_log()`), telemetry aggregation (`_on_telemetry()`), cleanup | `lib.*`, `server.config`, `openai` |
+| `server/match_store.py` | `MatchStore` class — persistent per-match folder management, atomic JSON writes, keyterms I/O, run directory creation / listing | `json`, `os`, `time` |
+| `server/orchestrator.py` | `Orchestrator` class — owns `MatchStore`, `start_all()`, `stop_all()`, `start_match()`, `stop_match()`, `get_all_status()`, `get_worker()` | `server.match_store`, `server.match_worker` |
+| `server/match_worker.py` | `LangTelemetry`, `MatchStatus` (dataclasses), `_LangPipeline`, `_start_publisher()`, `_wait_for_publisher_signal()`, `_kill_publisher()`, `MatchWorker` class — match lifecycle, STT fan-out, structured JSONL log creation (`_setup_log_dir()`, `_open_stt_log()`, `_open_lang_log()`), telemetry aggregation (`_on_telemetry()`), cleanup | `lib.*`, `server.config`, `server.match_store`, `openai` |
 | `server/status_api.py` | `StatusHandler` (HTTP handler), `start_status_server()` — GET/POST routes for match status, channels, transcript, start/stop, static files | `server.token_api` |
 | `server/token_api.py` | `generate_viewer_token()` — Agora v007 audience-only token | `tokens` |
 
@@ -165,15 +168,15 @@ Output files: `demo_transcript_en.txt` (English), `demo_transcript.txt` (6 langu
 Server mode writes structured JSONL logs under:
 
 ```text
-logs/{match_id}_{YYYYMMDD_HHMMSS}/
+match_data/{match_id}/runs/{YYYYMMDD_HHMMSS}/
 ```
 
 Per run:
 
 - `stt.jsonl` — one shared log for the match STT pipeline
 - `{lang}.jsonl` — one per-language playback/translation log
-
-These files are created by `server.match_worker.MatchWorker` and are intended for post-match analysis, not user-facing APIs.
+- `match_data/{match_id}/latest_run.txt` — newest run pointer
+These files are created by `server.match_worker.MatchWorker` and are intended for post-match analysis, not user-facing APIs. Older historical runs may still exist under the legacy top-level `logs/` directory.
 
 ## Related Deep Dives
 
