@@ -197,19 +197,21 @@ class Scheduler:
 
         # State machine transitions
         if worker_state in ("starting", "running"):
-            # Worker is active — track as running
-            ms.state = "running" if worker_state == "running" else "starting"
             ms.start_error_count = 0  # reset on successful start
 
+            # If already stopping, don't overwrite state or spawn another thread
+            if ms.state == "stopping":
+                return
+
+            ms.state = "running" if worker_state == "running" else "starting"
+
             # Auto-stop: if SR reports match closed/ended, stop asynchronously
-            # so the scheduler loop isn't blocked by a slow stop_match() call
             if worker_state == "running" and ms.sr_match_status in ("closed", "ended"):
-                if ms.state != "stopping":
-                    ms.state = "stopping"
-                    print(f"[SCHED] {mid} SR reports '{ms.sr_match_status}' — stopping async")
-                    threading.Thread(
-                        target=self._async_stop, args=(ms,), daemon=True
-                    ).start()
+                ms.state = "stopping"
+                print(f"[SCHED] {mid} SR reports '{ms.sr_match_status}' — stopping async")
+                threading.Thread(
+                    target=self._async_stop, args=(ms,), daemon=True
+                ).start()
             return
 
         if worker_state == "stopped" and ms.state == "running":

@@ -99,9 +99,7 @@ POST /api/session
 
 The following are known security gaps in the current implementation:
 
-- **No authentication on control endpoints**: `POST /api/matches/{id}/start` and `POST /api/matches/{id}/stop` are open to anyone who can reach the server. Production deployment should add auth middleware or restrict to internal network.
 - **CORS `*` on all endpoints**: all API responses allow any origin. Production should restrict to known viewer domains.
-- **status.html has start/stop buttons**: the status page was intended as read-only but currently includes control functionality. Control should be restricted to `control.html` with auth.
 - **No rate limiting on token generation**: `POST /api/token` and `GET /api/matches/{id}/channels` generate tokens without rate limits. A flood of requests could exhaust UID space or create excessive Agora connections.
 - **No HTTPS**: both servers serve over plain HTTP. Production should terminate TLS at a reverse proxy.
 
