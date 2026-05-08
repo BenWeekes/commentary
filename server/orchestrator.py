@@ -1,5 +1,7 @@
 """Orchestrator: manages multiple MatchWorkers."""
 
+import threading
+
 from server.config import ServerConfig
 from server.match_worker import MatchWorker
 
@@ -10,6 +12,7 @@ class Orchestrator:
     def __init__(self, config: ServerConfig):
         self._config = config
         self._workers: dict[str, MatchWorker] = {}
+        self._action_lock = threading.Lock()
 
         for match_cfg in config.matches:
             self._workers[match_cfg.match_id] = MatchWorker(match_cfg, config)
@@ -27,24 +30,28 @@ class Orchestrator:
             worker.stop()
 
     def start_match(self, match_id: str):
-        """Start a single match worker. Noop if already running."""
+        """Start a single match worker. Noop if already running.
+        Serialized to prevent double-start from concurrent requests."""
         worker = self._workers.get(match_id)
         if not worker:
             raise KeyError(f"match '{match_id}' not found")
-        if worker.status.state in ("starting", "running"):
-            return
-        print(f"[ORCH] Starting match: {match_id}")
-        worker.start()
+        with self._action_lock:
+            if worker.status.state in ("starting", "running"):
+                return
+            print(f"[ORCH] Starting match: {match_id}")
+            worker.start()
 
     def stop_match(self, match_id: str):
-        """Stop a single match worker. Noop if not running."""
+        """Stop a single match worker. Noop if not running.
+        Serialized to prevent races with concurrent start/stop."""
         worker = self._workers.get(match_id)
         if not worker:
             raise KeyError(f"match '{match_id}' not found")
-        if worker.status.state not in ("starting", "running"):
-            return
-        print(f"[ORCH] Stopping match: {match_id}")
-        worker.stop()
+        with self._action_lock:
+            if worker.status.state not in ("starting", "running"):
+                return
+            print(f"[ORCH] Stopping match: {match_id}")
+            worker.stop()
 
     def get_all_status(self) -> dict:
         """Return {match_id: MatchStatus} for all matches."""

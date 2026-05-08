@@ -309,6 +309,29 @@ class SRPrefetcher:
             delta_ms = (time.time() - play_at) * 1000
             dur_ms = len(pcm_bytes) / (SAMPLE_RATE * 2) * 1000
 
+            # Drop stale SR events — gap-fill only, not worth playing late
+            if delta_ms > 500:
+                print(f"  [{self._vts()}] [SR SCHED #{next_eid}] Dropped — "
+                      f"{dur_ms:.0f}ms, {delta_ms:+.0f}ms late (stale)")
+                if self.tts.on_telemetry:
+                    try:
+                        self.tts.on_telemetry({
+                            "source": "sr", "status": "dropped",
+                            "play_started_at": None, "play_ended_at": None,
+                            "actual_play_duration_ms": 0,
+                            "total_buffered_ms": dur_ms,
+                            "interrupted": False, "interrupted_by": "stale",
+                            "uid": meta.get("uid") if meta else None,
+                            "text": meta.get("text") if meta else None,
+                            "translated": meta.get("translated") if meta else None,
+                            "translate_time": meta.get("translate_time") if meta else None,
+                            "tts_time": meta.get("tts_time") if meta else None,
+                            "play_at": play_at,
+                        })
+                    except Exception:
+                        pass
+                continue
+
             # Skip SR injection while original audio mode is active
             if self.tts._original_on:
                 continue

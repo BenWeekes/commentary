@@ -264,6 +264,8 @@ class MatchWorker:
         self._stop = threading.Event()
         self._pipelines = {}
         self._status = MatchStatus(match_id=self._match.match_id)
+        self._status.state = "starting"
+        self._status.started_at = time.time()
         self._video_start_ref = [None]
         self._stt_utterance_count = 0
         self._recent_transcript = collections.deque(maxlen=50)
