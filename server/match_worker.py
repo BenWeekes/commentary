@@ -609,7 +609,7 @@ class MatchWorker:
                     "--app-id", self._server.agora_app_id,
                     "--output-channel", output_channel,
                     "--atmos-uid", str(resolved.atmosphere_uid),
-                    "--atmos-enabled", "true" if resolved.source_atmos_enabled else "false",
+                    f"--atmos-enabled={'true' if resolved.source_atmos_enabled else 'false'}",
                     "--video-delay", str(relay_delay),
                     "--start-at", f"{target_start:.3f}",
                 ]
