@@ -28,11 +28,13 @@ commentary/
 │   ├── __init__.py                # Package marker
 │   ├── main.py                    # Entry point: arg parse, signal handling
 │   ├── config.py                  # MatchConfig, ServerConfig, YAML loader
+│   ├── live_source.py             # Resolve live source config (agora or srt) into a normalized source channel
 │   ├── match_store.py             # Per-match disk store: keyterms, metadata, run dirs
 │   ├── orchestrator.py            # Orchestrator: start/stop/query MatchWorkers
 │   ├── scheduler.py               # Live-match scheduler: SR refresh cadence, kickoff countdown, auto-start
 │   ├── match_worker.py            # MatchWorker: 1 STT → N language pipelines (~530 lines)
 │   ├── sr_data.py                 # Sportradar refresh helpers: lineups/summary fetch, roster/keyterms derivation
+│   ├── srt_ingest.py              # Launch helper for SRT → internal Agora ingest process
 │   ├── status_api.py              # HTTP API + static file serving
 │   └── token_api.py               # generate_viewer_token()
 ├── lib/                           # Shared library (extracted from live_match.py)
@@ -66,12 +68,14 @@ commentary/
 | Module | Contents | Dependencies |
 |---|---|---|
 | `server/main.py` | `_load_dotenv()`, `main()` — CLI args, config load, orchestrator init, scheduler startup, signal handling | `server.config`, `server.orchestrator`, `server.status_api` |
-| `server/config.py` | `MatchConfig` (dataclass), `ServerConfig` (dataclass), `_resolve_path()`, `load_config()`, `validate_config()` | `yaml` (pyyaml) |
+| `server/config.py` | `LiveSourceConfig`, `MatchConfig` (dataclass), `ServerConfig` (dataclass), `_resolve_path()`, `load_config()`, `validate_config()`, `get_live_source()` | `yaml` (pyyaml) |
+| `server/live_source.py` | `ResolvedLiveSource`, `resolve_live_source()`, `stop_resolved_live_source()` — normalize `agora` vs `srt` live inputs and own SRT ingest lifecycle | `server.config`, `server.srt_ingest` |
 | `server/match_store.py` | `MatchStore` class — persistent per-match folder management, atomic JSON writes, keyterms I/O, run directory creation / listing | `json`, `os`, `time` |
 | `server/orchestrator.py` | `Orchestrator` class — owns `MatchStore`, per-match worker locks, `Scheduler`, `start_match()`, `stop_match()`, `get_all_status()`, `get_worker()` | `server.match_store`, `server.match_worker`, `server.scheduler` |
-| `server/scheduler.py` | `MatchSchedule` (dataclass), `Scheduler` class — refresh cadence, kickoff countdown, auto-start/stop state tracking for live matches | `server.config`, `server.sr_data` |
-| `server/match_worker.py` | `LangTelemetry`, `MatchStatus` (dataclasses), `_LangPipeline`, `_start_publisher()`, `_wait_for_publisher_signal()`, `_kill_publisher()`, `MatchWorker` class — match lifecycle, STT fan-out, structured JSONL log creation (`_setup_log_dir()`, `_open_stt_log()`, `_open_lang_log()`), telemetry aggregation (`_on_telemetry()`), cleanup | `lib.*`, `server.config`, `server.match_store`, `openai` |
+| `server/scheduler.py` | `MatchSchedule` (dataclass), `Scheduler` class — refresh cadence, kickoff countdown, prestart-based auto-start/stop state tracking for live matches | `server.config`, `server.sr_data` |
+| `server/match_worker.py` | `LangTelemetry`, `MatchStatus` (dataclasses), `_LangPipeline`, `_start_publisher()`, `_wait_for_publisher_signal()`, `_kill_publisher()`, `MatchWorker` class — match lifecycle, live source resolution, STT fan-out, structured JSONL log creation (`_setup_log_dir()`, `_open_stt_log()`, `_open_lang_log()`), telemetry aggregation (`_on_telemetry()`), cleanup | `lib.*`, `server.config`, `server.live_source`, `server.match_store`, `openai` |
 | `server/sr_data.py` | `fetch_lineups()`, `fetch_summary()`, `derive_roster()`, `derive_keyterms()`, `refresh_match_data()` — fixture refresh path for live matches | `urllib.request`, `json`, `time` |
+| `server/srt_ingest.py` | `start_srt_ingest()` — starts the wrapper process that republishes remote SRT into an internal Agora channel | `subprocess`, `os` |
 | `server/status_api.py` | `StatusHandler` (HTTP handler), `start_status_server()` — GET/POST routes for match status, scheduler overview, channels, transcript, detail, refresh-data, static files | `server.token_api`, `server.sr_data` |
 | `server/token_api.py` | `generate_viewer_token()` — Agora v007 audience-only token | `tokens` |
 
@@ -165,7 +169,7 @@ Output files: `demo_transcript_en.txt` (English), `demo_transcript.txt` (6 langu
 | File | Lines | Purpose |
 |---|---|---|
 | `go-audio-video-publisher/cmd/subscribe_audio/main.go` | ~229 | Subscribes to source Agora channel, writes UID 75 (commentary) PCM to stdout for Python STT. Signals readiness on stderr. |
-| `go-audio-video-publisher/cmd/relay_publish/main.go` | ~599 | Subscribes to source channel UIDs 73 (video) + 74 (atmosphere), delay-buffers both, reads TTS PCM from stdin, mixes delayed atmosphere + TTS, publishes to per-language output channel. Signals readiness on stdout. |
+| `go-audio-video-publisher/cmd/relay_publish/main.go` | ~599 | Subscribes to source channel video plus optional atmosphere UID, delay-buffers source media, reads TTS PCM from stdin, mixes delayed atmosphere + TTS, publishes to per-language output channel. Signals readiness on stdout. |
 
 ## Runtime Log Files
 

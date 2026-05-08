@@ -12,13 +12,23 @@
 speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf ──▶ _pipe_writer thread ──▶ stdin pipe
    │              │                │                     │                │
    │         Queue()           asyncio loop          deque()         10ms timer
-   │                          (per thread)        (thread-safe)
-   │                               │
-   │                          (during drain)
-   │                               ├──▶ _lookahead_buf ──▶ next item pre-processed
-   │                               │     (translate + TTS fetched in parallel)
-   └── interrupt=True clears queue + buffer + lookahead
+   │              │           (per thread)        (thread-safe)
+   │              │                │
+   │    _pretranslate_executor     │
+   │    (2 threads, translate      │
+   │     queued items ahead)  (during drain)
+   │              │                ├──▶ _lookahead_buf ──▶ next item pre-processed
+   │              │                │     (translate + TTS fetched in parallel)
+   └── interrupt=True clears queue + buffer + lookahead + pretranslation cache
 ```
+
+### Pre-translation executor
+
+A `ThreadPoolExecutor(max_workers=2)` translates queued items in parallel before the TTS worker reaches them. When `speak()` queues a new item, `_pretranslate_queued()` scans the queue and submits untranslated items to the executor. Results are cached in `_pretranslated` (an `OrderedDict` keyed by `(text, play_at)`, capped at 10 entries).
+
+When the TTS worker processes an item, it checks `_pretranslated` first. On a cache hit, translation is skipped entirely — the worker only needs to call TTS (~0.8s instead of ~3s total). This reduces effective per-item processing time from ~3s to ~1s for cache-hit items.
+
+Cache is cleared on interrupt. The executor is shut down (non-blocking) during `stop()`.
 
 ### _tts_worker thread
 
@@ -26,12 +36,13 @@ speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf 
 - Processes `_text_queue` items with **lookahead**: while the current utterance plays, the next one is translated and TTS'd in parallel
 - For each item:
   1. Checks `_lookahead_item` — if present, uses pre-processed result (skip to step 5)
-  2. Calls `translate_fn(text)` if provided (JIT translation)
-  3. Connects to ElevenLabs WebSocket
-  4. Sends text, receives base64-encoded PCM audio chunks → `_audio_buf`
-  5. Waits for `play_at` time if scheduled (drops if late)
-  6. Sets `_playback_ready` event when all audio is received (full pre-buffer)
-  7. While pipe writer drains the buffer, grabs next queue item and processes into `_lookahead_buf`
+  2. Checks `_pretranslated` cache — if hit, uses cached translation (skip to step 3)
+  3. Calls `translate_fn(text)` if provided (JIT translation, fallback when no cache hit)
+  4. Connects to ElevenLabs WebSocket
+  5. Sends text, receives base64-encoded PCM audio chunks → `_audio_buf`
+  6. Waits for `play_at` time if scheduled (drops if late)
+  7. Sets `_playback_ready` event when all audio is received (full pre-buffer)
+  8. While pipe writer drains the buffer, grabs next queue item and processes into `_lookahead_buf`
 
 ### _pipe_writer thread
 
@@ -47,7 +58,7 @@ speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf 
 The engine uses **full pre-buffering**: the entire utterance is downloaded from ElevenLabs before playback starts. This eliminates underruns from network jitter.
 
 ```
-Without lookahead (serial):
+Without lookahead or pre-translation (serial):
   t0 ── xlat+TTS ── t1 ── wait ── t2 ── playback ── t3 ── xlat+TTS ── t4 ── wait ── t5
                                                       │                               │
                                                       └── next item blocked until here
@@ -57,6 +68,12 @@ With lookahead (overlapped):
                                     │    ↑ next xlat+TTS ↑ │ ── wait ── t4 ── playback ── t5
                                     │    (in _lookahead_buf)
                                     └── pipe writer starts draining
+
+With pre-translation (queue items translated ahead of time):
+  Queue: [item1, item2, item3]
+  Executor:  xlat(item2) ──┐   xlat(item3) ──┐
+  Worker:  xlat(item1)+TTS ── playback ── TTS(item2) ── playback ── TTS(item3) ── playback
+                                              ↑ cache hit           ↑ cache hit
 ```
 
 The lookahead saves the full playback duration (typically 3-5s) from the next item's timing budget.
@@ -131,8 +148,9 @@ Items that never played (queue clears, TTS failures, shutdown) are always `dropp
 
 `stop()` uses a two-phase approach to prevent final telemetry loss:
 
-1. **Phase 1 (closing)**: Sets `_closing = True`, sets `_interrupt` to wake `_tts_worker`. Joins `_tts_worker_thread` (timeout 2s). The worker finishes any in-flight item, writes the final slot, then exits on empty queue + `_closing`.
-2. **Phase 2 (stopped)**: Sets `_stop`, wakes `_pipe_writer` via `_any_playback_ready`. Joins `_pipe_writer_thread` (timeout 1s). The writer drains any final slot and `_skipped_meta`, then exits.
+1. **Phase 0 (executor)**: Shuts down `_pretranslate_executor` with `wait=False` to stop pending translations.
+2. **Phase 1 (closing)**: Sets `_closing = True`, sets `_interrupt` to wake `_tts_worker`. Joins `_tts_worker_thread` (timeout 2s). The worker finishes any in-flight item, writes the final slot, then exits on empty queue + `_closing`.
+3. **Phase 2 (stopped)**: Sets `_stop`, wakes `_pipe_writer` via `_any_playback_ready`. Joins `_pipe_writer_thread` (timeout 1s). The writer drains any final slot and `_skipped_meta`, then exits.
 
 `speak()` returns immediately when `_closing` is set, rejecting new work during shutdown.
 
@@ -152,6 +170,8 @@ Typical fields sent to `on_telemetry`:
 - `translate_time`
 - `tts_time`
 - `play_at`
+- `pre_translated` — `true` if translation was served from the pre-translation cache
+- `queue_wait_ms` — milliseconds the item spent waiting in the queue before processing started
 
 ## Audio Chunk Format
 

@@ -9,6 +9,7 @@ from urllib.parse import urlparse, parse_qs
 import threading
 
 from server.auth import create_session_cookie, verify_session_cookie, parse_cookie
+from server.config import get_live_source, get_live_source_channel
 from server.token_api import generate_viewer_token
 
 # Incrementing UID counter — each viewer request gets a unique UID.
@@ -124,6 +125,23 @@ class StatusHandler(BaseHTTPRequestHandler):
                 ms = scheduler.get_schedule(mid)
                 worker = self.orchestrator.get_worker(mid)
                 ws = worker.status if worker else None
+                live_source = get_live_source(mc)
+                source_type = ""
+                source_label = ""
+                source_detail = ""
+                if live_source:
+                    source_type = live_source.type
+                    if live_source.type == "srt":
+                        parsed_source = urlparse(live_source.url)
+                        source_label = "SRT pull"
+                        source_host = parsed_source.netloc or live_source.url
+                        if live_source.ingest_channel:
+                            source_detail = f"{source_host} -> {live_source.ingest_channel}"
+                        else:
+                            source_detail = source_host
+                    elif live_source.type == "agora":
+                        source_label = "Agora source"
+                        source_detail = live_source.channel
                 entry = {
                     "match_id": mid,
                     "display_name": mc.display_name or mid,
@@ -139,6 +157,9 @@ class StatusHandler(BaseHTTPRequestHandler):
                     "stt_utterance_count": ws.stt_utterance_count if ws else 0,
                     "configured_languages": mc.languages,
                     "error": ws.error if ws else None,
+                    "source_type": source_type,
+                    "source_label": source_label,
+                    "source_detail": source_detail,
                 }
                 # Compute countdown
                 if ms and ms.kickoff_ts:
@@ -228,14 +249,15 @@ class StatusHandler(BaseHTTPRequestHandler):
                 }
 
             # Add original audio channel
-            if match_cfg.mode == "live" and match_cfg.source_channel:
+            source_channel = get_live_source_channel(match_cfg)
+            if match_cfg.mode == "live" and source_channel:
                 # Live: viewer joins the source channel directly
                 orig_uid = _next_uid()
                 orig_token = generate_viewer_token(
                     cfg.agora_app_id, cfg.agora_app_cert,
-                    match_cfg.source_channel, orig_uid)
+                    source_channel, orig_uid)
                 channels["original"] = {
-                    "channel": match_cfg.source_channel,
+                    "channel": source_channel,
                     "token": orig_token,
                     "uid": orig_uid,
                 }

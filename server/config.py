@@ -5,6 +5,19 @@ import yaml
 
 
 @dataclass
+class LiveSourceConfig:
+    type: str = "agora"
+    channel: str = ""
+    video_uid: int = 73
+    atmosphere_uid: int = 74
+    commentary_uid: int = 75
+    url: str = ""
+    ingest_channel: str = ""
+    publish_uid: int = 73
+    retry_seconds: float = 5.0
+
+
+@dataclass
 class MatchConfig:
     match_id: str
     mode: str = "demo"  # "demo" or "live"
@@ -21,12 +34,14 @@ class MatchConfig:
     video_uid: int = 73
     atmosphere_uid: int = 74
     commentary_uid: int = 75
+    source: LiveSourceConfig | None = None
 
     # Shared
     video_delay: float = 7.0
     events_offset: int = 0
     max_stt_duration: float = 5.0
     languages: list[str] = field(default_factory=lambda: ["es", "pt", "fr", "tr", "de"])
+    prestart_seconds: float = 30.0
 
     # Management
     display_name: str = ""
@@ -61,6 +76,62 @@ def _resolve_path(path: str, base_dir: str) -> str:
     return os.path.normpath(os.path.join(base_dir, path))
 
 
+def _parse_live_source(raw_match: dict) -> LiveSourceConfig | None:
+    """Parse nested `source:` or synthesize an Agora source from legacy fields."""
+    source_raw = raw_match.get("source")
+    if source_raw:
+        source_type = source_raw.get("type", "agora")
+        return LiveSourceConfig(
+            type=source_type,
+            channel=source_raw.get("channel", ""),
+            video_uid=source_raw.get("video_uid", 73),
+            atmosphere_uid=source_raw.get("atmosphere_uid", 74),
+            commentary_uid=source_raw.get("commentary_uid", 75),
+            url=source_raw.get("url", ""),
+            ingest_channel=source_raw.get("ingest_channel", ""),
+            publish_uid=source_raw.get("publish_uid", 73),
+            retry_seconds=source_raw.get("retry_seconds", 5.0),
+        )
+
+    if any(k in raw_match for k in ("source_channel", "video_uid", "atmosphere_uid", "commentary_uid")):
+        return LiveSourceConfig(
+            type="agora",
+            channel=raw_match.get("source_channel", ""),
+            video_uid=raw_match.get("video_uid", 73),
+            atmosphere_uid=raw_match.get("atmosphere_uid", 74),
+            commentary_uid=raw_match.get("commentary_uid", 75),
+        )
+
+    return None
+
+
+def get_live_source(match_cfg: MatchConfig) -> LiveSourceConfig | None:
+    """Return the effective live source config for a match."""
+    if match_cfg.mode != "live":
+        return None
+    if match_cfg.source:
+        return match_cfg.source
+    if match_cfg.source_channel:
+        return LiveSourceConfig(
+            type="agora",
+            channel=match_cfg.source_channel,
+            video_uid=match_cfg.video_uid,
+            atmosphere_uid=match_cfg.atmosphere_uid,
+            commentary_uid=match_cfg.commentary_uid,
+        )
+    return None
+
+
+def get_live_source_channel(match_cfg: MatchConfig) -> str:
+    """Return the viewer-facing source channel for live original audio/video."""
+    source = get_live_source(match_cfg)
+    if not source:
+        return ""
+    if source.type == "srt":
+        return source.ingest_channel
+    return source.channel
+
+
 def load_config(yaml_path: str) -> ServerConfig:
     """Parse YAML config, merge with env vars, validate file paths."""
     with open(yaml_path) as f:
@@ -78,6 +149,7 @@ def load_config(yaml_path: str) -> ServerConfig:
     matches = []
     for m in raw.get("matches", []):
         mode = m.get("mode", "demo")
+        live_source = _parse_live_source(m)
 
         # Resolve file paths only for demo mode
         audio = ""
@@ -99,14 +171,25 @@ def load_config(yaml_path: str) -> ServerConfig:
             video_h264=video_h264,
             events=events,
             atmosphere=atmosphere,
-            source_channel=m.get("source_channel", ""),
-            video_uid=m.get("video_uid", 73),
-            atmosphere_uid=m.get("atmosphere_uid", 74),
-            commentary_uid=m.get("commentary_uid", 75),
+            source_channel=live_source.channel if live_source and live_source.type == "agora" else (
+                live_source.ingest_channel if live_source and live_source.type == "srt"
+                else m.get("source_channel", "")
+            ),
+            video_uid=live_source.video_uid if live_source and live_source.type == "agora" else (
+                live_source.publish_uid if live_source and live_source.type == "srt"
+                else m.get("video_uid", 73)
+            ),
+            atmosphere_uid=live_source.atmosphere_uid if live_source and live_source.type == "agora" else 0,
+            commentary_uid=live_source.commentary_uid if live_source and live_source.type == "agora" else (
+                live_source.publish_uid if live_source and live_source.type == "srt"
+                else m.get("commentary_uid", 75)
+            ),
+            source=live_source,
             video_delay=m.get("video_delay", 7.0),
             events_offset=m.get("events_offset", 0),
             max_stt_duration=m.get("max_stt_duration", 5.0),
             languages=m.get("languages", ["es", "pt", "fr", "tr", "de"]),
+            prestart_seconds=m.get("prestart_seconds", 30.0),
             display_name=m.get("display_name", ""),
             enabled=m.get("enabled", True),
             auto_manage=m.get("auto_manage", False),
@@ -182,8 +265,21 @@ def validate_config(cfg: ServerConfig, dry_run=False):
             if m.atmosphere and not os.path.isfile(m.atmosphere):
                 errors.append(f"{prefix}: atmosphere file not found: {m.atmosphere}")
         elif m.mode == "live":
-            if not m.source_channel:
-                errors.append(f"{prefix}: source_channel required for live mode")
+            source = get_live_source(m)
+            if not source:
+                errors.append(f"{prefix}: source or legacy live fields required for live mode")
+            elif source.type == "agora":
+                if not source.channel:
+                    errors.append(f"{prefix}: source.channel required for live agora source")
+            elif source.type == "srt":
+                if not source.url:
+                    errors.append(f"{prefix}: source.url required for live srt source")
+                if not source.ingest_channel:
+                    errors.append(f"{prefix}: source.ingest_channel required for live srt source")
+                if not source.publish_uid:
+                    errors.append(f"{prefix}: source.publish_uid required for live srt source")
+            else:
+                errors.append(f"{prefix}: invalid live source type '{source.type}'")
         if not m.languages:
             errors.append(f"{prefix}: no languages configured")
 

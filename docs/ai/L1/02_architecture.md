@@ -78,7 +78,16 @@ SR events run in parallel: the SRPrefetcher pre-translates and pre-TTS's each ev
 
 ## Live Match Mode
 
-Live matches use an Agora source channel where a broadcaster publishes three UIDs:
+Live matches now resolve into one normalized Agora source channel before the rest of the live pipeline starts.
+
+Two source modes are supported:
+
+- `source.type = agora`
+  Uses an existing Agora source channel with explicit source UIDs.
+- `source.type = srt`
+  Pulls one remote SRT feed, republishes it into an internal Agora channel, then runs the normal live worker from there.
+
+Agora-backed live matches use a source channel where the broadcaster publishes three UIDs:
 
 | Source UID | Content |
 |---|---|
@@ -116,9 +125,17 @@ Source Agora Channel
 
 Components:
 
-- `subscribe_audio.go` (`go-audio-video-publisher/cmd/subscribe_audio/`) — subscribes to source channel, writes UID 75 (commentary) PCM to stdout. Python STT reads from this process's stdout via `pcm_stream_from_pipe()`.
-- `relay_publish.go` (`go-audio-video-publisher/cmd/relay_publish/`) — subscribes to source channel UIDs 73 (video) and 74 (atmosphere), holds frames in a delay buffer for `video_delay` seconds, then publishes to the output channel. Audio output is delayed atmosphere mixed with translated TTS from stdin. The original commentary (UID 75) is excluded from output.
+- `server/live_source.py` — resolves `agora` vs `srt` into a normalized source channel plus source UIDs
+- `subscribe_audio.go` (`go-audio-video-publisher/cmd/subscribe_audio/`) — subscribes to the resolved source channel, writes commentary/program PCM to stdout. Python STT reads from this process's stdout via `pcm_stream_from_pipe()`.
+- `relay_publish.go` (`go-audio-video-publisher/cmd/relay_publish/`) — subscribes to resolved source video and optional atmosphere, holds frames in a delay buffer for `video_delay` seconds, then publishes to the output channel. Audio output is delayed source atmosphere mixed with translated TTS from stdin when source atmosphere is enabled.
 - One `relay_publish` process per language.
+
+For first-pass SRT live mode:
+
+- one combined program feed is published on `source.publish_uid`
+- STT reads that program feed
+- source atmosphere is disabled explicitly in `relay_publish`
+- output channels carry delayed video + translated TTS only
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
 
@@ -129,7 +146,7 @@ Components:
 
 ## SR Schedule Monitor
 
-Live auto-managed matches are now handled by `server/scheduler.py`. The scheduler refreshes Sportradar fixture metadata, tracks kickoff countdown, and auto-starts live matches shortly before kickoff when keyterms are available.
+Live auto-managed matches are now handled by `server/scheduler.py`. The scheduler refreshes Sportradar fixture metadata, tracks kickoff countdown, and auto-starts live matches when they enter their configured `prestart_seconds` window before kickoff.
 
 ## Timing Model
 
@@ -180,6 +197,18 @@ In server mode, each language has its own Go publisher with its own `video_start
 4. Waits for all publishers to report "video delay complete"
 5. Computes mean `video_start` across all languages; logs warning if spread >500ms
 6. Updates `video_start_ref` to actual mean; per-language pipelines use their own `video_start` for `play_at`
+
+## Translation Optimization
+
+Two mechanisms reduce the translate+TTS latency that causes dropped utterances:
+
+### Pre-translation
+
+When multiple items are queued in a TTSEngine, a `ThreadPoolExecutor(max_workers=2)` translates queued items in parallel ahead of the TTS worker thread. When the worker reaches an item, it checks the pre-translation cache first — on a hit, only TTS is needed (~0.8s instead of ~3s total). Typical cache hit rate is 100% under load. See [TTSEngine Internals](L2/tts_engine.md) for details.
+
+### OpenAI warmup
+
+The first translation call per process to `gpt-5.4-mini` incurs a ~15s cold-start penalty. In server mode, `MatchWorker._run_demo()` fires one throwaway "Kick off." translation per language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This absorbs the cold-start before the pipeline is timing-sensitive.
 
 ## Playback Rules
 

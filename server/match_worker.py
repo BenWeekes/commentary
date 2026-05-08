@@ -46,6 +46,7 @@ from lib.translator import translate_text, voice_for_lang, LANG_VOICES
 from lib.tts_engine import TTSEngine, _ts
 
 from server.config import MatchConfig, ServerConfig
+from server.live_source import resolve_live_source, stop_resolved_live_source
 
 
 # ─── Telemetry dataclasses ────────────────────────────────────────────────
@@ -324,6 +325,28 @@ class MatchWorker:
         try:
             self._oai_client = openai.OpenAI(api_key=self._server.openai_api_key)
 
+            # Warm up OpenAI — first API call per process takes ~15s (model cold-start).
+            # Fire one throwaway translation per language in parallel so the penalty
+            # is absorbed during startup instead of delaying the first real utterance.
+            warmup_langs = [l for l in self._match.languages if l != "en"]
+            if warmup_langs:
+                print(f"[{tag}] Warming up OpenAI ({len(warmup_langs)} langs)...")
+                warmup_t0 = time.time()
+                warmup_threads = []
+                for wl in warmup_langs:
+                    def _warmup(lang=wl):
+                        try:
+                            translate_text(self._oai_client, "Kick off.",
+                                           lang, model=self._server.translation_model)
+                        except Exception:
+                            pass
+                    t = threading.Thread(target=_warmup, daemon=True)
+                    t.start()
+                    warmup_threads.append(t)
+                for t in warmup_threads:
+                    t.join(timeout=20.0)
+                print(f"[{tag}] OpenAI warm — {time.time() - warmup_t0:.1f}s")
+
             # Skip atmosphere for demo — only used in live mode
             atmosphere_pcm = None
 
@@ -491,10 +514,12 @@ class MatchWorker:
 
         subscribe_proc = None
         relay_procs = {}  # lang -> proc
+        resolved = None
 
         try:
             self._oai_client = openai.OpenAI(api_key=self._server.openai_api_key)
             self._load_roster(tag)
+            resolved = resolve_live_source(self._match, self._server, self._stop, tag)
 
             base_dir = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -513,11 +538,11 @@ class MatchWorker:
             subscribe_cmd = [
                 "go", "run", "./cmd/subscribe_audio",
                 "--app-id", self._server.agora_app_id,
-                "--channel", self._match.source_channel,
-                "--uid", str(self._match.commentary_uid),
+                "--channel", resolved.channel,
+                "--uid", str(resolved.commentary_uid),
             ]
             print(f"[{tag}] Starting subscribe_audio on "
-                  f"channel={self._match.source_channel} uid={self._match.commentary_uid}")
+                  f"channel={resolved.channel} uid={resolved.commentary_uid}")
             subscribe_proc = subprocess.Popen(
                 subscribe_cmd,
                 env=env, cwd=base_dir,
@@ -563,10 +588,11 @@ class MatchWorker:
                 relay_cmd = [
                     "go", "run", "./cmd/relay_publish",
                     "--app-id", self._server.agora_app_id,
-                    "--source-channel", self._match.source_channel,
+                    "--source-channel", resolved.channel,
                     "--output-channel", output_channel,
-                    "--video-uid", str(self._match.video_uid),
-                    "--atmos-uid", str(self._match.atmosphere_uid),
+                    "--video-uid", str(resolved.video_uid),
+                    "--atmos-uid", str(resolved.atmosphere_uid),
+                    "--atmos-enabled", "true" if resolved.source_atmos_enabled else "false",
                     "--video-delay", str(self._match.video_delay),
                     "--start-at", f"{target_start:.3f}",
                 ]
@@ -692,6 +718,7 @@ class MatchWorker:
                 _kill_publisher(subscribe_proc, tag=f"{tag} SUB")
             # Kill relay publishers and TTS engines
             self._cleanup(tag)
+            stop_resolved_live_source(resolved, tag)
 
     def _start_lang_pipeline(self, lang, atmosphere_pcm, tag, start_at=None):
         """Start Go publisher + TTSEngine + SRPrefetcher for one language.
@@ -1105,6 +1132,9 @@ class MatchWorker:
                         "original": data.get("text"),
                         "translated": data.get("translated"),
                         "play_duration_ms": data.get("actual_play_duration_ms", 0),
+                        "total_buffered_ms": data.get("total_buffered_ms", 0),
+                        "pre_translated": data.get("pre_translated", False),
+                        "queue_wait_ms": data.get("queue_wait_ms", 0),
                     }
                     lang_log.write(json.dumps(line) + "\n")
                     lang_log.flush()

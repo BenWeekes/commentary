@@ -86,30 +86,42 @@ Kills all Go publishers, stops TTS engines, and cleans up the match worker.
 
 ### Live match config
 
-Live matches are configured in `matches_live.yaml` (gitignored — contains SRT stream keys). This file follows the same format as `matches.yaml` but with `mode: live` and additional fields: `source_channel`, `video_uid`, `atmosphere_uid`, `commentary_uid`, and `srt_keys`.
+Live matches are configured in `matches_live.yaml` (gitignored — contains SRT stream keys). Live entries now support a nested `source:` block:
+
+- `source.type = agora` for an existing Agora source channel with explicit source UIDs
+- `source.type = srt` for a direct SRT pull that is republished into an internal Agora source channel
+
+For first-pass SRT live mode:
+
+- the SRT source is republished into `source.ingest_channel`
+- one combined program feed is published on `source.publish_uid`
+- STT reads that combined program audio
+- translated output channels carry delayed video + translated TTS only
+- there is no separate source-atmosphere bed in SRT mode
 
 ```bash
 # Start server with live config
 python3 -m server.main --config matches_live.yaml
 ```
 
-SRT ingest server (Europe): `srt://srtlive-rtcpush-prod-eu.agoramdn.com:6001`
-
-UID mapping (all matches): 73 = video, 74 = atmosphere, 75 = commentary.
+Legacy flat live fields (`source_channel`, `video_uid`, `atmosphere_uid`, `commentary_uid`) still load as `source.type = agora` during migration.
 
 ### Pre-match
 
 1. Configure match in `matches_live.yaml` with source channel and language list
 2. Start the server: `python3 -m server.main --config matches_live.yaml`
-3. Match stays idle until kicked off
+3. For auto-managed live matches, set `prestart_seconds` if you want warm-up coverage before kickoff
+4. Match stays idle until manual start or until the scheduler reaches the prestart window
 
 ### Live match start
 
-1. Broadcaster publishes to source Agora channel (UID 73 video, UID 74 atmosphere, UID 75 commentary) via SRT ingest
+1. Resolve the configured live source:
+   - `agora`: use the configured source channel/UIds directly
+   - `srt`: start one SRT ingest process and wait for `source publishing started`
 2. Start match via API: `curl -X POST http://localhost:8080/api/matches/{id}/start`
-3. `subscribe_audio.go` subscribes to source channel, writes UID 75 PCM to stdout
+3. `subscribe_audio.go` subscribes to the resolved source channel and commentary/program UID, writing PCM to stdout
 4. Python STT reads from `subscribe_audio` stdout via `pcm_stream_from_pipe()`
-5. Per-language `relay_publish.go` subscribes to UIDs 73 + 74, delay-buffers, reads TTS from stdin, publishes to output channels
+5. Per-language `relay_publish.go` subscribes to delayed source video and optional atmosphere, reads TTS from stdin, publishes to output channels
 6. Viewers connect to per-language output channels
 
 ### Standalone one-language live test
@@ -187,7 +199,9 @@ Open the printed URL directly in a browser to watch the test channel without sta
 
 Each per-language output channel contains:
 - Delayed video (from source UID 73, held for `video_delay` seconds)
-- Mixed audio: delayed atmosphere (from source UID 74) + translated TTS
+- Mixed audio:
+  - Agora live source: delayed atmosphere + translated TTS
+  - SRT live source: translated TTS only
 - No original commentary (UID 75 is excluded from output)
 
 ### Notable limitations in live mode
@@ -198,7 +212,7 @@ Each per-language output channel contains:
 ### Original audio channel
 
 - **Demo mode**: `_start_original_pipeline()` loads the audio file as PCM and starts a Go publisher with `video_delay=0` on a dedicated channel `{match_id}-original`. The original plays ahead of translated channels with A/V in sync. This runs in a background thread to avoid blocking translated pipeline startup.
-- **Live mode**: No extra channel is created. The `/api/matches/{id}/channels` endpoint returns the existing `source_channel` as the "original" entry. The viewer joins the source channel directly.
+- **Live mode**: No extra channel is created. The `/api/matches/{id}/channels` endpoint returns the resolved live source channel as the "original" entry. For `source.type = srt`, that is the internal ingest channel.
 
 The viewer shows "Original (EN)" first in the language dropdown. Default selection skips original and picks the first translated language.
 
@@ -208,7 +222,7 @@ The viewer shows "Original (EN)" first in the language dropdown. Default selecti
 
 - refreshes Sportradar fixture metadata on a cadence based on time-to-kickoff
 - tracks kickoff countdown and scheduler state
-- auto-starts a live match shortly before kickoff when keyterms are available
+- auto-starts a live match when it enters `prestart_seconds` before kickoff (default `30`, often `900` for warm-up coverage)
 - leaves demo matches and `auto_manage: false` matches under manual control
 
 This scheduler refresh path updates per-match disk data only. If you use the `Refresh Data` button while a match is already running, the refresh is blocked and applies on the next start.

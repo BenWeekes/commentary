@@ -78,7 +78,7 @@ File paths in `matches.yaml` are resolved relative to the config file's director
 
 ### Live match config
 
-Live matches use a separate config file `matches_live.yaml` (gitignored — contains SRT stream keys). Same format as `matches.yaml` but with `mode: live`, `source_channel`, and `srt_keys`. See [05_workflows.md](05_workflows.md) for details.
+Live matches use a separate config file `matches_live.yaml` (gitignored — contains SRT stream keys). Live entries now use a nested `source:` block. For existing Agora-backed live matches, legacy flat fields still work during migration. See [05_workflows.md](05_workflows.md) for details.
 
 ### Validate config (dry run)
 

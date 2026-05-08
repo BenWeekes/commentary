@@ -7,6 +7,7 @@ import queue
 import struct
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import websockets
 
@@ -97,6 +98,10 @@ class TTSEngine:
         # to avoid starting SR playback that will be interrupted by imminent STT.
         # Single float, no lock needed (CPython GIL makes float assignment atomic).
         self._next_stt_play_at = None
+        # Pre-translation: parallel executor translates queued items ahead of TTS worker
+        self._pretranslated = collections.OrderedDict()  # (text, play_at) → {translated, voice_id, translate_time}
+        self._pretranslate_lock = threading.Lock()
+        self._pretranslate_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pretranslate")
         # Stats
         self._utterance_id = 0
         # Video-relative timestamp (set by pipeline after publisher starts)
@@ -224,6 +229,8 @@ class TTSEngine:
                             "translate_time": meta.get("translate_time"),
                             "tts_time": meta.get("tts_time"),
                             "play_at": meta.get("play_at"),
+                            "pre_translated": meta.get("pre_translated", False),
+                            "queue_wait_ms": meta.get("queue_wait_ms", 0),
                         })
                     except Exception:
                         pass
@@ -255,6 +262,8 @@ class TTSEngine:
                                     "translate_time": meta.get("translate_time"),
                                     "tts_time": meta.get("tts_time"),
                                     "play_at": meta.get("play_at"),
+                                    "pre_translated": meta.get("pre_translated", False),
+                                    "queue_wait_ms": meta.get("queue_wait_ms", 0),
                                 })
                             except Exception:
                                 pass
@@ -332,6 +341,8 @@ class TTSEngine:
                         "translate_time": meta.get("translate_time"),
                         "tts_time": meta.get("tts_time"),
                         "play_at": meta.get("play_at"),
+                        "pre_translated": meta.get("pre_translated", False),
+                        "queue_wait_ms": meta.get("queue_wait_ms", 0),
                     })
                 except Exception:
                     pass
@@ -365,6 +376,8 @@ class TTSEngine:
                     "translate_time": meta.get("translate_time"),
                     "tts_time": meta.get("tts_time"),
                     "play_at": meta.get("play_at"),
+                    "pre_translated": meta.get("pre_translated", False),
+                    "queue_wait_ms": meta.get("queue_wait_ms", 0),
                 })
             except Exception:
                 pass
@@ -383,6 +396,8 @@ class TTSEngine:
                     "translate_time": meta.get("translate_time"),
                     "tts_time": meta.get("tts_time"),
                     "play_at": meta.get("play_at"),
+                    "pre_translated": meta.get("pre_translated", False),
+                    "queue_wait_ms": meta.get("queue_wait_ms", 0),
                 })
             except Exception:
                 pass
@@ -425,13 +440,15 @@ class TTSEngine:
             with self._lookahead_lock:
                 self._lookahead_buf.clear()
             self._lookahead_item = None
+            with self._pretranslate_lock:
+                self._pretranslated.clear()
             self._sr_playback_ready.clear()
             int_discarded = 0
             while not self._text_queue.empty():
                 try:
                     stale_item = self._text_queue.get_nowait()
                     int_discarded += 1
-                    stale_text, stale_play_at, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None)
+                    stale_text, stale_play_at, _, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None, None)
                     self._skipped_meta.append({
                         "source": "stt", "status": "dropped",
                         "uid": None, "text": stale_text,
@@ -441,6 +458,7 @@ class TTSEngine:
                         "play_started_at": None, "play_ended_at": None,
                         "actual_play_duration_ms": 0, "total_buffered_ms": 0,
                         "interrupted": False, "interrupted_by": "speak_interrupt",
+                        "pre_translated": False, "queue_wait_ms": 0,
                     })
                 except queue.Empty:
                     break
@@ -457,6 +475,8 @@ class TTSEngine:
                     "play_started_at": None, "play_ended_at": None,
                     "actual_play_duration_ms": 0, "total_buffered_ms": 0,
                     "interrupted": False, "interrupted_by": "speak_interrupt",
+                    "pre_translated": la.get("pre_translated", False),
+                    "queue_wait_ms": la.get("queue_wait_ms", 0),
                 })
                 int_discarded += 1
                 self._lookahead_item = None
@@ -473,12 +493,12 @@ class TTSEngine:
                 while not self._text_queue.empty():
                     try:
                         queued_item = self._text_queue.get_nowait()
-                        _, item_play_at, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None)
+                        _, item_play_at, _, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None, None)
                         if item_play_at and item_play_at > now:
                             keep.append(queued_item)
                         else:
                             discarded += 1
-                            stale_text, stale_play_at, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None)
+                            stale_text, stale_play_at, _, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None, None)
                             self._skipped_meta.append({
                                 "source": "stt", "status": "replaced",
                                 "uid": None, "text": stale_text,
@@ -488,6 +508,7 @@ class TTSEngine:
                                 "play_started_at": None, "play_ended_at": None,
                                 "actual_play_duration_ms": 0, "total_buffered_ms": 0,
                                 "interrupted": False, "interrupted_by": "",
+                                "pre_translated": False, "queue_wait_ms": 0,
                             })
                     except queue.Empty:
                         break
@@ -514,11 +535,14 @@ class TTSEngine:
                             "play_started_at": None, "play_ended_at": None,
                             "actual_play_duration_ms": 0, "total_buffered_ms": la_ms,
                             "interrupted": False, "interrupted_by": "",
+                            "pre_translated": la.get("pre_translated", False),
+                            "queue_wait_ms": la.get("queue_wait_ms", 0),
                         })
                 if discarded:
                     print(f"  [{self._vts()}] [TTS] Replaced {discarded} stale queued item(s)"
                           f"{f' (kept {len(keep)})' if keep else ''}")
-            self._text_queue.put((text, play_at, translate_fn))
+            self._text_queue.put((text, play_at, translate_fn, time.time()))
+            self._pretranslate_queued()
 
     def clear_stt(self):
         """
@@ -547,6 +571,8 @@ class TTSEngine:
                 "play_started_at": None, "play_ended_at": None,
                 "actual_play_duration_ms": 0, "total_buffered_ms": 0,
                 "interrupted": False, "interrupted_by": "clear_stt",
+                "pre_translated": la.get("pre_translated", False),
+                "queue_wait_ms": la.get("queue_wait_ms", 0),
             })
         self._lookahead_item = None
         self._playback_ready.clear()
@@ -555,7 +581,7 @@ class TTSEngine:
             try:
                 stale_item = self._text_queue.get_nowait()
                 stt_cleared += 1
-                stale_text, stale_play_at, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None)
+                stale_text, stale_play_at, _, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None, None)
                 self._skipped_meta.append({
                     "source": "stt", "status": "suppressed",
                     "uid": None, "text": stale_text,
@@ -565,6 +591,7 @@ class TTSEngine:
                     "play_started_at": None, "play_ended_at": None,
                     "actual_play_duration_ms": 0, "total_buffered_ms": 0,
                     "interrupted": False, "interrupted_by": "clear_stt",
+                    "pre_translated": False, "queue_wait_ms": 0,
                 })
             except queue.Empty:
                 break
@@ -573,6 +600,61 @@ class TTSEngine:
 
     def queue_size(self):
         return self._text_queue.qsize()
+
+    def _pretranslate_queued(self):
+        """Submit queued items for parallel pre-translation on the executor.
+        Called from speak() after enqueuing a new item."""
+        # Drain + re-queue to peek at all items
+        items = []
+        while not self._text_queue.empty():
+            try:
+                items.append(self._text_queue.get_nowait())
+            except queue.Empty:
+                break
+        for it in items:
+            self._text_queue.put(it)
+
+        with self._pretranslate_lock:
+            for it in items:
+                if not isinstance(it, tuple):
+                    continue
+                text, play_at, translate_fn, _ = it
+                if not translate_fn:
+                    continue
+                key = (text, play_at)
+                if key in self._pretranslated:
+                    continue
+                # Submit translation to thread pool
+                try:
+                    self._pretranslate_executor.submit(
+                        self._do_pretranslate, text, play_at, translate_fn
+                    )
+                except RuntimeError:
+                    break  # executor shut down
+
+    def _do_pretranslate(self, text, play_at, translate_fn):
+        """Run translate_fn and cache the result (called on executor thread)."""
+        t0 = time.monotonic()
+        try:
+            result = translate_fn(text)
+            if isinstance(result, tuple):
+                translated, voice_id = result
+            else:
+                translated, voice_id = result, self.voice_id
+        except Exception:
+            return  # translation failed — _process_item will do its own call
+        translate_time = time.monotonic() - t0
+
+        with self._pretranslate_lock:
+            key = (text, play_at)
+            self._pretranslated[key] = {
+                "translated": translated,
+                "voice_id": voice_id,
+                "translate_time": translate_time,
+            }
+            # Evict oldest if over limit
+            while len(self._pretranslated) > 10:
+                self._pretranslated.popitem(last=False)
 
     def set_atmosphere(self, pcm_bytes):
         """Set atmosphere PCM data."""
@@ -668,17 +750,28 @@ class TTSEngine:
         """Translate + fetch TTS for a single queue item. Returns result dict or None on failure.
         Pushes audio to whatever buffer _tts_target_buf points to."""
         if isinstance(item, tuple):
-            text, play_at, translate_fn = item
+            text, play_at, translate_fn, enqueued_at = item
         else:
-            text, play_at, translate_fn = item, None, None
+            text, play_at, translate_fn, enqueued_at = item, None, None, None
 
         self._utterance_id += 1
         uid = self._utterance_id
+        process_start = time.time()
+        queue_wait = (process_start - enqueued_at) if enqueued_at else 0.0
 
-        # Just-in-time translation with current language + voice
+        # Check pre-translation cache before calling translate_fn
+        pre_xlat_hit = False
         voice_id = self.voice_id
         t_translate = time.monotonic()
-        if translate_fn:
+        cache_key = (text, play_at)
+        with self._pretranslate_lock:
+            cached = self._pretranslated.pop(cache_key, None)
+        if cached:
+            translated = cached["translated"]
+            voice_id = cached["voice_id"]
+            translate_time = cached["translate_time"]
+            pre_xlat_hit = True
+        elif translate_fn:
             try:
                 result = translate_fn(text)
                 if isinstance(result, tuple):
@@ -687,16 +780,19 @@ class TTSEngine:
                     translated = result
             except Exception:
                 translated = text
+            translate_time = time.monotonic() - t_translate
         else:
             translated = text
-        translate_time = time.monotonic() - t_translate
+            translate_time = time.monotonic() - t_translate
 
         queued = self._text_queue.qsize()
         wc = len(translated.split())
         is_lookahead = self._tts_target_buf is self._lookahead_buf
         tag = "LOOKAHEAD " if is_lookahead else ""
+        xlat_tag = "PRE-XLAT hit" if pre_xlat_hit else f"xlat: {translate_time:.2f}s"
         print(f"  [{self._vts()}] [TTS #{uid}] {tag}Starting — \"{translated[:50]}\" "
-              f"({wc}w, queue: {queued}, xlat: {translate_time:.2f}s, voice: {voice_id[:8]})")
+              f"({wc}w, queue: {queued}, {xlat_tag}, voice: {voice_id[:8]}, "
+              f"q_wait: {queue_wait:.2f}s)")
 
         t0 = time.monotonic()
         self._loop.run_until_complete(self._tts(translated, uid, voice_id=voice_id))
@@ -709,6 +805,7 @@ class TTSEngine:
         return {
             "uid": uid, "text": text, "translated": translated, "play_at": play_at,
             "voice_id": voice_id, "tts_time": tts_time, "translate_time": translate_time,
+            "pre_translated": pre_xlat_hit, "queue_wait_ms": int(queue_wait * 1000),
         }
 
     def _tts_worker(self):
@@ -760,7 +857,7 @@ class TTSEngine:
                         buf_ms = len(self._audio_buf) * 10
                         self._audio_buf.clear()
                     # Emit telemetry for dropped-during-TTS items
-                    item_text, item_play_at, _ = item if isinstance(item, tuple) else (item, None, None)
+                    item_text, item_play_at, _, _ = item if isinstance(item, tuple) else (item, None, None, None)
                     self._skipped_meta.append({
                         "source": "stt", "status": "dropped",
                         "uid": None, "text": item_text,
@@ -770,6 +867,7 @@ class TTSEngine:
                         "play_started_at": None, "play_ended_at": None,
                         "actual_play_duration_ms": 0, "total_buffered_ms": buf_ms,
                         "interrupted": False, "interrupted_by": "tts_interrupt",
+                        "pre_translated": False, "queue_wait_ms": 0,
                     })
                     continue
 
@@ -795,6 +893,8 @@ class TTSEngine:
                     "play_started_at": None, "play_ended_at": None,
                     "actual_play_duration_ms": 0, "total_buffered_ms": buf_ms,
                     "interrupted": False, "interrupted_by": "",
+                    "pre_translated": result.get("pre_translated", False),
+                    "queue_wait_ms": result.get("queue_wait_ms", 0),
                 })
                 self._stt_suppressed.clear()
                 continue
@@ -822,7 +922,11 @@ class TTSEngine:
                     self._next_stt_play_at = None
                 else:
                     late = -wait_s
-                    print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at")
+                    pre_tag = "hit" if result.get("pre_translated") else "miss"
+                    q_wait = result.get("queue_wait_ms", 0) / 1000
+                    print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at "
+                          f"(xlat={result['translate_time']:.2f}s, tts={tts_time:.2f}s, "
+                          f"queued_behind={q_wait:.2f}s, pre_xlat={pre_tag})")
                     with self._buf_lock:
                         self._audio_buf.clear()
                     self._skipped_meta.append({
@@ -835,6 +939,8 @@ class TTSEngine:
                         "play_started_at": None, "play_ended_at": None,
                         "actual_play_duration_ms": 0, "total_buffered_ms": buf_ms,
                         "interrupted": False, "interrupted_by": "",
+                        "pre_translated": result.get("pre_translated", False),
+                        "queue_wait_ms": result.get("queue_wait_ms", 0),
                     })
                     continue
             else:
@@ -855,6 +961,8 @@ class TTSEngine:
                     "play_started_at": None, "play_ended_at": None,
                     "actual_play_duration_ms": 0, "total_buffered_ms": buf_ms_orig,
                     "interrupted": False, "interrupted_by": "original",
+                    "pre_translated": result.get("pre_translated", False),
+                    "queue_wait_ms": result.get("queue_wait_ms", 0),
                 })
                 continue
 
@@ -906,6 +1014,8 @@ class TTSEngine:
                                     "play_started_at": None, "play_ended_at": None,
                                     "actual_play_duration_ms": 0, "total_buffered_ms": la_ms,
                                     "interrupted": False, "interrupted_by": "lang_change",
+                                    "pre_translated": la_result.get("pre_translated", False),
+                                    "queue_wait_ms": la_result.get("queue_wait_ms", 0),
                                 })
                             else:
                                 self._lookahead_item = la_result
@@ -917,7 +1027,7 @@ class TTSEngine:
                                 self._lookahead_buf.clear()
                             # Emit telemetry for lookahead dropped during TTS
                             if not la_result and next_item:
-                                la_text, la_play_at, _ = next_item if isinstance(next_item, tuple) else (next_item, None, None)
+                                la_text, la_play_at, _, _ = next_item if isinstance(next_item, tuple) else (next_item, None, None, None)
                                 self._skipped_meta.append({
                                     "source": "stt", "status": "dropped",
                                     "uid": None, "text": la_text,
@@ -927,6 +1037,7 @@ class TTSEngine:
                                     "play_started_at": None, "play_ended_at": None,
                                     "actual_play_duration_ms": 0, "total_buffered_ms": la_ms,
                                     "interrupted": False, "interrupted_by": "lookahead_interrupt",
+                                    "pre_translated": False, "queue_wait_ms": 0,
                                 })
                     lookahead_done = True
 
@@ -1002,6 +1113,8 @@ class TTSEngine:
             return 0
 
     def stop(self):
+        # Shut down pre-translation executor early (don't wait for in-flight)
+        self._pretranslate_executor.shutdown(wait=False)
         # Phase 1: Close — reject new work, wake tts_worker to exit
         self._closing = True
         self._interrupt.set()

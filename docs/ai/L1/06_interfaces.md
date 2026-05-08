@@ -53,14 +53,11 @@ Returned by `/api/status/overview` for live matches:
 |---|---|
 | `demo` | Demo match — never auto-managed |
 | `upcoming` | Live match known but not near kickoff yet |
-| `countdown` | Near kickoff, still waiting |
-| `armed` | Near kickoff with keyterms ready |
 | `starting` | Scheduler has requested worker start |
 | `running` | Worker is active |
 | `finished` | Worker ran and then stopped |
 | `stopped` | Disabled or manually stopped |
 | `error` | Scheduler-side failure |
-| `waiting_for_source` | Near kickoff but no keyterms/source data yet |
 
 ### Viewer UID allocation
 
@@ -82,7 +79,7 @@ Examples: `bmg_fch_demo-es`, `bmg_fch_demo-pt`, `bmg_fch_demo-fr`
 
 In **demo mode**, a dedicated channel `{match_id}-original` is created by `_start_original_pipeline()`. It carries the source English commentary with video at zero delay (plays ahead of translated channels).
 
-In **live mode**, no extra channel is created. The `/api/matches/{id}/channels` endpoint returns the existing `source_channel` as the "original" entry. The viewer joins the source channel directly.
+In **live mode**, no extra channel is created. The `/api/matches/{id}/channels` endpoint returns the resolved live source channel as the "original" entry. For `source.type = srt`, that is the internal ingest channel.
 
 ### Live SR data contract
 
@@ -91,7 +88,10 @@ Live mode currently uses Sportradar in two narrower ways:
 - `/api/matches/{id}/refresh-data` and `server/scheduler.py` refresh lineup/summary-derived fixture data into `match_data/{match_id}/`
 - `MatchWorker` loads roster text and keyterms from that stored data at startup
 
-Live mode does **not** currently poll real-time SR commentary endpoints or inject SR events into output channels. The per-language live output channels are STT-only plus relayed atmosphere/video.
+Live mode does **not** currently poll real-time SR commentary endpoints or inject SR events into output channels. The per-language live output channels are STT-only plus relayed source media:
+
+- Agora live source: delayed video + delayed atmosphere + translated TTS
+- SRT live source: delayed video + translated TTS only
 
 ### Publisher UID
 

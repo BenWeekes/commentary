@@ -133,6 +133,7 @@
     .match-meta .stt-count { color: #4ade80; }
     .match-meta .freshness { color: #888; }
     .match-meta .freshness.stale { color: #f87171; }
+    .match-meta .source-detail { color: #7dd3fc; }
     .match-actions {
       margin-left: auto;
       display: flex;
@@ -316,6 +317,12 @@
         html += '<div class="match-meta">';
         if (m.kickoff_utc) {
           html += '<span>' + esc(formatKickoff(m.kickoff_utc)) + '</span>';
+        }
+        if (m.source_label || m.source_detail) {
+          var sourceText = '';
+          if (m.source_label) sourceText += m.source_label;
+          if (m.source_detail) sourceText += (sourceText ? ': ' : '') + m.source_detail;
+          html += '<span class="source-detail">' + esc(sourceText) + '</span>';
         }
         if (cd !== undefined && cd !== null && !isDemo) {
           var cdClass = cd < 0 ? 'countdown negative' : 'countdown';

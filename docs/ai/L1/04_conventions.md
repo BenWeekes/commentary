@@ -120,7 +120,7 @@ Languages showing "default" use `DEFAULT_VOICE_ID` (`ImsA1Fn5TNc843fFdz99`).
 | `[PIPE]` | Pipe writer thread (audio delivery to Go publisher) |
 | `[STT]` | Deepgram transcription results |
 | `[SR]` | Sportradar event playback |
-| `[DROP Xs]` | STT utterance dropped (exceeded latency budget by X seconds) |
+| `[DROP Xs]` | STT utterance dropped — format: `DROPPED {ms}ms — {late}s past play_at (xlat={x}s, tts={t}s, queued_behind={q}s, pre_xlat={hit\|miss})` |
 | `[ATMOS]` | Atmosphere audio loading and toggle |
 | `[ORIG]` | Original audio pass-through |
 | `[HTTP]` | Production server HTTP API |
@@ -155,6 +155,12 @@ Language-log `status` values:
 - `interrupted` — playback actually started but was cut short mid-playback (only set by `_pipe_writer`)
 - `dropped` — item never started playback: cleared from queue by interrupt, TTS returned no audio, or shutdown
 - `suppressed` — STT utterance was discarded because SR was already occupying the slot
+
+Additional telemetry fields per utterance:
+
+- `pre_translated` — `true` if translation was served from the pre-translation cache, `false` if inline
+- `queue_wait_ms` — milliseconds the item waited in the queue before the TTS worker started processing it
+- `total_buffered_ms` — total TTS audio duration in milliseconds
 
 Items that never played are always `dropped`, not `interrupted`. Only `_pipe_writer` can emit `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
 

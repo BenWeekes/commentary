@@ -16,6 +16,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -60,6 +61,8 @@ type audioChunker struct {
 	channels   int
 	buffer     []byte
 }
+
+var sourcePublishingStarted sync.Once
 
 func main() {
 	cfg, err := parseConfig()
@@ -142,14 +145,18 @@ func parseConfig() (*config, error) {
 	}
 
 	if cfg.input != "" {
-		absInput, err := filepath.Abs(cfg.input)
-		if err != nil {
-			return nil, fmt.Errorf("resolve input path: %w", err)
+		if isRemoteInput(cfg.input) {
+			// Leave URLs untouched; libavformat opens network inputs directly.
+		} else {
+			absInput, err := filepath.Abs(cfg.input)
+			if err != nil {
+				return nil, fmt.Errorf("resolve input path: %w", err)
+			}
+			if _, err := os.Stat(absInput); err != nil {
+				return nil, fmt.Errorf("input file %q: %w", absInput, err)
+			}
+			cfg.input = absInput
 		}
-		if _, err := os.Stat(absInput); err != nil {
-			return nil, fmt.Errorf("input file %q: %w", absInput, err)
-		}
-		cfg.input = absInput
 	}
 	if cfg.rawAudioFile != "" {
 		absAudio, err := filepath.Abs(cfg.rawAudioFile)
@@ -201,6 +208,14 @@ func parseConfig() (*config, error) {
 	}
 
 	return cfg, nil
+}
+
+func isRemoteInput(value string) bool {
+	u, err := url.Parse(value)
+	if err != nil {
+		return false
+	}
+	return u.Scheme != "" && u.Host != ""
 }
 
 func run(cfg *config, stop <-chan os.Signal) error {
@@ -352,7 +367,7 @@ func run(cfg *config, stop <-chan os.Signal) error {
 		} else if cfg.hasRawInputs() {
 			err = streamRawAssets(con, cfg, stop, disconnected)
 		} else {
-			err = streamDecodedMedia(con, cfg, stop, disconnected)
+			err = streamMedia(con, cfg, stop, disconnected)
 		}
 		if err != nil {
 			con.Disconnect()
@@ -565,6 +580,7 @@ func sendDecodedAudioLoop(con *agoraservice.RtcConnection, cfg *config, stop <-c
 					C.close_media_file(decoder)
 					return fmt.Errorf("push audio pcm data: %d", rc)
 				}
+				signalSourcePublishingStarted()
 				nextChunkAt = nextChunkAt.Add(10 * time.Millisecond)
 			}
 		}
@@ -653,6 +669,7 @@ func sendDecodedVideoLoop(con *agoraservice.RtcConnection, cfg *config, stop <-c
 				C.close_media_file(decoder)
 				return fmt.Errorf("push yuv video frame pts=%d: %d", int64(frame.pts), rc)
 			}
+			signalSourcePublishingStarted()
 		}
 	}
 }
@@ -786,6 +803,7 @@ func sendRawAudioLoop(con *agoraservice.RtcConnection, cfg *config, stop <-chan 
 				file.Close()
 				return fmt.Errorf("push raw audio pcm data: %d", rc)
 			}
+			signalSourcePublishingStarted()
 			nextTick = nextTick.Add(10 * time.Millisecond)
 			elapsedMs += 10
 		}
@@ -849,6 +867,7 @@ func sendRawVideoLoop(con *agoraservice.RtcConnection, cfg *config, stop <-chan 
 				file.Close()
 				return fmt.Errorf("push raw video frame: %d", rc)
 			}
+			signalSourcePublishingStarted()
 			nextTick = nextTick.Add(frameInterval)
 			elapsedMs += frameInterval.Milliseconds()
 		}
@@ -927,6 +946,7 @@ func sendEncodedAudioLoop(con *agoraservice.RtcConnection, cfg *config, stop <-c
 				C.close_media_file(decoder)
 				return fmt.Errorf("push encoded audio frame: %d", rc)
 			}
+			signalSourcePublishingStarted()
 		}
 	}
 }
@@ -985,18 +1005,23 @@ func sendEncodedVideoLoop(con *agoraservice.RtcConnection, cfg *config, stop <-c
 				frameType = agoraservice.VideoFrameTypeKeyFrame
 			}
 			data := C.GoBytes(unsafe.Pointer(packet.data), packet.size)
+			sendTimeMs := time.Now().UnixMilli()
 			rc := con.PushVideoEncodedData(data, &agoraservice.EncodedVideoFrameInfo{
 				CodecType:       agoraservice.VideoCodecTypeH264,
 				Width:           int(codecParam.width),
 				Height:          int(codecParam.height),
-				FramesPerSecond: fps,
+				FramesPerSecond: 0,
 				FrameType:       frameType,
 				Rotation:        agoraservice.VideoOrientation0,
+				CaptureTimeMs:   sendTimeMs,
+				DecodeTimeMs:    0,
+				PresentTimeMs:   sendTimeMs,
 			})
 			C.av_packet_unref(packet)
 			if rc != 0 {
-				return fmt.Errorf("push encoded video frame: %d", rc)
+				fmt.Printf("PushVideoEncodedData ret=%d size=%d\n", rc, len(data))
 			}
+			signalSourcePublishingStarted()
 			time.Sleep(frameInterval)
 		}
 	}
@@ -1023,6 +1048,7 @@ func sendAudioPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer, pa
 		if rc := con.PushAudioPcmData(chunk, sampleRate, channels, 0); rc != 0 {
 			return fmt.Errorf("push audio pcm data: %d", rc)
 		}
+		signalSourcePublishingStarted()
 	}
 	return nil
 }
@@ -1061,6 +1087,7 @@ func sendYUVVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Pointer,
 	if rc := con.PushVideoFrame(videoFrame); rc != 0 {
 		return fmt.Errorf("push yuv video frame pts=%d: %d", int64(frame.pts), rc)
 	}
+	signalSourcePublishingStarted()
 	return nil
 }
 
@@ -1085,21 +1112,33 @@ func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Poin
 		frameType = agoraservice.VideoFrameTypeKeyFrame
 	}
 
+	fps := 0
+	if packet.framerate_den > 0 && packet.framerate_num > 0 {
+		fps = int(packet.framerate_num / packet.framerate_den)
+	}
+	sendTimeMs := time.Now().UnixMilli()
 	data := C.GoBytes(unsafe.Pointer(packet.pkt.data), packet.pkt.size)
 	if rc := con.PushVideoEncodedData(data, &agoraservice.EncodedVideoFrameInfo{
 		CodecType:       agoraservice.VideoCodecTypeH264,
 		Width:           int(packet.width),
 		Height:          int(packet.height),
-		FramesPerSecond: 0,
+		FramesPerSecond: fps,
 		FrameType:       frameType,
 		Rotation:        agoraservice.VideoOrientation0,
-		CaptureTimeMs:   0,
+		CaptureTimeMs:   sendTimeMs,
 		DecodeTimeMs:    0,
-		PresentTimeMs:   0,
+		PresentTimeMs:   sendTimeMs,
 	}); rc != 0 {
-		return fmt.Errorf("push encoded video frame pts=%d: %d", int64(packet.pts), rc)
+		fmt.Printf("PushVideoEncodedData ret=%d pts=%d size=%d\n", rc, int64(packet.pts), len(data))
 	}
+	signalSourcePublishingStarted()
 	return nil
+}
+
+func signalSourcePublishingStarted() {
+	sourcePublishingStarted.Do(func() {
+		fmt.Println("source publishing started")
+	})
 }
 
 func buildToken(appID string, appCert string, channel string, uid string) (string, error) {

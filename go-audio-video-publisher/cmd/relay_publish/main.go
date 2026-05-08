@@ -37,6 +37,7 @@ func main() {
 	outputChannel := flag.String("output-channel", "", "Output Agora channel to publish to")
 	videoUID := flag.String("video-uid", "73", "Remote UID for video in source channel")
 	atmosUID := flag.String("atmos-uid", "74", "Remote UID for atmosphere audio in source channel")
+	atmosEnabled := flag.Bool("atmos-enabled", true, "Whether to subscribe to and mix source atmosphere audio")
 	videoDelay := flag.Float64("video-delay", 7.0, "Delay in seconds for video and atmosphere")
 	startAt := flag.Float64("start-at", 0, "Absolute Unix timestamp to start video (overrides video-delay)")
 	subUID := flag.String("sub-uid", "77", "Local UID for subscriber connection")
@@ -70,6 +71,7 @@ func main() {
 		outputChannel: *outputChannel,
 		videoUID:      *videoUID,
 		atmosUID:      *atmosUID,
+		atmosEnabled:  *atmosEnabled,
 		videoDelay:    time.Duration(*videoDelay * float64(time.Second)),
 		startAt:       startAtTime,
 		subUID:        *subUID,
@@ -88,6 +90,7 @@ type relayConfig struct {
 	outputChannel string
 	videoUID      string
 	atmosUID      string
+	atmosEnabled  bool
 	videoDelay    time.Duration
 	startAt       time.Time // absolute start time (zero = use relative videoDelay)
 	subUID        string
@@ -212,37 +215,39 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 		EncodedFrameOnly: true,
 	})
 
-	// Register audio observer for atmosphere UID
-	subLocalUser.SetPlaybackAudioFrameBeforeMixingParameters(1, 16000)
-	subCon.RegisterAudioFrameObserver(&agoraservice.AudioFrameObserver{
-		OnPlaybackAudioFrameBeforeMixing: func(
-			_ *agoraservice.LocalUser,
-			channelId string,
-			uid string,
-			frame *agoraservice.AudioFrame,
-			vadResultState agoraservice.VadState,
-			vadResultFrame *agoraservice.AudioFrame,
-		) bool {
-			if uid != cfg.atmosUID {
-				return true
-			}
-			// Split into 10ms (320 byte) chunks
-			now := time.Now()
-			for off := 0; off+320 <= len(frame.Buffer); off += 320 {
-				chunk := make([]byte, 320)
-				copy(chunk, frame.Buffer[off:off+320])
-				ac := &atmosChunk{pcm: chunk, receiveAt: now}
-				select {
-				case atmosBuffer <- ac:
-				default:
-					<-atmosBuffer
-					atmosBuffer <- ac
-					atomic.AddInt64(&droppedAtmosChunks, 1)
+	if cfg.atmosEnabled {
+		// Register audio observer for atmosphere UID
+		subLocalUser.SetPlaybackAudioFrameBeforeMixingParameters(1, 16000)
+		subCon.RegisterAudioFrameObserver(&agoraservice.AudioFrameObserver{
+			OnPlaybackAudioFrameBeforeMixing: func(
+				_ *agoraservice.LocalUser,
+				channelId string,
+				uid string,
+				frame *agoraservice.AudioFrame,
+				vadResultState agoraservice.VadState,
+				vadResultFrame *agoraservice.AudioFrame,
+			) bool {
+				if uid != cfg.atmosUID {
+					return true
 				}
-			}
-			return true
-		},
-	}, 0, nil)
+				// Split into 10ms (320 byte) chunks
+				now := time.Now()
+				for off := 0; off+320 <= len(frame.Buffer); off += 320 {
+					chunk := make([]byte, 320)
+					copy(chunk, frame.Buffer[off:off+320])
+					ac := &atmosChunk{pcm: chunk, receiveAt: now}
+					select {
+					case atmosBuffer <- ac:
+					default:
+						<-atmosBuffer
+						atmosBuffer <- ac
+						atomic.AddInt64(&droppedAtmosChunks, 1)
+					}
+				}
+				return true
+			},
+		}, 0, nil)
+	}
 
 	// Connect subscriber to source channel
 	if rc := subCon.Connect(subToken, cfg.sourceChannel, cfg.subUID); rc != 0 {
@@ -255,7 +260,11 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	case <-stop:
 		return errors.New("interrupted before subscriber connected")
 	}
-	logStderr("[SUB] subscribed to source channel %s (video UID %s, atmos UID %s)", cfg.sourceChannel, cfg.videoUID, cfg.atmosUID)
+	if cfg.atmosEnabled {
+		logStderr("[SUB] subscribed to source channel %s (video UID %s, atmos UID %s)", cfg.sourceChannel, cfg.videoUID, cfg.atmosUID)
+	} else {
+		logStderr("[SUB] subscribed to source channel %s (video UID %s, atmosphere disabled)", cfg.sourceChannel, cfg.videoUID)
+	}
 
 	// Request initial key frame
 	subCon.SendIntraRequest(cfg.videoUID)

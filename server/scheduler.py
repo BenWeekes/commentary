@@ -242,43 +242,28 @@ class Scheduler:
             ms.state = "upcoming"
             return
 
-        if ttk > 3 * 60:
+        prestart_seconds = max(0.0, ms.match_cfg.prestart_seconds)
+
+        if ttk > prestart_seconds:
             ms.state = "upcoming"
             return
 
-        if ttk > 90:
-            ms.state = "countdown"
-            return
-
-        # Within 90s of kickoff — check if we have data to arm
         has_keyterms = self._match_store.read_keyterms(mid) is not None
-        if ttk > 30:
-            if has_keyterms:
-                ms.state = "armed"
+        ms.state = "starting"
+        keyterms_note = "" if has_keyterms else " without keyterms"
+        print(f"[SCHED] {mid} auto-starting (kickoff in {ttk:.0f}s, prestart={prestart_seconds:.0f}s){keyterms_note}")
+        try:
+            self._orchestrator.start_match(mid)
+        except Exception as e:
+            ms.start_error_count += 1
+            if ms.start_error_count >= self._MAX_START_ERRORS:
+                ms.state = "error"
+                ms.last_error = f"auto-start failed {ms.start_error_count} times: {e}"
+                print(f"[SCHED] {mid} giving up after {ms.start_error_count} errors")
             else:
-                ms.state = "countdown"
-            return
-
-        # Within 30s of kickoff — auto-start
-        if ttk <= 30:
-            if has_keyterms:
-                ms.state = "starting"
-                print(f"[SCHED] {mid} auto-starting (kickoff in {ttk:.0f}s)")
-                try:
-                    self._orchestrator.start_match(mid)
-                except Exception as e:
-                    ms.start_error_count += 1
-                    if ms.start_error_count >= self._MAX_START_ERRORS:
-                        ms.state = "error"
-                        ms.last_error = f"auto-start failed {ms.start_error_count} times: {e}"
-                        print(f"[SCHED] {mid} giving up after {ms.start_error_count} errors")
-                    else:
-                        ms.state = "armed"
-                        ms.last_error = str(e)
-                        print(f"[SCHED] {mid} auto-start failed ({ms.start_error_count}/{self._MAX_START_ERRORS}): {e}")
-            else:
-                ms.state = "waiting_for_source"
-                print(f"[SCHED] {mid} waiting for source data (no keyterms)")
+                ms.state = "upcoming"
+                ms.last_error = str(e)
+                print(f"[SCHED] {mid} auto-start failed ({ms.start_error_count}/{self._MAX_START_ERRORS}): {e}")
 
     def _do_refresh(self, ms: MatchSchedule, now: float):
         """Attempt to refresh SR data for a match."""
