@@ -464,46 +464,60 @@ class TTSEngine:
                   f"{f' ({int_discarded} queued items discarded)' if int_discarded else ''}")
         if text:
             if play_at and not interrupt:
+                # Only discard queued items whose play_at has already passed.
+                # Items still in the future can be played on time — the TTS
+                # worker will drop them later if they end up late.
+                now = time.time()
                 discarded = 0
+                keep = []
                 while not self._text_queue.empty():
                     try:
-                        stale_item = self._text_queue.get_nowait()
-                        discarded += 1
-                        # Emit telemetry for replaced queue items
-                        stale_text, stale_play_at, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None)
-                        self._skipped_meta.append({
-                            "source": "stt", "status": "replaced",
-                            "uid": None, "text": stale_text,
-                            "translated": None,
-                            "translate_time": None, "tts_time": None,
-                            "play_at": stale_play_at,
-                            "play_started_at": None, "play_ended_at": None,
-                            "actual_play_duration_ms": 0, "total_buffered_ms": 0,
-                            "interrupted": False, "interrupted_by": "",
-                        })
+                        queued_item = self._text_queue.get_nowait()
+                        _, item_play_at, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None)
+                        if item_play_at and item_play_at > now:
+                            keep.append(queued_item)
+                        else:
+                            discarded += 1
+                            stale_text, stale_play_at, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None)
+                            self._skipped_meta.append({
+                                "source": "stt", "status": "replaced",
+                                "uid": None, "text": stale_text,
+                                "translated": None,
+                                "translate_time": None, "tts_time": None,
+                                "play_at": stale_play_at,
+                                "play_started_at": None, "play_ended_at": None,
+                                "actual_play_duration_ms": 0, "total_buffered_ms": 0,
+                                "interrupted": False, "interrupted_by": "",
+                            })
                     except queue.Empty:
                         break
-                # Also discard lookahead if it was based on a now-stale item
+                # Re-queue items that still have time
+                for kept_item in keep:
+                    self._text_queue.put(kept_item)
+                # Only discard lookahead if its play_at has passed
                 if self._lookahead_item:
-                    la = self._lookahead_item
-                    with self._lookahead_lock:
-                        la_ms = len(self._lookahead_buf) * 10
-                        self._lookahead_buf.clear()
-                    self._lookahead_item = None
-                    discarded += 1
-                    self._skipped_meta.append({
-                        "source": "stt", "status": "replaced",
-                        "uid": la.get("uid"), "text": la.get("text"),
-                        "translated": la.get("translated"),
-                        "translate_time": la.get("translate_time"),
-                        "tts_time": la.get("tts_time"),
-                        "play_at": la.get("play_at"),
-                        "play_started_at": None, "play_ended_at": None,
-                        "actual_play_duration_ms": 0, "total_buffered_ms": la_ms,
-                        "interrupted": False, "interrupted_by": "",
-                    })
+                    la_play_at = self._lookahead_item.get("play_at")
+                    if not la_play_at or la_play_at <= now:
+                        la = self._lookahead_item
+                        with self._lookahead_lock:
+                            la_ms = len(self._lookahead_buf) * 10
+                            self._lookahead_buf.clear()
+                        self._lookahead_item = None
+                        discarded += 1
+                        self._skipped_meta.append({
+                            "source": "stt", "status": "replaced",
+                            "uid": la.get("uid"), "text": la.get("text"),
+                            "translated": la.get("translated"),
+                            "translate_time": la.get("translate_time"),
+                            "tts_time": la.get("tts_time"),
+                            "play_at": la.get("play_at"),
+                            "play_started_at": None, "play_ended_at": None,
+                            "actual_play_duration_ms": 0, "total_buffered_ms": la_ms,
+                            "interrupted": False, "interrupted_by": "",
+                        })
                 if discarded:
-                    print(f"  [{self._vts()}] [TTS] Replaced {discarded} stale queued item(s)")
+                    print(f"  [{self._vts()}] [TTS] Replaced {discarded} stale queued item(s)"
+                          f"{f' (kept {len(keep)})' if keep else ''}")
             self._text_queue.put((text, play_at, translate_fn))
 
     def clear_stt(self):
