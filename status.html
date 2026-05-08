@@ -185,7 +185,7 @@
 <body>
   <div class="header">
     <h1>Live Matches</h1>
-    <p id="subtitle">Multilingual commentary status</p>
+    <p id="subtitle">Multilingual commentary status <a href="#" id="logout-link" style="color:#555;font-size:12px;margin-left:12px;text-decoration:none;" onclick="doLogout();return false;">Logout</a></p>
   </div>
   <div class="matches" id="matches"></div>
 
@@ -340,6 +340,12 @@
         .catch(function() {
           container.innerHTML = '<div class="server-error">Cannot reach server at ' + esc(CTL) + '</div>';
         });
+    }
+
+    function doLogout() {
+      fetch(CTL + '/api/logout', { method: 'POST' })
+        .then(function() { window.location.href = '/login.html'; })
+        .catch(function() { window.location.href = '/login.html'; });
     }
 
     poll();

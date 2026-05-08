@@ -8,6 +8,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import threading
 
+from server.auth import create_session_cookie, verify_session_cookie, parse_cookie
 from server.token_api import generate_viewer_token
 
 # Incrementing UID counter — each viewer request gets a unique UID.
@@ -37,6 +38,21 @@ class StatusHandler(BaseHTTPRequestHandler):
     _MATCH_LOGS_RE = re.compile(r'^/api/matches/([^/]+)/logs/([a-z]{2}|stt)$')
     _MATCH_DETAIL_RE = re.compile(r'^/api/matches/([^/]+)/detail$')
     _MATCH_REFRESH_RE = re.compile(r'^/api/matches/([^/]+)/refresh-data$')
+
+    def _is_authenticated(self):
+        """Check if the request has a valid ops session cookie."""
+        cfg = self.server_config
+        if not cfg.ops_auth_enabled:
+            return True
+        cookie_val = parse_cookie(self.headers.get("Cookie", ""), "ops_session")
+        if not cookie_val:
+            return False
+        return verify_session_cookie(cookie_val, cfg.ops_session_secret) is not None
+
+    def _redirect(self, url):
+        self.send_response(302)
+        self.send_header("Location", url)
+        self.end_headers()
 
     def _respond(self, code, data):
         body = json.dumps(data).encode()
@@ -68,22 +84,38 @@ class StatusHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
 
-        # Static files
-        if path in ("/", "/control.html"):
-            self._serve_file("control.html")
+        # Login page — always accessible
+        if path == "/login.html":
+            self._serve_file("login.html")
             return
+
+        # Static files — unprotected
         if path == "/viewer_live.html":
             self._serve_file("viewer_live.html")
             return
-        if path == "/status.html":
-            self._serve_file("status.html")
+
+        # Protected ops pages — redirect to login if auth enabled
+        if path in ("/", "/control.html", "/status.html"):
+            if not self._is_authenticated():
+                self._redirect("/login.html")
+                return
+            if path in ("/", "/control.html"):
+                self._serve_file("control.html")
+            else:
+                self._serve_file("status.html")
             return
         if path == "/match_detail.html":
+            if not self._is_authenticated():
+                self._redirect("/login.html")
+                return
             self._serve_file("match_detail.html")
             return
 
         # Overview: all matches with scheduler state, ordered by config
         if path == "/api/status/overview":
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             scheduler = self.orchestrator.scheduler
             result = []
             for mc in self.server_config.matches:
@@ -117,6 +149,9 @@ class StatusHandler(BaseHTTPRequestHandler):
 
         # All match statuses
         if path == "/api/matches":
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             statuses = self.orchestrator.get_all_status()
             # Build a config lookup
             cfg_map = {}
@@ -234,9 +269,12 @@ class StatusHandler(BaseHTTPRequestHandler):
             })
             return
 
-        # Match detail: keyterms, log dir, config
+        # Match detail: keyterms, log dir, config (protected)
         m = self._MATCH_DETAIL_RE.match(path)
         if m:
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             match_id = m.group(1)
             worker = self.orchestrator.get_worker(match_id)
             if not worker:
@@ -371,6 +409,44 @@ class StatusHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
 
+        # Login endpoint — always accessible
+        if path == "/api/login":
+            cfg = self.server_config
+            if not cfg.ops_auth_enabled:
+                self._respond(200, {"redirect": "/status.html"})
+                return
+            content_len = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_len) if content_len > 0 else b"{}"
+            try:
+                data = json.loads(body)
+            except json.JSONDecodeError:
+                self._respond(400, {"error": "invalid JSON"})
+                return
+            username = data.get("username", "")
+            password = data.get("password", "")
+            if username != cfg.ops_username or password != cfg.ops_password:
+                self._respond(401, {"error": "invalid credentials"})
+                return
+            cookie_val = create_session_cookie(username, cfg.ops_session_secret, cfg.ops_session_ttl_hours)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Set-Cookie", f"ops_session={cookie_val}; HttpOnly; SameSite=Lax; Path=/; Max-Age={cfg.ops_session_ttl_hours * 3600}")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"redirect": "/status.html"}).encode())
+            return
+
+        # Logout endpoint
+        if path == "/api/logout":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Set-Cookie", "ops_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "ok"}).encode())
+            return
+
+        # Token endpoint — unprotected (viewer access)
         if path == "/api/token":
             content_len = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_len) if content_len > 0 else b"{}"
@@ -408,9 +484,12 @@ class StatusHandler(BaseHTTPRequestHandler):
             })
             return
 
-        # Start/stop a match
+        # Start/stop a match (protected)
         m = self._MATCH_ACTION_RE.match(path)
         if m:
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             match_id, action = m.group(1), m.group(2)
             try:
                 if action == "start":
@@ -433,9 +512,12 @@ class StatusHandler(BaseHTTPRequestHandler):
             })
             return
 
-        # Refresh SR data for a match
+        # Refresh SR data for a match (protected)
         m = self._MATCH_REFRESH_RE.match(path)
         if m:
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             match_id = m.group(1)
             # Find match config
             match_cfg = None
@@ -494,7 +576,8 @@ def start_status_server(port, orchestrator, server_config):
     server = HTTPServer(("0.0.0.0", port), StatusHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    print(f"[HTTP] Status server on http://localhost:{port}")
+    auth_label = "ON" if server_config.ops_auth_enabled else "OFF"
+    print(f"[HTTP] Status server on http://localhost:{port} (auth: {auth_label})")
     print(f"       GET  /api/status/overview           → scheduler overview (all matches)")
     print(f"       GET  /api/matches                  → all match statuses")
     print(f"       GET  /api/matches/{{id}}/status      → one match status")
@@ -504,8 +587,10 @@ def start_status_server(port, orchestrator, server_config):
     print(f"       POST /api/matches/{{id}}/start       → start a match")
     print(f"       POST /api/matches/{{id}}/stop        → stop a match")
     print(f"       POST /api/matches/{{id}}/refresh-data → refresh SR data")
+    print(f"       POST /api/login                    → authenticate")
+    print(f"       POST /api/logout                   → clear session")
     print(f"       POST /api/token                    → viewer token (single)")
-    print(f"       GET  /                             → control.html")
+    print(f"       GET  /login.html                   → login page")
     print(f"       GET  /status.html                  → status page")
     print(f"       GET  /match_detail.html            → match detail page")
     print(f"       GET  /viewer_live.html             → production viewer")

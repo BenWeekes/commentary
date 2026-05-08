@@ -46,6 +46,12 @@ class ServerConfig:
     control_port: int = 8080
     translation_model: str = "gpt-4o-mini"
     matches: list[MatchConfig] = field(default_factory=list)
+    # Auth
+    ops_auth_enabled: bool = False
+    ops_username: str = "ops"
+    ops_password: str = ""
+    ops_session_secret: str = ""
+    ops_session_ttl_hours: int = 12
 
 
 def _resolve_path(path: str, base_dir: str) -> str:
@@ -107,6 +113,14 @@ def load_config(yaml_path: str) -> ServerConfig:
             kickoff_utc=m.get("kickoff_utc", ""),
         ))
 
+    # Auth config — env vars take precedence
+    ops_password = os.environ.get("OPS_PASSWORD", raw.get("ops_password", ""))
+    ops_session_secret = os.environ.get("OPS_SESSION_SECRET", raw.get("ops_session_secret", ""))
+    ops_auth_enabled = raw.get("ops_auth_enabled", False)
+    # Auto-enable auth if password is set via env
+    if ops_password and not raw.get("ops_auth_enabled"):
+        ops_auth_enabled = True
+
     return ServerConfig(
         agora_app_id=agora_app_id,
         agora_app_cert=agora_app_cert,
@@ -117,6 +131,11 @@ def load_config(yaml_path: str) -> ServerConfig:
         control_port=raw.get("control_port", 8080),
         translation_model=raw.get("translation_model", "gpt-4o-mini"),
         matches=matches,
+        ops_auth_enabled=ops_auth_enabled,
+        ops_password=ops_password,
+        ops_username=os.environ.get("OPS_USERNAME", raw.get("ops_username", "ops")),
+        ops_session_secret=ops_session_secret,
+        ops_session_ttl_hours=int(raw.get("ops_session_ttl_hours", 12)),
     )
 
 
