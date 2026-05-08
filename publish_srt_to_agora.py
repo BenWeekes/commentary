@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Bridge an SRT input directly into an Agora channel.
-
-Uses the existing go-audio-video-publisher with a remote libavformat input.
-Audio is decoded and published as PCM. Video is decoded and published as YUV
-by default for reliability, though encoded passthrough can be requested.
-"""
+"""Bridge an SRT input directly into an Agora channel."""
 
 from __future__ import annotations
 
@@ -70,6 +65,8 @@ def main() -> None:
     parser.add_argument("--channel", required=True, help="Agora channel to publish into")
     parser.add_argument("--uid", default="73", help="Agora publishing UID")
     parser.add_argument("--video-mode", choices=("yuv", "encoded"), default="yuv", help="Agora video publish mode")
+    parser.add_argument("--source-buffer-seconds", type=float, default=0.0,
+                        help="Extra wall-clock delay applied before sending source media")
     parser.add_argument("--viewer-base-url", default=DEFAULT_VIEWER_BASE_URL, help="Base URL for viewer_test.html")
     parser.add_argument("--retry-seconds", type=float, default=5.0, help="Delay before retrying a failed pull")
     parser.add_argument("--max-attempts", type=int, default=0, help="Max attempts before exiting; 0 means retry forever")
@@ -93,6 +90,7 @@ def main() -> None:
         "--uid", args.uid,
         "--input", args.srt_url,
         "--video-mode", args.video_mode,
+        "--source-buffer-seconds", str(args.source_buffer_seconds),
     ]
     print(f"[SRT->AGORA] starting {' '.join(cmd)}")
 

@@ -18,10 +18,11 @@ matches:
     kickoff_utc: "2026-05-08T18:30:00Z"
     prestart_seconds: 900
     source:
-      type: srt
+      type: srt_direct
       url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
-      ingest_channel: bvb_sge_md33_src
+      original_channel: bvb_sge_md33-original
       publish_uid: 73
+      original_buffer_seconds: 1.0
       retry_seconds: 5
     video_uid: 73
     video_delay: 7.0
@@ -34,10 +35,11 @@ matches:
     kickoff_utc: "2026-05-09T16:30:00Z"
     prestart_seconds: 900
     source:
-      type: srt
+      type: srt_direct
       url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
-      ingest_channel: wob_bmu_md33_src
+      original_channel: wob_bmu_md33-original
       publish_uid: 73
+      original_buffer_seconds: 1.0
       retry_seconds: 5
     video_uid: 73
     video_delay: 7.0
@@ -50,10 +52,11 @@ matches:
     kickoff_utc: "2026-05-10T17:30:00Z"
     prestart_seconds: 900
     source:
-      type: srt
+      type: srt_direct
       url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
-      ingest_channel: m05_uni_md33_src
+      original_channel: m05_uni_md33-original
       publish_uid: 73
+      original_buffer_seconds: 1.0
       retry_seconds: 5
     video_uid: 73
     video_delay: 7.0

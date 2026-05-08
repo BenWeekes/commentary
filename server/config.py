@@ -15,6 +15,8 @@ class LiveSourceConfig:
     ingest_channel: str = ""
     publish_uid: int = 73
     retry_seconds: float = 5.0
+    original_channel: str = ""
+    original_buffer_seconds: float = 1.0
 
 
 @dataclass
@@ -61,6 +63,10 @@ class ServerConfig:
     control_port: int = 8080
     translation_model: str = "gpt-4o-mini"
     matches: list[MatchConfig] = field(default_factory=list)
+    # Cloud Recording
+    cloud_recording: dict | None = None
+    agora_customer_key: str = ""
+    agora_customer_secret: str = ""
     # Auth
     ops_auth_enabled: bool = False
     ops_username: str = "ops"
@@ -91,6 +97,8 @@ def _parse_live_source(raw_match: dict) -> LiveSourceConfig | None:
             ingest_channel=source_raw.get("ingest_channel", ""),
             publish_uid=source_raw.get("publish_uid", 73),
             retry_seconds=source_raw.get("retry_seconds", 5.0),
+            original_channel=source_raw.get("original_channel", f"{raw_match.get('match_id', '')}-original"),
+            original_buffer_seconds=source_raw.get("original_buffer_seconds", 1.0),
         )
 
     if any(k in raw_match for k in ("source_channel", "video_uid", "atmosphere_uid", "commentary_uid")):
@@ -129,6 +137,8 @@ def get_live_source_channel(match_cfg: MatchConfig) -> str:
         return ""
     if source.type == "srt":
         return source.ingest_channel
+    if source.type == "srt_direct":
+        return source.original_channel
     return source.channel
 
 
@@ -173,15 +183,18 @@ def load_config(yaml_path: str) -> ServerConfig:
             atmosphere=atmosphere,
             source_channel=live_source.channel if live_source and live_source.type == "agora" else (
                 live_source.ingest_channel if live_source and live_source.type == "srt"
+                else live_source.original_channel if live_source and live_source.type == "srt_direct"
                 else m.get("source_channel", "")
             ),
             video_uid=live_source.video_uid if live_source and live_source.type == "agora" else (
                 live_source.publish_uid if live_source and live_source.type == "srt"
+                else live_source.publish_uid if live_source and live_source.type == "srt_direct"
                 else m.get("video_uid", 73)
             ),
             atmosphere_uid=live_source.atmosphere_uid if live_source and live_source.type == "agora" else 0,
             commentary_uid=live_source.commentary_uid if live_source and live_source.type == "agora" else (
                 live_source.publish_uid if live_source and live_source.type == "srt"
+                else live_source.publish_uid if live_source and live_source.type == "srt_direct"
                 else m.get("commentary_uid", 75)
             ),
             source=live_source,
@@ -195,6 +208,11 @@ def load_config(yaml_path: str) -> ServerConfig:
             auto_manage=m.get("auto_manage", False),
             kickoff_utc=m.get("kickoff_utc", ""),
         ))
+
+    # Cloud Recording config
+    cloud_recording_raw = raw.get("cloud_recording")
+    agora_customer_key = os.environ.get("AGORA_CUSTOMER_KEY", "")
+    agora_customer_secret = os.environ.get("AGORA_CUSTOMER_SECRET", "")
 
     # Auth config — env vars take precedence
     ops_password = os.environ.get("OPS_PASSWORD", raw.get("ops_password", ""))
@@ -214,6 +232,9 @@ def load_config(yaml_path: str) -> ServerConfig:
         control_port=raw.get("control_port", 8080),
         translation_model=raw.get("translation_model", "gpt-4o-mini"),
         matches=matches,
+        cloud_recording=cloud_recording_raw,
+        agora_customer_key=agora_customer_key,
+        agora_customer_secret=agora_customer_secret,
         ops_auth_enabled=ops_auth_enabled,
         ops_password=ops_password,
         ops_username=os.environ.get("OPS_USERNAME", raw.get("ops_username", "ops")),
@@ -239,6 +260,15 @@ def validate_config(cfg: ServerConfig, dry_run=False):
         errors.append("OPENAI_API_KEY not set")
     if not cfg.elevenlabs_api_key:
         errors.append("ELEVENLABS_API_KEY not set")
+
+    if cfg.cloud_recording:
+        if not cfg.agora_customer_key:
+            errors.append("cloud_recording configured but AGORA_CUSTOMER_KEY not set")
+        if not cfg.agora_customer_secret:
+            errors.append("cloud_recording configured but AGORA_CUSTOMER_SECRET not set")
+        for field in ("vendor", "region", "bucket", "accessKey", "secretKey"):
+            if field not in cfg.cloud_recording:
+                errors.append(f"cloud_recording missing required field: {field}")
 
     if cfg.ops_auth_enabled:
         if not cfg.ops_password:
@@ -278,6 +308,13 @@ def validate_config(cfg: ServerConfig, dry_run=False):
                     errors.append(f"{prefix}: source.ingest_channel required for live srt source")
                 if not source.publish_uid:
                     errors.append(f"{prefix}: source.publish_uid required for live srt source")
+            elif source.type == "srt_direct":
+                if not source.url:
+                    errors.append(f"{prefix}: source.url required for live srt_direct source")
+                if not source.original_channel:
+                    errors.append(f"{prefix}: source.original_channel required for live srt_direct source")
+                if not source.publish_uid:
+                    errors.append(f"{prefix}: source.publish_uid required for live srt_direct source")
             else:
                 errors.append(f"{prefix}: invalid live source type '{source.type}'")
         if not m.languages:

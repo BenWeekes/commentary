@@ -1,4 +1,4 @@
-"""Helpers for bridging a remote SRT input into an internal Agora channel."""
+"""Helpers for SRT-backed publishing processes."""
 
 from __future__ import annotations
 
@@ -23,8 +23,55 @@ def start_srt_ingest(
     retry_seconds: float,
     app_id: str,
     app_cert: str,
-) -> subprocess.Popen:
+    ) -> subprocess.Popen:
     """Start the long-running SRT ingest publisher process."""
+    return _start_srt_publish(
+        srt_url=srt_url,
+        channel=channel,
+        publish_uid=publish_uid,
+        retry_seconds=retry_seconds,
+        app_id=app_id,
+        app_cert=app_cert,
+        video_mode="yuv",
+        source_buffer_seconds=0.0,
+    )
+
+
+def start_srt_original_publish(
+    *,
+    srt_url: str,
+    channel: str,
+    publish_uid: int,
+    retry_seconds: float,
+    source_buffer_seconds: float,
+    app_id: str,
+    app_cert: str,
+) -> subprocess.Popen:
+    """Start an original viewer publisher from SRT with a small jitter buffer."""
+    return _start_srt_publish(
+        srt_url=srt_url,
+        channel=channel,
+        publish_uid=publish_uid,
+        retry_seconds=retry_seconds,
+        app_id=app_id,
+        app_cert=app_cert,
+        video_mode="encoded",
+        source_buffer_seconds=source_buffer_seconds,
+    )
+
+
+def _start_srt_publish(
+    *,
+    srt_url: str,
+    channel: str,
+    publish_uid: int,
+    retry_seconds: float,
+    app_id: str,
+    app_cert: str,
+    video_mode: str,
+    source_buffer_seconds: float,
+) -> subprocess.Popen:
+    """Start a long-running SRT publisher process."""
     env = os.environ.copy()
     env.setdefault("AGORA_APP_ID", app_id)
     env.setdefault("AGORA_APP_CERT", app_cert)
@@ -37,7 +84,8 @@ def start_srt_ingest(
         "--srt-url", srt_url,
         "--channel", channel,
         "--uid", str(publish_uid),
-        "--video-mode", "yuv",
+        "--video-mode", video_mode,
+        "--source-buffer-seconds", str(source_buffer_seconds),
         "--retry-seconds", str(retry_seconds),
         "--max-attempts", "0",
     ]
@@ -49,4 +97,3 @@ def start_srt_ingest(
         stderr=subprocess.PIPE,
         preexec_fn=os.setsid,
     )
-

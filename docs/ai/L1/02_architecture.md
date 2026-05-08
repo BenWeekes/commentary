@@ -78,14 +78,14 @@ SR events run in parallel: the SRPrefetcher pre-translates and pre-TTS's each ev
 
 ## Live Match Mode
 
-Live matches now resolve into one normalized Agora source channel before the rest of the live pipeline starts.
-
-Two source modes are supported:
+Live matches support three source modes:
 
 - `source.type = agora`
   Uses an existing Agora source channel with explicit source UIDs.
 - `source.type = srt`
   Pulls one remote SRT feed, republishes it into an internal Agora channel, then runs the normal live worker from there.
+- `source.type = srt_direct`
+  Pulls one remote SRT feed twice: one ffmpeg audio decode pipe feeds STT directly, while each translated output channel publishes encoded video directly from the SRT input. A separate original viewer channel is still republished into Agora with a small source buffer.
 
 Agora-backed live matches use a source channel where the broadcaster publishes three UIDs:
 
@@ -125,18 +125,25 @@ Source Agora Channel
 
 Components:
 
-- `server/live_source.py` — resolves `agora` vs `srt` into a normalized source channel plus source UIDs
+- `server/live_source.py` — resolves `agora`, `srt`, or `srt_direct` and owns any required source-side processes
 - `subscribe_audio.go` (`go-audio-video-publisher/cmd/subscribe_audio/`) — subscribes to the resolved source channel, writes commentary/program PCM to stdout. Python STT reads from this process's stdout via `pcm_stream_from_pipe()`.
 - `relay_publish.go` (`go-audio-video-publisher/cmd/relay_publish/`) — subscribes to resolved source video and optional atmosphere, holds frames in a delay buffer for `video_delay` seconds, then publishes to the output channel. Audio output is delayed source atmosphere mixed with translated TTS from stdin when source atmosphere is enabled.
 - One `relay_publish` process per language.
 
-For first-pass SRT live mode:
+For `source.type = srt`:
 
 - one combined program feed is published on `source.publish_uid`
 - STT reads that program feed
 - source atmosphere is disabled explicitly in `relay_publish`
 - output channels carry delayed video + translated TTS only
 - when using direct encoded H.264 from SRT, the publisher first repacketizes each access unit: drop `AUD`/filler NALs, preserve SPS/PPS for keyframes, and emit clean IDR/P-slice AUs before `PushVideoEncodedData`
+
+For `source.type = srt_direct`:
+
+- STT reads raw PCM from an ffmpeg SRT audio decode pipe, not from Agora
+- translated language channels publish encoded video directly from the SRT input and take translated PCM from stdin
+- the original viewer channel is still published into Agora, using `source.original_channel` and `source.original_buffer_seconds`
+- there is still no separate source-atmosphere bed; outputs are delayed video + translated TTS only
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
 

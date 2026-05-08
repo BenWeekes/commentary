@@ -45,8 +45,12 @@ from lib.stt_pipeline import run_stt_pipeline_multi, run_stt_pipeline_live
 from lib.translator import translate_text, voice_for_lang, LANG_VOICES
 from lib.tts_engine import TTSEngine, _ts
 
+from server.cloud_recording import (
+    RecordingSession, start_channel_recording, stop_channel_recording,
+)
 from server.config import MatchConfig, ServerConfig
 from server.live_source import resolve_live_source, stop_resolved_live_source
+from server.srt_audio import start_srt_audio_pipe
 
 
 # ─── Telemetry dataclasses ────────────────────────────────────────────────
@@ -119,6 +123,44 @@ def _start_publisher(h264_file, channel, video_delay, app_id, app_cert, start_at
         cmd.append(f"{start_at:.3f}")
     elif video_delay > 0:
         cmd.append(str(video_delay))
+
+    proc = subprocess.Popen(
+        cmd,
+        env=env,
+        cwd=base_dir,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        preexec_fn=os.setsid,
+    )
+    return proc
+
+
+def _start_direct_live_publisher(input_url, channel, app_id, app_cert, start_at=None):
+    """Launch the generic Go publisher for direct live SRT video + stdin PCM audio."""
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "go-audio-video-publisher")
+    default_sdk_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "codex",
+        "server-custom-llm", "go-audio-subscriber", "sdk", "agora_sdk_mac"
+    )
+
+    env = os.environ.copy()
+    env["AGORA_APP_CERTIFICATE"] = app_cert
+    if "DYLD_LIBRARY_PATH" not in env:
+        env["DYLD_LIBRARY_PATH"] = os.path.abspath(default_sdk_path)
+
+    cmd = [
+        "go", "run", ".",
+        "--app-id", app_id,
+        "--channel", channel,
+        "--uid", "73",
+        "--input", input_url,
+        "--video-mode", "encoded",
+        "--audio-from-stdin",
+    ]
+    if start_at is not None:
+        cmd.extend(["--start-at", f"{start_at:.3f}"])
 
     proc = subprocess.Popen(
         cmd,
@@ -261,6 +303,7 @@ class MatchWorker:
         self._lang_logs = {}  # lang -> file handle
         self._keyterms = None
         self._telemetry_lock = threading.Lock()
+        self._recording_sessions: dict[str, RecordingSession] = {}
 
     def start(self):
         """Spawn background thread to run the match. Safe to call again after stop()."""
@@ -276,6 +319,7 @@ class MatchWorker:
         self._stt_log = None
         self._lang_logs = {}
         self._keyterms = None
+        self._recording_sessions = {}
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
@@ -290,10 +334,12 @@ class MatchWorker:
         self._status.stt_utterance_count = self._stt_utterance_count
         self._status.languages = {}
         for lang, pipe in self._pipelines.items():
+            rec_session = self._recording_sessions.get(lang)
             self._status.languages[lang] = {
                 "channel": pipe.channel,
                 "state": "running" if pipe.tts and not self._stop.is_set() else "stopped",
                 "tts_queue_size": pipe.tts.queue_size() if pipe.tts else 0,
+                "recording_sid": rec_session.sid if rec_session else None,
                 "telemetry": {
                     "stt_played": pipe.telemetry.stt_played,
                     "sr_played": pipe.telemetry.sr_played,
@@ -402,6 +448,7 @@ class MatchWorker:
                 return
 
             self._status.state = "running"
+            self._start_recordings(tag)
 
             # Start STT NOW — processes audio during video delay, giving
             # the translate+TTS pipeline the full delay as head start.
@@ -534,6 +581,10 @@ class MatchWorker:
             if "DYLD_LIBRARY_PATH" not in env:
                 env["DYLD_LIBRARY_PATH"] = os.path.abspath(default_sdk_path)
 
+            if resolved.source_type == "srt_direct":
+                self._run_live_srt_direct(tag, resolved)
+                return
+
             # --- Start subscribe_audio.go ---
             subscribe_cmd = [
                 "go", "run", "./cmd/subscribe_audio",
@@ -654,6 +705,7 @@ class MatchWorker:
                 return
 
             self._status.state = "running"
+            self._start_recordings(tag)
 
             # Start STT from subscribe_audio stdout
             print(f"[{tag}] Starting STT from live audio pipe...")
@@ -719,6 +771,129 @@ class MatchWorker:
             # Kill relay publishers and TTS engines
             self._cleanup(tag)
             stop_resolved_live_source(resolved, tag)
+
+    def _run_live_srt_direct(self, tag, resolved):
+        """Live mode using direct SRT for STT + translated outputs."""
+        audio_proc = None
+
+        try:
+            print(f"[{tag}] Starting direct SRT STT audio pipe...")
+            audio_proc = start_srt_audio_pipe(resolved.input_url)
+            threading.Thread(
+                target=_log_pub_stream,
+                args=(audio_proc.stderr, f"{tag} AUDIO err"),
+                daemon=True).start()
+
+            n_langs = len(self._match.languages)
+            connection_margin = max(5.0, n_langs * 2.0)
+            target_start = time.time() + connection_margin + self._match.video_delay
+            self._video_start_ref[0] = target_start
+            print(f"[{tag}] Shared target_start={target_start:.3f} "
+                  f"({self._match.video_delay}s delay + {connection_margin:.0f}s margin)")
+
+            self._load_keyterms(tag)
+            self._setup_log_dir()
+            self._open_stt_log(target_start)
+
+            for lang in self._match.languages:
+                if self._stop.is_set():
+                    break
+
+                output_channel = f"{self._match.match_id}-{lang}"
+                pub_tag = f"{tag} {lang.upper()} DIRECT"
+                print(f"[{tag}] Starting direct live publisher for {lang} → {output_channel}")
+                pub = _start_direct_live_publisher(
+                    resolved.input_url,
+                    output_channel,
+                    self._server.agora_app_id,
+                    self._server.agora_app_cert,
+                    start_at=target_start,
+                )
+                _wait_for_publisher_signal(
+                    pub, "audio publishing started",
+                    timeout=15, tag=pub_tag)
+
+                voice_id = voice_for_lang(lang)
+
+                def make_telemetry_cb(l=lang):
+                    def cb(data):
+                        self._on_telemetry(l, data)
+                    return cb
+
+                tts = TTSEngine(
+                    audio_pipe=pub.stdin,
+                    voice_id=voice_id,
+                    api_key=self._server.elevenlabs_api_key,
+                    on_telemetry=make_telemetry_cb(),
+                )
+                tts.video_start = target_start
+                tts.start()
+
+                pipe = _LangPipeline(lang, output_channel, tts, sr_prefetcher=None,
+                                     publisher=pub)
+                pipe.video_start = target_start
+                self._pipelines[lang] = pipe
+
+            for lang, pipe in self._pipelines.items():
+                self._open_lang_log(lang, pipe.tts.voice_id, pipe.video_start)
+
+            if self._stop.is_set():
+                return
+
+            self._status.state = "running"
+            self._start_recordings(tag)
+
+            print(f"[{tag}] Starting STT from direct SRT audio pipe...")
+            stt_thread = threading.Thread(
+                target=self._run_stt_live,
+                args=(audio_proc.stdout,),
+                daemon=True)
+            stt_thread.start()
+
+            actual_vs_values = []
+            for lang, pipe in self._pipelines.items():
+                if self._stop.is_set():
+                    break
+                pub_tag = f"{tag} {lang.upper()} DIRECT"
+                vs = _wait_for_publisher_signal(
+                    pipe.publisher, "video delay complete",
+                    timeout=int(connection_margin + self._match.video_delay) + 15,
+                    tag=pub_tag)
+                drift = abs(vs - target_start)
+                if drift > 0.5:
+                    print(f"[{tag}] WARNING: {lang} video_start drifted {drift:.3f}s from target")
+                print(f"[{tag}] {lang}: video_start={vs:.3f} "
+                      f"(target={target_start:.3f}, drift={vs - target_start:+.3f}s)")
+
+                pipe.video_start = vs
+                pipe.tts.video_start = vs
+                actual_vs_values.append(vs)
+
+                threading.Thread(
+                    target=_log_pub_stream,
+                    args=(pipe.publisher.stdout, f"{tag} {lang.upper()} DIRECT out"),
+                    daemon=True).start()
+                threading.Thread(
+                    target=_log_pub_stream,
+                    args=(pipe.publisher.stderr, f"{tag} {lang.upper()} DIRECT err"),
+                    daemon=True).start()
+
+            if actual_vs_values:
+                mean_vs = sum(actual_vs_values) / len(actual_vs_values)
+                self._video_start_ref[0] = mean_vs
+                print(f"[{tag}] video_start_ref updated to mean={mean_vs:.3f} "
+                      f"(spread={max(actual_vs_values) - min(actual_vs_values):.3f}s)")
+
+            stt_thread.join()
+
+            print(f"[{tag}] STT done — draining TTS queues...")
+            drain_end = time.time() + self._match.video_delay
+            while time.time() < drain_end and not self._stop.is_set():
+                time.sleep(0.5)
+
+        finally:
+            if audio_proc:
+                _kill_publisher(audio_proc, tag=f"{tag} AUDIO")
 
     def _start_lang_pipeline(self, lang, atmosphere_pcm, tag, start_at=None):
         """Start Go publisher + TTSEngine + SRPrefetcher for one language.
@@ -1167,9 +1342,62 @@ class MatchWorker:
             print(f"[MATCH {self._match.match_id}] Roster fetch failed (non-fatal): {e}")
             return None
 
+    # ─── Cloud Recording ─────────────────────────────────────────────────
+
+    def _start_recordings(self, tag):
+        """Start cloud recording for each language channel (non-fatal)."""
+        cr = self._server.cloud_recording
+        if not cr or not self._server.agora_customer_key:
+            return
+
+        recording_uid = 800000
+        for lang, pipe in self._pipelines.items():
+            if lang == "original":
+                continue
+            try:
+                session = start_channel_recording(
+                    app_id=self._server.agora_app_id,
+                    app_cert=self._server.agora_app_cert,
+                    customer_key=self._server.agora_customer_key,
+                    customer_secret=self._server.agora_customer_secret,
+                    channel=pipe.channel,
+                    recording_uid=recording_uid,
+                    storage_config=cr,
+                )
+                self._recording_sessions[lang] = session
+                print(f"[{tag}] Recording started for {pipe.channel} "
+                      f"(sid={session.sid})")
+            except Exception as e:
+                print(f"[{tag}] WARNING: Recording start failed for "
+                      f"{pipe.channel} (non-fatal): {e}")
+            recording_uid += 1
+
+    def _stop_recordings(self, tag):
+        """Stop all active cloud recording sessions (non-fatal)."""
+        if not self._recording_sessions:
+            return
+
+        for lang, session in self._recording_sessions.items():
+            try:
+                resp = stop_channel_recording(
+                    app_id=self._server.agora_app_id,
+                    customer_key=self._server.agora_customer_key,
+                    customer_secret=self._server.agora_customer_secret,
+                    session=session,
+                )
+                upload_status = resp.get("serverResponse", {}).get(
+                    "uploadingStatus", "unknown")
+                print(f"[{tag}] Recording stopped for {session.channel} "
+                      f"(upload={upload_status})")
+            except Exception as e:
+                print(f"[{tag}] WARNING: Recording stop failed for "
+                      f"{session.channel} (non-fatal): {e}")
+        self._recording_sessions.clear()
+
     def _cleanup(self, tag):
         """Stop all pipelines, kill publishers, and close log files."""
         print(f"[{tag}] Cleaning up...")
+        self._stop_recordings(tag)
         for lang, pipe in self._pipelines.items():
             if pipe.sr_prefetcher:
                 try:

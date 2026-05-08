@@ -79,7 +79,7 @@ Examples: `bmg_fch_demo-es`, `bmg_fch_demo-pt`, `bmg_fch_demo-fr`
 
 In **demo mode**, a dedicated channel `{match_id}-original` is created by `_start_original_pipeline()`. It carries the source English commentary with video at zero delay (plays ahead of translated channels).
 
-In **live mode**, no extra channel is created. The `/api/matches/{id}/channels` endpoint returns the resolved live source channel as the "original" entry. For `source.type = srt`, that is the internal ingest channel.
+In **live mode**, the `/api/matches/{id}/channels` endpoint returns the resolved live source/original channel as the "original" entry. For `source.type = srt`, that is the internal ingest channel. For `source.type = srt_direct`, that is `source.original_channel`.
 
 ### Live SR data contract
 
@@ -92,6 +92,7 @@ Live mode does **not** currently poll real-time SR commentary endpoints or injec
 
 - Agora live source: delayed video + delayed atmosphere + translated TTS
 - SRT live source: delayed video + translated TTS only
+- SRT direct live source: delayed video + translated TTS only; original viewing uses a separate buffered channel
 
 ### Publisher UID
 

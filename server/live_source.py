@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass
 
 from server.config import MatchConfig, ServerConfig, get_live_source
-from server.srt_ingest import start_srt_ingest
+from server.srt_ingest import start_srt_ingest, start_srt_original_publish
 
 
 @dataclass
@@ -22,6 +22,8 @@ class ResolvedLiveSource:
     atmosphere_uid: int
     commentary_uid: int
     source_atmos_enabled: bool
+    input_url: str = ""
+    original_channel: str = ""
     owned_proc: subprocess.Popen | None = None
 
 
@@ -102,7 +104,55 @@ def resolve_live_source(
             atmosphere_uid=source.atmosphere_uid,
             commentary_uid=source.commentary_uid,
             source_atmos_enabled=True,
+            input_url="",
+            original_channel=source.channel,
             owned_proc=None,
+        )
+
+    if source.type == "srt_direct":
+        print(f"[{tag}] Starting direct SRT original publish → Agora channel={source.original_channel} uid={source.publish_uid}")
+        proc = start_srt_original_publish(
+            srt_url=source.url,
+            channel=source.original_channel,
+            publish_uid=source.publish_uid,
+            retry_seconds=source.retry_seconds,
+            source_buffer_seconds=source.original_buffer_seconds,
+            app_id=server_cfg.agora_app_id,
+            app_cert=server_cfg.agora_app_cert,
+        )
+        threading.Thread(
+            target=_log_stream,
+            args=(proc.stderr, f"{tag} SRC err"),
+            daemon=True,
+        ).start()
+        try:
+            _wait_for_stdout_signal(
+                proc,
+                "source publishing started",
+                timeout=60.0,
+                stop_event=stop_event,
+                tag=f"{tag} SRC",
+            )
+        except Exception:
+            _kill_proc(proc, tag=f"{tag} SRC")
+            raise
+
+        threading.Thread(
+            target=_log_stream,
+            args=(proc.stdout, f"{tag} SRC out"),
+            daemon=True,
+        ).start()
+
+        return ResolvedLiveSource(
+            source_type="srt_direct",
+            channel="",
+            video_uid=0,
+            atmosphere_uid=0,
+            commentary_uid=0,
+            source_atmos_enabled=False,
+            input_url=source.url,
+            original_channel=source.original_channel,
+            owned_proc=proc,
         )
 
     if source.type != "srt":
@@ -147,6 +197,8 @@ def resolve_live_source(
         atmosphere_uid=0,
         commentary_uid=source.publish_uid,
         source_atmos_enabled=False,
+        input_url=source.url,
+        original_channel=source.ingest_channel,
         owned_proc=proc,
     )
 

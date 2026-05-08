@@ -55,6 +55,9 @@ type config struct {
 	videoMode                     string
 	audioOnly                     bool
 	videoOnly                     bool
+	audioFromStdin                bool
+	startAt                       time.Time
+	sourceBuffer                  time.Duration
 	debugSleep                    bool
 }
 
@@ -65,6 +68,7 @@ type audioChunker struct {
 }
 
 var sourcePublishingStarted sync.Once
+var videoDelayComplete sync.Once
 
 func main() {
 	cfg, err := parseConfig()
@@ -110,6 +114,11 @@ func parseConfig() (*config, error) {
 	flag.StringVar(&cfg.videoMode, "video-mode", envOr("VIDEO_MODE", "yuv"), "Video publish mode: yuv, encoded, or reencode")
 	flag.BoolVar(&cfg.audioOnly, "audio-only", false, "Publish only audio from the MP4")
 	flag.BoolVar(&cfg.videoOnly, "video-only", false, "Publish only video from the MP4")
+	flag.BoolVar(&cfg.audioFromStdin, "audio-from-stdin", false, "Publish translated PCM audio from stdin instead of the source audio track")
+	var startAtUnix float64
+	var sourceBufferSeconds float64
+	flag.Float64Var(&startAtUnix, "start-at", 0, "Absolute Unix timestamp to start source video")
+	flag.Float64Var(&sourceBufferSeconds, "source-buffer-seconds", 0, "Extra delay applied before source media is sent")
 	flag.BoolVar(&cfg.debugSleep, "debug-sleep-log", false, "Log pacing sleeps while sending media")
 	flag.Parse()
 
@@ -122,6 +131,10 @@ func parseConfig() (*config, error) {
 		return nil, errors.New("missing --input, raw asset flags, or encoded asset flags")
 	case cfg.audioOnly && cfg.videoOnly:
 		return nil, errors.New("choose at most one of --audio-only or --video-only")
+	case cfg.audioFromStdin && cfg.input == "":
+		return nil, errors.New("--audio-from-stdin requires --input")
+	case cfg.audioFromStdin && (cfg.hasEncodedInputs() || cfg.hasRawInputs()):
+		return nil, errors.New("--audio-from-stdin only supports --input media mode")
 	case cfg.videoMode != "encoded" && cfg.videoMode != "yuv" && cfg.videoMode != "reencode":
 		return nil, errors.New("--video-mode must be one of: encoded, yuv, reencode")
 	case cfg.hasRawInputs() && cfg.rawSampleRate <= 0:
@@ -209,6 +222,14 @@ func parseConfig() (*config, error) {
 			return nil, err
 		}
 		cfg.token = token
+	}
+	if startAtUnix > 0 {
+		sec := int64(startAtUnix)
+		nsec := int64((startAtUnix - float64(sec)) * 1e9)
+		cfg.startAt = time.Unix(sec, nsec)
+	}
+	if sourceBufferSeconds > 0 {
+		cfg.sourceBuffer = time.Duration(sourceBufferSeconds * float64(time.Second))
 	}
 
 	return cfg, nil
@@ -350,6 +371,7 @@ func run(cfg *config, stop <-chan os.Signal) error {
 		if rc := con.PublishAudio(); rc != 0 {
 			return fmt.Errorf("publish audio failed: %d", rc)
 		}
+		fmt.Println("audio publishing started")
 	}
 	if !cfg.audioOnly {
 		if rc := con.PublishVideo(); rc != 0 {
@@ -370,6 +392,8 @@ func run(cfg *config, stop <-chan os.Signal) error {
 			err = streamEncodedAssets(con, cfg, stop, disconnected)
 		} else if cfg.hasRawInputs() {
 			err = streamRawAssets(con, cfg, stop, disconnected)
+		} else if cfg.audioFromStdin {
+			err = streamMediaWithPCMStdin(con, cfg, stop, disconnected)
 		} else {
 			err = streamMedia(con, cfg, stop, disconnected)
 		}
@@ -404,7 +428,7 @@ func streamMedia(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Si
 	h264Cleaner := &h264Repacketizer{}
 
 	var firstPTS int64
-	startedAt := time.Now()
+	var baseTime time.Time
 
 	for {
 		select {
@@ -415,7 +439,6 @@ func streamMedia(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Si
 		default:
 		}
 
-		totalSendTime := time.Since(startedAt).Milliseconds()
 		ret := C.get_packet(decoder, &packet)
 		if ret != 0 {
 			fmt.Printf("finished reading input: code=%d\n", int(ret))
@@ -447,19 +470,16 @@ func streamMedia(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Si
 
 		if firstPTS == 0 {
 			firstPTS = int64(packet.pts)
-			startedAt = time.Now()
-			totalSendTime = 0
-			time.Sleep(50 * time.Millisecond)
+			baseTime = mediaBaseTime(cfg)
 			fmt.Printf("starting media stream at pts=%dms\n", firstPTS)
 		}
 
-		targetDelay := int64(packet.pts) - firstPTS - totalSendTime
-		if targetDelay > 0 {
-			sleepFor := time.Duration(min64(targetDelay, 100)) * time.Millisecond
+		targetTime := baseTime.Add(time.Duration(int64(packet.pts)-firstPTS) * time.Millisecond)
+		if wait := time.Until(targetTime); wait > 0 {
 			if cfg.debugSleep {
-				fmt.Printf("pacing sleep: %s for packet pts=%d\n", sleepFor, int64(packet.pts))
+				fmt.Printf("pacing sleep: %s for packet pts=%d\n", wait, int64(packet.pts))
 			}
-			time.Sleep(sleepFor)
+			time.Sleep(wait)
 		}
 
 		switch packet.media_type {
@@ -472,6 +492,187 @@ func streamMedia(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Si
 				return err
 			}
 		}
+	}
+}
+
+func streamMediaWithPCMStdin(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Signal, disconnected <-chan string) error {
+	errCh := make(chan error, 2)
+	var wg sync.WaitGroup
+
+	if !cfg.videoOnly {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			errCh <- sendPCMStdinLoop(con, stop, disconnected)
+		}()
+	}
+	if !cfg.audioOnly {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			errCh <- sendInputVideoLoop(con, cfg, stop, disconnected)
+		}()
+	}
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	for {
+		select {
+		case <-stop:
+			return errors.New("interrupted")
+		case msg := <-disconnected:
+			return errors.New(msg)
+		case err := <-errCh:
+			if err != nil {
+				return err
+			}
+		case <-done:
+			return nil
+		}
+	}
+}
+
+func sendPCMStdinLoop(con *agoraservice.RtcConnection, stop <-chan os.Signal, disconnected <-chan string) error {
+	const bytesPer10ms = 320
+
+	ttsChan := make(chan []byte, 200)
+	readerErr := make(chan error, 1)
+	go func() {
+		defer close(ttsChan)
+		for {
+			chunk := make([]byte, bytesPer10ms)
+			n, err := io.ReadFull(os.Stdin, chunk)
+			if err != nil {
+				if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+					if n > 0 {
+						copy(chunk[n:], make([]byte, bytesPer10ms-n))
+						ttsChan <- chunk
+					}
+					readerErr <- nil
+					return
+				}
+				readerErr <- err
+				return
+			}
+			ttsChan <- chunk
+		}
+	}()
+
+	silence := make([]byte, bytesPer10ms)
+	nextTick := time.Now()
+	elapsedMs := int64(0)
+	stdinClosed := false
+
+	for {
+		select {
+		case <-stop:
+			return nil
+		case msg := <-disconnected:
+			return errors.New(msg)
+		default:
+		}
+
+		if wait := time.Until(nextTick); wait > 0 {
+			time.Sleep(wait)
+		}
+
+		var pcm []byte
+		select {
+		case err := <-readerErr:
+			if err != nil {
+				return fmt.Errorf("read stdin pcm: %w", err)
+			}
+			stdinClosed = true
+		default:
+		}
+		select {
+		case chunk, ok := <-ttsChan:
+			if ok {
+				pcm = chunk
+			} else {
+				stdinClosed = true
+			}
+		default:
+		}
+		if pcm == nil {
+			pcm = silence
+		}
+
+		if rc := con.PushAudioPcmData(pcm, 16000, 1, elapsedMs); rc != 0 {
+			return fmt.Errorf("push stdin audio pcm data: %d", rc)
+		}
+		signalSourcePublishingStarted()
+		nextTick = nextTick.Add(10 * time.Millisecond)
+		elapsedMs += 10
+
+		if stdinClosed && len(ttsChan) == 0 {
+			// Continue sending silence until stopped so viewers keep a stable audio clock.
+		}
+	}
+}
+
+func sendInputVideoLoop(con *agoraservice.RtcConnection, cfg *config, stop <-chan os.Signal, disconnected <-chan string) error {
+	fileName := C.CString(cfg.input)
+	defer C.free(unsafe.Pointer(fileName))
+
+	decoder := C.open_media_file(fileName)
+	if decoder == nil {
+		return fmt.Errorf("open media file %q", cfg.input)
+	}
+	defer C.close_media_file(decoder)
+
+	var packet *C.struct__MediaPacket
+	frame := C.struct__MediaFrame{}
+	C.memset(unsafe.Pointer(&frame), 0, C.sizeof_struct__MediaFrame)
+	h264Parser := &h264AUParser{}
+	h264Cleaner := &h264Repacketizer{}
+
+	var firstPTS int64 = -1
+	var baseTime time.Time
+
+	for {
+		select {
+		case <-stop:
+			return errors.New("interrupted")
+		case msg := <-disconnected:
+			return errors.New(msg)
+		default:
+		}
+
+		ret := C.get_packet(decoder, &packet)
+		if ret != 0 {
+			fmt.Printf("finished reading input video: code=%d\n", int(ret))
+			return nil
+		}
+		if packet == nil {
+			continue
+		}
+		if packet.media_type != C.AVMEDIA_TYPE_VIDEO {
+			C.free_packet(&packet)
+			continue
+		}
+
+		sendPTS := int64(packet.pts)
+		if sendPTS < 0 {
+			sendPTS = 0
+		}
+		if firstPTS < 0 {
+			firstPTS = sendPTS
+			baseTime = mediaBaseTime(cfg)
+		}
+		targetTime := baseTime.Add(time.Duration(sendPTS-firstPTS) * time.Millisecond)
+		if wait := time.Until(targetTime); wait > 0 {
+			time.Sleep(wait)
+		}
+
+		if err := sendVideoPacket(con, cfg, decoder, packet, &frame, h264Parser, h264Cleaner); err != nil {
+			return err
+		}
+		signalVideoDelayComplete()
 	}
 }
 
@@ -1197,6 +1398,19 @@ func signalSourcePublishingStarted() {
 	sourcePublishingStarted.Do(func() {
 		fmt.Println("source publishing started")
 	})
+}
+
+func signalVideoDelayComplete() {
+	videoDelayComplete.Do(func() {
+		fmt.Println("video delay complete")
+	})
+}
+
+func mediaBaseTime(cfg *config) time.Time {
+	if !cfg.startAt.IsZero() {
+		return cfg.startAt
+	}
+	return time.Now().Add(cfg.sourceBuffer)
 }
 
 func buildToken(appID string, appCert string, channel string, uid string) (string, error) {

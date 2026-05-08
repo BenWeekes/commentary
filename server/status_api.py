@@ -139,6 +139,14 @@ class StatusHandler(BaseHTTPRequestHandler):
                             source_detail = f"{source_host} -> {live_source.ingest_channel}"
                         else:
                             source_detail = source_host
+                    elif live_source.type == "srt_direct":
+                        parsed_source = urlparse(live_source.url)
+                        source_label = "SRT direct"
+                        source_host = parsed_source.netloc or live_source.url
+                        if live_source.original_channel:
+                            source_detail = f"{source_host} -> {live_source.original_channel}"
+                        else:
+                            source_detail = source_host
                     elif live_source.type == "agora":
                         source_label = "Agora source"
                         source_detail = live_source.channel

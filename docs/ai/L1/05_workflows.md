@@ -86,18 +86,26 @@ Kills all Go publishers, stops TTS engines, and cleans up the match worker.
 
 ### Live match config
 
-Live matches are configured in `matches_live.yaml` (gitignored — contains SRT stream keys). Live entries now support a nested `source:` block:
+Live matches are configured in `matches_live.yaml`. Live entries support a nested `source:` block:
 
 - `source.type = agora` for an existing Agora source channel with explicit source UIDs
 - `source.type = srt` for a direct SRT pull that is republished into an internal Agora source channel
+- `source.type = srt_direct` for a direct SRT pull where STT reads source audio directly and translated outputs publish encoded video directly from the SRT input
 
-For first-pass SRT live mode:
+For `source.type = srt`:
 
 - the SRT source is republished into `source.ingest_channel`
 - one combined program feed is published on `source.publish_uid`
 - STT reads that combined program audio
 - translated output channels carry delayed video + translated TTS only
 - there is no separate source-atmosphere bed in SRT mode
+
+For `source.type = srt_direct`:
+
+- STT reads raw PCM from ffmpeg directly from `source.url`
+- each translated language channel publishes encoded video directly from `source.url` and takes translated PCM from stdin
+- the viewer-facing original channel is published separately into `source.original_channel`
+- `source.original_buffer_seconds` adds a small source-side delay for original viewing jitter smoothing
 
 ```bash
 # Start server with live config
@@ -118,11 +126,14 @@ Legacy flat live fields (`source_channel`, `video_uid`, `atmosphere_uid`, `comme
 1. Resolve the configured live source:
    - `agora`: use the configured source channel/UIds directly
    - `srt`: start one SRT ingest process and wait for `source publishing started`
+   - `srt_direct`: start the original viewer publisher, open one ffmpeg SRT audio pipe for STT, and start one direct encoded publisher per language
 2. Start match via API: `curl -X POST http://localhost:8080/api/matches/{id}/start`
-3. `subscribe_audio.go` subscribes to the resolved source channel and commentary/program UID, writing PCM to stdout
-4. Python STT reads from `subscribe_audio` stdout via `pcm_stream_from_pipe()`
-5. Per-language `relay_publish.go` subscribes to delayed source video and optional atmosphere, reads TTS from stdin, publishes to output channels
-6. Viewers connect to per-language output channels
+3. `agora` / `srt`: `subscribe_audio.go` subscribes to the resolved source channel and commentary/program UID, writing PCM to stdout
+4. `agora` / `srt`: Python STT reads from `subscribe_audio` stdout via `pcm_stream_from_pipe()`
+5. `srt_direct`: Python STT reads directly from the ffmpeg SRT audio pipe
+6. `agora` / `srt`: per-language `relay_publish.go` subscribes to delayed source video and optional atmosphere, reads TTS from stdin, publishes to output channels
+7. `srt_direct`: per-language direct publishers read encoded video from SRT, read translated PCM from stdin, and delay first video to the shared `start_at`
+8. Viewers connect to per-language output channels
 
 ### Standalone one-language live test
 
@@ -212,7 +223,7 @@ Each per-language output channel contains:
 ### Original audio channel
 
 - **Demo mode**: `_start_original_pipeline()` loads the audio file as PCM and starts a Go publisher with `video_delay=0` on a dedicated channel `{match_id}-original`. The original plays ahead of translated channels with A/V in sync. This runs in a background thread to avoid blocking translated pipeline startup.
-- **Live mode**: No extra channel is created. The `/api/matches/{id}/channels` endpoint returns the resolved live source channel as the "original" entry. For `source.type = srt`, that is the internal ingest channel.
+- **Live mode**: The `/api/matches/{id}/channels` endpoint returns the resolved live source/original channel as the "original" entry. For `source.type = srt`, that is the internal ingest channel. For `source.type = srt_direct`, that is `source.original_channel`.
 
 The viewer shows "Original (EN)" first in the language dropdown. Default selection skips original and picks the first translated language.
 
