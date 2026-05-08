@@ -209,8 +209,15 @@ def load_config(yaml_path: str) -> ServerConfig:
             kickoff_utc=m.get("kickoff_utc", ""),
         ))
 
-    # Cloud Recording config
+    # Cloud Recording config — S3 keys come from env, rest from YAML
     cloud_recording_raw = raw.get("cloud_recording")
+    if cloud_recording_raw:
+        s3_access = os.environ.get("S3_ACCESS_KEY", "")
+        s3_secret = os.environ.get("S3_SECRET_KEY", "")
+        if s3_access:
+            cloud_recording_raw["accessKey"] = s3_access
+        if s3_secret:
+            cloud_recording_raw["secretKey"] = s3_secret
     agora_customer_key = os.environ.get("AGORA_CUSTOMER_KEY", "")
     agora_customer_secret = os.environ.get("AGORA_CUSTOMER_SECRET", "")
 
