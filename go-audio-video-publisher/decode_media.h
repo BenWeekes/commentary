@@ -52,6 +52,10 @@ extern int free_packet(MediaPacket **packet);
 extern int h264_to_annexb(void *decoder, MediaPacket **packet);
 // decode a demuxed packet to I420 YUV or 16khz 1channel pcm frame
 extern int decode_packet(void *decoder, MediaPacket *packet, MediaFrame *frame);
+// initialize an in-memory H264 re-encoder that accepts decoded YUV420P frames
+extern int init_video_reencoder(void *decoder, int fps, int bitrate);
+// encode one decoded YUV420P frame into an H264 Annex-B packet
+extern int encode_video_frame(void *decoder, MediaFrame *frame, MediaPacket **packet);
 // decode frame directly from file, this is combine of get_packet and decode_packet
 // NOTICE: this function must not be used when you are using get_packet and decode_packet function
 extern int get_frame(void *decoder, MediaFrame *frame);

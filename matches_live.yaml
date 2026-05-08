@@ -1,0 +1,60 @@
+# Live Bundesliga MD33 — May 8-10, 2026
+# DO NOT commit — contains SRT stream keys
+#
+# SRT ingest server (Europe):
+#   srt://srtlive-rtcpush-prod-eu.agoramdn.com:6001
+#
+# Internal ingest publishes combined program feed on UID 73.
+# Initial SRT mode has no separate source atmosphere/commentary stems.
+
+control_port: 8080
+translation_model: "gpt-4o-mini"
+
+matches:
+  # May 8, 18:30 UTC — Dortmund vs Frankfurt
+  - match_id: bvb_sge_md33
+    mode: live
+    sport_event_id: "sr:sport_event:61514184"
+    kickoff_utc: "2026-05-08T18:30:00Z"
+    prestart_seconds: 900
+    source:
+      type: srt
+      url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
+      ingest_channel: bvb_sge_md33_src
+      publish_uid: 73
+      retry_seconds: 5
+    video_uid: 73
+    video_delay: 7.0
+    languages: [es, pt, fr, tr, de]
+
+  # May 9, 16:30 UTC — Wolfsburg vs Bayern
+  - match_id: wob_bmu_md33
+    mode: live
+    sport_event_id: "sr:sport_event:61514192"
+    kickoff_utc: "2026-05-09T16:30:00Z"
+    prestart_seconds: 900
+    source:
+      type: srt
+      url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
+      ingest_channel: wob_bmu_md33_src
+      publish_uid: 73
+      retry_seconds: 5
+    video_uid: 73
+    video_delay: 7.0
+    languages: [es, pt, fr, tr, de]
+
+  # May 10, 17:30 UTC — Mainz vs Union Berlin
+  - match_id: m05_uni_md33
+    mode: live
+    sport_event_id: "sr:sport_event:61514186"
+    kickoff_utc: "2026-05-10T17:30:00Z"
+    prestart_seconds: 900
+    source:
+      type: srt
+      url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
+      ingest_channel: m05_uni_md33_src
+      publish_uid: 73
+      retry_seconds: 5
+    video_uid: 73
+    video_delay: 7.0
+    languages: [es, pt, fr, tr, de]

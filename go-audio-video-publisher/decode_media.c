@@ -66,6 +66,12 @@ typedef struct _MediaDecoder {
 
   // for bitstream filter
   AVBSFContext *bsf;
+
+  // for optional H264 re-encode from decoded YUV420P
+  AVCodecContext *video_enc_ctx;
+  AVFrame *video_enc_frame;
+  AVPacket *video_enc_pkt;
+  int64_t video_enc_next_pts;
 } MediaDecoder;
 
 int init_swr(DecodeContext *decode_ctx) {
@@ -680,6 +686,177 @@ int decode_packet(void *decoder, MediaPacket *packet, MediaFrame *frame) {
   return result;
 }
 
+int init_video_reencoder(void *decoder, int fps, int bitrate) {
+  MediaDecoder *d = (MediaDecoder *)decoder;
+  DecodeContext *decode_ctx = &d->video_ctx;
+  AVCodecContext *src = decode_ctx->codec_ctx;
+
+  if (d->video_enc_ctx) {
+    return 0;
+  }
+  if (!src || src->width <= 0 || src->height <= 0) {
+    av_log(NULL, AV_LOG_ERROR, "video decoder not initialized for re-encoder\n");
+    return -1;
+  }
+  if (fps <= 0) {
+    fps = 25;
+  }
+  if (bitrate <= 0) {
+    bitrate = 2500000;
+  }
+
+  const AVCodec *codec = avcodec_find_encoder_by_name("libx264");
+  if (!codec) {
+    codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+  }
+  if (!codec) {
+    av_log(NULL, AV_LOG_ERROR, "Can't find H264 encoder\n");
+    return -1;
+  }
+
+  AVCodecContext *enc = avcodec_alloc_context3(codec);
+  if (!enc) {
+    av_log(NULL, AV_LOG_ERROR, "Can't allocate H264 encoder context\n");
+    return AVERROR(ENOMEM);
+  }
+
+  enc->width = decode_ctx->dst_width;
+  enc->height = decode_ctx->dst_height;
+  enc->pix_fmt = AV_PIX_FMT_YUV420P;
+  enc->time_base = (AVRational){1, fps};
+  enc->framerate = (AVRational){fps, 1};
+  enc->gop_size = fps * 4;
+  enc->max_b_frames = 0;
+  enc->bit_rate = bitrate;
+
+  av_opt_set(enc->priv_data, "preset", "veryfast", 0);
+  av_opt_set(enc->priv_data, "tune", "zerolatency", 0);
+  av_opt_set(enc->priv_data, "profile", "baseline", 0);
+  av_opt_set(enc->priv_data, "x264-params", "repeat-headers=1:annexb=1:aud=1:scenecut=0:bframes=0", 0);
+
+  int ret = avcodec_open2(enc, codec, NULL);
+  if (ret < 0) {
+    av_log(NULL, AV_LOG_ERROR, "Can't open H264 encoder\n");
+    avcodec_free_context(&enc);
+    return ret;
+  }
+
+  AVFrame *frame = av_frame_alloc();
+  if (!frame) {
+    avcodec_free_context(&enc);
+    return AVERROR(ENOMEM);
+  }
+  frame->format = enc->pix_fmt;
+  frame->width = enc->width;
+  frame->height = enc->height;
+  ret = av_frame_get_buffer(frame, 32);
+  if (ret < 0) {
+    av_frame_free(&frame);
+    avcodec_free_context(&enc);
+    return ret;
+  }
+
+  AVPacket *pkt = av_packet_alloc();
+  if (!pkt) {
+    av_frame_free(&frame);
+    avcodec_free_context(&enc);
+    return AVERROR(ENOMEM);
+  }
+
+  d->video_enc_ctx = enc;
+  d->video_enc_frame = frame;
+  d->video_enc_pkt = pkt;
+  d->video_enc_next_pts = 0;
+  av_log(NULL, AV_LOG_INFO, "initialized H264 re-encoder %dx%d @ %dfps bitrate=%d\n",
+         enc->width, enc->height, fps, bitrate);
+  return 0;
+}
+
+int encode_video_frame(void *decoder, MediaFrame *frame, MediaPacket **packet) {
+  MediaDecoder *d = (MediaDecoder *)decoder;
+  AVCodecContext *enc = d->video_enc_ctx;
+  AVFrame *enc_frame = d->video_enc_frame;
+  AVPacket *enc_pkt = d->video_enc_pkt;
+
+  if (!enc || !enc_frame || !enc_pkt) {
+    av_log(NULL, AV_LOG_ERROR, "video re-encoder not initialized\n");
+    return -1;
+  }
+  if (!frame || frame->format != AV_PIX_FMT_YUV420P) {
+    av_log(NULL, AV_LOG_ERROR, "encode_video_frame expected YUV420P frame\n");
+    return -1;
+  }
+
+  int y_size = frame->width * frame->height;
+  int uv_size = y_size / 4;
+  if (frame->buffer_size < y_size + (uv_size * 2)) {
+    av_log(NULL, AV_LOG_ERROR, "YUV frame buffer too small for encode\n");
+    return -1;
+  }
+
+  int ret = av_frame_make_writable(enc_frame);
+  if (ret < 0) {
+    return ret;
+  }
+
+  uint8_t *src = frame->buffer;
+  for (int y = 0; y < frame->height; y++) {
+    memcpy(enc_frame->data[0] + y*enc_frame->linesize[0],
+           src + y*frame->stride,
+           frame->width);
+  }
+  src += y_size;
+  for (int y = 0; y < frame->height/2; y++) {
+    memcpy(enc_frame->data[1] + y*enc_frame->linesize[1],
+           src + y*(frame->stride/2),
+           frame->width/2);
+  }
+  src += uv_size;
+  for (int y = 0; y < frame->height/2; y++) {
+    memcpy(enc_frame->data[2] + y*enc_frame->linesize[2],
+           src + y*(frame->stride/2),
+           frame->width/2);
+  }
+
+  enc_frame->pts = d->video_enc_next_pts++;
+  ret = avcodec_send_frame(enc, enc_frame);
+  if (ret < 0) {
+    av_log(NULL, AV_LOG_ERROR, "Error submitting frame for H264 encode\n");
+    return ret;
+  }
+
+  av_packet_unref(enc_pkt);
+  ret = avcodec_receive_packet(enc, enc_pkt);
+  if (ret == AVERROR(EAGAIN)) {
+    return AVERROR(EAGAIN);
+  }
+  if (ret < 0) {
+    av_log(NULL, AV_LOG_ERROR, "Error receiving encoded H264 packet\n");
+    return ret;
+  }
+
+  if (!(*packet)) {
+    *packet = (MediaPacket *)malloc(sizeof(MediaPacket));
+    memset(*packet, 0, sizeof(MediaPacket));
+  } else if ((*packet)->pkt) {
+    av_packet_free(&(*packet)->pkt);
+  }
+
+  AVPacket *out_pkt = av_packet_clone(enc_pkt);
+  if (!out_pkt) {
+    return AVERROR(ENOMEM);
+  }
+
+  (*packet)->pkt = out_pkt;
+  (*packet)->media_type = AVMEDIA_TYPE_VIDEO;
+  (*packet)->pts = out_pkt->pts * 1000 * av_q2d(enc->time_base);
+  (*packet)->width = enc->width;
+  (*packet)->height = enc->height;
+  (*packet)->framerate_num = enc->framerate.num;
+  (*packet)->framerate_den = enc->framerate.den;
+  return 0;
+}
+
 
 int get_frame(void *decoder, MediaFrame *frame) {
   MediaDecoder *d = (MediaDecoder *)decoder;
@@ -817,6 +994,15 @@ void close_media_file(void *decoder) {
     // free bitstream filter
     if (d->bsf) {
       av_bsf_free(&d->bsf);
+    }
+    if (d->video_enc_pkt) {
+      av_packet_free(&d->video_enc_pkt);
+    }
+    if (d->video_enc_frame) {
+      av_frame_free(&d->video_enc_frame);
+    }
+    if (d->video_enc_ctx) {
+      avcodec_free_context(&d->video_enc_ctx);
     }
     avformat_close_input(&d->fmt_ctx);
     av_packet_free(&d->pkt);
