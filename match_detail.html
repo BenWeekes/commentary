@@ -203,6 +203,70 @@
     }
     .log-table .num { font-family: monospace; color: #888; }
 
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 4px 12px;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      background: transparent;
+      color: #666;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: #444; color: #aaa; }
+    .filter-btn.active {
+      background: #1e1e1e;
+      border-color: #444;
+      color: #fff;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-header {
+      padding: 5px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.15s;
+    }
+    .btn-watch { background: #2563eb; color: #fff; }
+    .btn-watch:hover { background: #1d4ed8; }
+    .btn-refresh { background: #7c3aed; color: #fff; }
+    .btn-refresh:hover { background: #6d28d9; }
+    .btn-header:disabled, .btn-header.disabled {
+      background: #1a1a1a !important;
+      color: #444 !important;
+      cursor: default;
+      pointer-events: none;
+    }
+    .run-select {
+      padding: 4px 8px;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: #ccc;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .run-select:focus { border-color: #444; outline: none; }
+
     .empty-state {
       text-align: center;
       padding: 60px 24px;
@@ -222,6 +286,7 @@
   <div class="page-header">
     <h1 id="match-title">Match Detail</h1>
     <span class="header-badge badge-idle" id="state-badge">idle</span>
+    <span class="header-actions" id="header-actions"></span>
     <span class="header-meta" id="updated-at"></span>
   </div>
 
@@ -245,6 +310,7 @@
     var matchData = null;
     var detailData = null;  // from /api/matches/{id}/detail
     var logCache = {};  // {tabKey: [rows]}
+    var activeFilter = {};  // {tabKey: filterName} — persists per tab
 
     if (!MATCH) {
       document.getElementById('tab-content').innerHTML =
@@ -359,6 +425,25 @@
       badge.textContent = state;
       badge.className = 'header-badge badge-' + state;
 
+      // Header action buttons
+      var workerActive = state === 'starting' || state === 'running';
+      var mode = (detailData && detailData.mode) || 'demo';
+      var actHtml = '';
+      var watchUrl = CTL + '/viewer_live.html?match=' + encodeURIComponent(MATCH);
+      if (workerActive) {
+        actHtml += '<a class="btn-header btn-watch" href="' + watchUrl + '" target="_blank">Watch</a>';
+      } else {
+        actHtml += '<a class="btn-header btn-watch disabled" aria-disabled="true">Watch</a>';
+      }
+      if (mode === 'live') {
+        if (workerActive) {
+          actHtml += '<button class="btn-header btn-refresh" disabled title="Refresh applies on next start">Refresh</button>';
+        } else {
+          actHtml += '<button class="btn-header btn-refresh" onclick="refreshMatchData()">Refresh</button>';
+        }
+      }
+      document.getElementById('header-actions').innerHTML = actHtml;
+
       var stats = [];
       stats.push('<span class="stat"><span class="stat-label">STT:</span><span class="stat-value">' + (data.stt_utterance_count || 0) + ' utterances</span></span>');
       var langs = data.languages || {};
@@ -445,7 +530,7 @@
       }
       html += '</div>';
 
-      // Current run card
+      // Current run card + historical run selector
       html += '<div class="overview-card">';
       html += '<h3>Current Run</h3>';
       if (detail.log_dir) {
@@ -459,6 +544,19 @@
         }
       } else {
         html += '<div style="font-size:13px;color:#444;font-style:italic;">Not started yet</div>';
+      }
+      // Historical runs
+      var runs = detail.runs || [];
+      if (runs.length > 1) {
+        html += '<div style="margin-top:10px;">';
+        html += '<span style="font-size:11px;color:#555;">Historical runs: </span>';
+        html += '<select class="run-select" id="run-selector" onchange="selectRun(this.value)">';
+        html += '<option value="">Current</option>';
+        runs.forEach(function(r) {
+          html += '<option value="' + esc(r) + '">' + esc(r) + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
       }
       html += '</div>';
 
@@ -521,6 +619,31 @@
       panel.innerHTML = html;
     }
 
+    function filterRows(lang, rows) {
+      var f = activeFilter[lang] || 'all';
+      if (f === 'all') return rows;
+      return rows.filter(function(r) {
+        if (f === 'played') return r.status === 'played';
+        if (f === 'dropped') return r.status === 'dropped';
+        if (f === 'replaced') return r.status === 'replaced';
+        if (f === 'sr') return r.source === 'sr';
+        if (f === 'stt') return r.source === 'stt';
+        return true;
+      });
+    }
+
+    function renderFilterBar(lang) {
+      var filters = ['all', 'played', 'dropped', 'replaced', 'sr', 'stt'];
+      var current = activeFilter[lang] || 'all';
+      var html = '<div class="filter-bar">';
+      filters.forEach(function(f) {
+        var cls = f === current ? 'filter-btn active' : 'filter-btn';
+        html += '<button class="' + cls + '" data-filter="' + f + '" data-lang="' + lang + '">' + f + '</button>';
+      });
+      html += '</div>';
+      return html;
+    }
+
     function renderLangTab(lang, rows) {
       var panel = document.getElementById('panel-' + lang);
       if (!panel) return;
@@ -528,7 +651,9 @@
         panel.innerHTML = '<div class="empty-state">No log data for ' + lang.toUpperCase() + ' yet</div>';
         return;
       }
-      var html = '<div class="log-table-wrap"><table class="log-table">';
+      var filtered = filterRows(lang, rows);
+      var html = renderFilterBar(lang);
+      html += '<div class="log-table-wrap"><table class="log-table">';
       html += '<thead><tr>';
       html += th('Played', 'UTC time audio actually started playing (or scheduled time if not played)');
       html += th('Original', 'English source text from STT or Sportradar');
@@ -541,8 +666,10 @@
       html += th('Dur', 'Actual audio duration played in ms');
       html += '</tr></thead>';
       html += '<tbody>';
-      rows.forEach(function(r) {
-        // Show play_started_at if played, otherwise play_at (scheduled time)
+      if (filtered.length === 0) {
+        html += '<tr><td colspan="9" style="text-align:center;color:#555;padding:20px;">No matching rows</td></tr>';
+      }
+      filtered.forEach(function(r) {
         var playTime = r.play_started_at || r.play_at;
         html += '<tr>';
         html += '<td class="num">' + fmtUtc(playTime) + '</td>';
@@ -558,6 +685,14 @@
       });
       html += '</tbody></table></div>';
       panel.innerHTML = html;
+
+      // Bind filter button clicks
+      panel.querySelectorAll('.filter-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          activeFilter[btn.getAttribute('data-lang')] = btn.getAttribute('data-filter');
+          renderLangTab(lang, rows);
+        });
+      });
     }
 
     function renderActiveTab() {
@@ -571,6 +706,17 @@
       } else {
         renderLangTab(activeTab, rows);
       }
+    }
+
+    var selectedRun = '';  // empty = current run
+
+    function selectRun(runName) {
+      selectedRun = runName || '';
+      // Re-fetch logs from the selected run
+      var langs = (matchData && matchData.configured_languages) || [];
+      var fetches = [fetchLogs('stt')];
+      langs.forEach(function(lang) { fetches.push(fetchLogs(lang)); });
+      Promise.all(fetches).then(function() { renderActiveTab(); });
     }
 
     function refreshMatchData() {
@@ -601,7 +747,9 @@
     }
 
     function fetchLogs(key) {
-      return fetch(CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/logs/' + key + '?tail=200', { mode: 'cors' })
+      var url = CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/logs/' + key + '?tail=200';
+      if (selectedRun) url += '&run=' + encodeURIComponent(selectedRun);
+      return fetch(url)
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(data) {
           if (data && data.rows) {
@@ -626,13 +774,17 @@
       if (!MATCH) return;
 
       // Fetch match status and detail in parallel
-      var statusFetch = fetch(CTL + '/api/matches', { mode: 'cors' })
-        .then(function(r) { return r.json(); });
+      var statusFetch = fetch(CTL + '/api/matches')
+        .then(function(r) {
+          if (r.status === 401) { window.location.href = '/login.html'; return null; }
+          return r.json();
+        });
       var detailFetch = fetchDetail();
 
       Promise.all([statusFetch, detailFetch])
         .then(function(results) {
           var data = results[0];
+          if (!data) return;
           var m = data[MATCH];
           if (!m) {
             document.getElementById('tab-content').innerHTML =

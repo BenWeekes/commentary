@@ -94,15 +94,16 @@ class StatusHandler(BaseHTTPRequestHandler):
             self._serve_file("viewer_live.html")
             return
 
+        # Root and legacy control.html redirect to status page
+        if path in ("/", "/control.html"):
+            self._redirect("/status.html")
+            return
         # Protected ops pages — redirect to login if auth enabled
-        if path in ("/", "/control.html", "/status.html"):
+        if path == "/status.html":
             if not self._is_authenticated():
                 self._redirect("/login.html")
                 return
-            if path in ("/", "/control.html"):
-                self._serve_file("control.html")
-            else:
-                self._serve_file("status.html")
+            self._serve_file("status.html")
             return
         if path == "/match_detail.html":
             if not self._is_authenticated():
@@ -352,7 +353,7 @@ class StatusHandler(BaseHTTPRequestHandler):
             self._respond(200, result)
             return
 
-        # Log tailing: /api/matches/{id}/logs/{stt|lang}?tail=N
+        # Log tailing: /api/matches/{id}/logs/{stt|lang}?tail=N&run=YYYYMMDD_HHMMSS
         m = self._MATCH_LOGS_RE.match(path)
         if m:
             match_id = m.group(1)
@@ -366,10 +367,23 @@ class StatusHandler(BaseHTTPRequestHandler):
             tail = int(qs.get("tail", ["100"])[0])
             tail = max(1, min(tail, 500))
 
-            log_dir = getattr(worker, '_log_dir', None)
-            if not log_dir:
-                self._respond(200, {"match_id": match_id, "log_key": log_key, "rows": []})
-                return
+            # Historical run support: ?run=YYYYMMDD_HHMMSS
+            run_name = qs.get("run", [""])[0]
+            if run_name:
+                # Sanitize — only allow alphanumeric and underscore
+                if not re.match(r'^[0-9_]+$', run_name):
+                    self._respond(400, {"error": "invalid run name"})
+                    return
+                store = self.orchestrator.match_store
+                log_dir = os.path.join(store._match_dir(match_id), "runs", run_name)
+                if not os.path.isdir(log_dir):
+                    self._respond(200, {"match_id": match_id, "log_key": log_key, "rows": [], "run": run_name})
+                    return
+            else:
+                log_dir = getattr(worker, '_log_dir', None)
+                if not log_dir:
+                    self._respond(200, {"match_id": match_id, "log_key": log_key, "rows": []})
+                    return
 
             filename = f"{log_key}.jsonl"
             filepath = os.path.join(log_dir, filename)
@@ -583,7 +597,7 @@ def start_status_server(port, orchestrator, server_config):
     print(f"       GET  /api/matches/{{id}}/status      → one match status")
     print(f"       GET  /api/matches/{{id}}/channels    → viewer tokens for all langs")
     print(f"       GET  /api/matches/{{id}}/transcript  → recent English transcript")
-    print(f"       GET  /api/matches/{{id}}/logs/{{key}} → log tail (stt or lang)")
+    print(f"       GET  /api/matches/{{id}}/logs/{{key}} → log tail (stt or lang, ?run= for history)")
     print(f"       POST /api/matches/{{id}}/start       → start a match")
     print(f"       POST /api/matches/{{id}}/stop        → stop a match")
     print(f"       POST /api/matches/{{id}}/refresh-data → refresh SR data")
