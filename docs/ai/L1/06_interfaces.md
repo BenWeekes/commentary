@@ -12,8 +12,10 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 |---|---|---|---|
 | `/api/matches` | GET | `{match_id: {match_id, state, stt_utterance_count, languages, configured_languages, error, started_at}}` | All match statuses |
 | `/api/matches/{id}/status` | GET | `{match_id, state, stt_utterance_count, languages, error, started_at}` | Single match status |
-| `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages |
+| `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages + original |
 | `/api/matches/{id}/transcript` | GET | `{match_id, transcript: [{text, ts, audio_start}]}` | Recent English STT text (last 50 utterances) |
+| `/api/matches/{id}/detail` | GET | `{match_id, state, mode, keyterms, log_dir, log_files, runs, ...}` | Match config, keyterms, log directory info |
+| `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 500 lines) |
 | `/api/matches/{id}/start` | POST | match status JSON | Start a demo match |
 | `/api/matches/{id}/stop` | POST | match status JSON | Stop a match |
 | `/api/token` | POST | `{token, channel, uid, appid}` | Single viewer token (body: `{match_id, lang}`) |
@@ -23,8 +25,9 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 | Path | File | Purpose |
 |---|---|---|
 | `/` or `/control.html` | `control.html` | Admin control page |
-| `/status.html` | `status.html` | Public status dashboard |
-| `/viewer_live.html` | `viewer_live.html` | Production viewer |
+| `/status.html` | `status.html` | Match overview dashboard |
+| `/viewer_live.html` | `viewer_live.html` | Production viewer (connect overlay, language dropdown incl. original) |
+| `/match_detail.html` | `match_detail.html` | Per-match detail page (STT + per-language log tabs, config, keyterms) |
 
 All endpoints return JSON (except static files) with `Access-Control-Allow-Origin: *`.
 
@@ -53,6 +56,12 @@ Each language in a match gets its own Agora channel.
 ```
 
 Examples: `bmg_fch_demo-es`, `bmg_fch_demo-pt`, `bmg_fch_demo-fr`
+
+### Original audio channel
+
+In **demo mode**, a dedicated channel `{match_id}-original` is created by `_start_original_pipeline()`. It carries the source English commentary with video at zero delay (plays ahead of translated channels).
+
+In **live mode**, no extra channel is created. The `/api/matches/{id}/channels` endpoint returns the existing `source_channel` as the "original" entry. The viewer joins the source channel directly.
 
 ### Publisher UID
 

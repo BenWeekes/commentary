@@ -163,7 +163,7 @@ It is **not** an Agora RTC token and is not sent to Agora as a credential.
 
 ## JSONL logs are best-effort, not transactional
 
-`stt.jsonl` and `{lang}.jsonl` are line-buffered and flushed after each write, so mid-match crashes usually preserve recent lines. They are still ordinary local files:
+`stt.jsonl` and `{lang}.jsonl` are line-buffered and flushed after each write, so mid-match crashes usually preserve recent lines. Telemetry callbacks from multiple threads (pipe_writer, SR scheduler) are serialized by `_telemetry_lock` in MatchWorker to prevent interleaved writes and racy counter increments. They are still ordinary local files:
 
 - a hard kill can still lose the last in-flight line
 - header/write ordering is only guaranteed within one file handle
@@ -175,9 +175,9 @@ It is **not** an Agora RTC token and is not sent to Agora as a credential.
 
 ## video_start is estimated before publisher confirms
 
-STT starts processing audio during the video delay, before the Go publisher confirms video has started. The pipeline sets a temporary `video_start = time.time() + video_delay` and schedules early STT utterances against it. Once the publisher confirms, `video_start` is updated to the actual time. This works because the Go publisher's audio-ready to video-start interval is deterministic (`video_delay` seconds). If anything caused that interval to vary (network stall, OS scheduling), early utterances would have slightly wrong `play_at` times.
+STT starts processing audio during the video delay, before the Go publisher confirms video has started. The pipeline sets a temporary `video_start = time.time() + video_delay` (the `target_start`) and schedules early STT utterances against it. Once the publisher reports "video delay complete", `pipe.video_start` and `_video_start_ref[0]` are updated to the actual value. Subsequent STT utterances use the corrected timestamps. Utterances scheduled before the correction may have slight drift (typically <50ms).
 
-In server mode, the same pattern applies but with an additional consideration: each language publisher has its own `video_start`. The MatchWorker computes a mean across all languages and warns if the spread exceeds 500ms.
+In server mode, each language publisher has its own `video_start`. The MatchWorker warns if any publisher's actual `video_start` drifts more than 500ms from `target_start`.
 
 ## Related Deep Dives
 

@@ -161,8 +161,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                     "token": orig_token,
                     "uid": orig_uid,
                 }
-            else:
-                # Demo: dedicated original pipeline publishes on {match_id}-original
+            elif worker and "original" in getattr(worker, '_pipelines', {}):
+                # Demo: only advertise if the original pipeline is actually running
                 orig_channel = f"{match_id}-original"
                 orig_uid = _next_uid()
                 orig_token = generate_viewer_token(
@@ -211,18 +211,20 @@ class StatusHandler(BaseHTTPRequestHandler):
                     match_cfg = mc
                     break
 
-            # Load keyterms from match_data/{id}/keyterms.txt
-            keyterms = []
-            keyterms_path = os.path.join(self._MATCH_DATA_DIR, match_id, "keyterms.txt")
-            if os.path.isfile(keyterms_path):
-                try:
-                    with open(keyterms_path) as f:
-                        for line in f:
-                            line = line.strip()
-                            if line and not line.startswith("#"):
-                                keyterms.append(line)
-                except Exception:
-                    pass
+            # Read keyterms: prefer runtime (has global fallback), else read file, else global
+            worker_keyterms = getattr(worker, '_keyterms', None)
+            if worker_keyterms:
+                keyterms = list(worker_keyterms)
+                keyterms_source = "runtime"
+            else:
+                from server.match_worker import _load_match_keyterms
+                keyterms = _load_match_keyterms(match_id)
+                if keyterms:
+                    keyterms_source = "match_file"
+                else:
+                    from lib.corrections import TERMS_LIST
+                    keyterms = list(TERMS_LIST)
+                    keyterms_source = "global_default"
 
             # Current log dir info
             log_dir = getattr(worker, '_log_dir', None)
@@ -260,6 +262,7 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "started_at": s.started_at,
                 "keyterms": keyterms,
                 "keyterms_count": len(keyterms),
+                "keyterms_source": keyterms_source,
                 "log_dir": log_dir,
                 "log_files": log_files,
                 "translation_model": self.server_config.translation_model,

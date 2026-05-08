@@ -179,7 +179,13 @@ Each per-language output channel contains:
 
 - No SR gap-fill events — STT-only (SR requires a live API poller, not yet implemented)
 - No atmosphere toggle — atmosphere comes from source UID 74 via relay_publish, not from a local file
-- No original audio pass-through — original is on the source channel, not locally available
+
+### Original audio channel
+
+- **Demo mode**: `_start_original_pipeline()` loads the audio file as PCM and starts a Go publisher with `video_delay=0` on a dedicated channel `{match_id}-original`. The original plays ahead of translated channels with A/V in sync. This runs in a background thread to avoid blocking translated pipeline startup.
+- **Live mode**: No extra channel is created. The `/api/matches/{id}/channels` endpoint returns the existing `source_channel` as the "original" entry. The viewer joins the source channel directly.
+
+The viewer shows "Original (EN)" first in the language dropdown. Default selection skips original and picks the first translated language.
 
 ### SR Schedule Monitor (Deferred)
 
@@ -199,7 +205,7 @@ python3 live_match.py \
     --video-h264 clips/bmg_fch_demo_5min/video.h264 \
     --events clips/bmg_fch_demo_5min/events.txt \
     --atmosphere clips/bmg_fch_demo_5min/atmosphere.wav \
-    --lang es --video-delay 7
+    --lang es --video-delay 10
 ```
 
 Requires: `OPENAI_API_KEY`, `DEEPGRAM_API_KEY`, `ELEVENLABS_API_KEY`, `AGORA_APP_ID`, `AGORA_APP_CERT`
@@ -218,7 +224,7 @@ python3 live_match.py \
     --audio clips/bmg_fch_demo_5min/audio.mp3 \
     --video-h264 clips/bmg_fch_demo_5min/video.h264 \
     --events clips/bmg_fch_demo_5min/events.txt \
-    --lang es --video-delay 7
+    --lang es --video-delay 10
 ```
 
 Same demo clip but no atmosphere mixing. The Atmos toggle will have no effect.
@@ -327,7 +333,7 @@ python3 live_match.py \
     --video-h264 clips/bmg_fch_demo_5min/video.h264 \
     --events clips/bmg_fch_demo_5min/events.txt \
     --atmosphere clips/bmg_fch_demo_5min/atmosphere.wav \
-    --lang es --video-delay 7
+    --lang es --video-delay 10
 
 # Open viewer (no URL params needed except optional lang)
 open "http://localhost:8090/viewer.html?lang=es"

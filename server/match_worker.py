@@ -258,6 +258,7 @@ class MatchWorker:
         self._stt_log = None
         self._lang_logs = {}  # lang -> file handle
         self._keyterms = None
+        self._telemetry_lock = threading.Lock()
 
     def start(self):
         """Spawn background thread to run the match. Safe to call again after stop()."""
@@ -363,9 +364,19 @@ class MatchWorker:
                     break
                 self._start_lang_pipeline(lang, atmosphere_pcm, tag, start_at=target_start)
 
-            # Start original audio pipeline (passthrough — no delay, plays ahead)
+            # Start original audio pipeline in background thread — it does
+            # convert_to_pcm + publisher wait which shouldn't eat into the
+            # connection margin that translated pipelines need.
+            # The background thread builds the pipe into original_result;
+            # the main thread inserts it into self._pipelines after wait().
+            original_ready = threading.Event()
+            original_result = {}  # thread writes {"pipe": ..} or {"error": ..}
             if not self._stop.is_set():
-                self._start_original_pipeline(atmosphere_pcm, tag)
+                threading.Thread(
+                    target=self._start_original_pipeline,
+                    args=(atmosphere_pcm, tag),
+                    kwargs={"result": original_result, "ready_event": original_ready},
+                    daemon=True).start()
 
             # Open per-language log files
             for lang, pipe in self._pipelines.items():
@@ -388,21 +399,12 @@ class MatchWorker:
                   f"{self._match.video_delay}s video delay)")
 
             # Wait for all publishers' video delay to complete
+            actual_vs_values = []
             for lang, pipe in self._pipelines.items():
                 if self._stop.is_set():
                     break
                 if lang == "original":
-                    # Original has no video delay — already publishing.
-                    # Just start log readers.
-                    threading.Thread(
-                        target=_log_pub_stream,
-                        args=(pipe.publisher.stdout, f"{tag} ORIGINAL out"),
-                        daemon=True).start()
-                    threading.Thread(
-                        target=_log_pub_stream,
-                        args=(pipe.publisher.stderr, f"{tag} ORIGINAL err"),
-                        daemon=True).start()
-                    continue
+                    continue  # original pipeline started in background thread
 
                 pub_tag = f"{tag} {lang.upper()} PUB"
                 vs = _wait_for_publisher_signal(
@@ -416,6 +418,11 @@ class MatchWorker:
                 print(f"[{tag}] {lang}: video_start={vs:.3f} "
                       f"(target={target_start:.3f}, drift={vs - target_start:+.3f}s)")
 
+                # Update pipeline with actual video_start from publisher
+                pipe.video_start = vs
+                pipe.tts.video_start = vs
+                actual_vs_values.append(vs)
+
                 # Start log reader daemons
                 threading.Thread(
                     target=_log_pub_stream,
@@ -425,6 +432,35 @@ class MatchWorker:
                     target=_log_pub_stream,
                     args=(pipe.publisher.stderr, f"{tag} {lang.upper()} err"),
                     daemon=True).start()
+
+            # Update STT scheduling ref to mean actual video_start across languages
+            if actual_vs_values:
+                mean_vs = sum(actual_vs_values) / len(actual_vs_values)
+                self._video_start_ref[0] = mean_vs
+                print(f"[{tag}] video_start_ref updated to mean={mean_vs:.3f} "
+                      f"(spread={max(actual_vs_values) - min(actual_vs_values):.3f}s)")
+
+            # Always wait for original pipeline thread to finish so we can
+            # adopt or kill its publisher — prevents orphaned Go processes.
+            original_ready.wait(timeout=30)
+            orig_pipe = original_result.get("pipe")
+            orig_error = original_result.get("error")
+            if orig_error:
+                print(f"[{tag}] WARNING: Original pipeline failed: {orig_error}")
+            elif orig_pipe and not self._stop.is_set():
+                self._pipelines["original"] = orig_pipe
+                threading.Thread(
+                    target=_log_pub_stream,
+                    args=(orig_pipe.publisher.stdout, f"{tag} ORIGINAL out"),
+                    daemon=True).start()
+                threading.Thread(
+                    target=_log_pub_stream,
+                    args=(orig_pipe.publisher.stderr, f"{tag} ORIGINAL err"),
+                    daemon=True).start()
+            elif orig_pipe:
+                # Match stopped before we could adopt — kill the orphan
+                print(f"[{tag}] Killing orphaned original publisher (match stopped)")
+                _kill_publisher(orig_pipe.publisher, tag=f"{tag} ORIGINAL")
 
             # Register SR events on all prefetchers (needs actual video_start)
             self._register_events(tag)
@@ -611,6 +647,7 @@ class MatchWorker:
             stt_thread.start()
 
             # Wait for relay_publish video delay to complete
+            actual_vs_values = []
             for lang, pipe in self._pipelines.items():
                 if self._stop.is_set():
                     break
@@ -625,11 +662,23 @@ class MatchWorker:
                 print(f"[{tag}] {lang}: video_start={vs:.3f} "
                       f"(target={target_start:.3f}, drift={vs - target_start:+.3f}s)")
 
+                # Update pipeline with actual video_start from publisher
+                pipe.video_start = vs
+                pipe.tts.video_start = vs
+                actual_vs_values.append(vs)
+
                 # Start stdout log reader (after we've consumed signals)
                 threading.Thread(
                     target=_log_pub_stream,
                     args=(pipe.publisher.stdout, f"{tag} {lang.upper()} RELAY out"),
                     daemon=True).start()
+
+            # Update STT scheduling ref to mean actual video_start across languages
+            if actual_vs_values:
+                mean_vs = sum(actual_vs_values) / len(actual_vs_values)
+                self._video_start_ref[0] = mean_vs
+                print(f"[{tag}] video_start_ref updated to mean={mean_vs:.3f} "
+                      f"(spread={max(actual_vs_values) - min(actual_vs_values):.3f}s)")
 
             # Wait for STT to finish (pipe closes when subscribe_audio exits)
             stt_thread.join()
@@ -709,57 +758,80 @@ class MatchWorker:
         pipe.video_start = video_start
         self._pipelines[lang] = pipe
 
-    def _start_original_pipeline(self, atmosphere_pcm, tag, start_at=None):
+    def _start_original_pipeline(self, atmosphere_pcm, tag, start_at=None,
+                                 result=None, ready_event=None):
         """Start a passthrough pipeline that plays original audio on {match_id}-original.
 
         Demo mode: loads original audio PCM from the audio file, starts a Go
         publisher with NO video delay — original channel plays ahead of
         translated channels (video_delay seconds ahead), with A/V in sync.
+
+        Called from a background thread. Writes the built _LangPipeline into
+        result["pipe"] (or result["error"] on failure). Does NOT mutate
+        self._pipelines — the main thread inserts after ready_event is set.
         """
-        import wave as _wave
+        pub = None
+        try:
+            import wave as _wave
 
-        channel = f"{self._match.match_id}-original"
-        pub_tag = f"{tag} ORIGINAL PUB"
+            channel = f"{self._match.match_id}-original"
+            pub_tag = f"{tag} ORIGINAL PUB"
 
-        print(f"[{tag}] Starting original pipeline on channel={channel} (no delay)")
+            print(f"[{tag}] Starting original pipeline on channel={channel} (no delay)")
 
-        # Load original audio as PCM bytes
-        pcm_path = convert_to_pcm(self._match.audio)
-        with _wave.open(pcm_path, 'rb') as wf:
-            original_pcm = wf.readframes(wf.getnframes())
-        os.unlink(pcm_path)
-        print(f"[{tag}] Original audio: {len(original_pcm)/32000:.1f}s loaded")
+            # Load original audio as PCM bytes
+            pcm_path = convert_to_pcm(self._match.audio)
+            with _wave.open(pcm_path, 'rb') as wf:
+                original_pcm = wf.readframes(wf.getnframes())
+            os.unlink(pcm_path)
+            print(f"[{tag}] Original audio: {len(original_pcm)/32000:.1f}s loaded")
 
-        # No video delay — original plays in real time, ahead of translated channels
-        pub = _start_publisher(
-            self._match.video_h264, channel,
-            0,  # no video delay
-            self._server.agora_app_id, self._server.agora_app_cert,
-            start_at=None)  # no synchronized start — begin immediately
+            if self._stop.is_set():
+                return
 
-        _wait_for_publisher_signal(pub, "audio publishing started", timeout=15, tag=pub_tag)
+            # No video delay — original plays in real time, ahead of translated channels
+            pub = _start_publisher(
+                self._match.video_h264, channel,
+                0,  # no video delay
+                self._server.agora_app_id, self._server.agora_app_cert,
+                start_at=None)  # no synchronized start — begin immediately
 
-        tts = TTSEngine(
-            audio_pipe=pub.stdin,
-            voice_id="original",
-            api_key="",
-            on_telemetry=None,
-        )
+            _wait_for_publisher_signal(pub, "audio publishing started", timeout=15, tag=pub_tag)
 
-        if atmosphere_pcm:
-            tts.set_atmosphere(atmosphere_pcm)
-            tts.set_atmosphere_enabled(True)
+            tts = TTSEngine(
+                audio_pipe=pub.stdin,
+                voice_id="original",
+                api_key="",
+                on_telemetry=None,
+            )
 
-        # video_start is now (no delay) — audio position starts from beginning
-        video_start = time.time()
-        tts.video_start = video_start
-        tts.set_original_audio(original_pcm)
-        tts.set_original_enabled(True)
-        tts.start()
+            if atmosphere_pcm:
+                tts.set_atmosphere(atmosphere_pcm)
+                tts.set_atmosphere_enabled(True)
 
-        pipe = _LangPipeline("original", channel, tts, sr_prefetcher=None, publisher=pub)
-        pipe.video_start = video_start
-        self._pipelines["original"] = pipe
+            # video_start is now (no delay) — audio position starts from beginning
+            video_start = time.time()
+            tts.video_start = video_start
+            tts.set_original_audio(original_pcm)
+            tts.set_original_enabled(True)
+            tts.start()
+
+            pipe = _LangPipeline("original", channel, tts, sr_prefetcher=None, publisher=pub)
+            pipe.video_start = video_start
+            if result is not None:
+                result["pipe"] = pipe
+            pub = None  # ownership transferred to pipe — don't kill in except
+        except Exception as e:
+            print(f"[{tag}] ERROR in original pipeline: {e}")
+            import traceback
+            traceback.print_exc()
+            if pub is not None:
+                _kill_publisher(pub, tag=f"{tag} ORIGINAL")
+            if result is not None:
+                result["error"] = str(e)
+        finally:
+            if ready_event:
+                ready_event.set()
 
     # ─── Structured log files ────────────────────────────────────────────
 
@@ -946,7 +1018,11 @@ class MatchWorker:
             pipe.tts.speak(text, play_at=lang_play_at, translate_fn=make_translate_fn())
 
     def _on_telemetry(self, lang, data):
-        """Process telemetry from a TTSEngine pipe writer."""
+        """Process telemetry from a TTSEngine pipe writer.
+
+        Called from multiple threads (pipe_writer, SR scheduler) — all
+        counter increments and log writes are protected by _telemetry_lock.
+        """
         pipe = self._pipelines.get(lang)
         if not pipe:
             return
@@ -956,58 +1032,59 @@ class MatchWorker:
         interrupted = data.get("interrupted", False)
         interrupted_by = data.get("interrupted_by", "")
 
-        # Status-aware counter increments
-        if status in ("played", "interrupted"):
-            if source == "stt":
-                pipe.telemetry.stt_played += 1
-                if status == "interrupted":
-                    pipe.telemetry.stt_cut_short_count += 1
-                    print(f"  [TELEMETRY] ERROR: {lang} STT was interrupted by {interrupted_by} "
-                          f"— stt_cut_short_count={pipe.telemetry.stt_cut_short_count}")
-            elif source == "sr":
-                pipe.telemetry.sr_played += 1
-                if status == "interrupted":
-                    pipe.telemetry.sr_cut_short_count += 1
-        elif status in ("dropped", "suppressed", "replaced"):
-            pipe.telemetry.drop_count += 1
+        with self._telemetry_lock:
+            # Status-aware counter increments
+            if status in ("played", "interrupted"):
+                if source == "stt":
+                    pipe.telemetry.stt_played += 1
+                    if status == "interrupted":
+                        pipe.telemetry.stt_cut_short_count += 1
+                        print(f"  [TELEMETRY] ERROR: {lang} STT was interrupted by {interrupted_by} "
+                              f"— stt_cut_short_count={pipe.telemetry.stt_cut_short_count}")
+                elif source == "sr":
+                    pipe.telemetry.sr_played += 1
+                    if status == "interrupted":
+                        pipe.telemetry.sr_cut_short_count += 1
+            elif status in ("dropped", "suppressed", "replaced"):
+                pipe.telemetry.drop_count += 1
 
-        pipe.recent_utterances.append(data)
+            pipe.recent_utterances.append(data)
 
-        # Write lang log line
-        lang_log = self._lang_logs.get(lang)
-        if lang_log:
-            try:
-                play_at = data.get("play_at")
-                audio_start = None
-                if play_at and pipe.video_start:
-                    audio_start = round(play_at - pipe.video_start, 2)
-                xlat_time = data.get("translate_time")
-                tts_time = data.get("tts_time")
-                play_started_at = data.get("play_started_at")
-                play_ended_at = data.get("play_ended_at")
-                start_lag_ms = None
-                if play_started_at and play_at:
-                    start_lag_ms = round((play_started_at - play_at) * 1000)
-                line = {
-                    "type": "utterance",
-                    "source": source,
-                    "uid": data.get("uid"),
-                    "audio_start": audio_start,
-                    "play_at": play_at,
-                    "play_started_at": play_started_at,
-                    "play_ended_at": play_ended_at,
-                    "start_lag_ms": start_lag_ms,
-                    "xlat_ms": round(xlat_time * 1000) if xlat_time else None,
-                    "tts_ms": round(tts_time * 1000) if tts_time else None,
-                    "status": status,
-                    "original": data.get("text"),
-                    "translated": data.get("translated"),
-                    "play_duration_ms": data.get("actual_play_duration_ms", 0),
-                }
-                lang_log.write(json.dumps(line) + "\n")
-                lang_log.flush()
-            except Exception:
-                pass
+            # Write lang log line
+            lang_log = self._lang_logs.get(lang)
+            if lang_log:
+                try:
+                    play_at = data.get("play_at")
+                    audio_start = None
+                    if play_at and pipe.video_start:
+                        audio_start = round(play_at - pipe.video_start, 2)
+                    xlat_time = data.get("translate_time")
+                    tts_time = data.get("tts_time")
+                    play_started_at = data.get("play_started_at")
+                    play_ended_at = data.get("play_ended_at")
+                    start_lag_ms = None
+                    if play_started_at and play_at:
+                        start_lag_ms = round((play_started_at - play_at) * 1000)
+                    line = {
+                        "type": "utterance",
+                        "source": source,
+                        "uid": data.get("uid"),
+                        "audio_start": audio_start,
+                        "play_at": play_at,
+                        "play_started_at": play_started_at,
+                        "play_ended_at": play_ended_at,
+                        "start_lag_ms": start_lag_ms,
+                        "xlat_ms": round(xlat_time * 1000) if xlat_time else None,
+                        "tts_ms": round(tts_time * 1000) if tts_time else None,
+                        "status": status,
+                        "original": data.get("text"),
+                        "translated": data.get("translated"),
+                        "play_duration_ms": data.get("actual_play_duration_ms", 0),
+                    }
+                    lang_log.write(json.dumps(line) + "\n")
+                    lang_log.flush()
+                except Exception:
+                    pass
 
     def _fetch_roster(self):
         """Fetch player roster from Sportradar lineups API. Non-fatal on failure."""

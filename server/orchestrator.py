@@ -12,10 +12,11 @@ class Orchestrator:
     def __init__(self, config: ServerConfig):
         self._config = config
         self._workers: dict[str, MatchWorker] = {}
-        self._action_lock = threading.Lock()
+        self._match_locks: dict[str, threading.Lock] = {}
 
         for match_cfg in config.matches:
             self._workers[match_cfg.match_id] = MatchWorker(match_cfg, config)
+            self._match_locks[match_cfg.match_id] = threading.Lock()
 
     def start_all(self):
         """Start a MatchWorker per configured match."""
@@ -31,11 +32,11 @@ class Orchestrator:
 
     def start_match(self, match_id: str):
         """Start a single match worker. Noop if already running.
-        Serialized to prevent double-start from concurrent requests."""
+        Per-match lock prevents double-start without blocking other matches."""
         worker = self._workers.get(match_id)
         if not worker:
             raise KeyError(f"match '{match_id}' not found")
-        with self._action_lock:
+        with self._match_locks[match_id]:
             if worker.status.state in ("starting", "running"):
                 return
             print(f"[ORCH] Starting match: {match_id}")
@@ -43,11 +44,11 @@ class Orchestrator:
 
     def stop_match(self, match_id: str):
         """Stop a single match worker. Noop if not running.
-        Serialized to prevent races with concurrent start/stop."""
+        Per-match lock prevents races with concurrent start/stop."""
         worker = self._workers.get(match_id)
         if not worker:
             raise KeyError(f"match '{match_id}' not found")
-        with self._action_lock:
+        with self._match_locks[match_id]:
             if worker.status.state not in ("starting", "running"):
                 return
             print(f"[ORCH] Stopping match: {match_id}")
