@@ -22,7 +22,7 @@
 | [03_code_map](L1/03_code_map.md) | Directory tree, module maps for `server/`, `lib/`, all scripts | Maintain |
 | [04_conventions](L1/04_conventions.md) | Naming, voices, JIT translation, audio format, logging, YAML config | Maintain |
 | [05_workflows](L1/05_workflows.md) | Server mode, dev mode, clip extraction, viewer usage, benchmarks | Use |
-| [06_interfaces](L1/06_interfaces.md) | Production server API, Agora channel contracts, PCM format, planned contracts | Use & Maintain |
+| [06_interfaces](L1/06_interfaces.md) | Production server API, Agora channel contracts, PCM format, live mode contracts | Use & Maintain |
 | [07_gotchas](L1/07_gotchas.md) | Server port conflicts, YAML paths, MP4 offset, zombies, TTS short phrases, go.mod replace | Maintain |
 | [08_security](L1/08_security.md) | API keys, tokens, CORS, network exposure, server security gaps | Maintain |
 

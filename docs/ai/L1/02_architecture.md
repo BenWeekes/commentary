@@ -71,7 +71,7 @@ Each language pipeline has its own Go publisher that publishes delayed video + t
 
 SR events run in parallel: the SRPrefetcher pre-translates and pre-TTS's each event per language, scheduled to play at exact match time.
 
-## Live Match Mode (Planned)
+## Live Match Mode
 
 Live matches use an Agora source channel where a broadcaster publishes three UIDs:
 
@@ -109,10 +109,10 @@ Source Agora Channel
          delayed video (73) + mixed audio (delayed atmos + TTS) — no UID 75
 ```
 
-**Planned** components:
+Components:
 
-- `subscribe_audio.go` — subscribes to source channel, writes UID 75 (commentary) PCM to stdout. Python STT reads from this process's stdout instead of from a file.
-- `relay_publish.go` — subscribes to source channel UIDs 73 (video) and 74 (atmosphere), holds frames in a delay buffer for `video_delay` seconds, then publishes to the output channel. Audio output is delayed atmosphere mixed with translated TTS. The original commentary (UID 75) is excluded from output.
+- `subscribe_audio.go` (`go-audio-video-publisher/cmd/subscribe_audio/`) — subscribes to source channel, writes UID 75 (commentary) PCM to stdout. Python STT reads from this process's stdout via `pcm_stream_from_pipe()`.
+- `relay_publish.go` (`go-audio-video-publisher/cmd/relay_publish/`) — subscribes to source channel UIDs 73 (video) and 74 (atmosphere), holds frames in a delay buffer for `video_delay` seconds, then publishes to the output channel. Audio output is delayed atmosphere mixed with translated TTS from stdin. The original commentary (UID 75) is excluded from output.
 - One `relay_publish` process per language.
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.

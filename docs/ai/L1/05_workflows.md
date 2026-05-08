@@ -80,9 +80,7 @@ Kills all Go publishers, stops TTS engines, and cleans up the match worker.
 
 `http://localhost:8080/control.html` — admin interface with start/stop buttons for each match.
 
-## Live Match Workflow (Planned)
-
-**Planned** — not yet implemented. Describes the intended operational workflow for live Bundesliga matches.
+## Live Match Workflow
 
 ### Live match config
 
@@ -99,17 +97,17 @@ UID mapping (all matches): 73 = video, 74 = atmosphere, 75 = commentary.
 
 ### Pre-match
 
-1. Configure match in `matches.yaml` with source channel and language list
-2. Start the server: `python3 -m server.main --config matches.yaml`
+1. Configure match in `matches_live.yaml` with source channel and language list
+2. Start the server: `python3 -m server.main --config matches_live.yaml`
 3. Match stays idle until kicked off
 
 ### Live match start
 
-1. Broadcaster publishes to source Agora channel (UID 73 video, UID 74 atmosphere, UID 75 commentary)
-2. Start match via API (future: auto-start via SR Schedule Monitor)
+1. Broadcaster publishes to source Agora channel (UID 73 video, UID 74 atmosphere, UID 75 commentary) via SRT ingest
+2. Start match via API: `curl -X POST http://localhost:8080/api/matches/{id}/start`
 3. `subscribe_audio.go` subscribes to source channel, writes UID 75 PCM to stdout
-4. Python STT reads from `subscribe_audio` stdout instead of from a file
-5. `relay_publish.go` subscribes to UIDs 73 + 74, delay-buffers, publishes to output channels
+4. Python STT reads from `subscribe_audio` stdout via `pcm_stream_from_pipe()`
+5. Per-language `relay_publish.go` subscribes to UIDs 73 + 74, delay-buffers, reads TTS from stdin, publishes to output channels
 6. Viewers connect to per-language output channels
 
 ### Output channel content
@@ -118,6 +116,12 @@ Each per-language output channel contains:
 - Delayed video (from source UID 73, held for `video_delay` seconds)
 - Mixed audio: delayed atmosphere (from source UID 74) + translated TTS
 - No original commentary (UID 75 is excluded from output)
+
+### Notable limitations in live mode
+
+- No SR gap-fill events — STT-only (SR requires a live API poller, not yet implemented)
+- No atmosphere toggle — atmosphere comes from source UID 74 via relay_publish, not from a local file
+- No original audio pass-through — original is on the source channel, not locally available
 
 ### SR Schedule Monitor (Deferred)
 

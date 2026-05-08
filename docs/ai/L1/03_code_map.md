@@ -139,14 +139,12 @@ Output files: `demo_transcript_en.txt` (English), `demo_transcript.txt` (6 langu
 | `AccessToken` | Token builder — HMAC-SHA256 signing, zlib compression |
 | `build_token_with_rtm()` | Convenience function for RTC+RTM tokens |
 
-## Planned Files
+## Go Live Mode Programs
 
-The following files do not exist yet. They are part of the **planned** live match architecture.
-
-| File | Purpose |
-|---|---|
-| `go-audio-video-publisher/subscribe_audio.go` | **Planned** — subscribes to source Agora channel, writes UID 75 (commentary) PCM to stdout for Python STT |
-| `go-audio-video-publisher/relay_publish.go` | **Planned** — subscribes to source channel UIDs 73 (video) + 74 (atmosphere), delay-buffers, publishes to per-language output channel with mixed audio |
+| File | Lines | Purpose |
+|---|---|---|
+| `go-audio-video-publisher/cmd/subscribe_audio/main.go` | ~229 | Subscribes to source Agora channel, writes UID 75 (commentary) PCM to stdout for Python STT. Signals readiness on stderr. |
+| `go-audio-video-publisher/cmd/relay_publish/main.go` | ~599 | Subscribes to source channel UIDs 73 (video) + 74 (atmosphere), delay-buffers both, reads TTS PCM from stdin, mixes delayed atmosphere + TTS, publishes to per-language output channel. Signals readiness on stdout. |
 
 ## Runtime Log Files
 

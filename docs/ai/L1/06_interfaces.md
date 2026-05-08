@@ -1,6 +1,6 @@
 # L1 — Interfaces
 
-> Production server API, Agora channel contracts, PCM audio format, dev-mode API, and planned contracts.
+> Production server API, Agora channel contracts, PCM audio format, dev-mode API, and live mode contracts.
 
 ## Production Server HTTP API
 
@@ -256,11 +256,9 @@ POST /speak
 
 This pushes text to an Agora Conversational AI avatar's TTS queue.
 
-## Planned Contracts
+## Live Mode Contracts
 
-The following interfaces are **planned** for live match mode and do not exist yet.
-
-### subscribe_audio.go CLI Contract (Planned)
+### subscribe_audio.go CLI Contract
 
 ```bash
 go run subscribe_audio.go <app_id> <source_channel> <uid_to_subscribe>
@@ -271,7 +269,7 @@ go run subscribe_audio.go <app_id> <source_channel> <uid_to_subscribe>
 
 Environment: `AGORA_APP_CERTIFICATE`, `DYLD_LIBRARY_PATH`
 
-### relay_publish.go CLI Contract (Planned)
+### relay_publish.go CLI Contract
 
 ```bash
 go run relay_publish.go <app_id> <source_channel> <output_channel> <video_delay>
@@ -286,7 +284,7 @@ Environment: `AGORA_APP_CERTIFICATE`, `DYLD_LIBRARY_PATH`
 
 One `relay_publish` process runs per language.
 
-### Live Mode Source Channel Layout (Planned)
+### Live Mode Source Channel Layout
 
 | Source UID | Content | Subscribed by |
 |---|---|---|
@@ -294,7 +292,7 @@ One `relay_publish` process runs per language.
 | 74 | Stadium atmosphere | `relay_publish.go` |
 | 75 | Live commentary | `subscribe_audio.go` |
 
-### Live Mode Output Channel Layout (Planned)
+### Live Mode Output Channel Layout
 
 | Output UID | Content |
 |---|---|
