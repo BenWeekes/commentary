@@ -21,6 +21,7 @@ DEFAULT_VIEWER_BASE_URL = "https://localhost:8443/commentary/viewer_test.html"
 DEFAULT_SDK_PATH = (
     ROOT_DIR.parent / "codex" / "server-custom-llm" / "go-audio-subscriber" / "sdk" / "agora_sdk_mac"
 )
+DEFAULT_LINUX_SDK_PATH = Path("/home/ubuntu/agora-go-sdk/agora_sdk")
 
 
 def load_dotenv(path: Path) -> None:
@@ -78,6 +79,8 @@ def main() -> None:
     env.setdefault("AGORA_APP_CERTIFICATE", app_cert)
     if "DYLD_LIBRARY_PATH" not in env and DEFAULT_SDK_PATH.exists():
         env["DYLD_LIBRARY_PATH"] = str(DEFAULT_SDK_PATH.resolve())
+    if "LD_LIBRARY_PATH" not in env and DEFAULT_LINUX_SDK_PATH.exists():
+        env["LD_LIBRARY_PATH"] = str(DEFAULT_LINUX_SDK_PATH.resolve())
 
     viewer_uid = 560000 + (os.getpid() % 100000)
     viewer_url = build_viewer_url(args.channel, viewer_uid, args.viewer_base_url)

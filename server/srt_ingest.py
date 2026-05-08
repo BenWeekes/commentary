@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import signal
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -13,6 +14,7 @@ GO_DIR = ROOT_DIR / "go-audio-video-publisher"
 DEFAULT_SDK_PATH = (
     ROOT_DIR.parent / "codex" / "server-custom-llm" / "go-audio-subscriber" / "sdk" / "agora_sdk_mac"
 )
+DEFAULT_LINUX_SDK_PATH = Path("/home/ubuntu/agora-go-sdk/agora_sdk")
 
 
 def start_srt_ingest(
@@ -78,9 +80,11 @@ def _start_srt_publish(
     env.setdefault("AGORA_APP_CERTIFICATE", app_cert)
     if "DYLD_LIBRARY_PATH" not in env and DEFAULT_SDK_PATH.exists():
         env["DYLD_LIBRARY_PATH"] = str(DEFAULT_SDK_PATH.resolve())
+    if "LD_LIBRARY_PATH" not in env and DEFAULT_LINUX_SDK_PATH.exists():
+        env["LD_LIBRARY_PATH"] = str(DEFAULT_LINUX_SDK_PATH.resolve())
 
     cmd = [
-        "python3", str(ROOT_DIR / "publish_srt_to_agora.py"),
+        sys.executable, str(ROOT_DIR / "publish_srt_to_agora.py"),
         "--srt-url", srt_url,
         "--channel", channel,
         "--uid", str(publish_uid),
