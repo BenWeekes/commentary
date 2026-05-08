@@ -1369,6 +1369,14 @@ func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Poin
 		packet.pts = 1
 	}
 
+	fps := 0
+	if packet.framerate_den > 0 {
+		fps = int(packet.framerate_num / packet.framerate_den)
+	}
+	if fps <= 0 {
+		fps = 25
+	}
+
 	data := C.GoBytes(unsafe.Pointer(packet.pkt.data), packet.pkt.size)
 	for _, au := range h264Parser.appendAndExtract(data, false) {
 		cleaned := h264Cleaner.repacketize(au)
@@ -1383,7 +1391,7 @@ func sendEncodedVideoPacket(con *agoraservice.RtcConnection, decoder unsafe.Poin
 			CodecType:       agoraservice.VideoCodecTypeH264,
 			Width:           int(packet.width),
 			Height:          int(packet.height),
-			FramesPerSecond: 0,
+			FramesPerSecond: fps,
 			FrameType:       frameType,
 			Rotation:        agoraservice.VideoOrientation0,
 		}); rc != 0 {
