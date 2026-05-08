@@ -157,6 +157,12 @@ def validate_config(cfg: ServerConfig, dry_run=False):
     if not cfg.elevenlabs_api_key:
         errors.append("ELEVENLABS_API_KEY not set")
 
+    if cfg.ops_auth_enabled:
+        if not cfg.ops_password:
+            errors.append("ops_auth_enabled is true but OPS_PASSWORD is not set")
+        if not cfg.ops_session_secret:
+            errors.append("ops_auth_enabled is true but OPS_SESSION_SECRET is not set")
+
     if not cfg.matches:
         errors.append("No matches configured")
 

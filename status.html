@@ -19,11 +19,11 @@
       text-align: center;
       font-size: 11px;
       font-weight: 600;
-      color: #555;
+      color: #888;
       letter-spacing: 2px;
       text-transform: uppercase;
     }
-    .top-banner span { color: #666; }
+    .top-banner span { color: #999; }
     .header {
       padding: 28px 24px 12px;
       max-width: 960px;
@@ -41,7 +41,7 @@
     .header-left p {
       margin-top: 4px;
       font-size: 13px;
-      color: #555;
+      color: #888;
     }
     .header-right {
       display: flex;
@@ -49,11 +49,11 @@
       gap: 12px;
     }
     .header-right a {
-      color: #555;
+      color: #999;
       font-size: 12px;
       text-decoration: none;
     }
-    .header-right a:hover { color: #888; }
+    .header-right a:hover { color: #fff; }
     .matches {
       max-width: 960px;
       margin: 0 auto;
@@ -121,16 +121,16 @@
       gap: 14px;
       padding: 4px 22px 14px;
       font-size: 12px;
-      color: #555;
+      color: #999;
     }
     .match-meta .countdown {
       color: #fbbf24;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
-    .match-meta .countdown.negative { color: #555; }
+    .match-meta .countdown.negative { color: #777; }
     .match-meta .stt-count { color: #4ade80; }
-    .match-meta .freshness { color: #555; }
+    .match-meta .freshness { color: #888; }
     .match-meta .freshness.stale { color: #f87171; }
     .match-actions {
       margin-left: auto;
@@ -159,8 +159,8 @@
     .btn-refresh:hover { background: #6d28d9; }
     .btn-watch    { background: #2563eb; color: #fff; }
     .btn-watch:hover { background: #1d4ed8; }
-    .btn-detail   { background: #222; color: #999; }
-    .btn-detail:hover { background: #333; color: #fff; }
+    .btn-detail   { background: #2a2a2a; border: 1px solid #444; color: #bbb; }
+    .btn-detail:hover { background: #3a3a3a; color: #fff; }
     .btn:disabled, .btn.disabled {
       background: #1a1a1a !important;
       color: #444 !important;
@@ -333,9 +333,10 @@
         }
         html += '</div>';
 
-        // Error
-        if (m.error) {
-          html += '<div class="error-msg">' + esc(m.error) + '</div>';
+        // Error — show worker error or scheduler last_error
+        var errText = m.error || m.last_error;
+        if (errText) {
+          html += '<div class="error-msg">' + esc(errText) + '</div>';
         }
 
         html += '</div>';

@@ -252,6 +252,9 @@ def refresh_match_data(match_id, match_cfg, match_store, api_key: str) -> dict:
         kickoff_utc = _extract_kickoff(lineups, summary)
         result["kickoff_utc"] = kickoff_utc
 
+        # Extract SR match status (not_started/live/closed/ended)
+        result["match_status"] = _extract_match_status(summary)
+
         # Update match metadata
         now = time.time()
         meta = match_store.read_match_meta(match_id) or {}
@@ -294,3 +297,11 @@ def _extract_kickoff(lineups: dict, summary: dict | None) -> str | None:
         if start_time:
             return start_time
     return None
+
+
+def _extract_match_status(summary: dict | None) -> str:
+    """Extract match status from SR summary. Returns e.g. not_started/live/closed/ended."""
+    if not summary:
+        return ""
+    ses = summary.get("sport_event_status", {})
+    return ses.get("match_status", ses.get("status", ""))

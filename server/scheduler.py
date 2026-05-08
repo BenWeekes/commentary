@@ -31,6 +31,8 @@ class MatchSchedule:
     last_error: str = ""
     check_interval: float = 60.0
     refresh_interval: float = 300.0
+    sr_match_status: str = ""    # SR match status: not_started/live/closed/ended
+    start_error_count: int = 0   # consecutive auto-start failures
 
 
 def _parse_kickoff(iso: str) -> float | None:
@@ -165,6 +167,8 @@ class Scheduler:
             # Sleep until next check needed
             self._stop.wait(timeout=max(1.0, min_sleep))
 
+    _MAX_START_ERRORS = 3  # max consecutive auto-start failures before giving up
+
     def _tick_match(self, ms: MatchSchedule, now: float):
         """One scheduler tick for a live auto-managed match."""
         mid = ms.match_id
@@ -195,6 +199,17 @@ class Scheduler:
         if worker_state in ("starting", "running"):
             # Worker is active — track as running
             ms.state = "running" if worker_state == "running" else "starting"
+            ms.start_error_count = 0  # reset on successful start
+
+            # Auto-stop: if SR reports match closed/ended, stop after grace period
+            if worker_state == "running" and ms.sr_match_status in ("closed", "ended"):
+                print(f"[SCHED] {mid} SR reports '{ms.sr_match_status}' — auto-stopping")
+                try:
+                    self._orchestrator.stop_match(mid)
+                    ms.state = "finished"
+                except Exception as e:
+                    ms.last_error = str(e)
+                    print(f"[SCHED] {mid} auto-stop failed: {e}")
             return
 
         if worker_state == "stopped" and ms.state == "running":
@@ -202,6 +217,18 @@ class Scheduler:
             ms.state = "finished"
             print(f"[SCHED] {mid} finished (worker stopped)")
             return
+
+        # Worker errored — count failures and stop retrying after max
+        if worker_state == "error" and ms.state in ("starting", "running"):
+            ms.start_error_count += 1
+            if ms.start_error_count >= self._MAX_START_ERRORS:
+                ms.state = "error"
+                ms.last_error = f"worker failed {ms.start_error_count} times"
+                print(f"[SCHED] {mid} giving up after {ms.start_error_count} errors")
+                return
+            else:
+                print(f"[SCHED] {mid} worker error ({ms.start_error_count}/{self._MAX_START_ERRORS})")
+                # Fall through to re-evaluate kickoff logic
 
         if ms.state in ("finished", "error"):
             # Terminal states — don't auto-restart
@@ -238,9 +265,15 @@ class Scheduler:
                 try:
                     self._orchestrator.start_match(mid)
                 except Exception as e:
-                    ms.state = "error"
-                    ms.last_error = str(e)
-                    print(f"[SCHED] {mid} auto-start failed: {e}")
+                    ms.start_error_count += 1
+                    if ms.start_error_count >= self._MAX_START_ERRORS:
+                        ms.state = "error"
+                        ms.last_error = f"auto-start failed {ms.start_error_count} times: {e}"
+                        print(f"[SCHED] {mid} giving up after {ms.start_error_count} errors")
+                    else:
+                        ms.state = "armed"
+                        ms.last_error = str(e)
+                        print(f"[SCHED] {mid} auto-start failed ({ms.start_error_count}/{self._MAX_START_ERRORS}): {e}")
             else:
                 ms.state = "waiting_for_source"
                 print(f"[SCHED] {mid} waiting for source data (no keyterms)")
@@ -263,8 +296,11 @@ class Scheduler:
                 parsed = _parse_kickoff(result["kickoff_utc"])
                 if parsed:
                     ms.kickoff_ts = parsed
+            # Track SR match status for auto-stop
+            if result.get("match_status"):
+                ms.sr_match_status = result["match_status"]
             print(f"[SCHED] {mid} refreshed: {result.get('keyterm_count', 0)} keyterms, "
-                  f"kickoff={ms.kickoff_utc or 'unknown'}")
+                  f"kickoff={ms.kickoff_utc or 'unknown'}, sr_status={ms.sr_match_status or '-'}")
         elif result.get("status") == "already_refreshing":
             pass  # another thread is handling it
         else:
