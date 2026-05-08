@@ -124,6 +124,42 @@ python3 -m server.main --config matches.yaml --dry-run
 
 If validation passes, all file paths and API keys are correctly configured.
 
+### Standalone live pipeline test
+
+Use `test_live_pipeline.py` to verify the live media path without starting the full match server flow. It loads API keys from `.env`, subscribes to a live source channel, runs STT → translate → TTS for one language, and publishes the result into a separate output channel.
+
+Minimal example:
+
+```bash
+python3 test_live_pipeline.py \
+    --source-channel bvb_sge_md33 \
+    --output-channel bvb_sge_md33-es-test \
+    --lang es \
+    --video-delay 10 \
+    --match-id bvb_sge_md33 \
+    --sport-event-id sr:sport_event:61514184
+```
+
+Viewer-friendly test setup:
+
+```bash
+python3 test_live_pipeline.py \
+    --lang es \
+    --test-id e2e01 \
+    --video-delay 10 \
+    --sport-event-id sr:sport_event:61514184 \
+    --write-test-config matches_live_test.yaml \
+    --prepare-only
+```
+
+This derives:
+
+- `match_id = livepipe_e2e01`
+- `source_channel = livepipe_e2e01_src`
+- `output_channel = livepipe_e2e01-es`
+
+and writes `matches_live_test.yaml` for the existing `viewer_live.html` flow.
+
 ### Dev mode — Minimal test (no video, no Deepgram)
 
 ```bash

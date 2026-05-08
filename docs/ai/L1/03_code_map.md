@@ -6,6 +6,7 @@
 
 ```
 commentary/
+├── test_live_pipeline.py           # Standalone one-language live pipeline smoke test
 ├── live_match.py                  # Dev-mode orchestrator (~940 lines)
 ├── commentary_feeder.py           # Sportradar API poller → avatar agent
 ├── match_replay.py                # Events file replay → avatar agent
@@ -16,6 +17,7 @@ commentary/
 ├── requirements.txt               # Python dependencies
 ├── .env.example                   # API key template
 ├── matches.yaml                   # Server mode match configuration
+├── matches_live_test.yaml         # Viewer-compatible one-match config for standalone live tests
 ├── status.html                    # Public match status page (read-only dashboard)
 ├── control.html                   # Admin control page (start/stop matches)
 ├── viewer_live.html               # Production viewer (multi-match, lang select)
@@ -94,6 +96,17 @@ commentary/
 | `run_events_fallback()` | 596–698 | Replay events with parallel TTS prefetching |
 | `run_pipeline_for_session()` | 702–842 | Orchestrate one session pipeline |
 | `main()` | 845–943 | CLI args, control server, main loop |
+
+## Module Map — test_live_pipeline.py
+
+| Section | Purpose |
+|---|---|
+| `_load_dotenv()` | Loads repo-root `.env` before any API calls |
+| `_read_keyterms()` | Chooses explicit keyterms file, per-match keyterms, or falls back to `TERMS_LIST` |
+| `_fetch_roster()` | Optional Sportradar lineup fetch for roster-aware translation |
+| `_go_program_cmd()` | Uses built Go binaries if present, otherwise falls back to `go run` |
+| `_write_test_config()` | Writes a one-match `matches_live_test.yaml` for `viewer_live.html` |
+| `main()` | Parses CLI args, launches `subscribe_audio` and `relay_publish`, runs live STT fan-out for one language, prints viewer URL when output channel matches `{match_id}-{lang}` |
 
 ## Module Map — generate_demo_transcript.py
 

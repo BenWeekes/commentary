@@ -26,6 +26,8 @@ File paths in `matches.yaml` (audio, video_h264, events, atmosphere) are resolve
 python3 -m server.main --config matches.yaml --dry-run
 ```
 
+The same applies to generated standalone test configs such as `matches_live_test.yaml`.
+
 ## configured_languages vs languages
 
 The production server API returns two different language fields:
@@ -148,6 +150,16 @@ logs/{match_id}_{YYYYMMDD_HHMMSS}/
 ```
 
 If you restart the same match multiple times, you get multiple directories. Post-match tooling must not assume a single stable `logs/{match_id}/` path.
+
+## `--test-id` is not an Agora token
+
+In `test_live_pipeline.py`, `--test-id` is only a short naming input used to derive:
+
+- `match_id = livepipe_<test-id>`
+- `source_channel = livepipe_<test-id>_src`
+- `output_channel = livepipe_<test-id>-<lang>`
+
+It is **not** an Agora RTC token and is not sent to Agora as a credential.
 
 ## JSONL logs are best-effort, not transactional
 

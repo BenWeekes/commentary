@@ -68,6 +68,52 @@ Examples: `bmg_fch_demo-es`, `bmg_fch_demo-pt`, `bmg_fch_demo-fr`
 - Audio: PCM 16kHz mono via publisher stdin → Agora SDK
 - Token: v007 format, 24-hour expiry, generated per viewer via `server/token_api.py`
 
+### Standalone live test channel contract
+
+`test_live_pipeline.py` uses the same live source contract as server live mode:
+
+| Source UID | Meaning |
+|---|---|
+| 73 | video |
+| 74 | atmosphere |
+| 75 | commentary |
+
+For a viewer-compatible test, the output channel should follow:
+
+```text
+{match_id}-{lang}
+```
+
+so that `viewer_live.html?match={match_id}&lang={lang}` can join it using the normal `/api/matches/{id}/channels` flow.
+
+### `test_live_pipeline.py` CLI
+
+Required:
+
+- `--source-channel`
+- `--output-channel`
+- `--lang`
+
+or use:
+
+- `--test-id` to derive all three from a short id
+
+Optional:
+
+- `--video-uid` (default `73`)
+- `--atmosphere-uid` (default `74`)
+- `--commentary-uid` (default `75`)
+- `--video-delay`
+- `--start-margin`
+- `--translation-model` (default `gpt-5.4-mini`)
+- `--max-stt-duration`
+- `--match-id`
+- `--sport-event-id`
+- `--keyterms-file`
+- `--viewer-base-url`
+- `--write-test-config`
+- `--prepare-only`
+
 ## Internal Log File Contract
 
 These are internal runtime files written by `server/match_worker.py`, not HTTP endpoints.

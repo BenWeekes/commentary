@@ -110,6 +110,64 @@ UID mapping (all matches): 73 = video, 74 = atmosphere, 75 = commentary.
 5. Per-language `relay_publish.go` subscribes to UIDs 73 + 74, delay-buffers, reads TTS from stdin, publishes to output channels
 6. Viewers connect to per-language output channels
 
+### Standalone one-language live test
+
+Use `test_live_pipeline.py` to prove the live media path independently of full match orchestration.
+
+What it exercises:
+
+1. `subscribe_audio` subscribes to the source commentary UID
+2. Deepgram STT reads live PCM from the subscriber stdout
+3. GPT translation runs with `gpt-5.4-mini` and `reasoning_effort="low"`
+4. ElevenLabs TTS generates PCM for one target language
+5. `relay_publish` republishes delayed video + delayed atmosphere + translated TTS into a separate output channel
+
+Real-source example:
+
+```bash
+python3 test_live_pipeline.py \
+    --source-channel bvb_sge_md33 \
+    --output-channel bvb_sge_md33-es-test \
+    --lang es \
+    --video-delay 10 \
+    --match-id bvb_sge_md33 \
+    --sport-event-id sr:sport_event:61514184
+```
+
+This test is STT-only. It does **not** inject SR events or use the SR prefetcher.
+
+### Viewer-compatible standalone test
+
+Use `--test-id` when you want a clean source/output pair plus a `match_id` compatible with the production viewer:
+
+```bash
+python3 test_live_pipeline.py \
+    --lang es \
+    --test-id e2e01 \
+    --video-delay 10 \
+    --sport-event-id sr:sport_event:61514184 \
+    --write-test-config matches_live_test.yaml \
+    --prepare-only
+```
+
+Derived names:
+
+- `match_id = livepipe_e2e01`
+- `source_channel = livepipe_e2e01_src`
+- `output_channel = livepipe_e2e01-es`
+
+Then:
+
+```bash
+python3 -m server.main --config matches_live_test.yaml
+```
+
+and open:
+
+```text
+http://localhost:8080/viewer_live.html?match=livepipe_e2e01&lang=es
+```
+
 ### Output channel content
 
 Each per-language output channel contains:
