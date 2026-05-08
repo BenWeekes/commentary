@@ -324,13 +324,8 @@ class MatchWorker:
         try:
             self._oai_client = openai.OpenAI(api_key=self._server.openai_api_key)
 
-            # Load atmosphere
+            # Skip atmosphere for demo — only used in live mode
             atmosphere_pcm = None
-            if self._match.atmosphere:
-                try:
-                    atmosphere_pcm = load_atmosphere(self._match.atmosphere)
-                except Exception as e:
-                    print(f"[{tag}] WARNING: Failed to load atmosphere: {e}")
 
             # Try to load roster: prefer match_store (pre-refreshed), then SR API
             self._load_roster(tag)
