@@ -192,7 +192,7 @@ Each per-language output channel contains:
 
 ### Notable limitations in live mode
 
-- No SR gap-fill events — STT-only (SR requires a live API poller, not yet implemented)
+- No SR gap-fill events — STT-only. Live mode currently refreshes Sportradar fixture metadata (kickoff, roster, keyterms) but does not inject real-time SR commentary into playback.
 - No atmosphere toggle — atmosphere comes from source UID 74 via relay_publish, not from a local file
 
 ### Original audio channel
@@ -202,9 +202,16 @@ Each per-language output channel contains:
 
 The viewer shows "Original (EN)" first in the language dropdown. Default selection skips original and picks the first translated language.
 
-### SR Schedule Monitor (Deferred)
+### Scheduler-managed live matches
 
-**Deferred** — auto-start/stop live matches based on Sportradar schedule. Would poll the schedule API and manage match lifecycles automatically.
+`server/scheduler.py` now manages `auto_manage: true` live matches:
+
+- refreshes Sportradar fixture metadata on a cadence based on time-to-kickoff
+- tracks kickoff countdown and scheduler state
+- auto-starts a live match shortly before kickoff when keyterms are available
+- leaves demo matches and `auto_manage: false` matches under manual control
+
+This scheduler refresh path updates per-match disk data only. If you use the `Refresh Data` button while a match is already running, the refresh is blocked and applies on the next start.
 
 ## Dev Mode (live_match.py)
 

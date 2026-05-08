@@ -30,7 +30,9 @@ commentary/
 │   ├── config.py                  # MatchConfig, ServerConfig, YAML loader
 │   ├── match_store.py             # Per-match disk store: keyterms, metadata, run dirs
 │   ├── orchestrator.py            # Orchestrator: start/stop/query MatchWorkers
+│   ├── scheduler.py               # Live-match scheduler: SR refresh cadence, kickoff countdown, auto-start
 │   ├── match_worker.py            # MatchWorker: 1 STT → N language pipelines (~530 lines)
+│   ├── sr_data.py                 # Sportradar refresh helpers: lineups/summary fetch, roster/keyterms derivation
 │   ├── status_api.py              # HTTP API + static file serving
 │   └── token_api.py               # generate_viewer_token()
 ├── lib/                           # Shared library (extracted from live_match.py)
@@ -63,12 +65,14 @@ commentary/
 
 | Module | Contents | Dependencies |
 |---|---|---|
-| `server/main.py` | `_load_dotenv()`, `main()` — CLI args, config load, orchestrator init, signal handling | `server.config`, `server.orchestrator`, `server.status_api` |
+| `server/main.py` | `_load_dotenv()`, `main()` — CLI args, config load, orchestrator init, scheduler startup, signal handling | `server.config`, `server.orchestrator`, `server.status_api` |
 | `server/config.py` | `MatchConfig` (dataclass), `ServerConfig` (dataclass), `_resolve_path()`, `load_config()`, `validate_config()` | `yaml` (pyyaml) |
 | `server/match_store.py` | `MatchStore` class — persistent per-match folder management, atomic JSON writes, keyterms I/O, run directory creation / listing | `json`, `os`, `time` |
-| `server/orchestrator.py` | `Orchestrator` class — owns `MatchStore`, `start_all()`, `stop_all()`, `start_match()`, `stop_match()`, `get_all_status()`, `get_worker()` | `server.match_store`, `server.match_worker` |
+| `server/orchestrator.py` | `Orchestrator` class — owns `MatchStore`, per-match worker locks, `Scheduler`, `start_match()`, `stop_match()`, `get_all_status()`, `get_worker()` | `server.match_store`, `server.match_worker`, `server.scheduler` |
+| `server/scheduler.py` | `MatchSchedule` (dataclass), `Scheduler` class — refresh cadence, kickoff countdown, auto-start/stop state tracking for live matches | `server.config`, `server.sr_data` |
 | `server/match_worker.py` | `LangTelemetry`, `MatchStatus` (dataclasses), `_LangPipeline`, `_start_publisher()`, `_wait_for_publisher_signal()`, `_kill_publisher()`, `MatchWorker` class — match lifecycle, STT fan-out, structured JSONL log creation (`_setup_log_dir()`, `_open_stt_log()`, `_open_lang_log()`), telemetry aggregation (`_on_telemetry()`), cleanup | `lib.*`, `server.config`, `server.match_store`, `openai` |
-| `server/status_api.py` | `StatusHandler` (HTTP handler), `start_status_server()` — GET/POST routes for match status, channels, transcript, start/stop, static files | `server.token_api` |
+| `server/sr_data.py` | `fetch_lineups()`, `fetch_summary()`, `derive_roster()`, `derive_keyterms()`, `refresh_match_data()` — fixture refresh path for live matches | `urllib.request`, `json`, `time` |
+| `server/status_api.py` | `StatusHandler` (HTTP handler), `start_status_server()` — GET/POST routes for match status, scheduler overview, channels, transcript, detail, refresh-data, static files | `server.token_api`, `server.sr_data` |
 | `server/token_api.py` | `generate_viewer_token()` — Agora v007 audience-only token | `tokens` |
 
 ## Module Map — lib/ (shared library)

@@ -151,6 +151,12 @@ match_data/{match_id}/runs/{YYYYMMDD_HHMMSS}/
 
 If you restart the same match multiple times, you get multiple directories. Post-match tooling must not assume a single stable run path; use `match_data/{match_id}/latest_run.txt` when you need the newest run.
 
+## Live `Refresh Data` applies on next start only
+
+The live `Refresh Data` path writes updated kickoff / roster / keyterms into `match_store`, but the live worker loads those values at startup. To avoid a misleading partial refresh while a match is already active, the API now rejects refresh attempts during `starting` or `running` with HTTP 409.
+
+**Implication**: if you need new Sportradar fixture data to affect translation prompts or keyterm boosting, refresh before the live match starts or restart the match after refreshing.
+
 ## `--test-id` is not an Agora token
 
 In `test_live_pipeline.py`, `--test-id` is only a short naming input used to derive:

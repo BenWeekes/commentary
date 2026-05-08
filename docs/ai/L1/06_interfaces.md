@@ -10,12 +10,14 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 
 | Endpoint | Method | Response | Purpose |
 |---|---|---|---|
+| `/api/status/overview` | GET | `[{match_id, display_name, mode, enabled, auto_manage, scheduler_state, kickoff_utc, countdown_seconds, last_refresh_at, last_error, worker_state, ...}]` | Scheduler-oriented overview for all configured matches |
 | `/api/matches` | GET | `{match_id: {match_id, display_name, mode, enabled, state, stt_utterance_count, languages, configured_languages, error, started_at}}` | All match statuses |
 | `/api/matches/{id}/status` | GET | `{match_id, state, stt_utterance_count, languages, error, started_at}` | Single match status |
 | `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages; `original` is included for live matches and for demo matches only while the original pipeline is running |
 | `/api/matches/{id}/transcript` | GET | `{match_id, transcript: [{text, ts, audio_start}]}` | Recent English STT text (last 50 utterances) |
 | `/api/matches/{id}/detail` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, ...}` | Match config, keyterms, current log directory, and persisted match metadata |
 | `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 500 lines) |
+| `/api/matches/{id}/refresh-data` | POST | `{status, match_id, keyterm_count?, roster_player_count?, kickoff_utc?}` | Refresh Sportradar fixture data into `match_store` for the next live run |
 | `/api/matches/{id}/start` | POST | match status JSON | Start a demo match |
 | `/api/matches/{id}/stop` | POST | match status JSON | Stop a match |
 | `/api/token` | POST | `{token, channel, uid, appid}` | Single viewer token (body: `{match_id, lang}`) |
@@ -42,6 +44,23 @@ All endpoints return JSON (except static files) with `Access-Control-Allow-Origi
 | `stopped` | Cleanly stopped (can be restarted) |
 | `error` | Failed — check `error` field for details |
 
+### Scheduler states
+
+Returned by `/api/status/overview` for live matches:
+
+| State | Meaning |
+|---|---|
+| `demo` | Demo match — never auto-managed |
+| `upcoming` | Live match known but not near kickoff yet |
+| `countdown` | Near kickoff, still waiting |
+| `armed` | Near kickoff with keyterms ready |
+| `starting` | Scheduler has requested worker start |
+| `running` | Worker is active |
+| `finished` | Worker ran and then stopped |
+| `stopped` | Disabled or manually stopped |
+| `error` | Scheduler-side failure |
+| `waiting_for_source` | Near kickoff but no keyterms/source data yet |
+
 ### Viewer UID allocation
 
 Viewer UIDs start at 100 and increment globally across all requests. Publisher uses UID 73. Each `GET /api/matches/{id}/channels` or `POST /api/token` call allocates fresh UIDs so multiple viewers never collide.
@@ -63,6 +82,15 @@ Examples: `bmg_fch_demo-es`, `bmg_fch_demo-pt`, `bmg_fch_demo-fr`
 In **demo mode**, a dedicated channel `{match_id}-original` is created by `_start_original_pipeline()`. It carries the source English commentary with video at zero delay (plays ahead of translated channels).
 
 In **live mode**, no extra channel is created. The `/api/matches/{id}/channels` endpoint returns the existing `source_channel` as the "original" entry. The viewer joins the source channel directly.
+
+### Live SR data contract
+
+Live mode currently uses Sportradar in two narrower ways:
+
+- `/api/matches/{id}/refresh-data` and `server/scheduler.py` refresh lineup/summary-derived fixture data into `match_data/{match_id}/`
+- `MatchWorker` loads roster text and keyterms from that stored data at startup
+
+Live mode does **not** currently poll real-time SR commentary endpoints or inject SR events into output channels. The per-language live output channels are STT-only plus relayed atmosphere/video.
 
 ### Publisher UID
 

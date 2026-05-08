@@ -8,6 +8,11 @@ A live commentary translation service for live football matches. The primary com
 
 Both sources are translated and spoken via TTS, synced to delayed video so the viewer hears translated commentary at the exact moment the original was spoken.
 
+Current implementation note:
+
+- **Demo mode** has both STT and SR gap-fill today.
+- **Live mode** currently uses STT only. Sportradar in live mode is used for fixture metadata refresh (kickoff, roster, keyterms), not for real-time commentary injection yet.
+
 ## Server Mode
 
 The production server (`server/`) manages multiple matches simultaneously. Each match runs one STT pipeline that fans out to N language pipelines, each with its own Go publisher and Agora channel.
@@ -117,9 +122,14 @@ Components:
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
 
-## SR Schedule Monitor (Deferred)
+### Current live-mode limitation
 
-Auto-start/stop live matches based on Sportradar schedule data. Would poll the SR schedule API and start `MatchWorker` instances before kickoff, stop them after full time. Not currently scheduled for implementation.
+- Live mode does **not** currently attach an `SRPrefetcher` or poll real-time Sportradar commentary endpoints.
+- The live worker uses Sportradar only for pre-match / in-between refresh of lineup-derived roster text, keyterms, and kickoff metadata.
+
+## SR Schedule Monitor
+
+Live auto-managed matches are now handled by `server/scheduler.py`. The scheduler refreshes Sportradar fixture metadata, tracks kickoff countdown, and auto-starts live matches shortly before kickoff when keyterms are available.
 
 ## Timing Model
 
@@ -142,6 +152,8 @@ For SR events:
 
 Rule: play at exact play_at time, or drop the utterance.
 ```
+
+In the current codebase, the SR-event branch above applies to demo/event-file mode. Live mode still uses the STT branch only.
 
 ## Startup Sequence
 
