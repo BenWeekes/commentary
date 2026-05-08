@@ -35,7 +35,6 @@ class StatusHandler(BaseHTTPRequestHandler):
     _MATCH_TRANSCRIPT_RE = re.compile(r'^/api/matches/([^/]+)/transcript$')
     _MATCH_LOGS_RE = re.compile(r'^/api/matches/([^/]+)/logs/([a-z]{2}|stt)$')
     _MATCH_DETAIL_RE = re.compile(r'^/api/matches/([^/]+)/detail$')
-    _MATCH_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "match_data")
 
     def _respond(self, code, data):
         body = json.dumps(data).encode()
@@ -84,18 +83,22 @@ class StatusHandler(BaseHTTPRequestHandler):
         # All match statuses
         if path == "/api/matches":
             statuses = self.orchestrator.get_all_status()
-            # Build a config lookup for configured_languages
-            cfg_langs = {}
+            # Build a config lookup
+            cfg_map = {}
             for mc in self.server_config.matches:
-                cfg_langs[mc.match_id] = mc.languages
+                cfg_map[mc.match_id] = mc
             result = {}
             for mid, s in statuses.items():
+                mc = cfg_map.get(mid)
                 result[mid] = {
                     "match_id": s.match_id,
+                    "display_name": mc.display_name if mc else "",
+                    "mode": mc.mode if mc else "demo",
+                    "enabled": mc.enabled if mc else True,
                     "state": s.state,
                     "stt_utterance_count": s.stt_utterance_count,
                     "languages": s.languages,
-                    "configured_languages": cfg_langs.get(mid, []),
+                    "configured_languages": mc.languages if mc else [],
                     "error": s.error,
                     "started_at": s.started_at,
                 }
@@ -211,14 +214,14 @@ class StatusHandler(BaseHTTPRequestHandler):
                     match_cfg = mc
                     break
 
-            # Read keyterms: prefer runtime (has global fallback), else read file, else global
+            # Read keyterms: prefer runtime (has global fallback), else match_store, else global
+            store = self.orchestrator.match_store
             worker_keyterms = getattr(worker, '_keyterms', None)
             if worker_keyterms:
                 keyterms = list(worker_keyterms)
                 keyterms_source = "runtime"
             else:
-                from server.match_worker import _load_match_keyterms
-                keyterms = _load_match_keyterms(match_id)
+                keyterms = store.read_keyterms(match_id)
                 if keyterms:
                     keyterms_source = "match_file"
                 else:
@@ -240,21 +243,21 @@ class StatusHandler(BaseHTTPRequestHandler):
                         except Exception:
                             log_files[fname] = {"lines": 0}
 
-            # Historical runs from logs/ directory
-            root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            logs_base = os.path.join(root, "logs")
-            runs = []
-            if os.path.isdir(logs_base):
-                prefix = f"{match_id}_"
-                for d in sorted(os.listdir(logs_base), reverse=True):
-                    if d.startswith(prefix) and os.path.isdir(os.path.join(logs_base, d)):
-                        runs.append(d)
+            # Historical runs from match_data/{id}/runs/
+            runs = store.list_runs(match_id)
+
+            # Match metadata from match_store
+            match_meta = store.read_match_meta(match_id)
 
             s = worker.status
             result = {
                 "match_id": match_id,
+                "display_name": match_cfg.display_name if match_cfg else "",
                 "state": s.state,
                 "mode": match_cfg.mode if match_cfg else "unknown",
+                "enabled": match_cfg.enabled if match_cfg else True,
+                "auto_manage": match_cfg.auto_manage if match_cfg else False,
+                "kickoff_utc": match_cfg.kickoff_utc if match_cfg else "",
                 "stt_utterance_count": s.stt_utterance_count,
                 "languages": s.languages,
                 "configured_languages": match_cfg.languages if match_cfg else [],
@@ -267,7 +270,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "log_files": log_files,
                 "translation_model": self.server_config.translation_model,
                 "video_delay": match_cfg.video_delay if match_cfg else None,
-                "runs": runs[:20],  # last 20 runs
+                "runs": runs[:20],
+                "match_meta": match_meta,
             }
             self._respond(200, result)
             return

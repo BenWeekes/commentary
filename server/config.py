@@ -28,6 +28,12 @@ class MatchConfig:
     max_stt_duration: float = 5.0
     languages: list[str] = field(default_factory=lambda: ["es", "pt", "fr", "tr", "de"])
 
+    # Management
+    display_name: str = ""
+    enabled: bool = True
+    auto_manage: bool = False
+    kickoff_utc: str = ""
+
 
 @dataclass
 class ServerConfig:
@@ -95,6 +101,10 @@ def load_config(yaml_path: str) -> ServerConfig:
             events_offset=m.get("events_offset", 0),
             max_stt_duration=m.get("max_stt_duration", 5.0),
             languages=m.get("languages", ["es", "pt", "fr", "tr", "de"]),
+            display_name=m.get("display_name", ""),
+            enabled=m.get("enabled", True),
+            auto_manage=m.get("auto_manage", False),
+            kickoff_utc=m.get("kickoff_utc", ""),
         ))
 
     return ServerConfig(
@@ -133,6 +143,8 @@ def validate_config(cfg: ServerConfig, dry_run=False):
 
     for m in cfg.matches:
         prefix = f"match '{m.match_id}'"
+        if not m.enabled:
+            continue  # skip validation for disabled matches
         if m.mode not in ("demo", "live"):
             errors.append(f"{prefix}: invalid mode '{m.mode}' (must be 'demo' or 'live')")
         elif m.mode == "demo":

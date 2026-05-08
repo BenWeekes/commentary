@@ -20,11 +20,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from pathlib import Path
 import re
+import select
 import signal
 import subprocess
 import threading
 import time
+import urllib.parse
 import urllib.request
 
 import openai
@@ -34,6 +37,7 @@ from lib.corrections import TERMS_LIST
 from lib.stt_pipeline import run_stt_pipeline_live
 from lib.translator import translate_text, voice_for_lang
 from lib.tts_engine import TTSEngine
+from server.token_api import generate_viewer_token
 from server.match_worker import (
     _kill_publisher,
     _log_pub_stream,
@@ -182,6 +186,67 @@ def _required_env(name: str) -> str:
     return value
 
 
+def _build_viewer_test_url(
+    *,
+    app_id: str,
+    app_cert: str,
+    channel: str,
+    lang: str,
+    viewer_uid: int,
+    viewer_path: str,
+) -> str:
+    token = generate_viewer_token(app_id, app_cert, channel, viewer_uid)
+    page_uri = Path(viewer_path).resolve().as_uri()
+    query = urllib.parse.urlencode({
+        "appid": app_id,
+        "channel": channel,
+        "token": token,
+        "uid": viewer_uid,
+        "label": f"{channel} ({lang})",
+        "autoconnect": "1",
+    })
+    return f"{page_uri}?{query}"
+
+
+class _PrefixedPipeReader:
+    def __init__(self, pipe, first_chunk: bytes):
+        self._pipe = pipe
+        self._buf = first_chunk
+
+    def read(self, size: int = -1) -> bytes:
+        if size is None or size < 0:
+            data = self._buf
+            self._buf = b""
+            return data + self._pipe.read()
+        if self._buf:
+            data = self._buf[:size]
+            self._buf = self._buf[size:]
+            if len(data) == size:
+                return data
+            remainder = self._pipe.read(size - len(data))
+            return data + (remainder or b"")
+        return self._pipe.read(size)
+
+
+def _wait_for_first_pcm(pipe, proc, stop_event: threading.Event, timeout_s: float = 0.5) -> bytes | None:
+    print("[LIVE-TEST] waiting for first commentary PCM from source...")
+    last_log = time.time()
+    while not stop_event.is_set():
+        if proc.poll() is not None:
+            raise RuntimeError(f"subscribe_audio exited early with code {proc.returncode}")
+        readable, _, _ = select.select([pipe], [], [], timeout_s)
+        if readable:
+            chunk = pipe.read1(3200)
+            if chunk:
+                print(f"[LIVE-TEST] first commentary PCM received ({len(chunk)} bytes)")
+                return chunk
+        now = time.time()
+        if now - last_log >= 15:
+            print("[LIVE-TEST] still waiting for source audio...")
+            last_log = now
+    return None
+
+
 def main() -> None:
     _load_dotenv()
 
@@ -203,7 +268,8 @@ def main() -> None:
     parser.add_argument("--match-id", default="", help="Optional match id used to load match_data/<match_id>/keyterms.txt")
     parser.add_argument("--sport-event-id", default="", help="Optional Sportradar sport_event_id for roster-aware translation")
     parser.add_argument("--keyterms-file", default="", help="Optional newline-delimited keyterms file; overrides match_id lookup")
-    parser.add_argument("--viewer-base-url", default="http://localhost:8080", help="Base URL for printed viewer link")
+    parser.add_argument("--viewer-base-url", default="http://localhost:8080", help="Base URL for printed server-backed viewer_live.html link")
+    parser.add_argument("--viewer-test-path", default=os.path.join(ROOT_DIR, "viewer_test.html"), help="Path to standalone viewer HTML for printed watch URL")
     parser.add_argument("--write-test-config", default="", help="Optional path to write a one-match live test config for viewer_live.html")
     parser.add_argument("--prepare-only", action="store_true", help="Write derived config/URLs and exit without starting the pipeline")
     args = parser.parse_args()
@@ -235,10 +301,20 @@ def main() -> None:
     deepgram_key = _required_env("DEEPGRAM_API_KEY")
     openai_key = _required_env("OPENAI_API_KEY")
     elevenlabs_key = _required_env("ELEVENLABS_API_KEY")
+    app_cert = _required_env("AGORA_APP_CERT")
 
     stop_event = threading.Event()
     env = _build_env()
     oai_client = openai.OpenAI(api_key=openai_key)
+    viewer_uid = 10000 + (int(time.time() * 1000) % 900000)
+    standalone_viewer_url = _build_viewer_test_url(
+        app_id=agora_app_id,
+        app_cert=app_cert,
+        channel=args.output_channel,
+        lang=args.lang,
+        viewer_uid=viewer_uid,
+        viewer_path=args.viewer_test_path,
+    )
 
     viewer_url = None
     if args.match_id and args.output_channel == f"{args.match_id}-{args.lang}":
@@ -261,14 +337,16 @@ def main() -> None:
             translation_model=args.translation_model,
         )
         print(f"[LIVE-TEST] wrote config: {args.write_test_config}")
+        print(f"[LIVE-TEST] standalone watch url: {standalone_viewer_url}")
         if viewer_url:
-            print(f"[LIVE-TEST] viewer url: {viewer_url}")
+            print(f"[LIVE-TEST] server viewer url: {viewer_url}")
 
     if args.prepare_only:
         print(f"[LIVE-TEST] source channel: {args.source_channel}")
         print(f"[LIVE-TEST] output channel: {args.output_channel}")
         if args.match_id:
             print(f"[LIVE-TEST] match id: {args.match_id}")
+        print(f"[LIVE-TEST] standalone watch url: {standalone_viewer_url}")
         return
 
     try:
@@ -320,6 +398,11 @@ def main() -> None:
             daemon=True,
         ).start()
 
+        first_pcm = _wait_for_first_pcm(subscribe_proc.stdout, subscribe_proc, stop_event)
+        if first_pcm is None:
+            print("[LIVE-TEST] stop requested before any source audio arrived")
+            return
+
         target_start = time.time() + args.start_margin + args.video_delay
         video_start_ref[0] = target_start
         print(
@@ -327,8 +410,9 @@ def main() -> None:
             f"({args.video_delay:.1f}s delay + {args.start_margin:.1f}s margin)"
         )
         print(f"[LIVE-TEST] keyterms={len(keyterms)} lang={args.lang} output={args.output_channel}")
+        print(f"[LIVE-TEST] standalone watch url: {standalone_viewer_url}")
         if viewer_url:
-            print(f"[LIVE-TEST] viewer url: {viewer_url}")
+            print(f"[LIVE-TEST] server viewer url: {viewer_url}")
 
         relay_cmd = _go_program_cmd("relay_publish", "./cmd/relay_publish") + [
             "--app-id", agora_app_id,
@@ -399,7 +483,7 @@ def main() -> None:
         stt_thread = threading.Thread(
             target=run_stt_pipeline_live,
             kwargs=dict(
-                audio_pipe=subscribe_proc.stdout,
+                audio_pipe=_PrefixedPipeReader(subscribe_proc.stdout, first_pcm),
                 on_utterance=on_utterance,
                 deepgram_key=deepgram_key,
                 stop_event=stop_event,

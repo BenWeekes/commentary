@@ -3,6 +3,7 @@
 import threading
 
 from server.config import ServerConfig
+from server.match_store import MatchStore
 from server.match_worker import MatchWorker
 
 
@@ -13,10 +14,17 @@ class Orchestrator:
         self._config = config
         self._workers: dict[str, MatchWorker] = {}
         self._match_locks: dict[str, threading.Lock] = {}
+        self._match_store = MatchStore()
 
         for match_cfg in config.matches:
-            self._workers[match_cfg.match_id] = MatchWorker(match_cfg, config)
+            self._match_store.ensure_match_dir(match_cfg.match_id)
+            self._workers[match_cfg.match_id] = MatchWorker(
+                match_cfg, config, match_store=self._match_store)
             self._match_locks[match_cfg.match_id] = threading.Lock()
+
+    @property
+    def match_store(self) -> MatchStore:
+        return self._match_store
 
     def start_all(self):
         """Start a MatchWorker per configured match."""

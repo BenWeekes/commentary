@@ -28,6 +28,7 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 | `/status.html` | `status.html` | Match overview dashboard |
 | `/viewer_live.html` | `viewer_live.html` | Production viewer (connect overlay, language dropdown incl. original) |
 | `/match_detail.html` | `match_detail.html` | Per-match detail page (STT + per-language log tabs, config, keyterms) |
+| local file only | `viewer_test.html` | Standalone Agora viewer using `appid/channel/token/uid` query params |
 
 All endpoints return JSON (except static files) with `Access-Control-Allow-Origin: *`.
 
@@ -120,6 +121,7 @@ Optional:
 - `--sport-event-id`
 - `--keyterms-file`
 - `--viewer-base-url`
+- `--viewer-test-path`
 - `--write-test-config`
 - `--prepare-only`
 

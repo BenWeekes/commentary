@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Standalone Agora Test Viewer</title>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #050816;
+      color: #f5f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(46, 144, 250, 0.25), transparent 28%),
+        radial-gradient(circle at top right, rgba(15, 98, 254, 0.18), transparent 22%),
+        linear-gradient(180deg, #09111f 0%, #04070d 100%);
+    }
+    #topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 64px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+      z-index: 10;
+    }
+    #title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #d5e3ff;
+    }
+    #meta {
+      font-size: 13px;
+      color: rgba(226, 232, 240, 0.78);
+    }
+    #video-wrap {
+      position: absolute;
+      inset: 70px 20px 20px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #video {
+      width: 100%;
+      height: 100%;
+      max-width: calc((100vh - 90px) * 16 / 9);
+      max-height: calc((100vw - 40px) * 9 / 16);
+      aspect-ratio: 16 / 9;
+      background: rgba(3, 8, 18, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+    }
+    #video video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain;
+    }
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 14, 0.88);
+      backdrop-filter: blur(8px);
+      z-index: 20;
+    }
+    #card {
+      width: min(520px, calc(100vw - 32px));
+      padding: 28px;
+      border-radius: 18px;
+      background: rgba(10, 17, 31, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+    #card h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    #card p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: rgba(226, 232, 240, 0.78);
+      margin-bottom: 16px;
+      word-break: break-word;
+    }
+    #status {
+      margin-top: 14px;
+      min-height: 20px;
+      font-size: 13px;
+      color: #93c5fd;
+    }
+    #connect {
+      appearance: none;
+      border: 0;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1d4ed8, #38bdf8);
+      color: #fff;
+    }
+    #connect:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    #badge.visible { opacity: 1; }
+    #dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(1.35); opacity: 0.45; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <div id="title">Standalone Test Viewer</div>
+    <div id="badge"><span id="dot"></span><span>Connected</span></div>
+  </div>
+
+  <div id="video-wrap">
+    <div id="video"></div>
+  </div>
+
+  <div id="overlay">
+    <div id="card">
+      <h1 id="label">Agora Test Channel</h1>
+      <p id="details"></p>
+      <button id="connect">Connect</button>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const appId = params.get('appid') || '';
+    const channel = params.get('channel') || '';
+    const token = params.get('token') || '';
+    const uid = parseInt(params.get('uid') || '', 10);
+    const label = params.get('label') || channel || 'Agora Test Channel';
+    const autoConnect = params.get('autoconnect') === '1';
+
+    const connectBtn = document.getElementById('connect');
+    const statusEl = document.getElementById('status');
+    const detailsEl = document.getElementById('details');
+    const labelEl = document.getElementById('label');
+    const overlayEl = document.getElementById('overlay');
+    const videoEl = document.getElementById('video');
+    const badgeEl = document.getElementById('badge');
+
+    let client = null;
+
+    function setStatus(text, isError) {
+      statusEl.textContent = text || '';
+      statusEl.style.color = isError ? '#fca5a5' : '#93c5fd';
+    }
+
+    function validateParams() {
+      if (!appId || !channel || !token || Number.isNaN(uid)) {
+        connectBtn.disabled = true;
+        setStatus('Missing one or more required query params: appid, channel, token, uid.', true);
+        return false;
+      }
+      return true;
+    }
+
+    async function connect() {
+      if (!validateParams()) return;
+      connectBtn.disabled = true;
+      setStatus('Connecting...');
+
+      try {
+        if (!client) {
+          client = AgoraRTC.createClient({ mode: 'live', codec: 'h264' });
+          client.setClientRole('audience', { level: 1 });
+
+          client.on('user-published', async function(user, mediaType) {
+            await client.subscribe(user, mediaType);
+            if (mediaType === 'video') {
+              user.videoTrack.play(videoEl);
+            }
+            if (mediaType === 'audio') {
+              user.audioTrack.play();
+            }
+            badgeEl.classList.add('visible');
+            overlayEl.style.display = 'none';
+          });
+
+          client.on('user-unpublished', function() {
+            setStatus('Publisher unpublished. Waiting...');
+            overlayEl.style.display = 'flex';
+            badgeEl.classList.remove('visible');
+          });
+
+          client.on('user-left', function() {
+            setStatus('Publisher left the channel.');
+            overlayEl.style.display = 'flex';
+            badgeEl.classList.remove('visible');
+          });
+        }
+
+        await client.join(appId, channel, token, uid);
+        setStatus('Joined channel. Waiting for publisher...');
+      } catch (err) {
+        console.error(err);
+        setStatus('Join failed: ' + (err && err.message ? err.message : String(err)), true);
+        connectBtn.disabled = false;
+      }
+    }
+
+    labelEl.textContent = label;
+    detailsEl.textContent = 'Channel: ' + channel + ' | UID: ' + uid;
+    validateParams();
+
+    connectBtn.addEventListener('click', connect);
+    if (autoConnect && validateParams()) {
+      connect();
+    }
+  </script>
+</body>
+</html>

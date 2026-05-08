@@ -20,6 +20,7 @@ commentary/
 ├── matches_live_test.yaml         # Viewer-compatible one-match config for standalone live tests
 ├── status.html                    # Public match status page (read-only dashboard)
 ├── control.html                   # Admin control page (start/stop matches)
+├── viewer_test.html               # Standalone file-based Agora viewer (takes appid/channel/token/uid in query params)
 ├── viewer_live.html               # Production viewer (multi-match, lang select)
 ├── logs/                          # Runtime JSONL match logs: one dir per match run
 ├── server/                        # Production server package

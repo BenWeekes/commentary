@@ -241,9 +241,10 @@ def _log_pub_stream(stream, tag):
 class MatchWorker:
     """Manages one match: 1 STT → N languages × (translate → TTS → Go pub)."""
 
-    def __init__(self, match_cfg: MatchConfig, server_cfg: ServerConfig):
+    def __init__(self, match_cfg: MatchConfig, server_cfg: ServerConfig, match_store=None):
         self._match = match_cfg
         self._server = server_cfg
+        self._match_store = match_store
         self._stop = threading.Event()
         self._thread = None
         self._pipelines: dict[str, _LangPipeline] = {}
@@ -347,12 +348,7 @@ class MatchWorker:
             self._video_start_ref[0] = target_start
 
             # Load per-match keyterms (fall back to global TERMS_LIST)
-            self._keyterms = _load_match_keyterms(self._match.match_id)
-            if self._keyterms:
-                print(f"[{tag}] Loaded {len(self._keyterms)} keyterms from match_data/{self._match.match_id}/keyterms.txt")
-            else:
-                self._keyterms = TERMS_LIST
-                print(f"[{tag}] Using global TERMS_LIST ({len(self._keyterms)} terms) — no per-match keyterms found")
+            self._load_keyterms(tag)
 
             # Set up structured log directory and STT log
             self._setup_log_dir()
@@ -552,12 +548,7 @@ class MatchWorker:
                   f"({self._match.video_delay}s delay + {connection_margin:.0f}s margin)")
 
             # Load per-match keyterms (fall back to global TERMS_LIST)
-            self._keyterms = _load_match_keyterms(self._match.match_id)
-            if self._keyterms:
-                print(f"[{tag}] Loaded {len(self._keyterms)} keyterms from match_data/{self._match.match_id}/keyterms.txt")
-            else:
-                self._keyterms = TERMS_LIST
-                print(f"[{tag}] Using global TERMS_LIST ({len(self._keyterms)} terms) — no per-match keyterms found")
+            self._load_keyterms(tag)
 
             # Set up structured log directory and STT log
             self._setup_log_dir()
@@ -833,12 +824,29 @@ class MatchWorker:
             if ready_event:
                 ready_event.set()
 
+    # ─── Data loading ───────────────────────────────────────────────────
+
+    def _load_keyterms(self, tag):
+        """Load keyterms via match_store (preferred) or module-level fallback."""
+        if self._match_store:
+            self._keyterms = self._match_store.read_keyterms(self._match.match_id)
+        else:
+            self._keyterms = _load_match_keyterms(self._match.match_id)
+        if self._keyterms:
+            print(f"[{tag}] Loaded {len(self._keyterms)} keyterms for {self._match.match_id}")
+        else:
+            self._keyterms = TERMS_LIST
+            print(f"[{tag}] Using global TERMS_LIST ({len(self._keyterms)} terms)")
+
     # ─── Structured log files ────────────────────────────────────────────
 
     def _setup_log_dir(self):
-        ts = time.strftime("%Y%m%d_%H%M%S")
-        self._log_dir = os.path.join("logs", f"{self._match.match_id}_{ts}")
-        os.makedirs(self._log_dir, exist_ok=True)
+        if self._match_store:
+            self._log_dir = self._match_store.get_run_dir(self._match.match_id)
+        else:
+            ts = time.strftime("%Y%m%d_%H%M%S")
+            self._log_dir = os.path.join("logs", f"{self._match.match_id}_{ts}")
+            os.makedirs(self._log_dir, exist_ok=True)
 
     def _open_stt_log(self, target_start):
         path = os.path.join(self._log_dir, "stt.jsonl")

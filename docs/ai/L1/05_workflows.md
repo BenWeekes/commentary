@@ -168,6 +168,19 @@ and open:
 http://localhost:8080/viewer_live.html?match=livepipe_e2e01&lang=es
 ```
 
+### Fully standalone browser watch
+
+`test_live_pipeline.py` also prints a standalone watch URL for `viewer_test.html`. This is a local `file://...` URL with:
+
+- `appid`
+- `channel`
+- `token`
+- `uid`
+
+in the query string.
+
+Open the printed URL directly in a browser to watch the test channel without starting the production server or using `/api/matches/{id}/channels`.
+
 ### Output channel content
 
 Each per-language output channel contains:
