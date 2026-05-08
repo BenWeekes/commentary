@@ -18,10 +18,22 @@ from server.token_api import generate_viewer_token
 ROOT_DIR = Path(__file__).resolve().parent
 GO_DIR = ROOT_DIR / "go-audio-video-publisher"
 DEFAULT_VIEWER_BASE_URL = "https://localhost:8443/commentary/viewer_test.html"
-DEFAULT_SDK_PATH = (
+
+# Preferred per-machine SDK location, populated by go-audio-video-publisher/setup-agora-sdk.sh.
+SDK_DIR_LINUX = GO_DIR / "agora-sdk" / "agora_sdk"
+SDK_DIR_MAC = GO_DIR / "agora-sdk" / "agora_sdk_mac"
+
+# Legacy locations kept as a fallback so existing dev setups still work.
+LEGACY_SDK_PATH_MAC = (
     ROOT_DIR.parent / "codex" / "server-custom-llm" / "go-audio-subscriber" / "sdk" / "agora_sdk_mac"
 )
-DEFAULT_LINUX_SDK_PATH = Path("/home/ubuntu/agora-go-sdk/agora_sdk")
+
+
+def _first_existing(*paths: Path) -> Path | None:
+    for p in paths:
+        if p.exists():
+            return p
+    return None
 
 
 def load_dotenv(path: Path) -> None:
@@ -79,10 +91,14 @@ def main() -> None:
     app_cert = required_env("AGORA_APP_CERT")
     env = os.environ.copy()
     env.setdefault("AGORA_APP_CERTIFICATE", app_cert)
-    if "DYLD_LIBRARY_PATH" not in env and DEFAULT_SDK_PATH.exists():
-        env["DYLD_LIBRARY_PATH"] = str(DEFAULT_SDK_PATH.resolve())
-    if "LD_LIBRARY_PATH" not in env and DEFAULT_LINUX_SDK_PATH.exists():
-        env["LD_LIBRARY_PATH"] = str(DEFAULT_LINUX_SDK_PATH.resolve())
+    if "DYLD_LIBRARY_PATH" not in env:
+        mac_sdk = _first_existing(SDK_DIR_MAC, LEGACY_SDK_PATH_MAC)
+        if mac_sdk:
+            env["DYLD_LIBRARY_PATH"] = str(mac_sdk.resolve())
+    if "LD_LIBRARY_PATH" not in env:
+        linux_sdk = _first_existing(SDK_DIR_LINUX)
+        if linux_sdk:
+            env["LD_LIBRARY_PATH"] = str(linux_sdk.resolve())
 
     viewer_uid = 560000 + (os.getpid() % 100000)
     viewer_url = build_viewer_url(args.channel, viewer_uid, args.viewer_base_url)

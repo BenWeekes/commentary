@@ -5,3 +5,10 @@ agora_rtc_log/
 clips/
 encoded_assets/
 raw_assets/
+# Per-machine Agora SDK (populated by ./setup-agora-sdk.sh)
+agora-sdk
+# Agora runtime caches
+agora_cache.db
+agoradns.dat
+agorareport.dat
+go.mod.bak
