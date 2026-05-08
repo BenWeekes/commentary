@@ -102,7 +102,7 @@ CORRECTIONS = [
 ]
 
 
-def apply_corrections(text):
-    for wrong, right in CORRECTIONS:
+def apply_corrections(text, corrections=None):
+    for wrong, right in (corrections if corrections is not None else CORRECTIONS):
         text = text.replace(wrong, right)
     return text

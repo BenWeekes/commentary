@@ -25,6 +25,12 @@ go-audio-video-publisher/go-audio-video-publisher
 *.log
 agora_rtc_log/
 sportradar.live
+logs/
+
+# Per-match data (live matches — refreshed dynamically, may contain SR data)
+match_data/*/runs/
+match_data/*/roster.json
+match_data/*/sr_cache.json
 
 # OS
 .DS_Store

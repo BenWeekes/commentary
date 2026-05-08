@@ -17,6 +17,29 @@ from lib.audio import load_atmosphere
 from lib.constants import ELEVENLABS_MODEL, VIDEO_DELAY_S
 from lib.corrections import TERMS_LIST
 from lib.events import load_events_file
+
+# ─── Per-match keyterms loading ──────────────────────────────────────────
+
+MATCH_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                              "match_data")
+
+
+def _load_match_keyterms(match_id):
+    """Load per-match keyterms from match_data/{match_id}/keyterms.txt.
+
+    Returns list of terms, or None if file does not exist.
+    One term per line, blank lines and # comments are skipped.
+    """
+    path = os.path.join(MATCH_DATA_DIR, match_id, "keyterms.txt")
+    if not os.path.isfile(path):
+        return None
+    terms = []
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                terms.append(line)
+    return terms if terms else None
 from lib.sr_prefetcher import SRPrefetcher
 from lib.stt_pipeline import run_stt_pipeline_multi, run_stt_pipeline_live
 from lib.translator import translate_text, voice_for_lang, LANG_VOICES
@@ -320,8 +343,15 @@ class MatchWorker:
             # Set video_start_ref immediately — shared across all languages
             self._video_start_ref[0] = target_start
 
+            # Load per-match keyterms (fall back to global TERMS_LIST)
+            self._keyterms = _load_match_keyterms(self._match.match_id)
+            if self._keyterms:
+                print(f"[{tag}] Loaded {len(self._keyterms)} keyterms from match_data/{self._match.match_id}/keyterms.txt")
+            else:
+                self._keyterms = TERMS_LIST
+                print(f"[{tag}] Using global TERMS_LIST ({len(self._keyterms)} terms) — no per-match keyterms found")
+
             # Set up structured log directory and STT log
-            self._keyterms = TERMS_LIST
             self._setup_log_dir()
             self._open_stt_log(target_start)
 
@@ -464,8 +494,15 @@ class MatchWorker:
             print(f"[{tag}] Shared target_start={target_start:.3f} "
                   f"({self._match.video_delay}s delay + {connection_margin:.0f}s margin)")
 
+            # Load per-match keyterms (fall back to global TERMS_LIST)
+            self._keyterms = _load_match_keyterms(self._match.match_id)
+            if self._keyterms:
+                print(f"[{tag}] Loaded {len(self._keyterms)} keyterms from match_data/{self._match.match_id}/keyterms.txt")
+            else:
+                self._keyterms = TERMS_LIST
+                print(f"[{tag}] Using global TERMS_LIST ({len(self._keyterms)} terms) — no per-match keyterms found")
+
             # Set up structured log directory and STT log
-            self._keyterms = TERMS_LIST
             self._setup_log_dir()
             self._open_stt_log(target_start)
 
@@ -769,6 +806,8 @@ class MatchWorker:
             video_start_ref=self._video_start_ref,
             video_delay=self._match.video_delay,
             max_stt_duration=self._match.max_stt_duration,
+            keyterms=self._keyterms,
+            corrections=[],  # no static corrections for live — keyterms handle recognition
         )
 
     def _run_stt(self):
@@ -781,6 +820,7 @@ class MatchWorker:
             video_start_ref=self._video_start_ref,
             video_delay=self._match.video_delay,
             max_stt_duration=self._match.max_stt_duration,
+            keyterms=self._keyterms,
         )
 
     @property
@@ -790,6 +830,7 @@ class MatchWorker:
 
     def _on_utterance(self, text, audio_start, audio_end, play_at):
         """Fan out a corrected STT utterance to all language pipelines."""
+        self._stt_utterance_count += 1
         self._recent_transcript.append({
             "text": text,
             "ts": time.time(),

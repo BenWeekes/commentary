@@ -2,7 +2,7 @@ import os
 import threading
 import time
 
-from lib.corrections import TERMS_LIST, apply_corrections
+from lib.corrections import TERMS_LIST, CORRECTIONS, apply_corrections
 from lib.translator import translate_text, voice_for_lang
 from lib.audio import convert_to_pcm, pcm_chunks_realtime, pcm_stream_from_pipe
 from lib.tts_engine import _ts
@@ -10,7 +10,7 @@ from lib.tts_engine import _ts
 
 def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
                   max_stt_duration=5.0, video_start_fn=None, keyterms=None,
-                  log_tag="STT"):
+                  corrections=None, log_tag="STT"):
     """Shared Deepgram connection, audio feeding, and forced-split logic.
 
     Args:
@@ -23,6 +23,8 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
         video_start_fn: callable() -> float|None returning current video_start
             for log timestamps. If None, uses wall clock only.
         keyterms: optional list to override TERMS_LIST.
+        corrections: list of (wrong, right) tuples. Defaults to CORRECTIONS.
+            Pass empty list to disable corrections.
         log_tag: prefix for log lines.
 
     Returns:
@@ -37,6 +39,7 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
     dg_client = DeepgramClient()
 
     terms = keyterms if keyterms is not None else TERMS_LIST
+    corr_list = corrections if corrections is not None else CORRECTIONS
 
     def _vs():
         vs = video_start_fn() if video_start_fn else None
@@ -85,7 +88,7 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
         force_split_text = [""]
 
         def _emit(text, audio_start, audio_end, tag=""):
-            corrected = apply_corrections(text)
+            corrected = apply_corrections(text, corr_list)
             vs_now = video_start_fn() if video_start_fn else None
             play_at = (vs_now + audio_start) if vs_now else None
             remaining = (play_at - time.time()) if play_at else 0.0
@@ -210,7 +213,8 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
 
 def run_stt_pipeline_multi(audio_path, on_utterance, deepgram_key, stop_event,
                            video_start_ref, video_delay=7.0,
-                           max_stt_duration=5.0, keyterms=None):
+                           max_stt_duration=5.0, keyterms=None,
+                           corrections=None):
     """Run STT pipeline with a multi-language callback.
 
     Args:
@@ -223,6 +227,7 @@ def run_stt_pipeline_multi(audio_path, on_utterance, deepgram_key, stop_event,
         video_delay: video delay in seconds (for logging).
         max_stt_duration: force-split threshold.
         keyterms: optional list to override TERMS_LIST.
+        corrections: list of (wrong, right) tuples. Pass [] to disable.
 
     Returns:
         int: total number of utterances emitted.
@@ -244,12 +249,14 @@ def run_stt_pipeline_multi(audio_path, on_utterance, deepgram_key, stop_event,
         max_stt_duration=max_stt_duration,
         video_start_fn=lambda: video_start_ref[0],
         keyterms=keyterms,
+        corrections=corrections,
     )
 
 
 def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
                           video_start_ref, video_delay=7.0,
-                          max_stt_duration=5.0, keyterms=None):
+                          max_stt_duration=5.0, keyterms=None,
+                          corrections=None):
     """Run STT pipeline from a live audio pipe (subprocess stdout).
 
     Same as run_stt_pipeline_multi but takes a pipe instead of a file path.
@@ -263,6 +270,7 @@ def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
         video_delay: video delay in seconds (for logging).
         max_stt_duration: force-split threshold.
         keyterms: optional list to override TERMS_LIST.
+        corrections: list of (wrong, right) tuples. Pass [] to disable.
 
     Returns:
         int: total number of utterances emitted.
@@ -284,5 +292,6 @@ def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
         max_stt_duration=max_stt_duration,
         video_start_fn=lambda: video_start_ref[0],
         keyterms=keyterms,
+        corrections=corrections,
         log_tag="STT-LIVE",
     )
