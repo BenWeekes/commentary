@@ -111,84 +111,36 @@
     }
     .btn-stop:hover { background: #b91c1c; }
     .btn-stop:disabled { background: #1a1a1a; color: #444; cursor: default; }
-
-    .languages {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 0 24px 16px;
-    }
-    .lang-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
+    .btn-action {
+      padding: 6px 18px;
+      border: none;
       border-radius: 8px;
-      color: #ccc;
       font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-    }
-    .lang-btn:hover {
-      background: #222;
-      border-color: #444;
-      color: #fff;
-    }
-    .lang-btn .lang-code {
-      color: #60a5fa;
       font-weight: 700;
-    }
-
-    .transcript-section {
-      border-top: 1px solid #1a1a1a;
-      padding: 16px 24px 20px;
-    }
-    .transcript-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #444;
+      cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 10px;
+      transition: background 0.15s;
+      text-decoration: none;
+      display: inline-block;
     }
-    .transcript {
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 14px;
-      line-height: 1.7;
-      color: #999;
-      scrollbar-width: thin;
-      scrollbar-color: #333 transparent;
+    .btn-watch {
+      background: #2563eb;
+      color: #fff;
     }
-    .transcript::-webkit-scrollbar { width: 6px; }
-    .transcript::-webkit-scrollbar-track { background: transparent; }
-    .transcript::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-    .transcript .line {
-      padding: 2px 0;
-    }
-    .transcript .line:last-child {
-      color: #e0e0e0;
-    }
-    .transcript .ts {
+    .btn-watch:hover { background: #1d4ed8; }
+    .btn-watch.disabled {
+      background: #1a1a1a;
       color: #444;
-      font-size: 11px;
-      font-family: monospace;
-      margin-right: 8px;
+      cursor: default;
+      pointer-events: none;
     }
-    .empty-transcript {
-      font-size: 13px;
-      color: #333;
-      font-style: italic;
+    .btn-detail {
+      background: #333;
+      color: #ccc;
     }
-    .no-matches {
-      text-align: center;
-      padding: 80px 24px;
-      color: #444;
-      font-size: 15px;
-    }
+    .btn-detail:hover { background: #444; color: #fff; }
+
     .error-msg {
       margin: 0 24px 16px;
       padding: 8px 12px;
@@ -197,6 +149,12 @@
       border-radius: 6px;
       color: #f87171;
       font-size: 13px;
+    }
+    .no-matches {
+      text-align: center;
+      padding: 80px 24px;
+      color: #444;
+      font-size: 15px;
     }
     .server-error {
       text-align: center;
@@ -209,21 +167,13 @@
 <body>
   <div class="header">
     <h1>Live Matches</h1>
-    <p id="subtitle">Multilingual commentary — pick a language to watch</p>
+    <p id="subtitle">Multilingual commentary status</p>
   </div>
   <div class="matches" id="matches"></div>
 
   <script>
-    var LANG_NAMES = {
-      es: 'Spanish', pt: 'Portuguese', fr: 'French', tr: 'Turkish',
-      de: 'German', en: 'English', it: 'Italian', ar: 'Arabic',
-      ja: 'Japanese', ko: 'Korean', zh: 'Chinese', hi: 'Hindi'
-    };
-
     var CTL = window.location.origin;
     var container = document.getElementById('matches');
-    var transcripts = {};  // {match_id: [{text, ts}]}
-    var autoScroll = {};   // {match_id: true} — track if user scrolled up
 
     function esc(s) {
       if (!s) return '';
@@ -232,17 +182,7 @@
       return d.innerHTML;
     }
 
-    function fmtTime(ts) {
-      if (!ts) return '';
-      var d = new Date(ts * 1000);
-      var h = d.getHours().toString().padStart(2, '0');
-      var m = d.getMinutes().toString().padStart(2, '0');
-      var s = d.getSeconds().toString().padStart(2, '0');
-      return h + ':' + m + ':' + s;
-    }
-
     function formatMatchName(id) {
-      // bmg_fch_demo → BMG vs FCH (Demo)
       var parts = id.split('_');
       if (parts.length >= 2) {
         var teams = parts.slice(0, -1).join(' vs ').toUpperCase();
@@ -268,8 +208,6 @@
         var isLive = m.state === 'running';
 
         html += '<div class="match-card">';
-
-        // Top bar: name + badge + start/stop
         html += '<div class="match-top">';
         if (isLive) html += '<span class="live-dot"></span>';
         html += '<span class="match-name">' + esc(formatMatchName(m.match_id)) + '</span>';
@@ -285,83 +223,25 @@
         } else if (isStoppable) {
           html += '<button class="btn-stop" onclick="matchAction(\'' + esc(mid) + '\', \'stop\')">Stop</button>';
         }
+        var watchUrl = CTL + '/viewer_live.html?match=' + encodeURIComponent(mid);
+        if (isStoppable) {
+          html += '<a class="btn-action btn-watch" href="' + watchUrl + '" target="_blank">Watch</a>';
+        } else {
+          html += '<a class="btn-action btn-watch disabled" aria-disabled="true">Watch</a>';
+        }
+        var detailUrl = CTL + '/match_detail.html?match=' + encodeURIComponent(mid);
+        html += '<a class="btn-action btn-detail" href="' + detailUrl + '" target="_blank">Detail</a>';
         html += '</span>';
         html += '</div>';
 
-        // Language buttons — always show from configured_languages
-        var langKeys = m.configured_languages || [];
-        if (langKeys.length > 0) {
-          html += '<div class="languages">';
-          langKeys.forEach(function(lang) {
-            var url = CTL + '/viewer_live.html?match=' + encodeURIComponent(mid)
-                      + '&lang=' + encodeURIComponent(lang);
-            var name = LANG_NAMES[lang] || lang;
-            html += '<a class="lang-btn" href="' + url + '" target="_blank">';
-            html += '<span class="lang-code">' + lang.toUpperCase() + '</span>';
-            html += name;
-            html += '</a>';
-          });
-          html += '</div>';
-        }
-
-        // Error display
         if (m.error) {
           html += '<div class="error-msg">' + esc(m.error) + '</div>';
         }
-
-        // Transcript section
-        html += '<div class="transcript-section">';
-        html += '<div class="transcript-label">English Commentary</div>';
-        html += '<div class="transcript" id="transcript-' + esc(mid) + '">';
-        html += '<div class="empty-transcript">Waiting for commentary...</div>';
-        html += '</div>';
-        html += '</div>';
 
         html += '</div>';
       });
 
       container.innerHTML = html;
-
-      // Re-render any existing transcripts
-      ids.forEach(function(mid) {
-        if (transcripts[mid] && transcripts[mid].length > 0) {
-          renderTranscript(mid, transcripts[mid]);
-        }
-      });
-    }
-
-    function renderTranscript(mid, lines) {
-      var el = document.getElementById('transcript-' + mid);
-      if (!el) return;
-
-      var wasAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
-
-      var html = '';
-      lines.forEach(function(line) {
-        html += '<div class="line">';
-        html += '<span class="ts">' + fmtTime(line.ts) + '</span>';
-        html += esc(line.text);
-        html += '</div>';
-      });
-      el.innerHTML = html;
-
-      // Auto-scroll only if user was already at the bottom
-      if (wasAtBottom) {
-        el.scrollTop = el.scrollHeight;
-      }
-    }
-
-    function fetchTranscripts(matchIds) {
-      matchIds.forEach(function(mid) {
-        fetch(CTL + '/api/matches/' + encodeURIComponent(mid) + '/transcript', { mode: 'cors' })
-          .then(function(r) { return r.ok ? r.json() : null; })
-          .then(function(data) {
-            if (!data || !data.transcript) return;
-            transcripts[mid] = data.transcript;
-            renderTranscript(mid, data.transcript);
-          })
-          .catch(function() {});
-      });
     }
 
     function matchAction(matchId, action) {
@@ -379,15 +259,14 @@
       fetch(CTL + '/api/matches', { mode: 'cors' })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          // Only re-render cards when match set/states change
           var changed = !lastMatchData || JSON.stringify(Object.keys(data)) !== JSON.stringify(Object.keys(lastMatchData));
           if (!changed) {
             Object.keys(data).forEach(function(mid) {
               if (!lastMatchData[mid] ||
                   lastMatchData[mid].state !== data[mid].state ||
                   lastMatchData[mid].stt_utterance_count !== data[mid].stt_utterance_count ||
-                  JSON.stringify(Object.keys(lastMatchData[mid].languages || {})) !==
-                  JSON.stringify(Object.keys(data[mid].languages || {}))) {
+                  JSON.stringify(lastMatchData[mid].configured_languages || []) !==
+                  JSON.stringify(data[mid].configured_languages || [])) {
                 changed = true;
               }
             });
@@ -397,14 +276,6 @@
             renderMatches(data);
           }
           lastMatchData = data;
-
-          // Fetch transcripts for running matches
-          var runningIds = Object.keys(data).filter(function(mid) {
-            return data[mid].state === 'running' || data[mid].state === 'starting';
-          });
-          if (runningIds.length > 0) {
-            fetchTranscripts(runningIds);
-          }
         })
         .catch(function() {
           container.innerHTML = '<div class="server-error">Cannot reach server at ' + esc(CTL) + '</div>';

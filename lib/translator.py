@@ -49,8 +49,22 @@ Rules:
 6. Use correct grammar — never invent word forms"""
 
 
+def _is_reasoning_model(model):
+    """Check if a model supports reasoning_effort (o-series and gpt-5.4+)."""
+    if not model:
+        return False
+    m = model.lower()
+    # o1, o3, o4-mini, etc.
+    if m.startswith("o") and len(m) > 1 and m[1].isdigit():
+        return True
+    # gpt-5.4-mini, gpt-5.4, etc.
+    if "5.4" in m or "5.5" in m:
+        return True
+    return False
+
+
 def translate_text(oai_client, text, lang, model="gpt-5.4-mini",
-                    reasoning_effort="medium", roster=None):
+                    reasoning_effort="low", roster=None):
     lang_name = LANG_NAMES.get(lang, lang)
     if roster:
         system = TRANSLATE_SYSTEM_WITH_ROSTER.format(
@@ -64,7 +78,7 @@ def translate_text(oai_client, text, lang, model="gpt-5.4-mini",
             {"role": "user", "content": text},
         ],
     )
-    if reasoning_effort:
+    if reasoning_effort and _is_reasoning_model(model):
         kwargs["reasoning_effort"] = reasoning_effort
         kwargs["max_completion_tokens"] = 512
     else:

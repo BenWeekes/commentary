@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Match Detail</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      padding: 24px 24px 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+    .header-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-idle     { background: #1a1a1a; color: #555; }
+    .badge-starting { background: #2d2400; color: #fbbf24; }
+    .badge-running  { background: #052e16; color: #4ade80; }
+    .badge-stopped  { background: #1a1a2e; color: #818cf8; }
+    .badge-error    { background: #2d0a0a; color: #f87171; }
+    .header-meta {
+      margin-left: auto;
+      font-size: 12px;
+      color: #555;
+    }
+
+    .summary-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 16px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #888;
+    }
+    .summary-bar .stat {
+      display: flex;
+      gap: 6px;
+    }
+    .summary-bar .stat-label { color: #555; }
+    .summary-bar .stat-value { color: #ccc; font-weight: 600; }
+
+    .tabs {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid #1e1e1e;
+    }
+    .tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .tab:hover { color: #aaa; }
+    .tab.active {
+      color: #fff;
+      border-bottom-color: #2563eb;
+    }
+
+    .tab-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px 48px;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Overview tab */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .overview-card {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .overview-card h3 {
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .overview-card .lang-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 13px;
+    }
+    .overview-card .lang-name {
+      font-weight: 600;
+      color: #ccc;
+    }
+    .overview-card .lang-stats {
+      color: #888;
+    }
+
+    /* Log table */
+    .log-table-wrap {
+      overflow-x: auto;
+    }
+    .log-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .log-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: #111;
+      color: #555;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid #1e1e1e;
+    }
+    .log-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #111;
+      color: #bbb;
+      vertical-align: top;
+      max-width: 400px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-table tr:hover td { background: #0d0d0d; }
+    .log-table .status-played { color: #4ade80; }
+    .log-table .status-dropped { color: #f87171; }
+    .log-table .status-replaced { color: #fbbf24; }
+    .log-table .status-interrupted { color: #818cf8; }
+    .log-table .status-suppressed { color: #f97316; }
+    .log-table .source-sr { color: #60a5fa; font-weight: 600; }
+    .log-table .source-stt { color: #a78bfa; font-weight: 600; }
+    .log-table .text-cell {
+      white-space: normal;
+      word-break: break-word;
+      max-width: 300px;
+    }
+    .log-table .num { font-family: monospace; color: #888; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: #444;
+      font-size: 14px;
+    }
+
+    .no-match {
+      text-align: center;
+      padding: 80px 24px;
+      color: #f87171;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1 id="match-title">Match Detail</h1>
+    <span class="header-badge badge-idle" id="state-badge">idle</span>
+    <span class="header-meta" id="updated-at"></span>
+  </div>
+
+  <div class="summary-bar" id="summary-bar"></div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="tab-content" id="tab-content"></div>
+
+  <script>
+    var LANG_NAMES = {
+      es: 'Spanish', pt: 'Portuguese', fr: 'French', tr: 'Turkish',
+      de: 'German', en: 'English', it: 'Italian', ar: 'Arabic',
+      ja: 'Japanese', ko: 'Korean', zh: 'Chinese', hi: 'Hindi'
+    };
+
+    var params = new URLSearchParams(window.location.search);
+    var CTL = window.location.origin;
+    var MATCH = params.get('match') || '';
+    var activeTab = 'overview';
+    var matchData = null;
+    var detailData = null;  // from /api/matches/{id}/detail
+    var logCache = {};  // {tabKey: [rows]}
+
+    if (!MATCH) {
+      document.getElementById('tab-content').innerHTML =
+        '<div class="no-match">No match specified. Open this page from the status dashboard.</div>';
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      var d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function formatMatchName(id) {
+      var parts = id.split('_');
+      if (parts.length >= 2) {
+        var teams = parts.slice(0, -1).join(' vs ').toUpperCase();
+        var suffix = parts[parts.length - 1];
+        if (suffix === 'demo' || suffix === 'live') {
+          return teams + ' (' + suffix.charAt(0).toUpperCase() + suffix.slice(1) + ')';
+        }
+        return (teams + ' ' + suffix).toUpperCase();
+      }
+      return id.replace(/_/g, ' ').toUpperCase();
+    }
+
+    function statusClass(status) {
+      return 'status-' + (status || '').replace(/\s+/g, '-');
+    }
+
+    function sourceClass(source) {
+      return 'source-' + (source || '');
+    }
+
+    function fmtNum(v) {
+      if (v === null || v === undefined) return '-';
+      return String(v);
+    }
+
+    function fmtMs(v) {
+      if (v === null || v === undefined) return '-';
+      return v + 'ms';
+    }
+
+    function fmtAudioStart(v) {
+      if (v === null || v === undefined) return '-';
+      var m = Math.floor(v / 60);
+      var s = (v % 60).toFixed(2);
+      return (m > 0 ? m + ':' : '') + (m > 0 ? s.padStart(5, '0') : s) + 's';
+    }
+
+    function truncate(s, len) {
+      if (!s) return '';
+      return s.length > len ? s.substring(0, len) + '...' : s;
+    }
+
+    // Build tabs from match data
+    function buildTabs(data) {
+      var langs = data.configured_languages || [];
+      var tabsEl = document.getElementById('tabs');
+      var contentEl = document.getElementById('tab-content');
+
+      var tabDefs = [{ key: 'overview', label: 'Overview' }, { key: 'stt', label: 'STT' }];
+      langs.forEach(function(lang) {
+        tabDefs.push({ key: lang, label: lang.toUpperCase() });
+      });
+
+      var tabsHtml = '';
+      var panelsHtml = '';
+      tabDefs.forEach(function(t) {
+        var cls = t.key === activeTab ? ' active' : '';
+        tabsHtml += '<div class="tab' + cls + '" data-tab="' + t.key + '">' + esc(t.label) + '</div>';
+        panelsHtml += '<div class="tab-panel' + cls + '" id="panel-' + t.key + '"></div>';
+      });
+
+      tabsEl.innerHTML = tabsHtml;
+      contentEl.innerHTML = panelsHtml;
+
+      // Tab click handlers
+      tabsEl.querySelectorAll('.tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          activeTab = tab.getAttribute('data-tab');
+          tabsEl.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+          contentEl.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+          tab.classList.add('active');
+          document.getElementById('panel-' + activeTab).classList.add('active');
+          renderActiveTab();
+        });
+      });
+    }
+
+    function updateHeader(data) {
+      document.getElementById('match-title').textContent = formatMatchName(data.match_id);
+      document.title = formatMatchName(data.match_id) + ' - Detail';
+      var badge = document.getElementById('state-badge');
+      var state = data.state || 'idle';
+      badge.textContent = state;
+      badge.className = 'header-badge badge-' + state;
+
+      var stats = [];
+      stats.push('<span class="stat"><span class="stat-label">STT:</span><span class="stat-value">' + (data.stt_utterance_count || 0) + ' utterances</span></span>');
+      var langs = data.languages || {};
+      Object.keys(langs).forEach(function(lang) {
+        var lt = langs[lang].telemetry || {};
+        var played = (lt.stt_played || 0) + (lt.sr_played || 0);
+        var dropped = lt.drop_count || 0;
+        stats.push('<span class="stat"><span class="stat-label">' + lang.toUpperCase() + ':</span><span class="stat-value">' + played + ' played, ' + dropped + ' dropped</span></span>');
+      });
+      document.getElementById('summary-bar').innerHTML = stats.join('');
+    }
+
+    function renderOverview() {
+      var panel = document.getElementById('panel-overview');
+      if (!panel) return;
+      var data = matchData;
+      var detail = detailData || {};
+      var langs = data.languages || {};
+      var html = '<div class="overview-grid">';
+
+      // Match info card
+      html += '<div class="overview-card">';
+      html += '<h3>Match Info</h3>';
+      html += '<div class="lang-row"><span class="lang-name">Match ID</span><span class="lang-stats">' + esc(data.match_id) + '</span></div>';
+      html += '<div class="lang-row"><span class="lang-name">Mode</span><span class="lang-stats">' + esc(detail.mode || '-') + '</span></div>';
+      html += '<div class="lang-row"><span class="lang-name">State</span><span class="lang-stats">' + esc(data.state || 'idle') + '</span></div>';
+      html += '<div class="lang-row"><span class="lang-name">STT Utterances</span><span class="lang-stats">' + (data.stt_utterance_count || 0) + '</span></div>';
+      if (detail.translation_model) {
+        html += '<div class="lang-row"><span class="lang-name">Translation Model</span><span class="lang-stats">' + esc(detail.translation_model) + '</span></div>';
+      }
+      if (detail.video_delay != null) {
+        html += '<div class="lang-row"><span class="lang-name">Video Delay</span><span class="lang-stats">' + detail.video_delay + 's</span></div>';
+      }
+      if (data.started_at) {
+        var started = new Date(data.started_at * 1000);
+        html += '<div class="lang-row"><span class="lang-name">Started</span><span class="lang-stats">' + started.toLocaleTimeString() + '</span></div>';
+      }
+      if (data.error) {
+        html += '<div class="lang-row"><span class="lang-name" style="color:#f87171">Error</span><span class="lang-stats" style="color:#f87171">' + esc(data.error) + '</span></div>';
+      }
+      html += '</div>';
+
+      // Prepared data card: keyterms
+      html += '<div class="overview-card">';
+      html += '<h3>Prepared Data</h3>';
+      var kt = detail.keyterms || [];
+      html += '<div class="lang-row"><span class="lang-name">Keyterms</span><span class="lang-stats">' + (detail.keyterms_count || 0) + ' terms loaded</span></div>';
+      if (kt.length > 0) {
+        html += '<div style="margin-top:8px;font-size:12px;color:#666;line-height:1.6;max-height:160px;overflow-y:auto;">';
+        html += esc(kt.join(', '));
+        html += '</div>';
+      } else {
+        html += '<div style="margin-top:8px;font-size:12px;color:#444;font-style:italic;">No keyterms file found</div>';
+      }
+      html += '</div>';
+
+      // Current run card
+      html += '<div class="overview-card">';
+      html += '<h3>Current Run</h3>';
+      if (detail.log_dir) {
+        html += '<div class="lang-row"><span class="lang-name">Log Directory</span><span class="lang-stats" style="font-family:monospace;font-size:11px">' + esc(detail.log_dir) + '</span></div>';
+        var files = detail.log_files || {};
+        var fileKeys = Object.keys(files).sort();
+        if (fileKeys.length > 0) {
+          fileKeys.forEach(function(f) {
+            html += '<div class="lang-row"><span class="lang-name" style="font-family:monospace">' + esc(f) + '</span><span class="lang-stats">' + files[f].lines + ' lines</span></div>';
+          });
+        }
+      } else {
+        html += '<div style="font-size:13px;color:#444;font-style:italic;">Not started yet</div>';
+      }
+      html += '</div>';
+
+      // Historical runs card
+      var runs = detail.runs || [];
+      if (runs.length > 0) {
+        html += '<div class="overview-card">';
+        html += '<h3>Recent Runs (' + runs.length + ')</h3>';
+        runs.forEach(function(r, i) {
+          var isCurrent = detail.log_dir && detail.log_dir.indexOf(r) !== -1;
+          var style = isCurrent ? 'color:#4ade80;font-weight:600' : 'color:#888';
+          html += '<div class="lang-row"><span class="lang-name" style="font-family:monospace;font-size:12px;' + style + '">' + esc(r) + (isCurrent ? ' (current)' : '') + '</span></div>';
+        });
+        html += '</div>';
+      }
+
+      // Per-language telemetry
+      var langKeys = Object.keys(langs);
+      if (langKeys.length > 0) {
+        html += '<div class="overview-card">';
+        html += '<h3>Language Telemetry</h3>';
+        langKeys.forEach(function(lang) {
+          var l = langs[lang];
+          var t = l.telemetry || {};
+          html += '<div class="lang-row">';
+          html += '<span class="lang-name">' + lang.toUpperCase() + ' - ' + (LANG_NAMES[lang] || lang) + '</span>';
+          html += '<span class="lang-stats">';
+          html += (t.stt_played || 0) + ' stt, ';
+          html += (t.sr_played || 0) + ' sr, ';
+          html += (t.drop_count || 0) + ' drop';
+          if (t.sr_cut_short_count) html += ', ' + t.sr_cut_short_count + ' sr-cut';
+          if (t.stt_cut_short_count) html += ', ' + t.stt_cut_short_count + ' stt-cut';
+          html += '</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+
+        html += '<div class="overview-card">';
+        html += '<h3>Channels</h3>';
+        langKeys.forEach(function(lang) {
+          var l = langs[lang];
+          html += '<div class="lang-row">';
+          html += '<span class="lang-name">' + lang.toUpperCase() + '</span>';
+          html += '<span class="lang-stats">' + esc(l.channel) + ' (q:' + (l.tts_queue_size || 0) + ')</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+      panel.innerHTML = html;
+    }
+
+    function renderSttTab(rows) {
+      var panel = document.getElementById('panel-stt');
+      if (!panel) return;
+      if (!rows || rows.length === 0) {
+        panel.innerHTML = '<div class="empty-state">No STT log data yet</div>';
+        return;
+      }
+      var html = '<div class="log-table-wrap"><table class="log-table">';
+      html += '<thead><tr><th>Audio Start</th><th>Audio End</th><th>Play At</th><th>Text</th></tr></thead>';
+      html += '<tbody>';
+      rows.forEach(function(r) {
+        html += '<tr>';
+        html += '<td class="num">' + fmtAudioStart(r.audio_start) + '</td>';
+        html += '<td class="num">' + fmtAudioStart(r.audio_end) + '</td>';
+        html += '<td class="num">' + (r.wall_clock || '-') + '</td>';
+        html += '<td class="text-cell">' + esc(r.text) + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      panel.innerHTML = html;
+    }
+
+    function renderLangTab(lang, rows) {
+      var panel = document.getElementById('panel-' + lang);
+      if (!panel) return;
+      if (!rows || rows.length === 0) {
+        panel.innerHTML = '<div class="empty-state">No log data for ' + lang.toUpperCase() + ' yet</div>';
+        return;
+      }
+      var html = '<div class="log-table-wrap"><table class="log-table">';
+      html += '<thead><tr>';
+      html += '<th>Status</th><th>Source</th><th>Original</th><th>Translated</th>';
+      html += '<th>Lag</th><th>Xlat</th><th>TTS</th><th>Duration</th>';
+      html += '</tr></thead>';
+      html += '<tbody>';
+      rows.forEach(function(r) {
+        html += '<tr>';
+        html += '<td class="' + statusClass(r.status) + '">' + esc(r.status) + '</td>';
+        html += '<td class="' + sourceClass(r.source) + '">' + esc(r.source) + '</td>';
+        html += '<td class="text-cell" title="' + esc(r.original) + '">' + esc(truncate(r.original, 80)) + '</td>';
+        html += '<td class="text-cell" title="' + esc(r.translated) + '">' + esc(truncate(r.translated, 80)) + '</td>';
+        html += '<td class="num">' + fmtMs(r.start_lag_ms) + '</td>';
+        html += '<td class="num">' + fmtMs(r.xlat_ms) + '</td>';
+        html += '<td class="num">' + fmtMs(r.tts_ms) + '</td>';
+        html += '<td class="num">' + fmtMs(r.play_duration_ms) + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      panel.innerHTML = html;
+    }
+
+    function renderActiveTab() {
+      if (activeTab === 'overview') {
+        if (matchData) renderOverview();
+        return;
+      }
+      var rows = logCache[activeTab];
+      if (activeTab === 'stt') {
+        renderSttTab(rows);
+      } else {
+        renderLangTab(activeTab, rows);
+      }
+    }
+
+    function fetchLogs(key) {
+      return fetch(CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/logs/' + key + '?tail=200', { mode: 'cors' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          if (data && data.rows) {
+            logCache[key] = data.rows;
+          }
+        })
+        .catch(function() {});
+    }
+
+    var tabsBuilt = false;
+
+    function fetchDetail() {
+      return fetch(CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/detail', { mode: 'cors' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          if (data) detailData = data;
+        })
+        .catch(function() {});
+    }
+
+    function poll() {
+      if (!MATCH) return;
+
+      // Fetch match status and detail in parallel
+      var statusFetch = fetch(CTL + '/api/matches', { mode: 'cors' })
+        .then(function(r) { return r.json(); });
+      var detailFetch = fetchDetail();
+
+      Promise.all([statusFetch, detailFetch])
+        .then(function(results) {
+          var data = results[0];
+          var m = data[MATCH];
+          if (!m) {
+            document.getElementById('tab-content').innerHTML =
+              '<div class="no-match">Match "' + esc(MATCH) + '" not found</div>';
+            return;
+          }
+          matchData = m;
+          updateHeader(m);
+
+          if (!tabsBuilt) {
+            buildTabs(m);
+            tabsBuilt = true;
+          }
+
+          // Fetch logs for active tab
+          var fetches = [];
+          if (activeTab === 'overview') {
+            renderOverview();
+            fetches.push(fetchLogs('stt'));
+          } else {
+            fetches.push(fetchLogs(activeTab));
+          }
+
+          return Promise.all(fetches);
+        })
+        .then(function() {
+          if (activeTab !== 'overview') {
+            renderActiveTab();
+          }
+          document.getElementById('updated-at').textContent = 'Updated ' + new Date().toLocaleTimeString();
+        })
+        .catch(function() {});
+    }
+
+    if (MATCH) {
+      poll();
+      setInterval(poll, 3000);
+    }
+  </script>
+</body>
+</html>

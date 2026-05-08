@@ -166,6 +166,56 @@
       pointer-events: none;
     }
 
+    #connect-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    #connect-overlay.hidden {
+      display: none;
+    }
+
+    #connect-overlay .connect-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    #connect-overlay .connect-subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    #btn-connect {
+      padding: 14px 40px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: #2563eb;
+      color: #fff;
+      transition: background 0.15s;
+    }
+
+    #btn-connect:hover { background: #1d4ed8; }
+
+    #connect-error {
+      font-size: 14px;
+      color: #f87171;
+      text-align: center;
+    }
+
     .spinner {
       width: 48px;
       height: 48px;
@@ -196,11 +246,17 @@
     <div id="video-container"></div>
   </div>
 
-  <div id="spinner-overlay">
+  <div id="spinner-overlay" class="hidden">
     <div class="spinner"></div>
   </div>
 
-  <div id="status-overlay">Connecting...</div>
+  <div id="connect-overlay">
+    <div class="connect-title">Live Match Viewer</div>
+    <div class="connect-subtitle">Click to connect to the live stream</div>
+    <button id="btn-connect">Connect</button>
+  </div>
+
+  <div id="status-overlay" class="hidden"></div>
 
   <script>
     var LANG_NAMES = {
@@ -214,11 +270,13 @@
     var MATCH = params.get('match') || '';
     var LANG  = params.get('lang')  || '';
 
-    var statusEl       = document.getElementById('status-overlay');
-    var liveBadge      = document.getElementById('live-badge');
-    var langSelect     = document.getElementById('lang-select');
-    var videoContainer = document.getElementById('video-container');
-    var spinnerOverlay = document.getElementById('spinner-overlay');
+    var statusEl        = document.getElementById('status-overlay');
+    var liveBadge       = document.getElementById('live-badge');
+    var langSelect      = document.getElementById('lang-select');
+    var videoContainer  = document.getElementById('video-container');
+    var spinnerOverlay  = document.getElementById('spinner-overlay');
+    var connectOverlay  = document.getElementById('connect-overlay');
+    var connectBtn      = document.getElementById('btn-connect');
 
     var client = null;
     var currentChannel = null;
@@ -234,30 +292,6 @@
     function hideStatus() { statusEl.classList.add('hidden'); }
     function showSpinner() { spinnerOverlay.classList.remove('hidden'); }
     function hideSpinner() { spinnerOverlay.classList.add('hidden'); }
-
-    function loadChannels() {
-      if (!MATCH) {
-        // No match in URL — fetch match list and use the first one
-        fetch(CTL + '/api/matches', { mode: 'cors' })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            var ids = Object.keys(data);
-            if (ids.length === 0) {
-              setStatus('No matches configured');
-              hideSpinner();
-              return;
-            }
-            MATCH = ids[0];
-            fetchChannels();
-          })
-          .catch(function(err) {
-            setStatus('Cannot reach server at ' + CTL);
-            hideSpinner();
-          });
-        return;
-      }
-      fetchChannels();
-    }
 
     function fetchChannels() {
       setStatus('Loading channels for ' + MATCH + '...');
@@ -370,7 +404,16 @@
       });
     }
 
-    loadChannels();
+    // Show error if no match param, otherwise wait for Connect click
+    if (!MATCH) {
+      connectOverlay.innerHTML = '<div id="connect-error">No match specified. Open this page from the status dashboard.</div>';
+    } else {
+      connectBtn.addEventListener('click', function() {
+        connectOverlay.classList.add('hidden');
+        showSpinner();
+        fetchChannels();
+      });
+    }
   </script>
 </body>
 </html>

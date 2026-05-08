@@ -33,6 +33,9 @@ class StatusHandler(BaseHTTPRequestHandler):
     _MATCH_ACTION_RE = re.compile(r'^/api/matches/([^/]+)/(start|stop)$')
     _MATCH_CHANNELS_RE = re.compile(r'^/api/matches/([^/]+)/channels$')
     _MATCH_TRANSCRIPT_RE = re.compile(r'^/api/matches/([^/]+)/transcript$')
+    _MATCH_LOGS_RE = re.compile(r'^/api/matches/([^/]+)/logs/([a-z]{2}|stt)$')
+    _MATCH_DETAIL_RE = re.compile(r'^/api/matches/([^/]+)/detail$')
+    _MATCH_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "match_data")
 
     def _respond(self, code, data):
         body = json.dumps(data).encode()
@@ -73,6 +76,9 @@ class StatusHandler(BaseHTTPRequestHandler):
             return
         if path == "/status.html":
             self._serve_file("status.html")
+            return
+        if path == "/match_detail.html":
+            self._serve_file("match_detail.html")
             return
 
         # All match statuses
@@ -161,6 +167,131 @@ class StatusHandler(BaseHTTPRequestHandler):
             self._respond(200, {
                 "match_id": match_id,
                 "transcript": worker.recent_transcript,
+            })
+            return
+
+        # Match detail: keyterms, log dir, config
+        m = self._MATCH_DETAIL_RE.match(path)
+        if m:
+            match_id = m.group(1)
+            worker = self.orchestrator.get_worker(match_id)
+            if not worker:
+                self._respond(404, {"error": f"match '{match_id}' not found"})
+                return
+
+            # Find match config
+            match_cfg = None
+            for mc in self.server_config.matches:
+                if mc.match_id == match_id:
+                    match_cfg = mc
+                    break
+
+            # Load keyterms from match_data/{id}/keyterms.txt
+            keyterms = []
+            keyterms_path = os.path.join(self._MATCH_DATA_DIR, match_id, "keyterms.txt")
+            if os.path.isfile(keyterms_path):
+                try:
+                    with open(keyterms_path) as f:
+                        for line in f:
+                            line = line.strip()
+                            if line and not line.startswith("#"):
+                                keyterms.append(line)
+                except Exception:
+                    pass
+
+            # Current log dir info
+            log_dir = getattr(worker, '_log_dir', None)
+            log_files = {}
+            if log_dir and os.path.isdir(log_dir):
+                for fname in os.listdir(log_dir):
+                    if fname.endswith(".jsonl"):
+                        fpath = os.path.join(log_dir, fname)
+                        try:
+                            with open(fpath) as f:
+                                line_count = sum(1 for _ in f)
+                            log_files[fname] = {"lines": line_count}
+                        except Exception:
+                            log_files[fname] = {"lines": 0}
+
+            # Historical runs from logs/ directory
+            root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            logs_base = os.path.join(root, "logs")
+            runs = []
+            if os.path.isdir(logs_base):
+                prefix = f"{match_id}_"
+                for d in sorted(os.listdir(logs_base), reverse=True):
+                    if d.startswith(prefix) and os.path.isdir(os.path.join(logs_base, d)):
+                        runs.append(d)
+
+            s = worker.status
+            result = {
+                "match_id": match_id,
+                "state": s.state,
+                "mode": match_cfg.mode if match_cfg else "unknown",
+                "stt_utterance_count": s.stt_utterance_count,
+                "languages": s.languages,
+                "configured_languages": match_cfg.languages if match_cfg else [],
+                "error": s.error,
+                "started_at": s.started_at,
+                "keyterms": keyterms,
+                "keyterms_count": len(keyterms),
+                "log_dir": log_dir,
+                "log_files": log_files,
+                "translation_model": self.server_config.translation_model,
+                "video_delay": match_cfg.video_delay if match_cfg else None,
+                "runs": runs[:20],  # last 20 runs
+            }
+            self._respond(200, result)
+            return
+
+        # Log tailing: /api/matches/{id}/logs/{stt|lang}?tail=N
+        m = self._MATCH_LOGS_RE.match(path)
+        if m:
+            match_id = m.group(1)
+            log_key = m.group(2)  # "stt" or language code like "es"
+            worker = self.orchestrator.get_worker(match_id)
+            if not worker:
+                self._respond(404, {"error": f"match '{match_id}' not found"})
+                return
+
+            qs = parse_qs(parsed.query)
+            tail = int(qs.get("tail", ["100"])[0])
+            tail = max(1, min(tail, 500))
+
+            log_dir = getattr(worker, '_log_dir', None)
+            if not log_dir:
+                self._respond(200, {"match_id": match_id, "log_key": log_key, "rows": []})
+                return
+
+            filename = f"{log_key}.jsonl"
+            filepath = os.path.join(log_dir, filename)
+            if not os.path.isfile(filepath):
+                self._respond(200, {"match_id": match_id, "log_key": log_key, "rows": []})
+                return
+
+            rows = []
+            total_lines = 0
+            try:
+                with open(filepath, "r") as f:
+                    all_lines = f.readlines()
+                data_lines = [l for l in all_lines if l.strip()]
+                total_lines = len(data_lines)
+                for line in reversed(data_lines[-tail:]):
+                    try:
+                        obj = json.loads(line)
+                        if obj.get("type") == "header":
+                            continue
+                        rows.append(obj)
+                    except json.JSONDecodeError:
+                        continue
+            except Exception:
+                pass
+
+            self._respond(200, {
+                "match_id": match_id,
+                "log_key": log_key,
+                "total_lines": total_lines,
+                "rows": rows,
             })
             return
 
@@ -257,10 +388,12 @@ def start_status_server(port, orchestrator, server_config):
     print(f"       GET  /api/matches/{{id}}/status      → one match status")
     print(f"       GET  /api/matches/{{id}}/channels    → viewer tokens for all langs")
     print(f"       GET  /api/matches/{{id}}/transcript  → recent English transcript")
+    print(f"       GET  /api/matches/{{id}}/logs/{{key}} → log tail (stt or lang)")
     print(f"       POST /api/matches/{{id}}/start       → start a match")
     print(f"       POST /api/matches/{{id}}/stop        → stop a match")
     print(f"       POST /api/token                    → viewer token (single)")
     print(f"       GET  /                             → control.html")
-    print(f"       GET  /status.html                  → public status page")
+    print(f"       GET  /status.html                  → status page")
+    print(f"       GET  /match_detail.html            → match detail page")
     print(f"       GET  /viewer_live.html             → production viewer")
     return server

@@ -1,5 +1,5 @@
 control_port: 8080
-translation_model: "gpt-4o-mini"
+translation_model: "gpt-5.4-mini"
 
 matches:
   - match_id: bmg_fch_demo
