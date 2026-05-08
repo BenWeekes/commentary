@@ -457,6 +457,11 @@ class MatchWorker:
                 # Match stopped before we could adopt — kill the orphan
                 print(f"[{tag}] Killing orphaned original publisher (match stopped)")
                 _kill_publisher(orig_pipe.publisher, tag=f"{tag} ORIGINAL")
+            elif not orig_error:
+                # Timed out: background thread still running. Mark abandoned so
+                # the thread kills its own publisher when it finishes.
+                original_result["abandoned"] = True
+                print(f"[{tag}] WARNING: Original pipeline timed out — marked abandoned")
 
             # Register SR events on all prefetchers (needs actual video_start)
             self._register_events(tag)
@@ -810,8 +815,14 @@ class MatchWorker:
             pipe = _LangPipeline("original", channel, tts, sr_prefetcher=None, publisher=pub)
             pipe.video_start = video_start
             if result is not None:
-                result["pipe"] = pipe
-            pub = None  # ownership transferred to pipe — don't kill in except
+                if result.get("abandoned"):
+                    # Main thread timed out waiting — kill our publisher
+                    print(f"[{tag}] Original pipeline finished but was abandoned — killing publisher")
+                    _kill_publisher(pub, tag=f"{tag} ORIGINAL")
+                    pub = None
+                else:
+                    result["pipe"] = pipe
+                    pub = None  # ownership transferred to pipe — don't kill in except
         except Exception as e:
             print(f"[{tag}] ERROR in original pipeline: {e}")
             import traceback

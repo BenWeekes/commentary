@@ -409,9 +409,14 @@
       if (data.error) {
         html += '<div class="lang-row"><span class="lang-name" style="color:#f87171">Error</span><span class="lang-stats" style="color:#f87171">' + esc(data.error) + '</span></div>';
       }
-      // Refresh button for live matches
+      // Refresh button for live matches (disabled while running — applies on next start)
       if (detail.mode === 'live') {
-        html += '<div style="margin-top:10px"><button id="btn-refresh-detail" onclick="refreshMatchData()" style="padding:5px 14px;border:none;border-radius:6px;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Refresh Data</button></div>';
+        var workerActive = data.state === 'starting' || data.state === 'running';
+        if (workerActive) {
+          html += '<div style="margin-top:10px"><button id="btn-refresh-detail" disabled style="padding:5px 14px;border:none;border-radius:6px;background:#1a1a1a;color:#444;font-size:12px;font-weight:600;cursor:default;" title="Refresh applies on next start">Refresh Data</button></div>';
+        } else {
+          html += '<div style="margin-top:10px"><button id="btn-refresh-detail" onclick="refreshMatchData()" style="padding:5px 14px;border:none;border-radius:6px;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Refresh Data</button></div>';
+        }
       }
       html += '</div>';
 

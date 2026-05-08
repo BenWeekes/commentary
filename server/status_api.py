@@ -452,6 +452,11 @@ class StatusHandler(BaseHTTPRequestHandler):
             if not match_cfg.sport_event_id:
                 self._respond(400, {"error": f"match '{match_id}' has no sport_event_id"})
                 return
+            # Block refresh while worker is active — data applies on next start
+            worker = self.orchestrator.get_worker(match_id)
+            if worker and worker.status.state in ("starting", "running"):
+                self._respond(409, {"error": "match is running; refresh applies on next start"})
+                return
 
             from server.sr_data import refresh_match_data
             api_key = self.server_config.sportradar_api_key

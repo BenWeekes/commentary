@@ -249,8 +249,12 @@
             html += '<button class="btn-stop" onclick="matchAction(\'' + esc(mid) + '\', \'stop\')">Stop</button>';
           }
         } else {
-          // Live: refresh data button
-          html += '<button class="btn-action btn-refresh" onclick="refreshData(\'' + esc(mid) + '\', this)">Refresh</button>';
+          // Live: refresh data button (disabled while running — applies on next start)
+          if (isStoppable) {
+            html += '<button class="btn-action btn-refresh" disabled title="Refresh applies on next start">Refresh</button>';
+          } else {
+            html += '<button class="btn-action btn-refresh" onclick="refreshData(\'' + esc(mid) + '\', this)">Refresh</button>';
+          }
         }
 
         var watchUrl = CTL + '/viewer_live.html?match=' + encodeURIComponent(mid);
