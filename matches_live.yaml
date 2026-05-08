@@ -11,53 +11,72 @@ control_port: 8080
 translation_model: "gpt-4o-mini"
 
 matches:
+  # Demo (pre-recorded clip — manual start)
+  - match_id: bmg_fch_demo
+    display_name: "BMG vs FCH (Demo)"
+    mode: demo
+    enabled: true
+    auto_manage: false
+    sport_event_id: "sr:sport_event:61514104"
+    audio: clips/bmg_fch_demo_5min/audio.mp3
+    video_h264: clips/bmg_fch_demo_5min/video.h264
+    events: clips/bmg_fch_demo_5min/events.txt
+    video_delay: 10.0
+    languages: [es, pt, fr, tr, de]
+
   # May 8, 18:30 UTC — Dortmund vs Frankfurt
   - match_id: bvb_sge_md33
+    display_name: "Dortmund vs Frankfurt (MD33)"
     mode: live
     sport_event_id: "sr:sport_event:61514184"
     kickoff_utc: "2026-05-08T18:30:00Z"
-    prestart_seconds: 900
+    prestart_seconds: 1800
+    auto_manage: true
     source:
       type: srt_direct
       url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
       original_channel: bvb_sge_md33-original
       publish_uid: 73
       original_buffer_seconds: 1.0
-      retry_seconds: 5
+      retry_seconds: 60
     video_uid: 73
     video_delay: 7.0
     languages: [es, pt, fr, tr, de]
 
   # May 9, 16:30 UTC — Wolfsburg vs Bayern
   - match_id: wob_bmu_md33
+    display_name: "Wolfsburg vs Bayern (MD33)"
     mode: live
     sport_event_id: "sr:sport_event:61514192"
     kickoff_utc: "2026-05-09T16:30:00Z"
-    prestart_seconds: 900
+    prestart_seconds: 1800
+    auto_manage: true
     source:
       type: srt_direct
       url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
       original_channel: wob_bmu_md33-original
       publish_uid: 73
       original_buffer_seconds: 1.0
-      retry_seconds: 5
+      retry_seconds: 60
     video_uid: 73
     video_delay: 7.0
     languages: [es, pt, fr, tr, de]
 
   # May 10, 17:30 UTC — Mainz vs Union Berlin
   - match_id: m05_uni_md33
+    display_name: "Mainz vs Union Berlin (MD33)"
     mode: live
     sport_event_id: "sr:sport_event:61514186"
     kickoff_utc: "2026-05-10T17:30:00Z"
-    prestart_seconds: 900
+    prestart_seconds: 1800
+    auto_manage: true
     source:
       type: srt_direct
       url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
       original_channel: m05_uni_md33-original
       publish_uid: 73
       original_buffer_seconds: 1.0
-      retry_seconds: 5
+      retry_seconds: 60
     video_uid: 73
     video_delay: 7.0
     languages: [es, pt, fr, tr, de]
