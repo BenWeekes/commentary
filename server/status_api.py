@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import threading
@@ -79,6 +80,39 @@ class StatusHandler(BaseHTTPRequestHandler):
             return
         if path == "/match_detail.html":
             self._serve_file("match_detail.html")
+            return
+
+        # Overview: all matches with scheduler state, ordered by config
+        if path == "/api/status/overview":
+            scheduler = self.orchestrator.scheduler
+            result = []
+            for mc in self.server_config.matches:
+                mid = mc.match_id
+                ms = scheduler.get_schedule(mid)
+                worker = self.orchestrator.get_worker(mid)
+                ws = worker.status if worker else None
+                entry = {
+                    "match_id": mid,
+                    "display_name": mc.display_name or mid,
+                    "mode": mc.mode,
+                    "enabled": mc.enabled,
+                    "auto_manage": mc.auto_manage,
+                    "scheduler_state": ms.state if ms else "unknown",
+                    "kickoff_utc": ms.kickoff_utc if ms else mc.kickoff_utc,
+                    "countdown_seconds": None,
+                    "last_refresh_at": ms.last_refresh_at if ms else 0,
+                    "last_error": ms.last_error if ms else "",
+                    "worker_state": ws.state if ws else "idle",
+                    "stt_utterance_count": ws.stt_utterance_count if ws else 0,
+                    "configured_languages": mc.languages,
+                    "error": ws.error if ws else None,
+                }
+                # Compute countdown
+                if ms and ms.kickoff_ts:
+                    ttk = ms.kickoff_ts - time.time()
+                    entry["countdown_seconds"] = round(ttk)
+                result.append(entry)
+            self._respond(200, result)
             return
 
         # All match statuses
@@ -456,6 +490,7 @@ def start_status_server(port, orchestrator, server_config):
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     print(f"[HTTP] Status server on http://localhost:{port}")
+    print(f"       GET  /api/status/overview           → scheduler overview (all matches)")
     print(f"       GET  /api/matches                  → all match statuses")
     print(f"       GET  /api/matches/{{id}}/status      → one match status")
     print(f"       GET  /api/matches/{{id}}/channels    → viewer tokens for all langs")

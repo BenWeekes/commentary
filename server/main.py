@@ -59,18 +59,25 @@ def main():
 
     orchestrator = Orchestrator(cfg)
     start_status_server(cfg.control_port, orchestrator, cfg)
+    orchestrator.scheduler.start()
 
     print(f"\n{'=' * 70}")
     print(f"  PRODUCTION SERVER — {len(cfg.matches)} match(es)")
     for m in cfg.matches:
+        mode_str = f"[{m.mode}]"
+        if not m.enabled:
+            mode_str += " disabled"
+        elif m.auto_manage:
+            mode_str += " auto"
         langs = ", ".join(m.languages)
-        print(f"  {m.match_id}: {langs}")
+        print(f"  {m.match_id}: {mode_str} {langs}")
     print(f"  Control:  http://localhost:{cfg.control_port}/")
     print(f"  Status:   http://localhost:{cfg.control_port}/status.html")
     print(f"  Viewer:   http://localhost:{cfg.control_port}/viewer_live.html")
     print(f"{'=' * 70}\n")
 
-    # Matches stay idle until started via API (POST /api/matches/{id}/start)
+    # Demo matches stay idle until started via API
+    # Live auto_manage matches are handled by the scheduler
 
     # Wait for shutdown signal
     shutdown = False
@@ -79,6 +86,7 @@ def main():
         if not shutdown:
             shutdown = True
             print("\n\n  Shutting down...")
+            orchestrator.scheduler.stop()
             orchestrator.stop_all()
             print("  Done.")
             sys.exit(0)

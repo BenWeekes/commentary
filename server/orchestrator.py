@@ -5,6 +5,7 @@ import threading
 from server.config import ServerConfig
 from server.match_store import MatchStore
 from server.match_worker import MatchWorker
+from server.scheduler import Scheduler
 
 
 class Orchestrator:
@@ -22,9 +23,15 @@ class Orchestrator:
                 match_cfg, config, match_store=self._match_store)
             self._match_locks[match_cfg.match_id] = threading.Lock()
 
+        self._scheduler = Scheduler(config, self, self._match_store)
+
     @property
     def match_store(self) -> MatchStore:
         return self._match_store
+
+    @property
+    def scheduler(self) -> Scheduler:
+        return self._scheduler
 
     def start_all(self):
         """Start a MatchWorker per configured match."""
