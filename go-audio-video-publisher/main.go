@@ -73,6 +73,36 @@ type audioChunker struct {
 var sourcePublishingStarted sync.Once
 var videoDelayComplete sync.Once
 
+type videoBitrateLogger struct {
+	windowStart time.Time
+	bytes       int64
+	frames      int
+	keyframes   int
+}
+
+func (l *videoBitrateLogger) observe(frame localstream.VideoFrame) {
+	now := time.Now()
+	if l.windowStart.IsZero() {
+		l.windowStart = now
+	}
+	l.bytes += int64(len(frame.Data))
+	l.frames++
+	if frame.KeyFrame {
+		l.keyframes++
+	}
+	elapsed := now.Sub(l.windowStart)
+	if elapsed < 5*time.Second {
+		return
+	}
+	kbps := float64(l.bytes*8) / elapsed.Seconds() / 1000
+	fmt.Fprintf(os.Stderr, "source video bitrate %.0f kbps frames=%d keyframes=%d size=%dx%d fps=%d\n",
+		kbps, l.frames, l.keyframes, frame.Width, frame.Height, frame.FPS)
+	l.windowStart = now
+	l.bytes = 0
+	l.frames = 0
+	l.keyframes = 0
+}
+
 func main() {
 	cfg, err := parseConfig()
 	if err != nil {
@@ -577,32 +607,201 @@ func streamMediaWithLocalFanout(
 	pcmServer *pcmServer,
 	videoFanout *videoFanout,
 ) error {
-	fileName := C.CString(cfg.input)
-	defer C.free(unsafe.Pointer(fileName))
-
-	decoder := C.open_media_file(fileName)
-	if decoder == nil {
-		return fmt.Errorf("open media file %q", cfg.input)
-	}
-	defer C.close_media_file(decoder)
-
 	audioPublisher := startDelayedAudioPublisher(con)
 	defer audioPublisher.close()
 	videoPublisher := startDelayedVideoPublisher(con)
 	defer videoPublisher.close()
+	videoStats := &videoBitrateLogger{}
 
-	var packet *C.struct__MediaPacket
-	frame := C.struct__MediaFrame{}
-	C.memset(unsafe.Pointer(&frame), 0, C.sizeof_struct__MediaFrame)
-	audioChunker := &audioChunker{}
-	h264Parser := &h264AUParser{}
-	h264Cleaner := &h264Repacketizer{}
-
-	var firstPTS int64 = -1
-	var localBase time.Time
-	var originalBase time.Time
+	const retryInterval = 2 * time.Second
+	const maxNoMedia = 3 * time.Minute
+	remoteInput := isRemoteInput(cfg.input)
+	var noMediaSince time.Time
 
 	for {
+		fileName := C.CString(cfg.input)
+		decoder := C.open_media_file(fileName)
+		C.free(unsafe.Pointer(fileName))
+		if decoder == nil {
+			if !remoteInput {
+				return fmt.Errorf("open media file %q", cfg.input)
+			}
+			if noMediaSince.IsZero() {
+				noMediaSince = time.Now()
+			}
+			if time.Since(noMediaSince) >= maxNoMedia {
+				return fmt.Errorf("open media file %q after %.0fs without media", cfg.input, maxNoMedia.Seconds())
+			}
+			fmt.Fprintf(os.Stderr, "open media file %q failed; retrying in %s\n", cfg.input, retryInterval)
+			if err := holdLocalPCM(pcmServer, stop, disconnected, retryInterval); err != nil {
+				return err
+			}
+			continue
+		}
+
+		var packet *C.struct__MediaPacket
+		frame := C.struct__MediaFrame{}
+		C.memset(unsafe.Pointer(&frame), 0, C.sizeof_struct__MediaFrame)
+		audioChunker := &audioChunker{}
+		h264Parser := &h264AUParser{}
+		h264Cleaner := &h264Repacketizer{}
+
+		var firstPTS int64 = -1
+		var localBase time.Time
+		var originalBase time.Time
+		reopen := false
+
+		for {
+			select {
+			case <-stop:
+				C.close_media_file(decoder)
+				return errors.New("interrupted")
+			case msg := <-disconnected:
+				C.close_media_file(decoder)
+				return errors.New(msg)
+			default:
+			}
+
+			ret := C.get_packet(decoder, &packet)
+			if ret != 0 {
+				C.close_media_file(decoder)
+				if cfg.loop {
+					reopen = true
+					break
+				}
+				if !remoteInput {
+					fmt.Printf("finished reading input: code=%d\n", int(ret))
+					return nil
+				}
+				if noMediaSince.IsZero() {
+					noMediaSince = time.Now()
+				}
+				if time.Since(noMediaSince) >= maxNoMedia {
+					return fmt.Errorf("no media from input for %.0fs: code=%d", maxNoMedia.Seconds(), int(ret))
+				}
+				fmt.Fprintf(os.Stderr, "media read ended code=%d; keeping local outputs alive and retrying in %s\n", int(ret), retryInterval)
+				if err := holdLocalPCM(pcmServer, stop, disconnected, retryInterval); err != nil {
+					return err
+				}
+				reopen = true
+				break
+			}
+			if packet == nil {
+				continue
+			}
+
+			switch packet.media_type {
+			case C.AVMEDIA_TYPE_AUDIO:
+				if cfg.videoOnly {
+					C.free_packet(&packet)
+					continue
+				}
+			case C.AVMEDIA_TYPE_VIDEO:
+				if cfg.audioOnly {
+					C.free_packet(&packet)
+					continue
+				}
+			default:
+				C.free_packet(&packet)
+				continue
+			}
+
+			noMediaSince = time.Time{}
+
+			sendPTS := int64(packet.pts)
+			if sendPTS < 0 {
+				sendPTS = 0
+			}
+			if firstPTS < 0 {
+				firstPTS = sendPTS
+				localBase = time.Now()
+				originalBase = localBase.Add(cfg.sourceBuffer)
+				fmt.Printf("starting media stream at pts=%dms\n", firstPTS)
+			}
+			delta := time.Duration(sendPTS-firstPTS) * time.Millisecond
+			localTarget := localBase.Add(delta)
+			if wait := time.Until(localTarget); wait > 0 {
+				if cfg.debugSleep {
+					fmt.Printf("pacing sleep: %s for packet pts=%d\n", wait, sendPTS)
+				}
+				time.Sleep(wait)
+			}
+
+			switch packet.media_type {
+			case C.AVMEDIA_TYPE_AUDIO:
+				chunks, err := decodeAudioChunks(decoder, packet, &frame, audioChunker)
+				packet = nil
+				if err != nil {
+					if remoteInput {
+						fmt.Fprintf(os.Stderr, "decode audio packet failed, dropping packet: %v\n", err)
+						continue
+					}
+					C.close_media_file(decoder)
+					return err
+				}
+				chunkPublishAt := originalBase.Add(delta)
+				for _, chunk := range chunks {
+					if pcmServer != nil {
+						pcmServer.writeChunk(chunk)
+					}
+					audioPublisher.enqueue(delayedAudioChunk{
+						pcm:       append([]byte(nil), chunk...),
+						publishAt: chunkPublishAt,
+					})
+					chunkPublishAt = chunkPublishAt.Add(10 * time.Millisecond)
+				}
+			case C.AVMEDIA_TYPE_VIDEO:
+				frames, err := extractEncodedVideoFramesForFanout(cfg, decoder, packet, &frame, h264Parser, h264Cleaner, localTarget)
+				packet = nil
+				if err != nil {
+					if remoteInput {
+						fmt.Fprintf(os.Stderr, "decode video packet failed, dropping packet: %v\n", err)
+						continue
+					}
+					C.close_media_file(decoder)
+					return err
+				}
+				for _, videoFrame := range frames {
+					videoStats.observe(videoFrame)
+					if videoFanout != nil {
+						videoFanout.broadcast(videoFrame)
+					}
+					frameType := agoraservice.VideoFrameTypeDeltaFrame
+					if videoFrame.KeyFrame {
+						frameType = agoraservice.VideoFrameTypeKeyFrame
+					}
+					videoPublisher.enqueue(delayedVideoFrame{
+						data: append([]byte(nil), videoFrame.Data...),
+						frameInfo: &agoraservice.EncodedVideoFrameInfo{
+							CodecType:       agoraservice.VideoCodecTypeH264,
+							Width:           videoFrame.Width,
+							Height:          videoFrame.Height,
+							FramesPerSecond: videoFrame.FPS,
+							FrameType:       frameType,
+							Rotation:        agoraservice.VideoOrientation0,
+							CaptureTimeMs:   time.Now().UnixMilli(),
+							StreamType:      int(agoraservice.VideoStreamHigh),
+						},
+						publishAt: originalBase.Add(delta),
+					})
+					signalSourcePublishingStarted()
+				}
+			}
+		}
+		if !reopen {
+			return nil
+		}
+	}
+}
+
+func holdLocalPCM(pcmServer *pcmServer, stop <-chan os.Signal, disconnected <-chan string, duration time.Duration) error {
+	if duration <= 0 {
+		return nil
+	}
+	silence := make([]byte, 320)
+	deadline := time.Now().Add(duration)
+	nextTick := time.Now()
+	for time.Now().Before(deadline) {
 		select {
 		case <-stop:
 			return errors.New("interrupted")
@@ -610,100 +809,15 @@ func streamMediaWithLocalFanout(
 			return errors.New(msg)
 		default:
 		}
-
-		ret := C.get_packet(decoder, &packet)
-		if ret != 0 {
-			fmt.Printf("finished reading input: code=%d\n", int(ret))
-			return nil
-		}
-		if packet == nil {
-			continue
-		}
-
-		switch packet.media_type {
-		case C.AVMEDIA_TYPE_AUDIO:
-			if cfg.videoOnly {
-				C.free_packet(&packet)
-				continue
-			}
-		case C.AVMEDIA_TYPE_VIDEO:
-			if cfg.audioOnly {
-				C.free_packet(&packet)
-				continue
-			}
-		default:
-			C.free_packet(&packet)
-			continue
-		}
-
-		sendPTS := int64(packet.pts)
-		if sendPTS < 0 {
-			sendPTS = 0
-		}
-		if firstPTS < 0 {
-			firstPTS = sendPTS
-			localBase = time.Now()
-			originalBase = localBase.Add(cfg.sourceBuffer)
-			fmt.Printf("starting media stream at pts=%dms\n", firstPTS)
-		}
-		delta := time.Duration(sendPTS-firstPTS) * time.Millisecond
-		localTarget := localBase.Add(delta)
-		if wait := time.Until(localTarget); wait > 0 {
-			if cfg.debugSleep {
-				fmt.Printf("pacing sleep: %s for packet pts=%d\n", wait, sendPTS)
-			}
+		if wait := time.Until(nextTick); wait > 0 {
 			time.Sleep(wait)
 		}
-
-		switch packet.media_type {
-		case C.AVMEDIA_TYPE_AUDIO:
-			chunks, err := decodeAudioChunks(decoder, packet, &frame, audioChunker)
-			packet = nil
-			if err != nil {
-				return err
-			}
-			chunkPublishAt := originalBase.Add(delta)
-			for _, chunk := range chunks {
-				if pcmServer != nil {
-					pcmServer.writeChunk(chunk)
-				}
-				audioPublisher.enqueue(delayedAudioChunk{
-					pcm:       append([]byte(nil), chunk...),
-					publishAt: chunkPublishAt,
-				})
-				chunkPublishAt = chunkPublishAt.Add(10 * time.Millisecond)
-			}
-		case C.AVMEDIA_TYPE_VIDEO:
-			frames, err := extractEncodedVideoFramesForFanout(cfg, decoder, packet, &frame, h264Parser, h264Cleaner, localTarget)
-			packet = nil
-			if err != nil {
-				return err
-			}
-			for _, videoFrame := range frames {
-				if videoFanout != nil {
-					videoFanout.broadcast(videoFrame)
-				}
-				frameType := agoraservice.VideoFrameTypeDeltaFrame
-				if videoFrame.KeyFrame {
-					frameType = agoraservice.VideoFrameTypeKeyFrame
-				}
-				videoPublisher.enqueue(delayedVideoFrame{
-					data: append([]byte(nil), videoFrame.Data...),
-					frameInfo: &agoraservice.EncodedVideoFrameInfo{
-						CodecType:       agoraservice.VideoCodecTypeH264,
-						Width:           videoFrame.Width,
-						Height:          videoFrame.Height,
-						FramesPerSecond: videoFrame.FPS,
-						FrameType:       frameType,
-						Rotation:        agoraservice.VideoOrientation0,
-						CaptureTimeMs:   time.Now().UnixMilli(),
-						StreamType:      int(agoraservice.VideoStreamHigh),
-					},
-					publishAt: originalBase.Add(delta),
-				})
-			}
+		if pcmServer != nil {
+			pcmServer.writeChunk(silence)
 		}
+		nextTick = nextTick.Add(10 * time.Millisecond)
 	}
+	return nil
 }
 
 func sendPCMStdinLoop(con *agoraservice.RtcConnection, stop <-chan os.Signal, disconnected <-chan string) error {
@@ -935,8 +1049,8 @@ func sendDecodedAudioLoop(con *agoraservice.RtcConnection, cfg *config, stop <-c
 				if ret == C.AVERROR_EAGAIN {
 					continue
 				}
-				C.close_media_file(decoder)
-				return fmt.Errorf("decode audio packet: %d", int(ret))
+				fmt.Fprintf(os.Stderr, "decode audio packet failed, dropping packet: %d\n", int(ret))
+				continue
 			}
 			if frame.format != C.AV_SAMPLE_FMT_S16 {
 				C.close_media_file(decoder)

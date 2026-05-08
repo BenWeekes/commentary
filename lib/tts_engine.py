@@ -5,13 +5,14 @@ import json
 import os
 import queue
 import struct
+import subprocess
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
 import websockets
 
-from lib.constants import BYTES_PER_10MS, ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL
+from lib.constants import SAMPLE_RATE, BYTES_PER_10MS, ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL
 
 
 def _ts(video_start=None):
@@ -36,7 +37,8 @@ class TTSEngine:
         (pre-buffer) to avoid underruns from network jitter.
       - Pipe-writer drains the buffer at a steady 10ms rate to the Go publisher.
       - No silence is ever sent — Go publisher handles silence on its own.
-      - speak() queues text. Only real INTERRUPT events clear the queue.
+      - speak(interrupt=True) cuts active/queued playback so fresher commentary
+        can take over.
     """
 
     def __init__(self, audio_pipe, voice_id=ELEVENLABS_VOICE_ID,
@@ -104,6 +106,11 @@ class TTSEngine:
         self._pretranslate_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pretranslate")
         # Stats
         self._utterance_id = 0
+        self._elevenlabs_speed = 1.0
+        self._elevenlabs_stability = 1.0
+        self._elevenlabs_similarity_boost = 1.0
+        self._max_local_speed = 2.5
+        self._fit_guard_s = 0.05
         # Video-relative timestamp (set by pipeline after publisher starts)
         self.video_start = None
 
@@ -276,7 +283,11 @@ class TTSEngine:
             interrupted_by = ""
             chunks_played = 0
 
-            while not self._stop.is_set() and not self._interrupt.is_set():
+            while (
+                not self._stop.is_set()
+                and not self._interrupt.is_set()
+                and chunks_played < n_chunks
+            ):
                 # During SR playback, check if STT has become ready — interrupt SR
                 if source == "SR" and self._playback_ready.is_set():
                     with self._sr_buf_lock:
@@ -316,13 +327,18 @@ class TTSEngine:
             play_ended_at = time.time()
             print(f"  [{self._vts()}] [PIPE] {source} playback ended")
 
-            # Detect interrupt-caused breakout (STT only)
-            if source == "STT" and self._interrupt.is_set() and not was_interrupted:
+            # Detect interrupt-caused breakout. For STT this is newer STT
+            # taking over; for SR it is also STT preemption before the queued
+            # STT audio has finished buffering.
+            if self._interrupt.is_set() and not was_interrupted:
                 was_interrupted = True
-                interrupted_by = "speak_interrupt"
+                interrupted_by = "stt_interrupt"
 
             # Use metadata captured at playback start (not post-playback pop)
             meta = current_meta or {}
+            if was_interrupted:
+                with lock:
+                    buf.clear()
 
             if self.on_telemetry:
                 try:
@@ -343,6 +359,11 @@ class TTSEngine:
                         "play_at": meta.get("play_at"),
                         "pre_translated": meta.get("pre_translated", False),
                         "queue_wait_ms": meta.get("queue_wait_ms", 0),
+                        "local_speed_factor": meta.get("local_speed_factor"),
+                        "fit_from_ms": meta.get("fit_from_ms"),
+                        "fit_to_ms": meta.get("fit_to_ms"),
+                        "fit_deadline_ms": meta.get("fit_deadline_ms"),
+                        "fit_cpu_ms": meta.get("fit_cpu_ms"),
                     })
                 except Exception:
                     pass
@@ -419,6 +440,108 @@ class TTSEngine:
                 buf.append(chunk)
                 offset = end
 
+    def _current_audio_bytes(self):
+        with self._buf_lock:
+            return b"".join(self._audio_buf)
+
+    def _replace_current_audio(self, pcm_bytes):
+        chunks = []
+        offset = 0
+        while offset < len(pcm_bytes):
+            end = offset + BYTES_PER_10MS
+            chunk = pcm_bytes[offset:end]
+            if len(chunk) < BYTES_PER_10MS:
+                chunk = chunk + b"\x00" * (BYTES_PER_10MS - len(chunk))
+            chunks.append(chunk)
+            offset = end
+
+        with self._buf_lock:
+            self._audio_buf.clear()
+            self._audio_buf.extend(chunks)
+
+    def _current_audio_ms(self):
+        with self._buf_lock:
+            return len(self._audio_buf) * 10
+
+    def _next_queued_play_at(self, current_play_at):
+        deadlines = []
+        if self._lookahead_item:
+            la_play_at = self._lookahead_item.get("play_at")
+            if la_play_at and la_play_at > current_play_at:
+                deadlines.append(la_play_at)
+
+        with self._text_queue.mutex:
+            queued_items = list(self._text_queue.queue)
+        for item in queued_items:
+            if not isinstance(item, tuple):
+                continue
+            item_play_at = item[1]
+            if item_play_at and item_play_at > current_play_at:
+                deadlines.append(item_play_at)
+
+        return min(deadlines) if deadlines else None
+
+    def _atempo_filter(self, factor):
+        parts = []
+        remaining = factor
+        while remaining > 2.0:
+            parts.append("atempo=2.0")
+            remaining /= 2.0
+        parts.append(f"atempo={remaining:.6f}")
+        return ",".join(parts)
+
+    def _speed_up_pcm(self, pcm_bytes, factor):
+        cmd = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "-f", "s16le", "-ar", str(SAMPLE_RATE), "-ac", "1", "-i", "pipe:0",
+            "-af", self._atempo_filter(factor),
+            "-f", "s16le", "-ar", str(SAMPLE_RATE), "-ac", "1", "pipe:1",
+        ]
+        return subprocess.check_output(cmd, input=pcm_bytes)
+
+    def _fit_current_audio_to_next_play_at(self, result):
+        play_at = result.get("play_at")
+        if not play_at:
+            return
+
+        deadline = self._next_queued_play_at(play_at)
+        if not deadline:
+            return
+
+        available_s = deadline - play_at - self._fit_guard_s
+        if available_s <= 0:
+            return
+
+        pcm_bytes = self._current_audio_bytes()
+        if not pcm_bytes:
+            return
+
+        current_s = len(pcm_bytes) / (SAMPLE_RATE * 2)
+        needed = current_s / available_s
+        if needed <= 1.05:
+            return
+
+        factor = min(needed, self._max_local_speed)
+        try:
+            started = time.monotonic()
+            fitted = self._speed_up_pcm(pcm_bytes, factor)
+            elapsed_ms = (time.monotonic() - started) * 1000
+        except Exception as e:
+            print(f"  [{self._vts()}] [TTS #{result.get('uid')}] speed-fit failed: {e}")
+            return
+
+        self._replace_current_audio(fitted)
+        fitted_s = len(fitted) / (SAMPLE_RATE * 2)
+        result["local_speed_factor"] = factor
+        result["fit_from_ms"] = round(current_s * 1000)
+        result["fit_to_ms"] = round(fitted_s * 1000)
+        result["fit_deadline_ms"] = round(available_s * 1000)
+        result["fit_cpu_ms"] = round(elapsed_ms)
+        capped = " capped" if needed > self._max_local_speed else ""
+        print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Speed-fit {current_s:.2f}s → "
+              f"{fitted_s:.2f}s for {available_s:.2f}s window "
+              f"(factor={factor:.2f}x{capped}, atempo={elapsed_ms:.0f}ms)")
+
     def speak(self, text, interrupt=False, play_at=None, translate_fn=None):
         """
         Non-blocking. Queues text for sequential TTS playback.
@@ -432,14 +555,36 @@ class TTSEngine:
             self._interrupt.set()
             self._stt_suppressed.clear()
             with self._buf_lock:
+                pending_meta = self._playback_meta_slot
+                pending_ms = len(self._audio_buf) * 10
                 self._audio_buf.clear()
                 self._playback_meta_slot = None
+            if pending_meta:
+                self._skipped_meta.append({
+                    "source": "stt", "status": "replaced",
+                    "uid": pending_meta.get("uid"), "text": pending_meta.get("text"),
+                    "translated": pending_meta.get("translated"),
+                    "translate_time": pending_meta.get("translate_time"),
+                    "tts_time": pending_meta.get("tts_time"),
+                    "play_at": pending_meta.get("play_at"),
+                    "play_started_at": None, "play_ended_at": None,
+                    "actual_play_duration_ms": 0, "total_buffered_ms": pending_ms,
+                    "interrupted": False, "interrupted_by": "stt_interrupt",
+                    "pre_translated": pending_meta.get("pre_translated", False),
+                    "queue_wait_ms": pending_meta.get("queue_wait_ms", 0),
+                    "local_speed_factor": pending_meta.get("local_speed_factor"),
+                    "fit_from_ms": pending_meta.get("fit_from_ms"),
+                    "fit_to_ms": pending_meta.get("fit_to_ms"),
+                    "fit_deadline_ms": pending_meta.get("fit_deadline_ms"),
+                    "fit_cpu_ms": pending_meta.get("fit_cpu_ms"),
+                })
             with self._sr_buf_lock:
                 self._sr_audio_buf.clear()
                 self._sr_playback_meta_slot = None
             with self._lookahead_lock:
+                lookahead_item = self._lookahead_item
+                lookahead_ms = len(self._lookahead_buf) * 10
                 self._lookahead_buf.clear()
-            self._lookahead_item = None
             with self._pretranslate_lock:
                 self._pretranslated.clear()
             self._sr_playback_ready.clear()
@@ -450,36 +595,41 @@ class TTSEngine:
                     int_discarded += 1
                     stale_text, stale_play_at, _, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None, None)
                     self._skipped_meta.append({
-                        "source": "stt", "status": "dropped",
+                        "source": "stt", "status": "replaced",
                         "uid": None, "text": stale_text,
                         "translated": None,
                         "translate_time": None, "tts_time": None,
                         "play_at": stale_play_at,
                         "play_started_at": None, "play_ended_at": None,
                         "actual_play_duration_ms": 0, "total_buffered_ms": 0,
-                        "interrupted": False, "interrupted_by": "speak_interrupt",
+                        "interrupted": False, "interrupted_by": "stt_interrupt",
                         "pre_translated": False, "queue_wait_ms": 0,
                     })
                 except queue.Empty:
                     break
             # Also emit for lookahead item being discarded
-            if self._lookahead_item:
-                la = self._lookahead_item
+            if lookahead_item:
+                la = lookahead_item
                 self._skipped_meta.append({
-                    "source": "stt", "status": "dropped",
+                    "source": "stt", "status": "replaced",
                     "uid": la.get("uid"), "text": la.get("text"),
                     "translated": la.get("translated"),
                     "translate_time": la.get("translate_time"),
                     "tts_time": la.get("tts_time"),
                     "play_at": la.get("play_at"),
                     "play_started_at": None, "play_ended_at": None,
-                    "actual_play_duration_ms": 0, "total_buffered_ms": 0,
-                    "interrupted": False, "interrupted_by": "speak_interrupt",
+                    "actual_play_duration_ms": 0, "total_buffered_ms": lookahead_ms,
+                    "interrupted": False, "interrupted_by": "stt_interrupt",
                     "pre_translated": la.get("pre_translated", False),
                     "queue_wait_ms": la.get("queue_wait_ms", 0),
+                    "local_speed_factor": la.get("local_speed_factor"),
+                    "fit_from_ms": la.get("fit_from_ms"),
+                    "fit_to_ms": la.get("fit_to_ms"),
+                    "fit_deadline_ms": la.get("fit_deadline_ms"),
+                    "fit_cpu_ms": la.get("fit_cpu_ms"),
                 })
                 int_discarded += 1
-                self._lookahead_item = None
+            self._lookahead_item = None
             print(f"  [{self._vts()}] [TTS] Interrupted — STT+SR queues cleared"
                   f"{f' ({int_discarded} queued items discarded)' if int_discarded else ''}")
         if text:
@@ -858,15 +1008,16 @@ class TTSEngine:
                         self._audio_buf.clear()
                     # Emit telemetry for dropped-during-TTS items
                     item_text, item_play_at, _, _ = item if isinstance(item, tuple) else (item, None, None, None)
+                    interrupted_by = "stt_interrupt" if self._interrupt.is_set() else "tts_interrupt"
                     self._skipped_meta.append({
-                        "source": "stt", "status": "dropped",
+                        "source": "stt", "status": "replaced" if self._interrupt.is_set() else "dropped",
                         "uid": None, "text": item_text,
                         "translated": None,
                         "translate_time": None, "tts_time": None,
                         "play_at": item_play_at,
                         "play_started_at": None, "play_ended_at": None,
                         "actual_play_duration_ms": 0, "total_buffered_ms": buf_ms,
-                        "interrupted": False, "interrupted_by": "tts_interrupt",
+                        "interrupted": False, "interrupted_by": interrupted_by,
                         "pre_translated": False, "queue_wait_ms": 0,
                     })
                     continue
@@ -903,6 +1054,9 @@ class TTSEngine:
             buf_ms = buf_chunks * 10
             tts_time = result["tts_time"]
             play_at = result["play_at"]
+            self._fit_current_audio_to_next_play_at(result)
+            buf_chunks = len(self._audio_buf)
+            buf_ms = buf_chunks * 10
 
             # Wait until scheduled play time if set
             if play_at:
@@ -941,6 +1095,11 @@ class TTSEngine:
                         "interrupted": False, "interrupted_by": "",
                         "pre_translated": result.get("pre_translated", False),
                         "queue_wait_ms": result.get("queue_wait_ms", 0),
+                        "local_speed_factor": result.get("local_speed_factor"),
+                        "fit_from_ms": result.get("fit_from_ms"),
+                        "fit_to_ms": result.get("fit_to_ms"),
+                        "fit_deadline_ms": result.get("fit_deadline_ms"),
+                        "fit_cpu_ms": result.get("fit_cpu_ms"),
                     })
                     continue
             else:
@@ -963,6 +1122,11 @@ class TTSEngine:
                     "interrupted": False, "interrupted_by": "original",
                     "pre_translated": result.get("pre_translated", False),
                     "queue_wait_ms": result.get("queue_wait_ms", 0),
+                    "local_speed_factor": result.get("local_speed_factor"),
+                    "fit_from_ms": result.get("fit_from_ms"),
+                    "fit_to_ms": result.get("fit_to_ms"),
+                    "fit_deadline_ms": result.get("fit_deadline_ms"),
+                    "fit_cpu_ms": result.get("fit_cpu_ms"),
                 })
                 continue
 
@@ -1028,18 +1192,34 @@ class TTSEngine:
                             # Emit telemetry for lookahead dropped during TTS
                             if not la_result and next_item:
                                 la_text, la_play_at, _, _ = next_item if isinstance(next_item, tuple) else (next_item, None, None, None)
+                                interrupted_by = "stt_interrupt" if self._interrupt.is_set() else "lookahead_interrupt"
                                 self._skipped_meta.append({
-                                    "source": "stt", "status": "dropped",
+                                    "source": "stt", "status": "replaced" if self._interrupt.is_set() else "dropped",
                                     "uid": None, "text": la_text,
                                     "translated": None,
                                     "translate_time": None, "tts_time": None,
                                     "play_at": la_play_at,
                                     "play_started_at": None, "play_ended_at": None,
                                     "actual_play_duration_ms": 0, "total_buffered_ms": la_ms,
-                                    "interrupted": False, "interrupted_by": "lookahead_interrupt",
+                                    "interrupted": False, "interrupted_by": interrupted_by,
                                     "pre_translated": False, "queue_wait_ms": 0,
                                 })
                     lookahead_done = True
+
+                if self._lookahead_item and not self._interrupt.is_set():
+                    interrupt_at = self._lookahead_item.get("play_at") or time.time()
+                    if time.time() >= interrupt_at:
+                        # Newer STT is buffered and due now. Cut the older STT
+                        # at the handoff point, not when the new TTS merely
+                        # finishes buffering early.
+                        self._interrupt.set()
+                        deadline = time.monotonic() + 0.5
+                        while time.monotonic() < deadline:
+                            with self._buf_lock:
+                                current_empty = not self._audio_buf
+                            if current_empty:
+                                break
+                            time.sleep(0.005)
 
                 time.sleep(0.01)
 
@@ -1076,8 +1256,9 @@ class TTSEngine:
                 await ws.send(json.dumps({
                     "text": " ",
                     "voice_settings": {
-                        "stability": 0.5,
-                        "similarity_boost": 0.8,
+                        "speed": self._elevenlabs_speed,
+                        "stability": self._elevenlabs_stability,
+                        "similarity_boost": self._elevenlabs_similarity_boost,
                     },
                     "xi_api_key": self.api_key,
                 }))

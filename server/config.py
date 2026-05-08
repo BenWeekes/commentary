@@ -61,7 +61,7 @@ class ServerConfig:
     elevenlabs_api_key: str
     sportradar_api_key: str
     control_port: int = 8080
-    translation_model: str = "gpt-4o-mini"
+    translation_model: str = "gpt-5.4"
     matches: list[MatchConfig] = field(default_factory=list)
     # Cloud Recording
     cloud_recording: dict | None = None
@@ -237,7 +237,7 @@ def load_config(yaml_path: str) -> ServerConfig:
         elevenlabs_api_key=elevenlabs_key,
         sportradar_api_key=sportradar_key,
         control_port=raw.get("control_port", 8080),
-        translation_model=raw.get("translation_model", "gpt-4o-mini"),
+        translation_model=raw.get("translation_model", "gpt-5.4"),
         matches=matches,
         cloud_recording=cloud_recording_raw,
         agora_customer_key=agora_customer_key,

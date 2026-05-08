@@ -75,16 +75,10 @@ typedef struct _MediaDecoder {
 } MediaDecoder;
 
 int init_swr(DecodeContext *decode_ctx) {
-  AVChannelLayout stereo_layout = AV_CHANNEL_LAYOUT_STEREO;
+  AVChannelLayout mono_layout = AV_CHANNEL_LAYOUT_MONO;
   AVCodecContext *codec_ctx = decode_ctx->codec_ctx;
-  decode_ctx->dst_ch_layout = codec_ctx->ch_layout;
-  if (decode_ctx->dst_ch_layout.nb_channels > 2) {
-    decode_ctx->dst_ch_layout = stereo_layout;
-  }
-  decode_ctx->dst_sample_rate = codec_ctx->sample_rate;
-  if (decode_ctx->dst_sample_rate > 48000) {
-    decode_ctx->dst_sample_rate = 48000;
-  }
+  decode_ctx->dst_ch_layout = mono_layout;
+  decode_ctx->dst_sample_rate = 16000;
   decode_ctx->dst_sample_fmt = AV_SAMPLE_FMT_S16;
   if (codec_ctx->sample_fmt == decode_ctx->dst_sample_fmt &&
     codec_ctx->sample_rate == decode_ctx->dst_sample_rate &&
@@ -140,7 +134,6 @@ int resample_audio(DecodeContext *decode_ctx, AVFrame *frame) {
     decode_ctx->buffer = (uint8_t *)av_malloc(decode_ctx->buffer_size);
     av_samples_fill_arrays(decode_ctx->samples, NULL, decode_ctx->buffer, decode_ctx->dst_ch_layout.nb_channels, dst_nb_samples, decode_ctx->dst_sample_fmt, 1);
   }
-  decode_ctx->actual_buffer_size = buf_size;
   if (!swr_ctx) {
     // just copy audio data
     result = av_samples_copy(decode_ctx->samples, frame->data, 0, 0, frame->nb_samples, codec_ctx->ch_layout.nb_channels, codec_ctx->sample_fmt);
@@ -148,6 +141,7 @@ int resample_audio(DecodeContext *decode_ctx, AVFrame *frame) {
       av_log(NULL, AV_LOG_ERROR, "Can't copy audio samples, %d\n", result);
       return result;
     }
+    decode_ctx->actual_buffer_size = av_samples_get_buffer_size(NULL, decode_ctx->dst_ch_layout.nb_channels, frame->nb_samples, decode_ctx->dst_sample_fmt, 1);
     return 0;
   }
 
@@ -157,6 +151,8 @@ int resample_audio(DecodeContext *decode_ctx, AVFrame *frame) {
     av_log(NULL, AV_LOG_ERROR, "Can't resample audio\n");
     return result;
   }
+  decode_ctx->dst_nb_samples = result;
+  decode_ctx->actual_buffer_size = av_samples_get_buffer_size(NULL, decode_ctx->dst_ch_layout.nb_channels, result, decode_ctx->dst_sample_fmt, 1);
   return 0;
 }
 

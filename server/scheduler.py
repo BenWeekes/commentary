@@ -71,6 +71,9 @@ def _compute_intervals(ttk: float | None) -> tuple[float, float]:
 class Scheduler:
     """Single daemon thread that manages live match lifecycle."""
 
+    _AUTO_START_BEFORE_S = 30 * 60
+    _AUTO_STOP_AFTER_S = 15 * 60
+
     def __init__(self, config: ServerConfig, orchestrator, match_store):
         self._config = config
         self._orchestrator = orchestrator
@@ -195,8 +198,18 @@ class Scheduler:
         worker = self._orchestrator.get_worker(mid)
         worker_state = worker.status.state if worker else "idle"
 
+        outside_after_window = ttk is not None and ttk < -self._AUTO_STOP_AFTER_S
+
         # State machine transitions
         if worker_state in ("starting", "running"):
+            if outside_after_window:
+                ms.state = "stopping"
+                print(f"[SCHED] {mid} outside live window (kickoff in {ttk:.0f}s) — stopping async")
+                threading.Thread(
+                    target=self._async_stop, args=(ms,), daemon=True
+                ).start()
+                return
+
             ms.start_error_count = 0  # reset on successful start
 
             # If already stopping, don't overwrite state or spawn another thread
@@ -242,7 +255,14 @@ class Scheduler:
             ms.state = "upcoming"
             return
 
-        prestart_seconds = max(0.0, ms.match_cfg.prestart_seconds)
+        if outside_after_window:
+            ms.state = "finished"
+            return
+
+        prestart_seconds = min(
+            self._AUTO_START_BEFORE_S,
+            max(0.0, ms.match_cfg.prestart_seconds),
+        )
 
         if ttk > prestart_seconds:
             ms.state = "upcoming"

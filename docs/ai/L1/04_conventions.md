@@ -168,8 +168,9 @@ Telemetry counters in `LangTelemetry` follow these rules:
 
 - `stt_played` / `sr_played` count `played` and `interrupted`
 - `drop_count` counts `dropped` and `suppressed`
-- `stt_cut_short_count` should remain `0`
+- `stt_cut_short_count` is allowed when a fresher STT utterance interrupts older STT
 - `sr_cut_short_count` is expected when STT preempts SR
+- separate `stt_interrupted`, `stt_dropped`, `stt_replaced`, and `stt_suppressed` counters expose the STT outcome mix in status responses
 
 ## Related Deep Dives
 

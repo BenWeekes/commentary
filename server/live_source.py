@@ -152,7 +152,7 @@ def resolve_live_source(
             _wait_for_stdout_signal(
                 proc,
                 "source publishing started",
-                timeout=60.0,
+                timeout=180.0,
                 stop_event=stop_event,
                 tag=f"{tag} SRC",
             )

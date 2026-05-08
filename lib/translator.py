@@ -63,7 +63,7 @@ def _is_reasoning_model(model):
     return False
 
 
-def translate_text(oai_client, text, lang, model="gpt-5.4-mini",
+def translate_text(oai_client, text, lang, model="gpt-5.4",
                     reasoning_effort="low", roster=None):
     lang_name = LANG_NAMES.get(lang, lang)
     if roster:

@@ -548,7 +548,11 @@ class StatusHandler(BaseHTTPRequestHandler):
                 if action == "start":
                     self.orchestrator.start_match(match_id)
                 else:
-                    self.orchestrator.stop_match(match_id)
+                    threading.Thread(
+                        target=self.orchestrator.stop_match,
+                        args=(match_id,),
+                        daemon=True,
+                    ).start()
             except KeyError:
                 self._respond(404, {"error": f"match '{match_id}' not found"})
                 return
@@ -557,7 +561,7 @@ class StatusHandler(BaseHTTPRequestHandler):
             s = worker.status
             self._respond(200, {
                 "match_id": s.match_id,
-                "state": s.state,
+                "state": "stopping" if action == "stop" and s.state in ("starting", "running") else s.state,
                 "stt_utterance_count": s.stt_utterance_count,
                 "languages": s.languages,
                 "error": s.error,

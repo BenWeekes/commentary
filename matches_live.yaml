@@ -8,7 +8,7 @@
 # Initial SRT mode has no separate source atmosphere/commentary stems.
 
 control_port: 8080
-translation_model: "gpt-4o-mini"
+translation_model: "gpt-5.4"
 
 cloud_recording:
   vendor: 1
@@ -27,7 +27,7 @@ matches:
     audio: clips/bmg_fch_demo_5min/audio.mp3
     video_h264: clips/bmg_fch_demo_5min/video.h264
     events: clips/bmg_fch_demo_5min/events.txt
-    video_delay: 10.0
+    video_delay: 14.0
     languages: [es, pt, fr, tr, de]
 
   # May 8, 18:30 UTC — Dortmund vs Frankfurt
@@ -46,7 +46,7 @@ matches:
       original_buffer_seconds: 1.0
       retry_seconds: 60
     video_uid: 73
-    video_delay: 7.0
+    video_delay: 14.0
     languages: [es, pt, fr, tr, de]
 
   # May 9, 16:30 UTC — Wolfsburg vs Bayern
@@ -65,7 +65,7 @@ matches:
       original_buffer_seconds: 1.0
       retry_seconds: 60
     video_uid: 73
-    video_delay: 7.0
+    video_delay: 14.0
     languages: [es, pt, fr, tr, de]
 
   # May 10, 17:30 UTC — Mainz vs Union Berlin
@@ -84,5 +84,5 @@ matches:
       original_buffer_seconds: 1.0
       retry_seconds: 60
     video_uid: 73
-    video_delay: 7.0
+    video_delay: 14.0
     languages: [es, pt, fr, tr, de]

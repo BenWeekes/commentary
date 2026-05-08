@@ -222,14 +222,14 @@ The first translation call per process to `gpt-5.4-mini` incurs a ~15s cold-star
 
 ## Playback Rules
 
-**STT is primary. SR is gap-fill only. STT is never interrupted.**
+**STT is primary. SR is gap-fill only. Fresh STT may interrupt older STT.**
 
-- **STT utterances**: translated + TTS'd as fast as possible. If ready before play_at, hold and play at exact time. If late, drop — the moment has passed. STT always plays to completion — nothing can interrupt active STT playback.
+- **STT utterances**: translated + TTS'd as fast as possible. If ready before play_at, hold and play at exact time. If late, drop — the moment has passed. When a newer STT utterance has translated audio buffered and ready, it interrupts older queued or active STT so the output never drifts behind current commentary.
 - **SR events**: lower-priority gap-fill. SR may only play when there is sufficient idle space around STT playback.
 - **SR INTERRUPT** (e.g. GOAL): high priority within the SR queue, but does **not** preempt active STT. It waits for STT to finish, then plays in the next gap.
 - **STT can interrupt SR**: if STT audio becomes ready while SR is playing, SR is interrupted immediately and STT takes over.
 - **Queue stays at 0-1**: when a new STT utterance arrives with play_at, any stale queued item is replaced.
-- **Invariant**: `stt_cut_short_count` should always be 0. `sr_cut_short_count` is expected and normal — it means the commentator was active.
+- **Invariant**: STT interruption is allowed and counted separately from drops. `sr_cut_short_count` is expected and normal — it means the commentator was active.
 
 ## Atmosphere Audio
 

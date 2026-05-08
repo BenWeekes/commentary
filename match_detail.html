@@ -449,9 +449,11 @@
       var langs = data.languages || {};
       Object.keys(langs).forEach(function(lang) {
         var lt = langs[lang].telemetry || {};
-        var played = (lt.stt_played || 0) + (lt.sr_played || 0);
-        var dropped = lt.drop_count || 0;
-        stats.push('<span class="stat"><span class="stat-label">' + lang.toUpperCase() + ':</span><span class="stat-value">' + played + ' played, ' + dropped + ' dropped</span></span>');
+        var interrupted = (lt.stt_interrupted || 0) + (lt.sr_interrupted || 0);
+        var played = Math.max(0, (lt.stt_played || 0) - (lt.stt_interrupted || 0))
+          + Math.max(0, (lt.sr_played || 0) - (lt.sr_interrupted || 0));
+        var dropped = (lt.stt_dropped || 0) + (lt.sr_dropped || 0);
+        stats.push('<span class="stat"><span class="stat-label">' + lang.toUpperCase() + ':</span><span class="stat-value">' + played + ' played, ' + interrupted + ' interrupted, ' + dropped + ' dropped</span></span>');
       });
       document.getElementById('summary-bar').innerHTML = stats.join('');
     }
@@ -568,14 +570,21 @@
         langKeys.forEach(function(lang) {
           var l = langs[lang];
           var t = l.telemetry || {};
+          var sttComplete = Math.max(0, (t.stt_played || 0) - (t.stt_interrupted || 0));
+          var srComplete = Math.max(0, (t.sr_played || 0) - (t.sr_interrupted || 0));
           html += '<div class="lang-row">';
           html += '<span class="lang-name">' + lang.toUpperCase() + ' - ' + (LANG_NAMES[lang] || lang) + '</span>';
           html += '<span class="lang-stats">';
-          html += (t.stt_played || 0) + ' stt, ';
-          html += (t.sr_played || 0) + ' sr, ';
-          html += (t.drop_count || 0) + ' drop';
-          if (t.sr_cut_short_count) html += ', ' + t.sr_cut_short_count + ' sr-cut';
-          if (t.stt_cut_short_count) html += ', ' + t.stt_cut_short_count + ' stt-cut';
+          html += sttComplete + ' stt-play, ';
+          html += srComplete + ' sr-play, ';
+          html += (t.stt_interrupted || 0) + ' stt-int, ';
+          html += (t.stt_dropped || 0) + ' stt-drop';
+          if (t.stt_replaced) html += ', ' + t.stt_replaced + ' stt-repl';
+          if (t.stt_suppressed) html += ', ' + t.stt_suppressed + ' stt-supp';
+          if (t.sr_interrupted) html += ', ' + t.sr_interrupted + ' sr-int';
+          if (t.sr_dropped) html += ', ' + t.sr_dropped + ' sr-drop';
+          if (t.sr_replaced) html += ', ' + t.sr_replaced + ' sr-repl';
+          if (t.sr_suppressed) html += ', ' + t.sr_suppressed + ' sr-supp';
           html += ' &mdash; q:' + (l.tts_queue_size || 0);
           html += '</span>';
           html += '</div>';

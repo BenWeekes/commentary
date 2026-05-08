@@ -378,6 +378,15 @@
     }
 
     function matchAction(matchId, action) {
+      if (overviewData) {
+        overviewData.forEach(function(m) {
+          if (m.match_id === matchId) {
+            m.worker_state = action === 'stop' ? 'stopping' : 'starting';
+            m.scheduler_state = action === 'stop' ? 'stopping' : 'starting';
+          }
+        });
+        renderOverview(overviewData);
+      }
       fetch(CTL + '/api/matches/' + encodeURIComponent(matchId) + '/' + action, {
         method: 'POST'
       })

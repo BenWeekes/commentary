@@ -62,6 +62,14 @@ class LangTelemetry:
     sr_cut_short_count: int = 0
     stt_cut_short_count: int = 0
     drop_count: int = 0
+    stt_interrupted: int = 0
+    stt_dropped: int = 0
+    stt_replaced: int = 0
+    stt_suppressed: int = 0
+    sr_interrupted: int = 0
+    sr_dropped: int = 0
+    sr_replaced: int = 0
+    sr_suppressed: int = 0
     avg_translate_ms: float = 0.0
     avg_tts_ms: float = 0.0
     avg_margin_ms: float = 0.0
@@ -218,6 +226,32 @@ def _wait_for_stderr_signal(proc, signal_text, timeout, tag):
     return result_time
 
 
+def _wait_for_publisher_signals_parallel(items, signal_text, timeout, tag_for_item):
+    """Wait for one stdout signal per process concurrently.
+
+    items is an iterable of (key, proc). Returns {key: observed_time}.
+    """
+    results = {}
+    lock = threading.Lock()
+
+    def wait_one(key, proc):
+        tag = tag_for_item(key)
+        ts = _wait_for_publisher_signal(proc, signal_text, timeout, tag)
+        with lock:
+            results[key] = ts
+
+    threads = []
+    for key, proc in items:
+        t = threading.Thread(target=wait_one, args=(key, proc), daemon=True)
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join(timeout + 1.0)
+
+    return results
+
+
 def _kill_publisher(proc, tag="PUB"):
     """Kill publisher and all child processes."""
     if proc and proc.poll() is None:
@@ -308,6 +342,14 @@ class MatchWorker:
                     "sr_cut_short_count": pipe.telemetry.sr_cut_short_count,
                     "stt_cut_short_count": pipe.telemetry.stt_cut_short_count,
                     "drop_count": pipe.telemetry.drop_count,
+                    "stt_interrupted": pipe.telemetry.stt_interrupted,
+                    "stt_dropped": pipe.telemetry.stt_dropped,
+                    "stt_replaced": pipe.telemetry.stt_replaced,
+                    "stt_suppressed": pipe.telemetry.stt_suppressed,
+                    "sr_interrupted": pipe.telemetry.sr_interrupted,
+                    "sr_dropped": pipe.telemetry.sr_dropped,
+                    "sr_replaced": pipe.telemetry.sr_replaced,
+                    "sr_suppressed": pipe.telemetry.sr_suppressed,
                 },
             }
         return self._status
@@ -633,16 +675,24 @@ class MatchWorker:
                 )
                 relay_procs[lang] = relay_proc
 
-                # relay_publish signals on stdout (matches existing publisher pattern)
-                _wait_for_publisher_signal(
-                    relay_proc, "audio publishing started",
-                    timeout=15, tag=relay_tag)
-
                 # Start stderr log reader for relay_publish
                 threading.Thread(
                     target=_log_pub_stream,
                     args=(relay_proc.stderr, f"{tag} {lang.upper()} RELAY err"),
                     daemon=True).start()
+
+            _wait_for_publisher_signals_parallel(
+                relay_procs.items(),
+                "audio publishing started",
+                timeout=20,
+                tag_for_item=lambda lang: f"{tag} {lang.upper()} RELAY",
+            )
+
+            for lang in self._match.languages:
+                relay_proc = relay_procs.get(lang)
+                if relay_proc is None:
+                    continue
+                output_channel = f"{self._match.match_id}-{lang}"
 
                 # Create TTS engine — writes to relay_publish stdin
                 def make_telemetry_cb(l=lang):
@@ -677,6 +727,19 @@ class MatchWorker:
             self._status.state = "running"
             self._start_recordings(tag)
 
+            video_wait_results = {}
+            def wait_for_video_signals():
+                nonlocal video_wait_results
+                video_wait_results = _wait_for_publisher_signals_parallel(
+                    [(lang, pipe.publisher) for lang, pipe in self._pipelines.items()],
+                    "video delay complete",
+                    timeout=int(connection_margin + relay_delay) + 20,
+                    tag_for_item=lambda lang: f"{tag} {lang.upper()} RELAY",
+                )
+
+            video_wait_thread = threading.Thread(target=wait_for_video_signals, daemon=True)
+            video_wait_thread.start()
+
             print(f"[{tag}] Starting STT from live audio source...")
             stt_thread = threading.Thread(
                 target=self._run_stt_live,
@@ -684,26 +747,20 @@ class MatchWorker:
                 daemon=True)
             stt_thread.start()
 
-            # Wait for relay_publish video delay to complete
-            actual_vs_values = []
+            # Wait for relay_publish video delay to complete. The shared
+            # target_start remains authoritative; late relays must drop to
+            # catch up instead of shifting their language clock.
+            video_wait_thread.join(int(connection_margin + relay_delay) + 25)
             for lang, pipe in self._pipelines.items():
                 if self._stop.is_set():
                     break
                 relay_tag = f"{tag} {lang.upper()} RELAY"
-                vs = _wait_for_publisher_signal(
-                    pipe.publisher, "video delay complete",
-                    timeout=int(connection_margin + relay_delay) + 15,
-                    tag=relay_tag)
+                vs = video_wait_results.get(lang, time.time())
                 drift = abs(vs - target_start)
                 if drift > 0.5:
                     print(f"[{tag}] WARNING: {lang} video_start drifted {drift:.3f}s from target")
                 print(f"[{tag}] {lang}: video_start={vs:.3f} "
                       f"(target={target_start:.3f}, drift={vs - target_start:+.3f}s)")
-
-                # Update pipeline with actual video_start from publisher
-                pipe.video_start = vs
-                pipe.tts.video_start = vs
-                actual_vs_values.append(vs)
 
                 # Start stdout log reader (after we've consumed signals)
                 threading.Thread(
@@ -711,12 +768,7 @@ class MatchWorker:
                     args=(pipe.publisher.stdout, f"{tag} {lang.upper()} RELAY out"),
                     daemon=True).start()
 
-            # Update STT scheduling ref to mean actual video_start across languages
-            if actual_vs_values:
-                mean_vs = sum(actual_vs_values) / len(actual_vs_values)
-                self._video_start_ref[0] = mean_vs
-                print(f"[{tag}] video_start_ref updated to mean={mean_vs:.3f} "
-                      f"(spread={max(actual_vs_values) - min(actual_vs_values):.3f}s)")
+            self._video_start_ref[0] = target_start
 
             # Wait for STT to finish (pipe closes when source audio ends)
             stt_thread.join()
@@ -1121,15 +1173,31 @@ class MatchWorker:
                 if source == "stt":
                     pipe.telemetry.stt_played += 1
                     if status == "interrupted":
+                        pipe.telemetry.stt_interrupted += 1
                         pipe.telemetry.stt_cut_short_count += 1
-                        print(f"  [TELEMETRY] ERROR: {lang} STT was interrupted by {interrupted_by} "
+                        print(f"  [TELEMETRY] {lang} STT interrupted by {interrupted_by} "
                               f"— stt_cut_short_count={pipe.telemetry.stt_cut_short_count}")
                 elif source == "sr":
                     pipe.telemetry.sr_played += 1
                     if status == "interrupted":
+                        pipe.telemetry.sr_interrupted += 1
                         pipe.telemetry.sr_cut_short_count += 1
             elif status in ("dropped", "suppressed", "replaced"):
                 pipe.telemetry.drop_count += 1
+                if source == "stt":
+                    if status == "dropped":
+                        pipe.telemetry.stt_dropped += 1
+                    elif status == "replaced":
+                        pipe.telemetry.stt_replaced += 1
+                    elif status == "suppressed":
+                        pipe.telemetry.stt_suppressed += 1
+                elif source == "sr":
+                    if status == "dropped":
+                        pipe.telemetry.sr_dropped += 1
+                    elif status == "replaced":
+                        pipe.telemetry.sr_replaced += 1
+                    elif status == "suppressed":
+                        pipe.telemetry.sr_suppressed += 1
 
             pipe.recent_utterances.append(data)
 
@@ -1160,12 +1228,18 @@ class MatchWorker:
                         "xlat_ms": round(xlat_time * 1000) if xlat_time else None,
                         "tts_ms": round(tts_time * 1000) if tts_time else None,
                         "status": status,
+                        "interrupted_by": interrupted_by,
                         "original": data.get("text"),
                         "translated": data.get("translated"),
                         "play_duration_ms": data.get("actual_play_duration_ms", 0),
                         "total_buffered_ms": data.get("total_buffered_ms", 0),
                         "pre_translated": data.get("pre_translated", False),
                         "queue_wait_ms": data.get("queue_wait_ms", 0),
+                        "local_speed_factor": data.get("local_speed_factor"),
+                        "fit_from_ms": data.get("fit_from_ms"),
+                        "fit_to_ms": data.get("fit_to_ms"),
+                        "fit_deadline_ms": data.get("fit_deadline_ms"),
+                        "fit_cpu_ms": data.get("fit_cpu_ms"),
                     }
                     lang_log.write(json.dumps(line) + "\n")
                     lang_log.flush()

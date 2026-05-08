@@ -134,6 +134,7 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 
 	var droppedVideoFrames int64
 	var droppedAtmosChunks int64
+	var droppedCatchupFrames int64
 	var videoFrameCount int64
 
 	if cfg.videoSourceTCP == "" {
@@ -414,6 +415,7 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	go func() {
 		defer wg.Done()
 		videoDelayComplete := false
+		catchupTolerance := 200 * time.Millisecond
 
 		// If startAt is set, wait until that time before publishing anything
 		if !cfg.startAt.IsZero() {
@@ -440,9 +442,20 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 				done <- errors.New(msg)
 				return
 			case frame := <-videoBuffer:
-				elapsed := time.Since(frame.receiveAt)
-				if remaining := cfg.videoDelay - elapsed; remaining > 0 {
-					time.Sleep(remaining)
+				if !cfg.startAt.IsZero() {
+					publishAt := frame.receiveAt.Add(cfg.videoDelay)
+					if lateBy := time.Since(publishAt); lateBy > catchupTolerance {
+						atomic.AddInt64(&droppedCatchupFrames, 1)
+						continue
+					}
+					if wait := time.Until(publishAt); wait > 0 {
+						time.Sleep(wait)
+					}
+				} else {
+					elapsed := time.Since(frame.receiveAt)
+					if remaining := cfg.videoDelay - elapsed; remaining > 0 {
+						time.Sleep(remaining)
+					}
 				}
 				rc := pubCon.PushVideoEncodedData(frame.data, frame.frameInfo)
 				if rc != 0 {
@@ -579,10 +592,11 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 		for {
 			select {
 			case <-ticker.C:
-				logStderr("[STATS] video_frames=%d atmos_dropped=%d video_dropped=%d",
+				logStderr("[STATS] video_frames=%d atmos_dropped=%d video_dropped=%d catchup_dropped=%d",
 					atomic.LoadInt64(&videoFrameCount),
 					atomic.LoadInt64(&droppedAtmosChunks),
-					atomic.LoadInt64(&droppedVideoFrames))
+					atomic.LoadInt64(&droppedVideoFrames),
+					atomic.LoadInt64(&droppedCatchupFrames))
 			case <-stop:
 				return
 			}

@@ -225,8 +225,8 @@ class SRPrefetcher:
                     await ws.send(json.dumps({
                         "text": " ",
                         "voice_settings": {
-                            "stability": 0.5,
-                            "similarity_boost": 0.8,
+                            "stability": 1.0,
+                            "similarity_boost": 1.0,
                         },
                         "xi_api_key": self.api_key,
                     }))

@@ -278,9 +278,9 @@
     var connectOverlay  = document.getElementById('connect-overlay');
     var connectBtn      = document.getElementById('btn-connect');
 
-    var client = null;
-    var currentChannel = null;
-    var switching = false;
+    var clientsByLang = {};  // {lang: {client, channel, token, uid, joined, subscribed}}
+    var activeLang = null;
+    var switchSeq = 0;
     var appid = '';
     var channels = {};  // {lang: {channel, token, uid}}
 
@@ -334,8 +334,9 @@
             LANG = defaultLang;
           }
 
-          // Join initial channel
-          joinChannel(langSelect.value);
+          // Join all match channels once. Channel switches then only move
+          // subscriptions, which is much faster than leave/join.
+          prepareChannels(langSelect.value);
         })
         .catch(function(err) {
           console.error('Failed to load channels:', err);
@@ -344,76 +345,181 @@
         });
     }
 
-    function joinChannel(lang) {
-      if (switching) return;
-      var ch = channels[lang];
-      if (!ch) return;
-
-      switching = true;
+    function prepareChannels(initialLang) {
+      setStatus('Joining match channels...');
       showSpinner();
-      setStatus('Joining ' + MATCH + ' / ' + lang + '...');
 
-      // Leave current channel first
-      var p = (client && currentChannel)
-        ? client.leave().catch(function() {})
-        : Promise.resolve();
+      var langs = Object.keys(channels);
+      var joins = langs.map(function(lang) {
+        return ensureChannelClient(lang).catch(function(err) {
+          console.error('Failed to join channel for ' + lang + ':', err);
+        });
+      });
 
-      p.then(function() {
-        currentChannel = ch.channel;
-        return startViewer(appid, ch.channel, ch.token, ch.uid);
+      Promise.all(joins).then(function() {
+        switchChannel(initialLang);
+      }).catch(function(err) {
+        console.error('Failed to prepare channels:', err);
+        setStatus('Failed to join match channels');
+        hideSpinner();
+      });
+    }
+
+    function ensureChannelClient(lang) {
+      var existing = clientsByLang[lang];
+      if (existing && existing.joinPromise) return existing.joinPromise;
+
+      var ch = channels[lang];
+      if (!ch) return Promise.reject(new Error('Unknown channel lang: ' + lang));
+
+      var state = {
+        lang: lang,
+        channel: ch.channel,
+        token: ch.token,
+        uid: ch.uid,
+        client: AgoraRTC.createClient({ mode: 'live', codec: 'h264' }),
+        joined: false,
+        subscribed: {}
+      };
+      clientsByLang[lang] = state;
+
+      state.client.setClientRole('audience', { level: 1 });
+
+      state.client.on('user-published', function(user, mediaType) {
+        if (state.lang === activeLang) {
+          subscribeUser(state, user, mediaType);
+        }
+      });
+
+      state.client.on('user-unpublished', function(user, mediaType) {
+        if (state.lang !== activeLang) return;
+        if (mediaType === 'video') {
+          liveBadge.classList.remove('visible');
+          setStatus('Video stream ended. Waiting...');
+        }
+      });
+
+      state.client.on('user-left', function() {
+        if (state.lang !== activeLang) return;
+        liveBadge.classList.remove('visible');
+        setStatus('Publisher disconnected. Waiting...');
+      });
+
+      state.joinPromise = state.client.join(appid, ch.channel, ch.token, ch.uid)
+        .then(function() {
+          state.joined = true;
+          return state;
+        });
+
+      return state.joinPromise;
+    }
+
+    function switchChannel(lang) {
+      var next = clientsByLang[lang];
+      if (!next || !next.joined) return;
+
+      var seq = ++switchSeq;
+      showSpinner();
+      setStatus('Switching to ' + MATCH + ' / ' + lang + '...');
+
+      var previous = activeLang ? clientsByLang[activeLang] : null;
+      activeLang = lang;
+
+      pausePlayback(previous)
+      .then(function() {
+        if (seq !== switchSeq) return Promise.resolve();
+        return subscribeAll(next);
       })
       .catch(function(err) {
-        console.error('Join failed:', err);
-        setStatus('Failed to join channel');
+        if (seq !== switchSeq) return;
+        console.error('Switch failed:', err);
+        setStatus('Failed to switch channel');
         hideSpinner();
       })
       .finally(function() {
-        switching = false;
+        if (seq !== switchSeq) return;
       });
     }
 
     // Language change = channel switch (no API call needed)
     langSelect.addEventListener('change', function() {
-      joinChannel(langSelect.value);
+      switchChannel(langSelect.value);
     });
 
-    function startViewer(appId, channel, token, uid) {
-      if (!client) {
-        client = AgoraRTC.createClient({ mode: 'live', codec: 'h264' });
-        client.setClientRole('audience', { level: 1 });
+    function subscribeAll(state) {
+      if (!state) return Promise.resolve();
 
-        client.on('user-published', function(user, mediaType) {
-          client.subscribe(user, mediaType).then(function() {
-            if (mediaType === 'video') {
-              user.videoTrack.play(videoContainer);
-              liveBadge.classList.add('visible');
-              hideStatus();
-              hideSpinner();
-            }
-            if (mediaType === 'audio') {
-              user.audioTrack.play();
-            }
-          });
-        });
+      setStatus('Waiting for video...');
+      var tasks = [];
+      state.client.remoteUsers.forEach(function(user) {
+        if (user.hasVideo || user.videoTrack) tasks.push(ensureSubscribed(state, user, 'video'));
+        if (user.hasAudio || user.audioTrack) tasks.push(ensureSubscribed(state, user, 'audio'));
+      });
 
-        client.on('user-unpublished', function(user, mediaType) {
-          if (mediaType === 'video') {
-            liveBadge.classList.remove('visible');
-            setStatus('Video stream ended. Waiting...');
-          }
-        });
-
-        client.on('user-left', function() {
-          liveBadge.classList.remove('visible');
-          setStatus('Publisher disconnected. Waiting...');
-        });
+      if (!tasks.length) {
+        setStatus('Waiting for video...');
+        setTimeout(function() { hideSpinner(); }, 8000);
+        return Promise.resolve();
       }
 
-      return client.join(appId, channel, token, uid).then(function() {
-        setStatus('Waiting for video...');
+      return Promise.all(tasks).then(function() {
         setTimeout(function() { hideSpinner(); }, 8000);
       });
     }
+
+    function ensureSubscribed(state, user, mediaType) {
+      var key = user.uid + ':' + mediaType;
+      if (state.subscribed[key]) {
+        playIfActive(state, user, mediaType);
+        return Promise.resolve();
+      }
+      return subscribeUser(state, user, mediaType);
+    }
+
+    function subscribeUser(state, user, mediaType) {
+      var key = user.uid + ':' + mediaType;
+      return state.client.subscribe(user, mediaType).then(function() {
+        state.subscribed[key] = true;
+        playIfActive(state, user, mediaType);
+      }).catch(function(err) {
+        console.error('Subscribe failed for ' + state.lang + ' ' + mediaType + ':', err);
+      });
+    }
+
+    function playIfActive(state, user, mediaType) {
+      if (state.lang !== activeLang) return;
+      if (mediaType === 'video' && user.videoTrack) {
+        user.videoTrack.play(videoContainer);
+        liveBadge.classList.add('visible');
+        hideStatus();
+        hideSpinner();
+      }
+      if (mediaType === 'audio' && user.audioTrack) {
+        user.audioTrack.play();
+      }
+    }
+
+    function pausePlayback(state) {
+      if (!state || !state.joined) return Promise.resolve();
+
+      liveBadge.classList.remove('visible');
+      videoContainer.innerHTML = '';
+
+      state.client.remoteUsers.forEach(function(user) {
+        if (user.audioTrack) user.audioTrack.stop();
+        if (user.videoTrack) user.videoTrack.stop();
+      });
+      return Promise.resolve();
+    }
+
+    window.addEventListener('beforeunload', function() {
+      Object.keys(clientsByLang).forEach(function(lang) {
+        var state = clientsByLang[lang];
+        if (state && state.joined) {
+          state.client.leave().catch(function() {});
+        }
+      });
+    });
 
     // Show error if no match param, otherwise wait for Connect click
     if (!MATCH) {
