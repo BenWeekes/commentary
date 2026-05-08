@@ -185,4 +185,4 @@ Requires all 5 core API keys plus the Go publisher binary. Open `http://localhos
 
 ## Related Deep Dives
 
-None — setup is self-contained.
+- [09_deployment.md](09_deployment.md) — Ubuntu server deployment (systemd, nginx, TLS, firewall)
