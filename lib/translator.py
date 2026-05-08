@@ -9,7 +9,7 @@ LANG_NAMES = {
 
 # ElevenLabs voice IDs per language
 LANG_VOICES = {
-    "es": "jdSy6qWNc1T4C8czPgat",
+    "es": "QpDQJR3frbDwOhTIo8nW",
     "fr": "LcKoSBj8CeBInl4bQHtq",
     "de": "g8JjujAzgjLre020BW2u",
     "pt": "HR2TRGmi4QbMsO5omv7l",

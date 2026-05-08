@@ -246,11 +246,40 @@ class TTSEngine:
 
             # Skip SR if STT is arriving before it would finish
             if source == "SR":
+                meta = current_meta or {}
+                play_at = meta.get("play_at")
+                if play_at:
+                    late_ms = (time.time() - play_at) * 1000
+                    if late_ms > 50:
+                        print(f"  [{self._vts()}] [PIPE] SR skipped — "
+                              f"{late_ms:.0f}ms late (stale)")
+                        with lock:
+                            buf.clear()
+                        if self.on_telemetry:
+                            try:
+                                self.on_telemetry({
+                                    "source": "sr", "status": "dropped",
+                                    "play_started_at": None, "play_ended_at": None,
+                                    "actual_play_duration_ms": 0,
+                                    "total_buffered_ms": n_chunks * 10,
+                                    "interrupted": False, "interrupted_by": "stale",
+                                    "uid": meta.get("uid"),
+                                    "text": meta.get("text"),
+                                    "translated": meta.get("translated"),
+                                    "translate_time": meta.get("translate_time"),
+                                    "tts_time": meta.get("tts_time"),
+                                    "play_at": play_at,
+                                    "pre_translated": meta.get("pre_translated", False),
+                                    "queue_wait_ms": meta.get("queue_wait_ms", 0),
+                                })
+                            except Exception:
+                                pass
+                        continue
+
                 stt_due = self._next_stt_play_at
                 if stt_due:
                     sr_end = time.time() + n_chunks * 0.01
                     if stt_due < sr_end:
-                        meta = current_meta or {}
                         print(f"  [{self._vts()}] [PIPE] SR skipped — "
                               f"STT due in {stt_due - time.time():.2f}s, "
                               f"SR would take {n_chunks * 10}ms")

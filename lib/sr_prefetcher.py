@@ -310,7 +310,7 @@ class SRPrefetcher:
             dur_ms = len(pcm_bytes) / (SAMPLE_RATE * 2) * 1000
 
             # Drop stale SR events — gap-fill only, not worth playing late
-            if delta_ms > 500:
+            if delta_ms > 50:
                 print(f"  [{self._vts()}] [SR SCHED #{next_eid}] Dropped — "
                       f"{dur_ms:.0f}ms, {delta_ms:+.0f}ms late (stale)")
                 if self.tts.on_telemetry:

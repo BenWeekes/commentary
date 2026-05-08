@@ -97,7 +97,7 @@ Derived constants: 32,000 bytes/second, 1,920,000 bytes/minute.
 
 | Code | Language | Voice ID | Notes |
 |---|---|---|---|
-| `es` | Spanish | `jdSy6qWNc1T4C8czPgat` | Latin American accent |
+| `es` | Spanish | `QpDQJR3frbDwOhTIo8nW` | Latin American accent |
 | `fr` | French | `LcKoSBj8CeBInl4bQHtq` | |
 | `de` | German | `g8JjujAzgjLre020BW2u` | |
 | `pt` | Portuguese | `HR2TRGmi4QbMsO5omv7l` | Brazilian |
