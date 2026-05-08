@@ -332,8 +332,8 @@ class MatchWorker:
                 except Exception as e:
                     print(f"[{tag}] WARNING: Failed to load atmosphere: {e}")
 
-            # Try to fetch roster (non-fatal)
-            self._roster = self._fetch_roster()
+            # Try to load roster: prefer match_store (pre-refreshed), then SR API
+            self._load_roster(tag)
 
             # Compute shared target_start: all publishers will begin video
             # at this exact wall-clock time. Margin accounts for sequential
@@ -494,7 +494,7 @@ class MatchWorker:
 
         try:
             self._oai_client = openai.OpenAI(api_key=self._server.openai_api_key)
-            self._roster = self._fetch_roster()
+            self._load_roster(tag)
 
             base_dir = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -837,6 +837,17 @@ class MatchWorker:
         else:
             self._keyterms = TERMS_LIST
             print(f"[{tag}] Using global TERMS_LIST ({len(self._keyterms)} terms)")
+
+    def _load_roster(self, tag):
+        """Load roster: prefer match_store (pre-refreshed), then SR API fetch."""
+        if self._match_store:
+            roster_data = self._match_store.read_roster(self._match.match_id)
+            if roster_data and roster_data.get("roster_text"):
+                self._roster = roster_data["roster_text"]
+                print(f"[{tag}] Loaded roster from match_store")
+                return
+        # Fall back to live SR API fetch
+        self._roster = self._fetch_roster()
 
     # ─── Structured log files ────────────────────────────────────────────
 

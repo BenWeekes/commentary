@@ -351,8 +351,9 @@
     }
 
     function updateHeader(data) {
-      document.getElementById('match-title').textContent = formatMatchName(data.match_id);
-      document.title = formatMatchName(data.match_id) + ' - Detail';
+      var displayName = (detailData && detailData.display_name) || formatMatchName(data.match_id);
+      document.getElementById('match-title').textContent = displayName;
+      document.title = displayName + ' - Detail';
       var badge = document.getElementById('state-badge');
       var state = data.state || 'idle';
       badge.textContent = state;
@@ -375,12 +376,16 @@
       if (!panel) return;
       var data = matchData;
       var detail = detailData || {};
+      var meta = detail.match_meta || {};
       var langs = data.languages || {};
       var html = '<div class="overview-grid">';
 
       // Match info card
       html += '<div class="overview-card">';
       html += '<h3>Match Info</h3>';
+      if (detail.display_name) {
+        html += '<div class="lang-row"><span class="lang-name">Name</span><span class="lang-stats">' + esc(detail.display_name) + '</span></div>';
+      }
       html += '<div class="lang-row"><span class="lang-name">Match ID</span><span class="lang-stats">' + esc(data.match_id) + '</span></div>';
       html += '<div class="lang-row"><span class="lang-name">Mode</span><span class="lang-stats">' + esc(detail.mode || '-') + '</span></div>';
       html += '<div class="lang-row"><span class="lang-name">State</span><span class="lang-stats">' + esc(data.state || 'idle') + '</span></div>';
@@ -391,20 +396,41 @@
       if (detail.video_delay != null) {
         html += '<div class="lang-row"><span class="lang-name">Video Delay</span><span class="lang-stats">' + detail.video_delay + 's</span></div>';
       }
+      if (detail.kickoff_utc || meta.kickoff_utc) {
+        html += '<div class="lang-row"><span class="lang-name">Kickoff</span><span class="lang-stats">' + esc(detail.kickoff_utc || meta.kickoff_utc) + '</span></div>';
+      }
       if (data.started_at) {
         var started = new Date(data.started_at * 1000);
         html += '<div class="lang-row"><span class="lang-name">Started</span><span class="lang-stats">' + started.toLocaleTimeString() + '</span></div>';
       }
+      if (meta.last_refresh_iso) {
+        html += '<div class="lang-row"><span class="lang-name">Last Refresh</span><span class="lang-stats">' + esc(meta.last_refresh_iso) + '</span></div>';
+      }
       if (data.error) {
         html += '<div class="lang-row"><span class="lang-name" style="color:#f87171">Error</span><span class="lang-stats" style="color:#f87171">' + esc(data.error) + '</span></div>';
       }
+      // Refresh button for live matches
+      if (detail.mode === 'live') {
+        html += '<div style="margin-top:10px"><button id="btn-refresh-detail" onclick="refreshMatchData()" style="padding:5px 14px;border:none;border-radius:6px;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Refresh Data</button></div>';
+      }
       html += '</div>';
 
-      // Prepared data card: keyterms
+      // Prepared data card: keyterms + roster
       html += '<div class="overview-card">';
       html += '<h3>Prepared Data</h3>';
       var kt = detail.keyterms || [];
-      html += '<div class="lang-row"><span class="lang-name">Keyterms</span><span class="lang-stats">' + (detail.keyterms_count || 0) + ' terms loaded</span></div>';
+      html += '<div class="lang-row"><span class="lang-name">Keyterms</span><span class="lang-stats">' + (detail.keyterms_count || 0) + ' terms (' + esc(detail.keyterms_source || '-') + ')</span></div>';
+      if (meta.roster_player_count) {
+        html += '<div class="lang-row"><span class="lang-name">Roster</span><span class="lang-stats">' + meta.roster_player_count + ' players</span></div>';
+      }
+      // Show roster text if available
+      var roster = detail.roster;
+      if (roster && roster.roster_text) {
+        html += '<div style="margin-top:8px;font-size:11px;color:#666;line-height:1.5;overflow-y:auto;max-height:200px;white-space:pre-wrap;font-family:monospace;border:1px solid #1e1e1e;border-radius:4px;padding:8px;">';
+        html += esc(roster.roster_text);
+        html += '</div>';
+      }
+      // Show keyterms
       if (kt.length > 0) {
         html += '<div style="margin-top:8px;font-size:12px;color:#666;line-height:1.6;overflow-y:auto;flex:1;">';
         html += esc(kt.join(', '));
@@ -540,6 +566,33 @@
       } else {
         renderLangTab(activeTab, rows);
       }
+    }
+
+    function refreshMatchData() {
+      var btn = document.getElementById('btn-refresh-detail');
+      if (!btn) return;
+      btn.disabled = true;
+      btn.textContent = 'Refreshing...';
+      fetch(CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/refresh-data', {
+        method: 'POST', mode: 'cors'
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          btn.disabled = false;
+          if (data.status === 'ok') {
+            btn.textContent = 'Done (' + (data.keyterm_count || 0) + ' terms, ' + (data.roster_player_count || 0) + ' players)';
+            setTimeout(function() { btn.textContent = 'Refresh Data'; }, 4000);
+            // Force re-poll to pick up new data
+            poll();
+          } else {
+            btn.textContent = data.status || 'Error';
+            setTimeout(function() { btn.textContent = 'Refresh Data'; }, 4000);
+          }
+        })
+        .catch(function() {
+          btn.disabled = false;
+          btn.textContent = 'Refresh Data';
+        });
     }
 
     function fetchLogs(key) {

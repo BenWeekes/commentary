@@ -503,6 +503,9 @@ def main() -> None:
             timeout=int(args.start_margin + args.video_delay) + 20,
             tag="LIVE-TEST RELAY",
         )
+        # Correct video_start to actual publisher time (mirrors match_worker)
+        tts.video_start = vs
+        video_start_ref[0] = vs
         print(
             "[LIVE-TEST] relay video live "
             f"(target={target_start:.3f}, actual={vs:.3f}, drift={vs - target_start:+.3f}s)"

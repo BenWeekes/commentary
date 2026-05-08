@@ -35,6 +35,7 @@ class StatusHandler(BaseHTTPRequestHandler):
     _MATCH_TRANSCRIPT_RE = re.compile(r'^/api/matches/([^/]+)/transcript$')
     _MATCH_LOGS_RE = re.compile(r'^/api/matches/([^/]+)/logs/([a-z]{2}|stt)$')
     _MATCH_DETAIL_RE = re.compile(r'^/api/matches/([^/]+)/detail$')
+    _MATCH_REFRESH_RE = re.compile(r'^/api/matches/([^/]+)/refresh-data$')
 
     def _respond(self, code, data):
         body = json.dumps(data).encode()
@@ -138,6 +139,7 @@ class StatusHandler(BaseHTTPRequestHandler):
                 self._respond(404, {"error": f"match '{match_id}' not found"})
                 return
 
+            worker = self.orchestrator.get_worker(match_id)
             cfg = self.server_config
             channels = {}
             for lang in match_cfg.languages:
@@ -246,8 +248,9 @@ class StatusHandler(BaseHTTPRequestHandler):
             # Historical runs from match_data/{id}/runs/
             runs = store.list_runs(match_id)
 
-            # Match metadata from match_store
+            # Match metadata and roster from match_store
             match_meta = store.read_match_meta(match_id)
+            roster_data = store.read_roster(match_id)
 
             s = worker.status
             result = {
@@ -272,6 +275,7 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "video_delay": match_cfg.video_delay if match_cfg else None,
                 "runs": runs[:20],
                 "match_meta": match_meta,
+                "roster": roster_data,
             }
             self._respond(200, result)
             return
@@ -395,6 +399,42 @@ class StatusHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # Refresh SR data for a match
+        m = self._MATCH_REFRESH_RE.match(path)
+        if m:
+            match_id = m.group(1)
+            # Find match config
+            match_cfg = None
+            for mc in self.server_config.matches:
+                if mc.match_id == match_id:
+                    match_cfg = mc
+                    break
+            if not match_cfg:
+                self._respond(404, {"error": f"match '{match_id}' not found"})
+                return
+            if match_cfg.mode == "demo":
+                self._respond(400, {"error": "refresh not supported for demo matches"})
+                return
+            if not match_cfg.sport_event_id:
+                self._respond(400, {"error": f"match '{match_id}' has no sport_event_id"})
+                return
+
+            from server.sr_data import refresh_match_data
+            api_key = self.server_config.sportradar_api_key
+            if not api_key:
+                self._respond(500, {"error": "SPORTRADAR_API_KEY not configured"})
+                return
+
+            store = self.orchestrator.match_store
+            result = refresh_match_data(match_id, match_cfg, store, api_key)
+            code = 200 if result.get("status") == "ok" else 500
+            if result.get("status") == "already_refreshing":
+                code = 409
+            elif result.get("status") in ("no_sport_event_id", "lineups_fetch_failed"):
+                code = 502
+            self._respond(code, result)
+            return
+
         self._respond(404, {"error": "not found"})
 
     def do_OPTIONS(self):
@@ -423,6 +463,7 @@ def start_status_server(port, orchestrator, server_config):
     print(f"       GET  /api/matches/{{id}}/logs/{{key}} → log tail (stt or lang)")
     print(f"       POST /api/matches/{{id}}/start       → start a match")
     print(f"       POST /api/matches/{{id}}/stop        → stop a match")
+    print(f"       POST /api/matches/{{id}}/refresh-data → refresh SR data")
     print(f"       POST /api/token                    → viewer token (single)")
     print(f"       GET  /                             → control.html")
     print(f"       GET  /status.html                  → status page")

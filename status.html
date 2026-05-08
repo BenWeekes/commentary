@@ -135,11 +135,29 @@
       cursor: default;
       pointer-events: none;
     }
+    .btn-refresh {
+      background: #7c3aed;
+      color: #fff;
+    }
+    .btn-refresh:hover { background: #6d28d9; }
+    .btn-refresh:disabled { background: #1a1a1a; color: #444; cursor: default; }
     .btn-detail {
       background: #333;
       color: #ccc;
     }
     .btn-detail:hover { background: #444; color: #fff; }
+    .mode-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .mode-demo { background: #1a1a2e; color: #818cf8; }
+    .mode-live { background: #1e1b4b; color: #a78bfa; }
+    .mode-disabled { background: #1a1a1a; color: #444; }
 
     .error-msg {
       margin: 0 24px 16px;
@@ -205,12 +223,16 @@
       var html = '';
       ids.forEach(function(mid) {
         var m = data[mid];
-        var isLive = m.state === 'running';
+        var isRunning = m.state === 'running';
+        var mode = m.mode || 'demo';
+        var displayName = m.display_name || formatMatchName(m.match_id);
+        var enabled = m.enabled !== false;
 
         html += '<div class="match-card">';
         html += '<div class="match-top">';
-        if (isLive) html += '<span class="live-dot"></span>';
-        html += '<span class="match-name">' + esc(formatMatchName(m.match_id)) + '</span>';
+        if (isRunning) html += '<span class="live-dot"></span>';
+        html += '<span class="match-name">' + esc(displayName) + '</span>';
+        html += '<span class="mode-badge mode-' + (enabled ? mode : 'disabled') + '">' + esc(mode) + '</span>';
         html += '<span class="badge badge-' + (m.state || 'idle') + '">' + esc(m.state || 'idle') + '</span>';
         html += '<span class="match-actions">';
         if (m.stt_utterance_count > 0) {
@@ -218,11 +240,19 @@
         }
         var isRunnable = !m.state || m.state === 'idle' || m.state === 'stopped' || m.state === 'error';
         var isStoppable = m.state === 'starting' || m.state === 'running';
-        if (isRunnable) {
-          html += '<button class="btn-start" onclick="matchAction(\'' + esc(mid) + '\', \'start\')">Start</button>';
-        } else if (isStoppable) {
-          html += '<button class="btn-stop" onclick="matchAction(\'' + esc(mid) + '\', \'stop\')">Stop</button>';
+
+        if (mode === 'demo') {
+          // Demo: manual start/stop
+          if (isRunnable) {
+            html += '<button class="btn-start" onclick="matchAction(\'' + esc(mid) + '\', \'start\')">Start</button>';
+          } else if (isStoppable) {
+            html += '<button class="btn-stop" onclick="matchAction(\'' + esc(mid) + '\', \'stop\')">Stop</button>';
+          }
+        } else {
+          // Live: refresh data button
+          html += '<button class="btn-action btn-refresh" onclick="refreshData(\'' + esc(mid) + '\', this)">Refresh</button>';
         }
+
         var watchUrl = CTL + '/viewer_live.html?match=' + encodeURIComponent(mid);
         if (isStoppable) {
           html += '<a class="btn-action btn-watch" href="' + watchUrl + '" target="_blank">Watch</a>';
@@ -242,6 +272,31 @@
       });
 
       container.innerHTML = html;
+    }
+
+    function refreshData(matchId, btn) {
+      btn.disabled = true;
+      btn.textContent = 'Refreshing...';
+      fetch(CTL + '/api/matches/' + encodeURIComponent(matchId) + '/refresh-data', {
+        method: 'POST',
+        mode: 'cors'
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          btn.disabled = false;
+          btn.textContent = 'Refresh';
+          if (data.status === 'ok') {
+            btn.textContent = 'Done (' + (data.keyterm_count || 0) + ' terms)';
+            setTimeout(function() { btn.textContent = 'Refresh'; }, 3000);
+          } else {
+            btn.textContent = data.status || 'Error';
+            setTimeout(function() { btn.textContent = 'Refresh'; }, 3000);
+          }
+        })
+        .catch(function() {
+          btn.disabled = false;
+          btn.textContent = 'Refresh';
+        });
     }
 
     function matchAction(matchId, action) {
@@ -265,6 +320,7 @@
               if (!lastMatchData[mid] ||
                   lastMatchData[mid].state !== data[mid].state ||
                   lastMatchData[mid].stt_utterance_count !== data[mid].stt_utterance_count ||
+                  lastMatchData[mid].enabled !== data[mid].enabled ||
                   JSON.stringify(lastMatchData[mid].configured_languages || []) !==
                   JSON.stringify(data[mid].configured_languages || [])) {
                 changed = true;
