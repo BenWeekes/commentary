@@ -18,8 +18,8 @@ commentary/
 ├── .env.example                   # API key template
 ├── matches.yaml                   # Server mode match configuration
 ├── matches_live_test.yaml         # Viewer-compatible one-match config for standalone live tests
-├── status.html                    # Public match status page (read-only dashboard)
-├── control.html                   # Admin control page (start/stop matches)
+├── status.html                    # SportPortal ops home page (authenticated)
+├── login.html                     # Operator login page
 ├── viewer_test.html               # Standalone file-based Agora viewer (takes appid/channel/token/uid in query params)
 ├── viewer_live.html               # Production viewer (multi-match, lang select)
 ├── match_data/                    # Per-match persistent data: keyterms, metadata, run logs

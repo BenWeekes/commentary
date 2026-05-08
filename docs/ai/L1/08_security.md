@@ -70,9 +70,18 @@ POST /api/session
 
 ### Static pages
 
-- `status.html` — intended as a public read-only dashboard
-- `control.html` — admin control page with start/stop buttons
-- `viewer_live.html` — production viewer, requires match_id parameter
+- `status.html` — authenticated SportPortal ops home (redirected from `/` and `/control.html`)
+- `match_detail.html` — authenticated per-match detail page
+- `login.html` — login page (always accessible)
+- `viewer_live.html` — production viewer, requires match_id parameter (unprotected)
+- `control.html` — retired and deleted; routes redirect to `/status.html`
+
+### Auth model
+
+- HMAC-signed session cookie (`ops_session`), HttpOnly, SameSite=Lax
+- Shared operator login via `OPS_USERNAME` / `OPS_PASSWORD` / `OPS_SESSION_SECRET` env vars
+- When `ops_auth_enabled` is true, all ops pages and data APIs require a valid session
+- Viewer endpoints (`/viewer_live.html`, `/api/matches/{id}/channels`, `/api/token`) remain unprotected
 
 ### Token endpoint
 

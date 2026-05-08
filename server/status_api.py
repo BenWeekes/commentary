@@ -176,9 +176,12 @@ class StatusHandler(BaseHTTPRequestHandler):
             self._respond(200, result)
             return
 
-        # Single match status
+        # Single match status (protected)
         m = self._MATCH_STATUS_RE.match(path)
         if m:
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             match_id = m.group(1)
             worker = self.orchestrator.get_worker(match_id)
             if not worker:
@@ -256,9 +259,12 @@ class StatusHandler(BaseHTTPRequestHandler):
             })
             return
 
-        # Recent English transcript for a match
+        # Recent English transcript for a match (protected)
         m = self._MATCH_TRANSCRIPT_RE.match(path)
         if m:
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             match_id = m.group(1)
             worker = self.orchestrator.get_worker(match_id)
             if not worker:
@@ -353,9 +359,12 @@ class StatusHandler(BaseHTTPRequestHandler):
             self._respond(200, result)
             return
 
-        # Log tailing: /api/matches/{id}/logs/{stt|lang}?tail=N&run=YYYYMMDD_HHMMSS
+        # Log tailing: /api/matches/{id}/logs/{stt|lang}?tail=N&run=YYYYMMDD_HHMMSS (protected)
         m = self._MATCH_LOGS_RE.match(path)
         if m:
+            if not self._is_authenticated():
+                self._respond(401, {"error": "authentication required"})
+                return
             match_id = m.group(1)
             log_key = m.group(2)  # "stt" or language code like "es"
             worker = self.orchestrator.get_worker(match_id)

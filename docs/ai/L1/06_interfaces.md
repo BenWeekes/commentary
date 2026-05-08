@@ -26,8 +26,9 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 
 | Path | File | Purpose |
 |---|---|---|
-| `/` or `/control.html` | `control.html` | Admin control page |
-| `/status.html` | `status.html` | Match overview dashboard |
+| `/` or `/control.html` | redirect | Redirects to `/status.html` (`control.html` retired) |
+| `/status.html` | `status.html` | SportPortal ops home (authenticated) |
+| `/login.html` | `login.html` | Operator login page |
 | `/viewer_live.html` | `viewer_live.html` | Production viewer (connect overlay, language dropdown incl. original) |
 | `/match_detail.html` | `match_detail.html` | Per-match detail page (STT + per-language log tabs, config, keyterms) |
 | local file only | `viewer_test.html` | Standalone Agora viewer using `appid/channel/token/uid` query params |

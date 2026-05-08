@@ -23,7 +23,7 @@ class MatchSchedule:
     """Scheduler-side state for one match."""
     match_id: str
     match_cfg: MatchConfig
-    state: str = "idle"          # demo/upcoming/countdown/armed/starting/running/finished/stopped/error/waiting_for_source
+    state: str = "idle"          # demo/upcoming/countdown/armed/starting/running/stopping/finished/stopped/error/waiting_for_source
     kickoff_utc: str = ""        # ISO timestamp from config or SR
     kickoff_ts: float | None = None  # parsed epoch seconds
     last_check_at: float = 0
@@ -201,15 +201,15 @@ class Scheduler:
             ms.state = "running" if worker_state == "running" else "starting"
             ms.start_error_count = 0  # reset on successful start
 
-            # Auto-stop: if SR reports match closed/ended, stop after grace period
+            # Auto-stop: if SR reports match closed/ended, stop asynchronously
+            # so the scheduler loop isn't blocked by a slow stop_match() call
             if worker_state == "running" and ms.sr_match_status in ("closed", "ended"):
-                print(f"[SCHED] {mid} SR reports '{ms.sr_match_status}' — auto-stopping")
-                try:
-                    self._orchestrator.stop_match(mid)
-                    ms.state = "finished"
-                except Exception as e:
-                    ms.last_error = str(e)
-                    print(f"[SCHED] {mid} auto-stop failed: {e}")
+                if ms.state != "stopping":
+                    ms.state = "stopping"
+                    print(f"[SCHED] {mid} SR reports '{ms.sr_match_status}' — stopping async")
+                    threading.Thread(
+                        target=self._async_stop, args=(ms,), daemon=True
+                    ).start()
             return
 
         if worker_state == "stopped" and ms.state == "running":
@@ -306,6 +306,18 @@ class Scheduler:
         else:
             ms.last_error = result.get("error", result.get("status", "unknown"))
             print(f"[SCHED] {mid} refresh failed: {ms.last_error}")
+
+    def _async_stop(self, ms: MatchSchedule):
+        """Stop a match in a background thread so the scheduler loop isn't blocked."""
+        mid = ms.match_id
+        try:
+            self._orchestrator.stop_match(mid)
+            ms.state = "finished"
+            print(f"[SCHED] {mid} stopped successfully")
+        except Exception as e:
+            ms.last_error = str(e)
+            ms.state = "error"
+            print(f"[SCHED] {mid} async stop failed: {e}")
 
     def _sync_worker_state(self, ms: MatchSchedule):
         """For non-auto-managed matches, sync state from worker."""

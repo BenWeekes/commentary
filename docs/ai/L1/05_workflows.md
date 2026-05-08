@@ -78,9 +78,9 @@ curl -X POST http://localhost:8080/api/matches/bmg_fch_demo/stop
 
 Kills all Go publishers, stops TTS engines, and cleans up the match worker.
 
-### Control page
+### SportPortal home
 
-`http://localhost:8080/control.html` — admin interface with start/stop buttons for each match.
+`http://localhost:8080/status.html` — authenticated ops dashboard with match cards, scheduler state, countdown, start/stop (demo), and refresh (live). `/` and `/control.html` redirect here. `control.html` has been retired.
 
 ## Live Match Workflow
 
