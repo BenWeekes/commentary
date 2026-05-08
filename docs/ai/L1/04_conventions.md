@@ -153,7 +153,8 @@ Language-log `status` values:
 
 - `played` — utterance started and completed normally
 - `interrupted` — playback actually started but was cut short mid-playback (only set by `_pipe_writer`)
-- `dropped` — item never started playback: cleared from queue by interrupt, TTS returned no audio, or shutdown
+- `dropped` — item never started playback because it was too late, TTS returned no audio, or shutdown
+- `replaced` — STT item never started because a fresher STT item took over its slot
 - `suppressed` — STT utterance was discarded because SR was already occupying the slot
 
 Additional telemetry fields per utterance:
@@ -162,12 +163,12 @@ Additional telemetry fields per utterance:
 - `queue_wait_ms` — milliseconds the item waited in the queue before the TTS worker started processing it
 - `total_buffered_ms` — total TTS audio duration in milliseconds
 
-Items that never played are always `dropped`, not `interrupted`. Only `_pipe_writer` can emit `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
+Items that never played are `dropped`, `replaced`, or `suppressed`, not `interrupted`. Only `_pipe_writer` can emit `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
 
 Telemetry counters in `LangTelemetry` follow these rules:
 
 - `stt_played` / `sr_played` count `played` and `interrupted`
-- `drop_count` counts `dropped` and `suppressed`
+- `drop_count` counts `dropped`, `replaced`, and `suppressed`
 - `stt_cut_short_count` is allowed when a fresher STT utterance interrupts older STT
 - `sr_cut_short_count` is expected when STT preempts SR
 - separate `stt_interrupted`, `stt_dropped`, `stt_replaced`, and `stt_suppressed` counters expose the STT outcome mix in status responses

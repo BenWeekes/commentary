@@ -111,6 +111,7 @@ class TTSEngine:
         self._elevenlabs_similarity_boost = 1.0
         self._max_local_speed = 2.5
         self._fit_guard_s = 0.05
+        self._late_start_grace_s = 0.05
         # Video-relative timestamp (set by pipeline after publisher starts)
         self.video_start = None
 
@@ -1076,32 +1077,36 @@ class TTSEngine:
                     self._next_stt_play_at = None
                 else:
                     late = -wait_s
-                    pre_tag = "hit" if result.get("pre_translated") else "miss"
-                    q_wait = result.get("queue_wait_ms", 0) / 1000
-                    print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at "
-                          f"(xlat={result['translate_time']:.2f}s, tts={tts_time:.2f}s, "
-                          f"queued_behind={q_wait:.2f}s, pre_xlat={pre_tag})")
-                    with self._buf_lock:
-                        self._audio_buf.clear()
-                    self._skipped_meta.append({
-                        "source": "stt", "status": "dropped",
-                        "uid": result["uid"], "text": result["text"],
-                        "translated": result["translated"],
-                        "translate_time": result["translate_time"],
-                        "tts_time": result["tts_time"],
-                        "play_at": play_at,
-                        "play_started_at": None, "play_ended_at": None,
-                        "actual_play_duration_ms": 0, "total_buffered_ms": buf_ms,
-                        "interrupted": False, "interrupted_by": "",
-                        "pre_translated": result.get("pre_translated", False),
-                        "queue_wait_ms": result.get("queue_wait_ms", 0),
-                        "local_speed_factor": result.get("local_speed_factor"),
-                        "fit_from_ms": result.get("fit_from_ms"),
-                        "fit_to_ms": result.get("fit_to_ms"),
-                        "fit_deadline_ms": result.get("fit_deadline_ms"),
-                        "fit_cpu_ms": result.get("fit_cpu_ms"),
-                    })
-                    continue
+                    if late <= self._late_start_grace_s:
+                        print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — "
+                              f"starting {late * 1000:.0f}ms late")
+                    else:
+                        pre_tag = "hit" if result.get("pre_translated") else "miss"
+                        q_wait = result.get("queue_wait_ms", 0) / 1000
+                        print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at "
+                              f"(xlat={result['translate_time']:.2f}s, tts={tts_time:.2f}s, "
+                              f"queued_behind={q_wait:.2f}s, pre_xlat={pre_tag})")
+                        with self._buf_lock:
+                            self._audio_buf.clear()
+                        self._skipped_meta.append({
+                            "source": "stt", "status": "dropped",
+                            "uid": result["uid"], "text": result["text"],
+                            "translated": result["translated"],
+                            "translate_time": result["translate_time"],
+                            "tts_time": result["tts_time"],
+                            "play_at": play_at,
+                            "play_started_at": None, "play_ended_at": None,
+                            "actual_play_duration_ms": 0, "total_buffered_ms": buf_ms,
+                            "interrupted": False, "interrupted_by": "",
+                            "pre_translated": result.get("pre_translated", False),
+                            "queue_wait_ms": result.get("queue_wait_ms", 0),
+                            "local_speed_factor": result.get("local_speed_factor"),
+                            "fit_from_ms": result.get("fit_from_ms"),
+                            "fit_to_ms": result.get("fit_to_ms"),
+                            "fit_deadline_ms": result.get("fit_deadline_ms"),
+                            "fit_cpu_ms": result.get("fit_cpu_ms"),
+                        })
+                        continue
             else:
                 print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — starting playback")
 

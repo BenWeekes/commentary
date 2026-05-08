@@ -121,6 +121,11 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	var subCon *agoraservice.RtcConnection
 	var subDisconnected <-chan string
 	subDisconnectedCh := make(chan string, 1)
+	disconnectSub := func() {
+		if subCon != nil {
+			subCon.Disconnect()
+		}
+	}
 
 	// Delay buffer sizes: capacity = delay * rate * 1.5 headroom
 	delaySec := cfg.videoDelay.Seconds()
@@ -351,7 +356,7 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 
 	pubCon := agoraservice.NewRtcConnection(pubConCfg, pubPublish)
 	if pubCon == nil {
-		subCon.Disconnect()
+		disconnectSub()
 		return errors.New("failed to create publisher connection")
 	}
 	defer pubCon.Release()
@@ -377,26 +382,26 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	})
 
 	if rc := pubCon.Connect(pubToken, cfg.outputChannel, cfg.pubUID); rc != 0 {
-		subCon.Disconnect()
+		disconnectSub()
 		return fmt.Errorf("publisher connect failed: %d", rc)
 	}
 	select {
 	case <-pubConnected:
 	case msg := <-pubDisconnected:
-		subCon.Disconnect()
+		disconnectSub()
 		return errors.New(msg)
 	case <-stop:
-		subCon.Disconnect()
+		disconnectSub()
 		return errors.New("interrupted before publisher connected")
 	}
 
 	if rc := pubCon.PublishAudio(); rc != 0 {
-		subCon.Disconnect()
+		disconnectSub()
 		pubCon.Disconnect()
 		return fmt.Errorf("publish audio failed: %d", rc)
 	}
 	if rc := pubCon.PublishVideo(); rc != 0 {
-		subCon.Disconnect()
+		disconnectSub()
 		pubCon.Disconnect()
 		return fmt.Errorf("publish video failed: %d", rc)
 	}

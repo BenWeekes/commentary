@@ -185,17 +185,17 @@ In the current codebase, the SR-event branch above applies to demo/event-file mo
 ## Startup Sequence
 
 1. Go publisher connects to Agora, starts reading audio from stdin immediately
-2. After audio-ready is confirmed, `video_start` is estimated as `time.time() + video_delay`
+2. The worker computes a shared `target_start` for all translated output channels
 3. STT pipeline starts — audio feed begins, Deepgram processes in real-time
-4. Go publisher sleeps `video_delay` seconds (video frames held back)
-5. After delay, publisher starts sending video → `video_start` is updated to actual time
+4. Go publisher waits until `target_start` / finishes its delay buffer
+5. After delay, publisher starts sending video and confirms `video delay complete`
 6. Translations from step 3 are already ready → play in sync with video
 
-**Timing invariant**: STT utterances scheduled before step 5 intentionally use the estimated `video_start`. This is not a fallback or best-effort guess; it is the primary synchronization mechanism that lets STT spend the full `video_delay` budget on transcription, translation, and TTS before first video.
+**Timing invariant**: STT utterances use the shared `target_start` as authoritative video start. This is not a fallback or best-effort guess; it is the primary synchronization mechanism that lets STT spend the full delay budget on transcription, translation, and TTS before first video.
 
-**Why the estimate is valid**: the estimate is taken only after the Go publisher reports audio-ready, and from that point the publisher advances to first video frame by a local deterministic `time.Sleep(video_delay)`. There is no extra network-dependent stage between the estimate and the delayed video start, so `time.time() + video_delay` on the Python side and `time.Sleep(video_delay)` on the Go side converge to within a few milliseconds on the same machine.
+**Why the target is valid**: the target is passed into the relay/publisher process as an absolute start time. Publishers may report their actual first-video time for diagnostics, but the language clocks are not retimed after startup because retiming live queues would create audible drift.
 
-**Why `video_start` is updated later**: once the publisher confirms video start, the actual timestamp is stored for log accuracy and for all post-start timing. Early STT utterances are not expected to be materially rescheduled by this update; they should already be aligned by design.
+**Why `video delay complete` is still logged**: it proves the publisher reached the shared start and is useful for drift diagnostics. It is not used to move already scheduled STT playback.
 
 ### Server mode startup differences
 

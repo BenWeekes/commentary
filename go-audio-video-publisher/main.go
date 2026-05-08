@@ -784,7 +784,6 @@ func streamMediaWithLocalFanout(
 						},
 						publishAt: originalBase.Add(delta),
 					})
-					signalSourcePublishingStarted()
 				}
 			}
 		}

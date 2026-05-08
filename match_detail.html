@@ -453,7 +453,10 @@
         var played = Math.max(0, (lt.stt_played || 0) - (lt.stt_interrupted || 0))
           + Math.max(0, (lt.sr_played || 0) - (lt.sr_interrupted || 0));
         var dropped = (lt.stt_dropped || 0) + (lt.sr_dropped || 0);
-        stats.push('<span class="stat"><span class="stat-label">' + lang.toUpperCase() + ':</span><span class="stat-value">' + played + ' played, ' + interrupted + ' interrupted, ' + dropped + ' dropped</span></span>');
+        var skipped = dropped
+          + (lt.stt_replaced || 0) + (lt.sr_replaced || 0)
+          + (lt.stt_suppressed || 0) + (lt.sr_suppressed || 0);
+        stats.push('<span class="stat"><span class="stat-label">' + lang.toUpperCase() + ':</span><span class="stat-value">' + played + ' played, ' + interrupted + ' interrupted, ' + skipped + ' skipped</span></span>');
       });
       document.getElementById('summary-bar').innerHTML = stats.join('');
     }
