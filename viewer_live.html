@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Match Viewer</title>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    #video-wrapper {
+      position: absolute;
+      top: 3%; left: 3%; right: 3%; bottom: 3%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #video-container {
+      width: 100%;
+      height: 100%;
+      max-width: calc((100vh - 6vh) * 16 / 9);
+      max-height: calc((100vw - 6vw) * 9 / 16);
+      aspect-ratio: 16 / 9;
+      background: #111;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #video-container video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain;
+    }
+
+    #top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 10;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      pointer-events: none;
+    }
+
+    #top-bar > * { pointer-events: auto; }
+
+    #live-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+
+    #live-badge.visible { opacity: 1; }
+
+    #live-dot {
+      width: 10px; height: 10px;
+      background: #ef4444;
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+    }
+
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .select-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .select-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid rgba(255,255,255,0.7);
+      pointer-events: none;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 36px 8px 14px;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.2s, border-color 0.2s;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    select:hover {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    select option {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    #status-overlay {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 0.6s;
+    }
+
+    #status-overlay.hidden { opacity: 0; }
+
+    #spinner-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.3s;
+    }
+
+    #spinner-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: #4ade80;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="top-bar">
+    <div id="live-badge">
+      <div id="live-dot"></div>
+    </div>
+    <div id="controls">
+      <div class="select-wrapper">
+        <select id="lang-select"></select>
+      </div>
+    </div>
+  </div>
+
+  <div id="video-wrapper">
+    <div id="video-container"></div>
+  </div>
+
+  <div id="spinner-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="status-overlay">Connecting...</div>
+
+  <script>
+    var LANG_NAMES = {
+      es: 'Spanish', pt: 'Portuguese', fr: 'French', tr: 'Turkish',
+      de: 'German', en: 'English', it: 'Italian', ar: 'Arabic',
+      ja: 'Japanese', ko: 'Korean', zh: 'Chinese', hi: 'Hindi'
+    };
+
+    var params = new URLSearchParams(window.location.search);
+    var CTL   = params.get('ctl')   || window.location.origin;
+    var MATCH = params.get('match') || '';
+    var LANG  = params.get('lang')  || '';
+
+    var statusEl       = document.getElementById('status-overlay');
+    var liveBadge      = document.getElementById('live-badge');
+    var langSelect     = document.getElementById('lang-select');
+    var videoContainer = document.getElementById('video-container');
+    var spinnerOverlay = document.getElementById('spinner-overlay');
+
+    var client = null;
+    var currentChannel = null;
+    var switching = false;
+    var appid = '';
+    var channels = {};  // {lang: {channel, token, uid}}
+
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+      statusEl.classList.remove('hidden');
+    }
+
+    function hideStatus() { statusEl.classList.add('hidden'); }
+    function showSpinner() { spinnerOverlay.classList.remove('hidden'); }
+    function hideSpinner() { spinnerOverlay.classList.add('hidden'); }
+
+    function loadChannels() {
+      if (!MATCH) {
+        // No match in URL — fetch match list and use the first one
+        fetch(CTL + '/api/matches', { mode: 'cors' })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var ids = Object.keys(data);
+            if (ids.length === 0) {
+              setStatus('No matches configured');
+              hideSpinner();
+              return;
+            }
+            MATCH = ids[0];
+            fetchChannels();
+          })
+          .catch(function(err) {
+            setStatus('Cannot reach server at ' + CTL);
+            hideSpinner();
+          });
+        return;
+      }
+      fetchChannels();
+    }
+
+    function fetchChannels() {
+      setStatus('Loading channels for ' + MATCH + '...');
+      fetch(CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/channels', { mode: 'cors' })
+        .then(function(r) {
+          if (!r.ok) throw new Error('Match not found');
+          return r.json();
+        })
+        .then(function(data) {
+          appid = data.appid;
+          channels = data.channels;
+
+          // Populate language dropdown from server response
+          langSelect.innerHTML = '';
+          var langs = Object.keys(channels);
+          langs.forEach(function(lang) {
+            var opt = document.createElement('option');
+            opt.value = lang;
+            var name = LANG_NAMES[lang] || lang;
+            opt.textContent = lang.toUpperCase() + ' - ' + name;
+            langSelect.appendChild(opt);
+          });
+
+          // Select requested language, or first available
+          if (LANG && channels[LANG]) {
+            langSelect.value = LANG;
+          } else {
+            langSelect.value = langs[0];
+            LANG = langs[0];
+          }
+
+          // Join initial channel
+          joinChannel(langSelect.value);
+        })
+        .catch(function(err) {
+          console.error('Failed to load channels:', err);
+          setStatus('Failed to load match: ' + MATCH);
+          hideSpinner();
+        });
+    }
+
+    function joinChannel(lang) {
+      if (switching) return;
+      var ch = channels[lang];
+      if (!ch) return;
+
+      switching = true;
+      showSpinner();
+      setStatus('Joining ' + MATCH + ' / ' + lang + '...');
+
+      // Leave current channel first
+      var p = (client && currentChannel)
+        ? client.leave().catch(function() {})
+        : Promise.resolve();
+
+      p.then(function() {
+        currentChannel = ch.channel;
+        return startViewer(appid, ch.channel, ch.token, ch.uid);
+      })
+      .catch(function(err) {
+        console.error('Join failed:', err);
+        setStatus('Failed to join channel');
+        hideSpinner();
+      })
+      .finally(function() {
+        switching = false;
+      });
+    }
+
+    // Language change = channel switch (no API call needed)
+    langSelect.addEventListener('change', function() {
+      joinChannel(langSelect.value);
+    });
+
+    function startViewer(appId, channel, token, uid) {
+      if (!client) {
+        client = AgoraRTC.createClient({ mode: 'live', codec: 'h264' });
+        client.setClientRole('audience', { level: 1 });
+
+        client.on('user-published', function(user, mediaType) {
+          client.subscribe(user, mediaType).then(function() {
+            if (mediaType === 'video') {
+              user.videoTrack.play(videoContainer);
+              liveBadge.classList.add('visible');
+              hideStatus();
+              hideSpinner();
+            }
+            if (mediaType === 'audio') {
+              user.audioTrack.play();
+            }
+          });
+        });
+
+        client.on('user-unpublished', function(user, mediaType) {
+          if (mediaType === 'video') {
+            liveBadge.classList.remove('visible');
+            setStatus('Video stream ended. Waiting...');
+          }
+        });
+
+        client.on('user-left', function() {
+          liveBadge.classList.remove('visible');
+          setStatus('Publisher disconnected. Waiting...');
+        });
+      }
+
+      return client.join(appId, channel, token, uid).then(function() {
+        setStatus('Waiting for video...');
+        setTimeout(function() { hideSpinner(); }, 8000);
+      });
+    }
+
+    loadChannels();
+  </script>
+</body>
+</html>

@@ -1,19 +1,20 @@
 # L1 — Conventions
 
-> Naming rules, audio format constants, event file syntax, and runtime behaviours like JIT translation.
+> Naming rules, audio format constants, event file syntax, YAML config format, and runtime behaviours like JIT translation.
 
 ## Naming
 
 - Python files: `snake_case.py`
 - Functions/variables: `snake_case`
 - Constants: `UPPER_SNAKE_CASE`
-- Classes: `PascalCase` (e.g., `TTSEngine`, `ControlHandler`)
+- Classes: `PascalCase` (e.g., `TTSEngine`, `ControlHandler`, `MatchWorker`)
 - Go files: `snake_case.go` in `reference/`, `main.go` at root
 - Events files: descriptive names with underscores (e.g., `bmg_fch_md28_full_match.txt`)
+- Match IDs: lowercase with underscores (e.g., `bmg_fch_demo`)
 
 ## Voice IDs
 
-Per-language ElevenLabs voice mapping in `live_match.py` (`LANG_VOICES` dict). Languages without an entry fall back to `DEFAULT_VOICE_ID`.
+Per-language ElevenLabs voice mapping in `lib/translator.py` (`LANG_VOICES` dict). Languages without an entry fall back to `DEFAULT_VOICE_ID`.
 
 Voice selection is just-in-time: `voice_for_lang()` is called at TTS time, not at queue time, so language changes take effect on the next utterance.
 
@@ -29,14 +30,19 @@ Translation is deferred to TTS time, not queue time. This means:
 - Language changes via `/set-lang` take effect on the very next utterance
 - The translate function returns `(translated_text, voice_id)` tuple
 
-## Deterministic Corrections
+## Name Correction Strategy
 
-The `CORRECTIONS` list in `live_match.py` (~42 entries) fixes systematic Deepgram misrecognitions:
-- Team names: "Flag back" → "Gladbach", "Saks Paoli" → "St. Pauli"
-- Player names: "Ubijzivzivadze" → "Budu Zivzivadze"
-- Commentary phrases: "in the lead." → "in the league."
+Two approaches are used depending on context:
 
-Corrections are applied as simple string replacements in order. Each correction is a `(wrong, right)` tuple.
+### Static corrections (legacy, per-match)
+
+The `CORRECTIONS` list in `lib/corrections.py` (~60 entries) fixes systematic Deepgram misrecognitions via string replacement. Each correction is a `(wrong, right)` tuple applied in order. Used by `stt_realtime_translate.py` and the live pipeline.
+
+### Dynamic roster-based correction (preferred)
+
+For any match, the player roster is fetched from Sportradar's lineups API pre-match. The roster is injected into the GPT translation prompt (`TRANSLATE_SYSTEM_WITH_ROSTER`), enabling GPT to fix STT name errors during translation without a per-match corrections list. This scales to any game automatically.
+
+The `TERMS_LIST` for Deepgram keyterm boosting can also be generated dynamically from the lineups API (full names + surnames + team/venue/referee names).
 
 ## Events File Format
 
@@ -48,6 +54,34 @@ offset_seconds|PRIORITY|message text
 - `offset_seconds`: integer or `mm:ss` format
 - `PRIORITY`: `INTERRUPT` (high priority, clears queue) or `APPEND` (normal)
 - `message text`: English commentary text
+
+## Match Config Format (YAML)
+
+Server mode uses `matches.yaml` for configuration. Top-level fields:
+
+| Field | Type | Default | Purpose |
+|---|---|---|---|
+| `control_port` | int | 8080 | HTTP API port |
+| `translation_model` | string | `gpt-4o-mini` | GPT model for translation |
+| `agora_app_id` | string | from env | Overrides `AGORA_APP_ID` env var |
+| `agora_app_cert` | string | from env | Overrides `AGORA_APP_CERT` env var |
+
+Per-match fields under `matches:`:
+
+| Field | Type | Required | Purpose |
+|---|---|---|---|
+| `match_id` | string | yes | Unique identifier, used in channel names |
+| `sport_event_id` | string | no | Sportradar event ID for roster fetch |
+| `audio` | string | yes | Path to commentary audio file |
+| `video_h264` | string | yes | Path to H.264 video file |
+| `events` | string | yes | Path to events file |
+| `atmosphere` | string | no | Path to atmosphere WAV |
+| `video_delay` | float | 7.0 | Video delay in seconds |
+| `events_offset` | int | 0 | Match-time offset for events |
+| `max_stt_duration` | float | 5.0 | Force-split threshold in seconds |
+| `languages` | list | `[es, pt, fr, tr, de]` | Target languages |
+
+File paths are resolved relative to the YAML file's directory (not the working directory).
 
 ## Audio Format
 
@@ -89,6 +123,47 @@ Languages showing "default" use `DEFAULT_VOICE_ID` (`ImsA1Fn5TNc843fFdz99`).
 | `[DROP Xs]` | STT utterance dropped (exceeded latency budget by X seconds) |
 | `[ATMOS]` | Atmosphere audio loading and toggle |
 | `[ORIG]` | Original audio pass-through |
+| `[HTTP]` | Production server HTTP API |
+| `[WORKER]` | MatchWorker lifecycle events |
+| `[ORCH]` | Orchestrator match start/stop |
+| `[MATCH {id}]` | Per-match log lines (roster fetch, errors) |
+| `[TELEMETRY]` | TTSEngine telemetry callbacks (interruption warnings) |
+
+## Structured Match Logs
+
+Server mode writes structured JSONL logs per match run:
+
+```text
+logs/{match_id}_{YYYYMMDD_HHMMSS}/
+  stt.jsonl
+  es.jsonl
+  pt.jsonl
+  ...
+```
+
+Conventions:
+
+- First line in each file is a JSON object with `"type": "header"`
+- Subsequent lines are one JSON object per utterance with `"type": "utterance"`
+- Files are opened line-buffered and flushed after each write
+- `stt.jsonl` is shared across the match
+- `{lang}.jsonl` contains both `source="stt"` and `source="sr"` playback outcomes
+
+Language-log `status` values:
+
+- `played` — utterance started and completed normally
+- `interrupted` — playback actually started but was cut short mid-playback (only set by `_pipe_writer`)
+- `dropped` — item never started playback: cleared from queue by interrupt, TTS returned no audio, or shutdown
+- `suppressed` — STT utterance was discarded because SR was already occupying the slot
+
+Items that never played are always `dropped`, not `interrupted`. Only `_pipe_writer` can emit `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
+
+Telemetry counters in `LangTelemetry` follow these rules:
+
+- `stt_played` / `sr_played` count `played` and `interrupted`
+- `drop_count` counts `dropped` and `suppressed`
+- `stt_cut_short_count` should remain `0`
+- `sr_cut_short_count` is expected when STT preempts SR
 
 ## Related Deep Dives
 

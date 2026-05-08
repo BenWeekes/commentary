@@ -24,9 +24,10 @@ cp .env.example .env
 
 | Package | Version | Purpose |
 |---|---|---|
-| `openai` | >=1.0.0 | GPT-4o-mini translation API |
+| `openai` | >=1.0.0 | GPT-4o-mini / GPT-5.4-mini translation API |
 | `websockets` | >=12.0 | ElevenLabs TTS WebSocket client |
 | `deepgram-sdk` | >=3.0.0 | Deepgram Nova-3 STT |
+| `pyyaml` | >=6.0 | Server mode YAML config parsing |
 
 No other Python packages are required. Standard library modules (`asyncio`, `threading`, `wave`, `struct`, `http.server`, `subprocess`, `json`, `hashlib`, `hmac`, `zlib`) handle the rest.
 
@@ -34,12 +35,12 @@ No other Python packages are required. Standard library modules (`asyncio`, `thr
 
 | Variable | Service | Required by |
 |---|---|---|
-| `OPENAI_API_KEY` | GPT-4o-mini translation | All scripts |
-| `DEEPGRAM_API_KEY` | Nova-3 STT | `live_match.py --audio`, `stt_realtime_translate.py` |
-| `ELEVENLABS_API_KEY` | WebSocket TTS | `live_match.py` |
-| `AGORA_APP_ID` | Agora channel | `live_match.py` with video |
-| `AGORA_APP_CERT` | Token generation | `live_match.py` with video, `tokens.py` |
-| `SPORTRADAR_API_KEY` | Soccer Extended API | `commentary_feeder.py` |
+| `OPENAI_API_KEY` | GPT translation (4o-mini / 5.4-mini) | All scripts |
+| `DEEPGRAM_API_KEY` | Nova-3 STT | `live_match.py --audio`, `stt_realtime_translate.py`, server mode |
+| `ELEVENLABS_API_KEY` | WebSocket TTS | `live_match.py`, server mode |
+| `AGORA_APP_ID` | Agora channel | `live_match.py` with video, server mode |
+| `AGORA_APP_CERT` | Token generation | `live_match.py` with video, server mode, `tokens.py` |
+| `SPORTRADAR_API_KEY` | Soccer Extended API | `commentary_feeder.py`, `generate_demo_transcript.py`, server mode (roster fetch) |
 
 ## Optional env vars
 
@@ -50,7 +51,46 @@ No other Python packages are required. Standard library modules (`asyncio`, `thr
 
 ## .env loading
 
-`live_match.py` loads `.env` via `_load_dotenv()` at import time. Other scripts read env vars directly or accept them as CLI args. The `.env` file must be in the same directory as `live_match.py`.
+Both `live_match.py` and `server/main.py` load `.env` via `_load_dotenv()` at import time. Other scripts read env vars directly or accept them as CLI args. The `.env` file must be in the repo root.
+
+## Server Mode Setup
+
+The production server uses a YAML config file (`matches.yaml`) instead of CLI args.
+
+### Config file
+
+```yaml
+control_port: 8080
+translation_model: "gpt-4o-mini"
+
+matches:
+  - match_id: bmg_fch_demo
+    sport_event_id: "sr:sport_event:61514104"
+    audio: clips/bmg_fch_demo_5min/audio.mp3
+    video_h264: clips/bmg_fch_demo_5min/video.h264
+    events: clips/bmg_fch_demo_5min/events.txt
+    atmosphere: clips/bmg_fch_demo_5min/atmosphere.wav
+    video_delay: 7.0
+    languages: [es, pt, fr, tr, de]
+```
+
+File paths in `matches.yaml` are resolved relative to the config file's directory.
+
+### Validate config (dry run)
+
+```bash
+python3 -m server.main --config matches.yaml --dry-run
+```
+
+Validates all API keys are set, all referenced files exist, and each match has at least one language configured.
+
+### Start server
+
+```bash
+python3 -m server.main --config matches.yaml
+```
+
+Matches stay idle until started via `POST /api/matches/{id}/start`. See [05_workflows.md](05_workflows.md) for the full operational workflow.
 
 ## Go publisher setup
 
@@ -72,19 +112,36 @@ The `Makefile` runs `go build` with CGo enabled. The Agora SDK native libraries 
 
 ## Verifying the setup
 
-### Minimal test (no video, no Deepgram)
+### Server mode (recommended)
+
+```bash
+python3 -m server.main --config matches.yaml --dry-run
+```
+
+If validation passes, all file paths and API keys are correctly configured.
+
+### Dev mode — Minimal test (no video, no Deepgram)
 
 ```bash
 python3 live_match.py \
-    --events data/events/bmg_fch_35_40_clip.txt \
+    --events clips/bmg_fch_demo_5min/events.txt \
     --lang es
 ```
 
 This only requires `OPENAI_API_KEY` and `ELEVENLABS_API_KEY`. It replays pre-timed events through TTS without video or STT.
 
-### Full test (video + STT + events)
+### Dev mode — Full test (video + STT + events + atmosphere)
 
-Requires all 5 core API keys plus the Go publisher binary and an H.264 file. See `docs/ai/L1/05_workflows.md` for the full command.
+```bash
+python3 live_match.py \
+    --audio clips/bmg_fch_demo_5min/audio.mp3 \
+    --video-h264 clips/bmg_fch_demo_5min/video.h264 \
+    --events clips/bmg_fch_demo_5min/events.txt \
+    --atmosphere clips/bmg_fch_demo_5min/atmosphere.wav \
+    --lang es --video-delay 7
+```
+
+Requires all 5 core API keys plus the Go publisher binary. Open `http://localhost:8090/viewer.html` to test.
 
 ## Related Deep Dives
 

@@ -1,6 +1,6 @@
 # L2 — STT Pipeline
 
-> **When to Read This:** You are modifying the Deepgram integration, adding or editing STT corrections, changing the forced split logic, or debugging translation latency.
+> **When to Read This:** You are modifying the Deepgram integration, adding or editing STT corrections, changing the forced split logic, debugging translation latency, or working on the multi-language fan-out.
 
 ## Overview
 
@@ -12,6 +12,44 @@ The STT pipeline streams live game audio through Deepgram, corrects player/team 
 Audio ──▶ ffmpeg ──▶ PCM ──▶ Deepgram ──▶ corrections ──▶ tts.speak(play_at=...)
           (16kHz mono)       (Nova-3)      (str.replace)   → translate + TTS in worker
 ```
+
+## Single-Language vs Multi-Language Mode
+
+The STT pipeline has two entry points sharing a common core (`_run_stt_core()`):
+
+### run_stt_pipeline() (dev mode)
+
+Used by `live_match.py`. One Deepgram connection per viewer session. The `emit_fn` calls `tts.speak()` directly on the session's TTSEngine with JIT translation.
+
+### run_stt_pipeline_multi() (server mode)
+
+Used by `server/match_worker.py`. One Deepgram connection per match, shared across all languages. The `emit_fn` calls an `on_utterance` callback that fans out to all language pipelines.
+
+```
+_run_stt_core()
+    │
+    └─ emit_fn(corrected_text, audio_start, audio_end)
+         │
+         ├─ [dev mode]    tts.speak(text, play_at=..., translate_fn=...)
+         │                (single language, single TTSEngine)
+         │
+         └─ [server mode] on_utterance(text, audio_start, audio_end, play_at)
+                          │
+                          └─ MatchWorker._on_utterance()
+                               ├─ es: tts.speak(text, play_at=lang_play_at, translate_fn=...)
+                               ├─ pt: tts.speak(text, play_at=lang_play_at, translate_fn=...)
+                               ├─ fr: tts.speak(text, play_at=lang_play_at, translate_fn=...)
+                               ├─ tr: tts.speak(text, play_at=lang_play_at, translate_fn=...)
+                               └─ de: tts.speak(text, play_at=lang_play_at, translate_fn=...)
+```
+
+The `_on_utterance` fan-out pattern sends the same corrected English text to all language pipelines simultaneously. Each pipeline translates independently (with its own `translate_fn`), uses its own TTSEngine, and plays through its own Go publisher. Per-language `video_start` values allow accurate `play_at` timing even if publishers started at slightly different times.
+
+In server mode, `_on_utterance` also feeds the structured match log:
+
+- the English STT utterance is appended to `recent_transcript`
+- the same utterance is written to `logs/{match_id}_{timestamp}/stt.jsonl`
+- each language pipeline later records its own translated playback outcome in `{lang}.jsonl`
 
 ## play_at Scheduling
 
@@ -25,6 +63,10 @@ play_at = video_start + audio_start
 
 The TTS worker holds the audio until `play_at`, then plays at the exact scheduled time. If translate+TTS takes too long and `play_at` has already passed, the utterance is dropped.
 
+### Server mode timing
+
+In server mode, `video_start_ref` is a mutable list (`[float]`) shared between the STT thread and the MatchWorker. It's initially set to `time.time() + video_delay` (estimate), then updated to the mean of all per-language publisher `video_start` values once publishers confirm. Each language pipeline uses its own `pipe.video_start` for accurate per-language `play_at` computation.
+
 ## Deepgram Configuration
 
 ```python
@@ -36,7 +78,7 @@ endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 - `endpointing=200`: Deepgram fires speech_final after 200ms silence (faster turns)
 - `utterance_end_ms=1000`: Minimum allowed by Deepgram API
 - `is_final=True` results are processed; interims are monitored for forced splitting
-- `keyterm`: ~67 player/team names for recognition boost
+- `keyterm`: ~91 player/team names for recognition boost (from `lib/corrections.py`). For live matches, keyterms can be generated dynamically from the Sportradar lineups API (full names, surnames, team names, venue, referees)
 
 ## Latency Budget
 
@@ -70,14 +112,18 @@ Forced:   interim(5.0s) → SPLIT emit → is_final(7.6s) → REMAINDER emit (fr
 
 ## Correction System
 
-`apply_corrections()` fixes common Deepgram misrecognitions:
+Two approaches:
 
-```python
-CORRECTIONS = [("Flag back", "Gladbach"), ("Saks Paoli", "St. Pauli"), ...]
-```
+### Static corrections (legacy)
 
-Longer phrases before shorter substrings. Applied before translation.
+`apply_corrections()` in `lib/corrections.py` fixes common Deepgram misrecognitions via string replacement. Applied before translation in the live pipeline.
+
+### Roster-based correction (preferred for new matches)
+
+The player roster from Sportradar lineups API is included in the GPT translation prompt. GPT fixes name errors during translation — no per-match corrections list needed. See `TRANSLATE_SYSTEM_WITH_ROSTER` in `lib/translator.py`.
 
 ## Language Switching
 
-Language is read from a per-session file at translation time (not queue time), so language changes take effect on the next utterance.
+In dev mode, language is read from a per-session file at translation time (not queue time), so language changes take effect on the next utterance.
+
+In server mode, each language has its own pipeline and Agora channel. Viewers switch languages by changing channels in the viewer.

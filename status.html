@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Matches</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    .header {
+      padding: 32px 24px 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #666;
+    }
+    .matches {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+    }
+    .match-card {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .match-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 24px 16px;
+    }
+    .match-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-idle     { background: #1a1a1a; color: #555; }
+    .badge-starting { background: #2d2400; color: #fbbf24; }
+    .badge-running  { background: #052e16; color: #4ade80; }
+    .badge-stopped  { background: #1a1a2e; color: #818cf8; }
+    .badge-error    { background: #2d0a0a; color: #f87171; }
+    .live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+      margin-right: 2px;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+    }
+    .stt-count {
+      font-size: 12px;
+      color: #555;
+    }
+    .match-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-start, .btn-stop {
+      padding: 6px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background 0.15s;
+    }
+    .btn-start {
+      background: #16a34a;
+      color: #fff;
+    }
+    .btn-start:hover { background: #15803d; }
+    .btn-start:disabled { background: #1a1a1a; color: #444; cursor: default; }
+    .btn-stop {
+      background: #dc2626;
+      color: #fff;
+    }
+    .btn-stop:hover { background: #b91c1c; }
+    .btn-stop:disabled { background: #1a1a1a; color: #444; cursor: default; }
+
+    .languages {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 24px 16px;
+    }
+    .lang-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #ccc;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .lang-btn:hover {
+      background: #222;
+      border-color: #444;
+      color: #fff;
+    }
+    .lang-btn .lang-code {
+      color: #60a5fa;
+      font-weight: 700;
+    }
+
+    .transcript-section {
+      border-top: 1px solid #1a1a1a;
+      padding: 16px 24px 20px;
+    }
+    .transcript-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .transcript {
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #999;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+    }
+    .transcript::-webkit-scrollbar { width: 6px; }
+    .transcript::-webkit-scrollbar-track { background: transparent; }
+    .transcript::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    .transcript .line {
+      padding: 2px 0;
+    }
+    .transcript .line:last-child {
+      color: #e0e0e0;
+    }
+    .transcript .ts {
+      color: #444;
+      font-size: 11px;
+      font-family: monospace;
+      margin-right: 8px;
+    }
+    .empty-transcript {
+      font-size: 13px;
+      color: #333;
+      font-style: italic;
+    }
+    .no-matches {
+      text-align: center;
+      padding: 80px 24px;
+      color: #444;
+      font-size: 15px;
+    }
+    .error-msg {
+      margin: 0 24px 16px;
+      padding: 8px 12px;
+      background: #2d0a0a;
+      border: 1px solid #7f1d1d;
+      border-radius: 6px;
+      color: #f87171;
+      font-size: 13px;
+    }
+    .server-error {
+      text-align: center;
+      padding: 80px 24px;
+      color: #f87171;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Live Matches</h1>
+    <p id="subtitle">Multilingual commentary — pick a language to watch</p>
+  </div>
+  <div class="matches" id="matches"></div>
+
+  <script>
+    var LANG_NAMES = {
+      es: 'Spanish', pt: 'Portuguese', fr: 'French', tr: 'Turkish',
+      de: 'German', en: 'English', it: 'Italian', ar: 'Arabic',
+      ja: 'Japanese', ko: 'Korean', zh: 'Chinese', hi: 'Hindi'
+    };
+
+    var CTL = window.location.origin;
+    var container = document.getElementById('matches');
+    var transcripts = {};  // {match_id: [{text, ts}]}
+    var autoScroll = {};   // {match_id: true} — track if user scrolled up
+
+    function esc(s) {
+      if (!s) return '';
+      var d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function fmtTime(ts) {
+      if (!ts) return '';
+      var d = new Date(ts * 1000);
+      var h = d.getHours().toString().padStart(2, '0');
+      var m = d.getMinutes().toString().padStart(2, '0');
+      var s = d.getSeconds().toString().padStart(2, '0');
+      return h + ':' + m + ':' + s;
+    }
+
+    function formatMatchName(id) {
+      // bmg_fch_demo → BMG vs FCH (Demo)
+      var parts = id.split('_');
+      if (parts.length >= 2) {
+        var teams = parts.slice(0, -1).join(' vs ').toUpperCase();
+        var suffix = parts[parts.length - 1];
+        if (suffix === 'demo' || suffix === 'live') {
+          return teams + ' (' + suffix.charAt(0).toUpperCase() + suffix.slice(1) + ')';
+        }
+        return (teams + ' ' + suffix).toUpperCase();
+      }
+      return id.replace(/_/g, ' ').toUpperCase();
+    }
+
+    function renderMatches(data) {
+      var ids = Object.keys(data);
+      if (ids.length === 0) {
+        container.innerHTML = '<div class="no-matches">No matches configured</div>';
+        return;
+      }
+
+      var html = '';
+      ids.forEach(function(mid) {
+        var m = data[mid];
+        var isLive = m.state === 'running';
+
+        html += '<div class="match-card">';
+
+        // Top bar: name + badge + start/stop
+        html += '<div class="match-top">';
+        if (isLive) html += '<span class="live-dot"></span>';
+        html += '<span class="match-name">' + esc(formatMatchName(m.match_id)) + '</span>';
+        html += '<span class="badge badge-' + (m.state || 'idle') + '">' + esc(m.state || 'idle') + '</span>';
+        html += '<span class="match-actions">';
+        if (m.stt_utterance_count > 0) {
+          html += '<span class="stt-count">' + m.stt_utterance_count + ' utterances</span>';
+        }
+        var isRunnable = !m.state || m.state === 'idle' || m.state === 'stopped' || m.state === 'error';
+        var isStoppable = m.state === 'starting' || m.state === 'running';
+        if (isRunnable) {
+          html += '<button class="btn-start" onclick="matchAction(\'' + esc(mid) + '\', \'start\')">Start</button>';
+        } else if (isStoppable) {
+          html += '<button class="btn-stop" onclick="matchAction(\'' + esc(mid) + '\', \'stop\')">Stop</button>';
+        }
+        html += '</span>';
+        html += '</div>';
+
+        // Language buttons — always show from configured_languages
+        var langKeys = m.configured_languages || [];
+        if (langKeys.length > 0) {
+          html += '<div class="languages">';
+          langKeys.forEach(function(lang) {
+            var url = CTL + '/viewer_live.html?match=' + encodeURIComponent(mid)
+                      + '&lang=' + encodeURIComponent(lang);
+            var name = LANG_NAMES[lang] || lang;
+            html += '<a class="lang-btn" href="' + url + '" target="_blank">';
+            html += '<span class="lang-code">' + lang.toUpperCase() + '</span>';
+            html += name;
+            html += '</a>';
+          });
+          html += '</div>';
+        }
+
+        // Error display
+        if (m.error) {
+          html += '<div class="error-msg">' + esc(m.error) + '</div>';
+        }
+
+        // Transcript section
+        html += '<div class="transcript-section">';
+        html += '<div class="transcript-label">English Commentary</div>';
+        html += '<div class="transcript" id="transcript-' + esc(mid) + '">';
+        html += '<div class="empty-transcript">Waiting for commentary...</div>';
+        html += '</div>';
+        html += '</div>';
+
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+
+      // Re-render any existing transcripts
+      ids.forEach(function(mid) {
+        if (transcripts[mid] && transcripts[mid].length > 0) {
+          renderTranscript(mid, transcripts[mid]);
+        }
+      });
+    }
+
+    function renderTranscript(mid, lines) {
+      var el = document.getElementById('transcript-' + mid);
+      if (!el) return;
+
+      var wasAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+
+      var html = '';
+      lines.forEach(function(line) {
+        html += '<div class="line">';
+        html += '<span class="ts">' + fmtTime(line.ts) + '</span>';
+        html += esc(line.text);
+        html += '</div>';
+      });
+      el.innerHTML = html;
+
+      // Auto-scroll only if user was already at the bottom
+      if (wasAtBottom) {
+        el.scrollTop = el.scrollHeight;
+      }
+    }
+
+    function fetchTranscripts(matchIds) {
+      matchIds.forEach(function(mid) {
+        fetch(CTL + '/api/matches/' + encodeURIComponent(mid) + '/transcript', { mode: 'cors' })
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (!data || !data.transcript) return;
+            transcripts[mid] = data.transcript;
+            renderTranscript(mid, data.transcript);
+          })
+          .catch(function() {});
+      });
+    }
+
+    function matchAction(matchId, action) {
+      fetch(CTL + '/api/matches/' + encodeURIComponent(matchId) + '/' + action, {
+        method: 'POST',
+        mode: 'cors'
+      })
+        .then(function() { poll(); })
+        .catch(function(err) { console.error('matchAction failed:', err); });
+    }
+
+    var lastMatchData = null;
+
+    function poll() {
+      fetch(CTL + '/api/matches', { mode: 'cors' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          // Only re-render cards when match set/states change
+          var changed = !lastMatchData || JSON.stringify(Object.keys(data)) !== JSON.stringify(Object.keys(lastMatchData));
+          if (!changed) {
+            Object.keys(data).forEach(function(mid) {
+              if (!lastMatchData[mid] ||
+                  lastMatchData[mid].state !== data[mid].state ||
+                  lastMatchData[mid].stt_utterance_count !== data[mid].stt_utterance_count ||
+                  JSON.stringify(Object.keys(lastMatchData[mid].languages || {})) !==
+                  JSON.stringify(Object.keys(data[mid].languages || {}))) {
+                changed = true;
+              }
+            });
+          }
+
+          if (changed) {
+            renderMatches(data);
+          }
+          lastMatchData = data;
+
+          // Fetch transcripts for running matches
+          var runningIds = Object.keys(data).filter(function(mid) {
+            return data[mid].state === 'running' || data[mid].state === 'starting';
+          });
+          if (runningIds.length > 0) {
+            fetchTranscripts(runningIds);
+          }
+        })
+        .catch(function() {
+          container.innerHTML = '<div class="server-error">Cannot reach server at ' + esc(CTL) + '</div>';
+        });
+    }
+
+    poll();
+    setInterval(poll, 3000);
+  </script>
+</body>
+</html>

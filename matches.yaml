@@ -1,0 +1,12 @@
+control_port: 8080
+translation_model: "gpt-4o-mini"
+
+matches:
+  - match_id: bmg_fch_demo
+    sport_event_id: "sr:sport_event:61514104"
+    audio: clips/bmg_fch_demo_5min/audio.mp3
+    video_h264: clips/bmg_fch_demo_5min/video.h264
+    events: clips/bmg_fch_demo_5min/events.txt
+    atmosphere: clips/bmg_fch_demo_5min/atmosphere.wav
+    video_delay: 7.0
+    languages: [es, pt, fr, tr, de]

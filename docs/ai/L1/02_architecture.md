@@ -1,15 +1,125 @@
 # L1 — Architecture
 
-> How the STT-translate-TTS pipeline works, its timing model, and the multi-session viewer architecture.
+> Server mode, demo/live match modes, timing model, and the multi-language pipeline.
 
 ## What We're Building
 
-A live commentary translation service for live football matches. Two audio sources feed translated commentary to viewers via Agora:
+A live commentary translation service for live football matches. The primary commentary source is **STT from the live commentator's audio**, transcribed via Deepgram. SR (Sportradar) AI-generated text is a secondary, lower-priority gap-filler — it plays only when the commentator is silent.
 
-1. **SR (Sportradar) AI commentary** — arrives via SR websocket with match timestamps
-2. **STT (live game audio)** — original commentator's speech, transcribed via Deepgram
+Both sources are translated and spoken via TTS, synced to delayed video so the viewer hears translated commentary at the exact moment the original was spoken.
 
-Both are translated and spoken via TTS, synced to delayed video so the viewer hears translated commentary at the exact moment the original was spoken.
+## Server Mode
+
+The production server (`server/`) manages multiple matches simultaneously. Each match runs one STT pipeline that fans out to N language pipelines, each with its own Go publisher and Agora channel.
+
+```
+matches.yaml
+    │
+    ▼
+┌───────────────────┐     ┌────────────────────────┐
+│ server/main.py    │────▶│ Orchestrator            │
+│ (entry point)     │     │  ├─ MatchWorker(bmg_fch)│
+└───────────────────┘     │  │   ├─ STT (1×)        │
+                          │  │   ├─ es pipeline      │
+    ┌─────────────┐       │  │   ├─ pt pipeline      │
+    │ status_api  │◀──────│  │   ├─ fr pipeline      │
+    │ (HTTP :8080)│       │  │   ├─ tr pipeline      │
+    └─────────────┘       │  │   └─ de pipeline      │
+                          │  └─ MatchWorker(...)      │
+                          └────────────────────────────┘
+```
+
+**Key design**: one Deepgram STT connection per match, shared across all languages. The `_on_utterance` callback fans each corrected utterance to all language pipelines (translate → TTS → Go publisher → Agora channel).
+
+### Server vs dev mode
+
+| Aspect | Server mode (`server/main.py`) | Dev mode (`live_match.py`) |
+|---|---|---|
+| Config | YAML file (`matches.yaml`) | CLI args |
+| Matches | Multiple simultaneous | Single |
+| Languages | N per match (shared STT) | One per session (separate STT) |
+| Viewer | `viewer_live.html` | `viewer.html` |
+| Port | 8080 (default) | 8090 |
+| Session model | Per-language channels, shared match | Per-viewer sessions, isolated pipelines |
+
+Dev mode (`live_match.py`) still works and is useful for single-match development and testing.
+
+## Demo Match Mode
+
+Demo mode uses pre-recorded audio/video files with a single STT pipeline fanning out to multiple languages. This is the current production workflow via the server.
+
+```
+┌──────────────┐    ┌──────────┐    ┌──────────────────┐
+│ Pre-recorded │──▶ │ Deepgram │──▶ │ Correct names     │
+│ audio (file) │    │ Nova-3   │    │ apply_corrections │
+└──────────────┘    └──────────┘    └────────┬──────────┘
+                                             │
+                                    _on_utterance (fan-out)
+                                             │
+                    ┌────────────────┬────────┼────────┬────────────────┐
+                    ▼                ▼        ▼        ▼                ▼
+              ┌──────────┐    ┌──────────┐         ┌──────────┐  ┌──────────┐
+              │ Translate │    │ Translate │   ...   │ Translate │  │ Translate │
+              │ → TTS es  │    │ → TTS pt  │         │ → TTS tr  │  │ → TTS de  │
+              └─────┬─────┘    └─────┬─────┘         └─────┬─────┘  └─────┬─────┘
+                    ▼                ▼                      ▼              ▼
+              Go pub → Agora   Go pub → Agora        Go pub → Agora Go pub → Agora
+              bmg_fch-es       bmg_fch-pt             bmg_fch-tr    bmg_fch-de
+```
+
+Each language pipeline has its own Go publisher that publishes delayed video + translated TTS audio on a dedicated Agora channel (`{match_id}-{lang}`).
+
+SR events run in parallel: the SRPrefetcher pre-translates and pre-TTS's each event per language, scheduled to play at exact match time.
+
+## Live Match Mode (Planned)
+
+Live matches use an Agora source channel where a broadcaster publishes three UIDs:
+
+| Source UID | Content |
+|---|---|
+| 73 | Live video |
+| 74 | Stadium atmosphere audio |
+| 75 | Live commentary audio |
+
+### Architecture
+
+```
+Source Agora Channel
+  UID 73 (video) ──────────────────┐
+  UID 74 (atmosphere) ─────────────┤
+  UID 75 (commentary) ─────┐       │
+                            │       │
+                            ▼       ▼
+                    subscribe_audio.go    relay_publish.go (per lang)
+                    (subscribes UID 75)   (subscribes UIDs 73 + 74)
+                            │                     │
+                    PCM stdout → Python    Delay buffer (video_delay seconds)
+                            │                     │
+                    Deepgram STT → Correct        │
+                            │                     │
+                   _on_utterance fan-out           │
+                            │                     │
+               ┌────────┬───┴───┬────────┐        │
+               ▼        ▼       ▼        ▼        │
+          Translate  Translate  ...   Translate    │
+          → TTS es   → TTS pt        → TTS de     │
+               │        │               │         │
+               ▼        ▼               ▼         ▼
+         Output channel per language:
+         delayed video (73) + mixed audio (delayed atmos + TTS) — no UID 75
+```
+
+**Planned** components:
+
+- `subscribe_audio.go` — subscribes to source channel, writes UID 75 (commentary) PCM to stdout. Python STT reads from this process's stdout instead of from a file.
+- `relay_publish.go` — subscribes to source channel UIDs 73 (video) and 74 (atmosphere), holds frames in a delay buffer for `video_delay` seconds, then publishes to the output channel. Audio output is delayed atmosphere mixed with translated TTS. The original commentary (UID 75) is excluded from output.
+- One `relay_publish` process per language.
+
+**Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
+
+## SR Schedule Monitor (Deferred)
+
+Auto-start/stop live matches based on Sportradar schedule data. Would poll the SR schedule API and start `MatchWorker` instances before kickoff, stop them after full time. Not currently scheduled for implementation.
 
 ## Timing Model
 
@@ -33,62 +143,42 @@ For SR events:
 Rule: play at exact play_at time, or drop the utterance.
 ```
 
-## Pipeline Overview
-
-```
-┌──────────────┐    ┌──────────┐    ┌──────────┐    ┌───────────┐
-│ Live audio   │──▶ │ Deepgram │──▶ │ Correct  │──▶ │ Translate │
-│ (mic/file)   │    │ Nova-3   │    │ (determ.) │    │ GPT-4o-m  │
-└──────────────┘    └──────────┘    └──────────┘    └─────┬─────┘
-                    endpointing=200                       │
-                    utterance_end_ms=1000                  │
-┌──────────────┐    ┌──────────┐                          │
-│ SR websocket │──▶ │ Translate│──────────────────────────┤
-│ (live/file)  │    │ GPT-4o-m │                          │
-└──────────────┘    └──────────┘                          ▼
-                                                    ┌──────────────┐
-                                                    │ ElevenLabs   │
-                                                    │ WebSocket TTS│
-                                                    │ (pcm_16000)  │
-                                                    └──────┬───────┘
-                                                           │ PCM bytes
-┌──────────────┐                                           ▼
-│ Live video   │──▶ Go publisher ◀── PCM via stdin ──▶ Agora channel
-│ (delayed 7s) │    (starts audio immediately, delays video)
-└──────────────┘
-```
-
 ## Startup Sequence
 
 1. Go publisher connects to Agora, starts reading audio from stdin immediately
-2. `video_start` is estimated as `time.time() + video_delay` (before publisher confirms)
+2. After audio-ready is confirmed, `video_start` is estimated as `time.time() + video_delay`
 3. STT pipeline starts — audio feed begins, Deepgram processes in real-time
 4. Go publisher sleeps `video_delay` seconds (video frames held back)
 5. After delay, publisher starts sending video → `video_start` is updated to actual time
 6. Translations from step 3 are already ready → play in sync with video
 
-**Timing invariant**: STT utterances scheduled before step 5 use the estimated `video_start`. This works because the Go publisher's delay is deterministic — audio-ready to video-start is always `video_delay` seconds. The estimate and actual value converge to within a few milliseconds.
+**Timing invariant**: STT utterances scheduled before step 5 intentionally use the estimated `video_start`. This is not a fallback or best-effort guess; it is the primary synchronization mechanism that lets STT spend the full `video_delay` budget on transcription, translation, and TTS before first video.
+
+**Why the estimate is valid**: the estimate is taken only after the Go publisher reports audio-ready, and from that point the publisher advances to first video frame by a local deterministic `time.Sleep(video_delay)`. There is no extra network-dependent stage between the estimate and the delayed video start, so `time.time() + video_delay` on the Python side and `time.Sleep(video_delay)` on the Go side converge to within a few milliseconds on the same machine.
+
+**Why `video_start` is updated later**: once the publisher confirms video start, the actual timestamp is stored for log accuracy and for all post-start timing. Early STT utterances are not expected to be materially rescheduled by this update; they should already be aligned by design.
+
+### Server mode startup differences
+
+In server mode, each language has its own Go publisher with its own `video_start`. The MatchWorker:
+
+1. Starts all N Go publishers in sequence, waits for audio-ready on each
+2. Sets provisional `video_start_ref` for STT
+3. Starts STT thread immediately (processes during video delay)
+4. Waits for all publishers to report "video delay complete"
+5. Computes mean `video_start` across all languages; logs warning if spread >500ms
+6. Updates `video_start_ref` to actual mean; per-language pipelines use their own `video_start` for `play_at`
 
 ## Playback Rules
 
-- **SR events**: prefetched TTS, scheduled to exact match time. Always ±0ms.
-- **STT utterances**: translated + TTS'd as fast as possible. If ready before play_at, hold and play at exact time. If late, drop — the moment has passed.
-- **SR INTERRUPT** (e.g. GOAL): clears STT queue, plays to completion uninterrupted.
-- **STT can interrupt SR APPEND**: if STT audio is ready while SR APPEND is playing, STT takes priority. SR APPEND fills gaps without interrupting STT.
+**STT is primary. SR is gap-fill only. STT is never interrupted.**
+
+- **STT utterances**: translated + TTS'd as fast as possible. If ready before play_at, hold and play at exact time. If late, drop — the moment has passed. STT always plays to completion — nothing can interrupt active STT playback.
+- **SR events**: lower-priority gap-fill. SR may only play when there is sufficient idle space around STT playback.
+- **SR INTERRUPT** (e.g. GOAL): high priority within the SR queue, but does **not** preempt active STT. It waits for STT to finish, then plays in the next gap.
+- **STT can interrupt SR**: if STT audio becomes ready while SR is playing, SR is interrupted immediately and STT takes over.
 - **Queue stays at 0-1**: when a new STT utterance arrives with play_at, any stale queued item is replaced.
-
-## Multi-Session Architecture
-
-Each viewer gets an isolated pipeline:
-
-```
-POST /api/session       → creates session (channel, token, lang file)
-GET  /session/{id}/start → spawns pipeline: Go publisher + TTS + STT + SR
-GET  /session/{id}/set-lang?lang=fr → writes to session's lang file
-POST /session/{id}/stop  → kills pipeline
-```
-
-Multiple viewers run concurrently with different languages. Each has its own Agora channel, Go publisher, TTS engine, and pipeline threads.
+- **Invariant**: `stt_cut_short_count` should always be 0. `sr_cut_short_count` is expected and normal — it means the commentator was active.
 
 ## Atmosphere Audio
 
@@ -135,12 +225,35 @@ The "Original" toggle plays the source English commentary audio synced to video,
 |---|---|---|
 | `--video-delay` | 7.0s | Pipeline budget. Longer = more STT utterances survive |
 | `--events-offset` | 0 | Match-time offset for events replay |
-| `--lang` | es | Default translation language |
+| `--lang` | es | Default translation language (dev mode) |
 | `--atmosphere` | none | Path to atmosphere WAV (16kHz mono) |
 | `endpointing` | 200ms | Deepgram VAD — shorter = faster turn detection |
 | `utterance_end_ms` | 1000ms | Deepgram utterance boundary (minimum 1000ms) |
 
+## Translation Models
+
+Two models are benchmarked for translation:
+
+| Model | Avg latency | Notes |
+|---|---|---|
+| `gpt-4o-mini` (temp=0.0) | ~0.95s/call | Fastest, most reliable, no blank responses |
+| `gpt-5.4-mini` (reasoning=low) | ~1.67s/call | Slightly more natural phrasing, occasional blank responses |
+
+Both produce faithful translations. `gpt-5.4-mini` with `reasoning=medium` is not recommended — it rewrites commentary and returns blank responses.
+
+The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4-mini` with `reasoning_effort="medium"` but accepts `model` and `reasoning_effort` parameters to switch. Server mode defaults to `gpt-4o-mini` via the `translation_model` config field.
+
+## Roster-Aware Translation
+
+When a Sportradar `sport_event_id` is available, the translation prompt includes the full player roster fetched from the lineups API. This allows GPT to fix STT name errors (e.g. "Jens Castro" → "Jens Castrop", "Heidenhain" → "Heidenheim") during translation without a static corrections list.
+
+```
+Sportradar lineups.json → roster string → TRANSLATE_SYSTEM_WITH_ROSTER prompt → GPT
+```
+
+The roster includes: team names, manager names, starting XI, substitutes, venue, referees.
+
 ## Related Deep Dives
 
 - [TTSEngine Internals](L2/tts_engine.md) — threading, buffer strategy, atmosphere mixing
-- [STT Pipeline](L2/stt_pipeline.md) — Deepgram config, forced split, correction system
+- [STT Pipeline](L2/stt_pipeline.md) — Deepgram config, forced split, correction system, multi-lang fan-out

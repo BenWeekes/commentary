@@ -64,9 +64,16 @@ func main() {
 		audioFile = args[4]
 	}
 	videoDelaySec := 0.0
+	startAtUnix := 0.0 // absolute wall-clock start time (Unix seconds)
 	if len(args) >= 6 {
 		if v, err := strconv.ParseFloat(args[5], 64); err == nil {
-			videoDelaySec = v
+			if v > 1_000_000_000 {
+				// Absolute Unix timestamp — sleep until this time
+				startAtUnix = v
+			} else {
+				// Relative delay in seconds
+				videoDelaySec = v
+			}
 		}
 	}
 
@@ -184,7 +191,16 @@ func main() {
 	}()
 	fmt.Println("audio publishing started")
 
-	if videoDelaySec > 0 {
+	if startAtUnix > 0 {
+		// Absolute start time mode: sleep until the target wall-clock time
+		targetTime := time.Unix(int64(startAtUnix), int64((startAtUnix-float64(int64(startAtUnix)))*1e9))
+		wait := time.Until(targetTime)
+		fmt.Printf("delaying video until start_at=%.3f (%.1fs from now)\n", startAtUnix, wait.Seconds())
+		if wait > 0 {
+			time.Sleep(wait)
+		}
+		fmt.Println("video delay complete, starting video")
+	} else if videoDelaySec > 0 {
 		fmt.Printf("delaying video by %.1fs\n", videoDelaySec)
 		time.Sleep(time.Duration(videoDelaySec * float64(time.Second)))
 		fmt.Println("video delay complete, starting video")
