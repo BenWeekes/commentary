@@ -10,6 +10,12 @@
 control_port: 8080
 translation_model: "gpt-4o-mini"
 
+cloud_recording:
+  vendor: 1
+  region: 1
+  bucket: "dev-generic"
+  fileNamePrefix: ["TEST9"]
+
 matches:
   # Demo (pre-recorded clip — manual start)
   - match_id: bmg_fch_demo
