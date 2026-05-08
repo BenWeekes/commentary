@@ -1,5 +1,6 @@
 # Environment and secrets
 .env
+matches_live.yaml
 
 # Python
 __pycache__/

@@ -84,6 +84,19 @@ Kills all Go publishers, stops TTS engines, and cleans up the match worker.
 
 **Planned** — not yet implemented. Describes the intended operational workflow for live Bundesliga matches.
 
+### Live match config
+
+Live matches are configured in `matches_live.yaml` (gitignored — contains SRT stream keys). This file follows the same format as `matches.yaml` but with `mode: live` and additional fields: `source_channel`, `video_uid`, `atmosphere_uid`, `commentary_uid`, and `srt_keys`.
+
+```bash
+# Start server with live config
+python3 -m server.main --config matches_live.yaml
+```
+
+SRT ingest server (Europe): `srt://srtlive-rtcpush-prod-eu.agoramdn.com:6001`
+
+UID mapping (all matches): 73 = video, 74 = atmosphere, 75 = commentary.
+
 ### Pre-match
 
 1. Configure match in `matches.yaml` with source channel and language list

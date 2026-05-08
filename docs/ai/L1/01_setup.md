@@ -76,6 +76,10 @@ matches:
 
 File paths in `matches.yaml` are resolved relative to the config file's directory.
 
+### Live match config
+
+Live matches use a separate config file `matches_live.yaml` (gitignored — contains SRT stream keys). Same format as `matches.yaml` but with `mode: live`, `source_channel`, and `srt_keys`. See [05_workflows.md](05_workflows.md) for details.
+
 ### Validate config (dry run)
 
 ```bash
