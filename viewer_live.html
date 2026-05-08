@@ -307,20 +307,31 @@
           // Populate language dropdown from server response
           langSelect.innerHTML = '';
           var langs = Object.keys(channels);
+          // Sort: original first, then alphabetical
+          langs.sort(function(a, b) {
+            if (a === 'original') return -1;
+            if (b === 'original') return 1;
+            return a.localeCompare(b);
+          });
           langs.forEach(function(lang) {
             var opt = document.createElement('option');
             opt.value = lang;
-            var name = LANG_NAMES[lang] || lang;
-            opt.textContent = lang.toUpperCase() + ' - ' + name;
+            if (lang === 'original') {
+              opt.textContent = 'Original (EN)';
+            } else {
+              var name = LANG_NAMES[lang] || lang;
+              opt.textContent = lang.toUpperCase() + ' - ' + name;
+            }
             langSelect.appendChild(opt);
           });
 
-          // Select requested language, or first available
+          // Select requested language, or first non-original language
           if (LANG && channels[LANG]) {
             langSelect.value = LANG;
           } else {
-            langSelect.value = langs[0];
-            LANG = langs[0];
+            var defaultLang = langs.find(function(l) { return l !== 'original'; }) || langs[0];
+            langSelect.value = defaultLang;
+            LANG = defaultLang;
           }
 
           // Join initial channel

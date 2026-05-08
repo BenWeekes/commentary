@@ -93,6 +93,10 @@ class TTSEngine:
         self._playback_meta_slot = None    # protected by _buf_lock
         self._sr_playback_meta_slot = None  # protected by _sr_buf_lock
         self._skipped_meta = collections.deque()     # single-producer/single-consumer, no lock needed
+        # Next STT play_at — set by tts_worker during hold-sleep, read by pipe_writer
+        # to avoid starting SR playback that will be interrupted by imminent STT.
+        # Single float, no lock needed (CPython GIL makes float assignment atomic).
+        self._next_stt_play_at = None
         # Stats
         self._utterance_id = 0
         # Video-relative timestamp (set by pipeline after publisher starts)
@@ -224,6 +228,37 @@ class TTSEngine:
                     except Exception:
                         pass
                 continue
+
+            # Skip SR if STT is arriving before it would finish
+            if source == "SR":
+                stt_due = self._next_stt_play_at
+                if stt_due:
+                    sr_end = time.time() + n_chunks * 0.01
+                    if stt_due < sr_end:
+                        meta = current_meta or {}
+                        print(f"  [{self._vts()}] [PIPE] SR skipped — "
+                              f"STT due in {stt_due - time.time():.2f}s, "
+                              f"SR would take {n_chunks * 10}ms")
+                        with lock:
+                            buf.clear()
+                        if meta and self.on_telemetry:
+                            try:
+                                self.on_telemetry({
+                                    "source": "sr", "status": "dropped",
+                                    "play_started_at": None, "play_ended_at": None,
+                                    "actual_play_duration_ms": 0,
+                                    "total_buffered_ms": n_chunks * 10,
+                                    "interrupted": False, "interrupted_by": "stt_imminent",
+                                    "uid": meta.get("uid"),
+                                    "text": meta.get("text"),
+                                    "translated": meta.get("translated"),
+                                    "translate_time": meta.get("translate_time"),
+                                    "tts_time": meta.get("tts_time"),
+                                    "play_at": meta.get("play_at"),
+                                })
+                            except Exception:
+                                pass
+                        continue
 
             print(f"  [{self._vts()}] [PIPE] {source} playback started — {n_chunks * 10}ms buffered")
             next_tick = time.monotonic()
@@ -761,6 +796,8 @@ class TTSEngine:
                 if wait_s > 0:
                     print(f"  [{self._vts()}] [TTS #{uid}] Buffered {buf_ms}ms in {tts_time:.2f}s — "
                           f"holding {wait_s:.2f}s for sync")
+                    # Signal pipe_writer that STT is coming at this time
+                    self._next_stt_play_at = play_at
                     # Interruptible coarse sleep for the bulk of the wait
                     coarse = wait_s - 0.05
                     if coarse > 0:
@@ -768,6 +805,7 @@ class TTSEngine:
                     # Tight spin for the final ~50ms to hit ±1ms
                     while time.time() < play_at and not self._interrupt.is_set():
                         pass
+                    self._next_stt_play_at = None
                 else:
                     late = -wait_s
                     print(f"  [{self._vts()}] [TTS #{uid}] DROPPED {buf_ms}ms — {late:.2f}s past play_at")

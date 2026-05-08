@@ -99,14 +99,21 @@
     /* Overview tab */
     .overview-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
+      align-items: stretch;
+      min-height: calc(100vh - 180px);
     }
     .overview-card {
       background: #111;
       border: 1px solid #1e1e1e;
       border-radius: 8px;
       padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .overview-card > :last-child {
+      flex: 1;
     }
     .overview-card h3 {
       font-size: 11px;
@@ -151,7 +158,26 @@
       position: sticky;
       top: 0;
       border-bottom: 1px solid #1e1e1e;
+      white-space: nowrap;
     }
+    .col-info {
+      display: inline-block;
+      width: 13px; height: 13px;
+      line-height: 13px;
+      text-align: center;
+      font-size: 9px;
+      font-weight: 700;
+      font-style: normal;
+      color: #444;
+      border: 1px solid #333;
+      border-radius: 50%;
+      margin-left: 4px;
+      cursor: help;
+      vertical-align: middle;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .col-info:hover { color: #888; border-color: #666; }
     .log-table td {
       padding: 6px 10px;
       border-bottom: 1px solid #111;
@@ -270,6 +296,20 @@
       return (m > 0 ? m + ':' : '') + (m > 0 ? s.padStart(5, '0') : s) + 's';
     }
 
+    function th(label, tip) {
+      return '<th>' + label + '<i class="col-info" title="' + esc(tip) + '">i</i></th>';
+    }
+
+    function fmtUtc(unixTs) {
+      if (!unixTs) return '-';
+      var d = new Date(unixTs * 1000);
+      var h = String(d.getHours()).padStart(2, '0');
+      var m = String(d.getMinutes()).padStart(2, '0');
+      var s = String(d.getSeconds()).padStart(2, '0');
+      var ms = String(d.getMilliseconds()).padStart(3, '0');
+      return h + ':' + m + ':' + s + '.' + ms;
+    }
+
     function truncate(s, len) {
       if (!s) return '';
       return s.length > len ? s.substring(0, len) + '...' : s;
@@ -366,7 +406,7 @@
       var kt = detail.keyterms || [];
       html += '<div class="lang-row"><span class="lang-name">Keyterms</span><span class="lang-stats">' + (detail.keyterms_count || 0) + ' terms loaded</span></div>';
       if (kt.length > 0) {
-        html += '<div style="margin-top:8px;font-size:12px;color:#666;line-height:1.6;max-height:160px;overflow-y:auto;">';
+        html += '<div style="margin-top:8px;font-size:12px;color:#666;line-height:1.6;overflow-y:auto;flex:1;">';
         html += esc(kt.join(', '));
         html += '</div>';
       } else {
@@ -391,24 +431,11 @@
       }
       html += '</div>';
 
-      // Historical runs card
-      var runs = detail.runs || [];
-      if (runs.length > 0) {
-        html += '<div class="overview-card">';
-        html += '<h3>Recent Runs (' + runs.length + ')</h3>';
-        runs.forEach(function(r, i) {
-          var isCurrent = detail.log_dir && detail.log_dir.indexOf(r) !== -1;
-          var style = isCurrent ? 'color:#4ade80;font-weight:600' : 'color:#888';
-          html += '<div class="lang-row"><span class="lang-name" style="font-family:monospace;font-size:12px;' + style + '">' + esc(r) + (isCurrent ? ' (current)' : '') + '</span></div>';
-        });
-        html += '</div>';
-      }
-
       // Per-language telemetry
-      var langKeys = Object.keys(langs);
+      var langKeys = Object.keys(langs).filter(function(k) { return k !== 'original'; });
       if (langKeys.length > 0) {
         html += '<div class="overview-card">';
-        html += '<h3>Language Telemetry</h3>';
+        html += '<h3>Language Pipelines</h3>';
         langKeys.forEach(function(lang) {
           var l = langs[lang];
           var t = l.telemetry || {};
@@ -420,18 +447,8 @@
           html += (t.drop_count || 0) + ' drop';
           if (t.sr_cut_short_count) html += ', ' + t.sr_cut_short_count + ' sr-cut';
           if (t.stt_cut_short_count) html += ', ' + t.stt_cut_short_count + ' stt-cut';
+          html += ' &mdash; q:' + (l.tts_queue_size || 0);
           html += '</span>';
-          html += '</div>';
-        });
-        html += '</div>';
-
-        html += '<div class="overview-card">';
-        html += '<h3>Channels</h3>';
-        langKeys.forEach(function(lang) {
-          var l = langs[lang];
-          html += '<div class="lang-row">';
-          html += '<span class="lang-name">' + lang.toUpperCase() + '</span>';
-          html += '<span class="lang-stats">' + esc(l.channel) + ' (q:' + (l.tts_queue_size || 0) + ')</span>';
           html += '</div>';
         });
         html += '</div>';
@@ -448,15 +465,25 @@
         panel.innerHTML = '<div class="empty-state">No STT log data yet</div>';
         return;
       }
+      var vDelay = (detailData && detailData.video_delay) ? detailData.video_delay : 7;
       var html = '<div class="log-table-wrap"><table class="log-table">';
-      html += '<thead><tr><th>Audio Start</th><th>Audio End</th><th>Play At</th><th>Text</th></tr></thead>';
+      html += '<thead><tr>';
+      html += th('Original', 'UTC time played on Original channel (no delay)');
+      html += th('Scheduled', 'UTC time scheduled to play on translated channels (delayed by ' + vDelay + 's)');
+      html += th('Text', 'English text from Deepgram STT');
+      html += th('Offset', 'Position in the audio source file');
+      html += th('Recognized', 'UTC wall clock when Deepgram returned this utterance');
+      html += '</tr></thead>';
       html += '<tbody>';
       rows.forEach(function(r) {
+        // Original played = scheduled - video_delay (original has no delay)
+        var origPlayed = r.play_at ? r.play_at - vDelay : null;
         html += '<tr>';
-        html += '<td class="num">' + fmtAudioStart(r.audio_start) + '</td>';
-        html += '<td class="num">' + fmtAudioStart(r.audio_end) + '</td>';
-        html += '<td class="num">' + (r.wall_clock || '-') + '</td>';
+        html += '<td class="num">' + fmtUtc(origPlayed) + '</td>';
+        html += '<td class="num">' + fmtUtc(r.play_at) + '</td>';
         html += '<td class="text-cell">' + esc(r.text) + '</td>';
+        html += '<td class="num">' + fmtAudioStart(r.audio_start) + ' - ' + fmtAudioStart(r.audio_end) + '</td>';
+        html += '<td class="num">' + (r.wall_clock || '-') + '</td>';
         html += '</tr>';
       });
       html += '</tbody></table></div>';
@@ -472,16 +499,26 @@
       }
       var html = '<div class="log-table-wrap"><table class="log-table">';
       html += '<thead><tr>';
-      html += '<th>Status</th><th>Source</th><th>Original</th><th>Translated</th>';
-      html += '<th>Lag</th><th>Xlat</th><th>TTS</th><th>Duration</th>';
+      html += th('Played', 'UTC time audio actually started playing (or scheduled time if not played)');
+      html += th('Original', 'English source text from STT or Sportradar');
+      html += th('Translated', 'Translated text sent to TTS');
+      html += th('Status', 'played = audio delivered, dropped = too late, replaced = superseded, interrupted = cut short');
+      html += th('Src', 'stt = commentator utterance, sr = Sportradar gap-fill event');
+      html += th('Lag', 'Milliseconds late vs scheduled play time (0 = on time)');
+      html += th('Xlat', 'Translation API round-trip time in ms');
+      html += th('TTS', 'ElevenLabs TTS fetch time in ms');
+      html += th('Dur', 'Actual audio duration played in ms');
       html += '</tr></thead>';
       html += '<tbody>';
       rows.forEach(function(r) {
+        // Show play_started_at if played, otherwise play_at (scheduled time)
+        var playTime = r.play_started_at || r.play_at;
         html += '<tr>';
-        html += '<td class="' + statusClass(r.status) + '">' + esc(r.status) + '</td>';
-        html += '<td class="' + sourceClass(r.source) + '">' + esc(r.source) + '</td>';
+        html += '<td class="num">' + fmtUtc(playTime) + '</td>';
         html += '<td class="text-cell" title="' + esc(r.original) + '">' + esc(truncate(r.original, 80)) + '</td>';
         html += '<td class="text-cell" title="' + esc(r.translated) + '">' + esc(truncate(r.translated, 80)) + '</td>';
+        html += '<td class="' + statusClass(r.status) + '">' + esc(r.status) + '</td>';
+        html += '<td class="' + sourceClass(r.source) + '">' + esc(r.source) + '</td>';
         html += '<td class="num">' + fmtMs(r.start_lag_ms) + '</td>';
         html += '<td class="num">' + fmtMs(r.xlat_ms) + '</td>';
         html += '<td class="num">' + fmtMs(r.tts_ms) + '</td>';
@@ -552,21 +589,17 @@
             tabsBuilt = true;
           }
 
-          // Fetch logs for active tab
-          var fetches = [];
-          if (activeTab === 'overview') {
-            renderOverview();
-            fetches.push(fetchLogs('stt'));
-          } else {
-            fetches.push(fetchLogs(activeTab));
-          }
+          // Fetch ALL log tabs every poll so switching tabs is instant
+          var langs = m.configured_languages || [];
+          var fetches = [fetchLogs('stt')];
+          langs.forEach(function(lang) {
+            fetches.push(fetchLogs(lang));
+          });
 
           return Promise.all(fetches);
         })
         .then(function() {
-          if (activeTab !== 'overview') {
-            renderActiveTab();
-          }
+          renderActiveTab();
           document.getElementById('updated-at').textContent = 'Updated ' + new Date().toLocaleTimeString();
         })
         .catch(function() {});

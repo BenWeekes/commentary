@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import openai
 
-from lib.audio import load_atmosphere
+from lib.audio import load_atmosphere, convert_to_pcm
 from lib.constants import ELEVENLABS_MODEL, VIDEO_DELAY_S
 from lib.corrections import TERMS_LIST
 from lib.events import load_events_file
@@ -336,7 +336,7 @@ class MatchWorker:
             # Compute shared target_start: all publishers will begin video
             # at this exact wall-clock time. Margin accounts for sequential
             # publisher launch + Agora connection time.
-            n_langs = len(self._match.languages)
+            n_langs = len(self._match.languages) + 1  # +1 for original audio pipeline
             connection_margin = max(5.0, n_langs * 2.0)
             target_start = time.time() + connection_margin + self._match.video_delay
             print(f"[{tag}] Shared target_start={target_start:.3f} "
@@ -363,8 +363,14 @@ class MatchWorker:
                     break
                 self._start_lang_pipeline(lang, atmosphere_pcm, tag, start_at=target_start)
 
+            # Start original audio pipeline (passthrough — no delay, plays ahead)
+            if not self._stop.is_set():
+                self._start_original_pipeline(atmosphere_pcm, tag)
+
             # Open per-language log files
             for lang, pipe in self._pipelines.items():
+                if lang == "original":
+                    continue  # no log file for original passthrough
                 self._open_lang_log(lang, pipe.tts.voice_id, pipe.video_start)
 
             if self._stop.is_set():
@@ -385,6 +391,19 @@ class MatchWorker:
             for lang, pipe in self._pipelines.items():
                 if self._stop.is_set():
                     break
+                if lang == "original":
+                    # Original has no video delay — already publishing.
+                    # Just start log readers.
+                    threading.Thread(
+                        target=_log_pub_stream,
+                        args=(pipe.publisher.stdout, f"{tag} ORIGINAL out"),
+                        daemon=True).start()
+                    threading.Thread(
+                        target=_log_pub_stream,
+                        args=(pipe.publisher.stderr, f"{tag} ORIGINAL err"),
+                        daemon=True).start()
+                    continue
+
                 pub_tag = f"{tag} {lang.upper()} PUB"
                 vs = _wait_for_publisher_signal(
                     pipe.publisher, "video delay complete",
@@ -690,6 +709,58 @@ class MatchWorker:
         pipe.video_start = video_start
         self._pipelines[lang] = pipe
 
+    def _start_original_pipeline(self, atmosphere_pcm, tag, start_at=None):
+        """Start a passthrough pipeline that plays original audio on {match_id}-original.
+
+        Demo mode: loads original audio PCM from the audio file, starts a Go
+        publisher with NO video delay — original channel plays ahead of
+        translated channels (video_delay seconds ahead), with A/V in sync.
+        """
+        import wave as _wave
+
+        channel = f"{self._match.match_id}-original"
+        pub_tag = f"{tag} ORIGINAL PUB"
+
+        print(f"[{tag}] Starting original pipeline on channel={channel} (no delay)")
+
+        # Load original audio as PCM bytes
+        pcm_path = convert_to_pcm(self._match.audio)
+        with _wave.open(pcm_path, 'rb') as wf:
+            original_pcm = wf.readframes(wf.getnframes())
+        os.unlink(pcm_path)
+        print(f"[{tag}] Original audio: {len(original_pcm)/32000:.1f}s loaded")
+
+        # No video delay — original plays in real time, ahead of translated channels
+        pub = _start_publisher(
+            self._match.video_h264, channel,
+            0,  # no video delay
+            self._server.agora_app_id, self._server.agora_app_cert,
+            start_at=None)  # no synchronized start — begin immediately
+
+        _wait_for_publisher_signal(pub, "audio publishing started", timeout=15, tag=pub_tag)
+
+        tts = TTSEngine(
+            audio_pipe=pub.stdin,
+            voice_id="original",
+            api_key="",
+            on_telemetry=None,
+        )
+
+        if atmosphere_pcm:
+            tts.set_atmosphere(atmosphere_pcm)
+            tts.set_atmosphere_enabled(True)
+
+        # video_start is now (no delay) — audio position starts from beginning
+        video_start = time.time()
+        tts.video_start = video_start
+        tts.set_original_audio(original_pcm)
+        tts.set_original_enabled(True)
+        tts.start()
+
+        pipe = _LangPipeline("original", channel, tts, sr_prefetcher=None, publisher=pub)
+        pipe.video_start = video_start
+        self._pipelines["original"] = pipe
+
     # ─── Structured log files ────────────────────────────────────────────
 
     def _setup_log_dir(self):
@@ -747,6 +818,8 @@ class MatchWorker:
         print(f"[{tag}] Registering {len(events)} events on {len(self._pipelines)} languages")
 
         for lang, pipe in self._pipelines.items():
+            if not pipe.sr_prefetcher:
+                continue  # skip original passthrough pipeline
             match_time_start = pipe.video_start - self._match.events_offset
 
             def make_translate_fn_factory(target_lang=lang):
@@ -854,6 +927,8 @@ class MatchWorker:
             except Exception:
                 pass
         for lang, pipe in self._pipelines.items():
+            if lang == "original":
+                continue  # original pipeline plays file audio, not TTS
 
             def make_translate_fn(target_lang=lang):
                 def translate(t):

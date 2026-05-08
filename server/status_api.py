@@ -149,6 +149,31 @@ class StatusHandler(BaseHTTPRequestHandler):
                     "uid": uid,
                 }
 
+            # Add original audio channel
+            if match_cfg.mode == "live" and match_cfg.source_channel:
+                # Live: viewer joins the source channel directly
+                orig_uid = _next_uid()
+                orig_token = generate_viewer_token(
+                    cfg.agora_app_id, cfg.agora_app_cert,
+                    match_cfg.source_channel, orig_uid)
+                channels["original"] = {
+                    "channel": match_cfg.source_channel,
+                    "token": orig_token,
+                    "uid": orig_uid,
+                }
+            else:
+                # Demo: dedicated original pipeline publishes on {match_id}-original
+                orig_channel = f"{match_id}-original"
+                orig_uid = _next_uid()
+                orig_token = generate_viewer_token(
+                    cfg.agora_app_id, cfg.agora_app_cert,
+                    orig_channel, orig_uid)
+                channels["original"] = {
+                    "channel": orig_channel,
+                    "token": orig_token,
+                    "uid": orig_uid,
+                }
+
             self._respond(200, {
                 "match_id": match_id,
                 "appid": cfg.agora_app_id,
