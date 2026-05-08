@@ -35,7 +35,6 @@ commentary/
 │   ├── match_worker.py            # MatchWorker: 1 STT → N language pipelines (~530 lines)
 │   ├── sr_data.py                 # Sportradar refresh helpers: lineups/summary fetch, roster/keyterms derivation
 │   ├── srt_ingest.py              # Launch helper for SRT → internal Agora ingest process
-│   ├── srt_audio.py               # Launch helper for ffmpeg SRT → PCM pipe used by direct live STT
 │   ├── status_api.py              # HTTP API + static file serving
 │   └── token_api.py               # generate_viewer_token()
 ├── lib/                           # Shared library (extracted from live_match.py)
@@ -81,7 +80,6 @@ commentary/
 | `server/match_worker.py` | `LangTelemetry`, `MatchStatus` (dataclasses), `_LangPipeline`, `_start_publisher()`, `_wait_for_publisher_signal()`, `_kill_publisher()`, `MatchWorker` class — match lifecycle, live source resolution, STT fan-out, structured JSONL log creation (`_setup_log_dir()`, `_open_stt_log()`, `_open_lang_log()`), telemetry aggregation (`_on_telemetry()`), cleanup | `lib.*`, `server.config`, `server.live_source`, `server.match_store`, `openai` |
 | `server/sr_data.py` | `fetch_lineups()`, `fetch_summary()`, `derive_roster()`, `derive_keyterms()`, `refresh_match_data()` — fixture refresh path for live matches | `urllib.request`, `json`, `time` |
 | `server/srt_ingest.py` | `start_srt_ingest()`, `start_srt_original_publish()` — starts wrapper processes that publish remote SRT into Agora channels | `subprocess`, `os` |
-| `server/srt_audio.py` | `start_srt_audio_pipe()` — ffmpeg helper that decodes live SRT audio to a PCM stdout pipe for direct STT | `subprocess`, `os` |
 | `server/status_api.py` | `StatusHandler` (HTTP handler), `start_status_server()` — GET/POST routes for match status, scheduler overview, channels, transcript, detail, refresh-data, static files | `server.token_api`, `server.sr_data` |
 | `server/token_api.py` | `generate_viewer_token()` — Agora v007 audience-only token | `tokens` |
 

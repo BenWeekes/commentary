@@ -90,7 +90,7 @@ Live matches are configured in `matches_live.yaml`. Live entries support a neste
 
 - `source.type = agora` for an existing Agora source channel with explicit source UIDs
 - `source.type = srt` for a direct SRT pull that is republished into an internal Agora source channel
-- `source.type = srt_direct` for a direct SRT pull where STT reads source audio directly and translated outputs publish encoded video directly from the SRT input
+- `source.type = srt_direct` for a direct SRT pull that publishes one buffered original Agora channel with encoded video, then runs STT and translated relays from that shared original channel
 
 For `source.type = srt`:
 
@@ -102,10 +102,11 @@ For `source.type = srt`:
 
 For `source.type = srt_direct`:
 
-- STT reads raw PCM from ffmpeg directly from `source.url`
-- each translated language channel publishes encoded video directly from `source.url` and takes translated PCM from stdin
-- the viewer-facing original channel is published separately into `source.original_channel`
+- the SRT source is pulled once
+- the viewer-facing original channel is published into `source.original_channel` with encoded video preserved
 - `source.original_buffer_seconds` adds a small source-side delay for original viewing jitter smoothing
+- STT and translated relays then subscribe to that buffered original channel
+- translated relay delay is reduced by `source.original_buffer_seconds` so total delay still equals `video_delay`
 
 ```bash
 # Start server with live config
@@ -126,13 +127,13 @@ Legacy flat live fields (`source_channel`, `video_uid`, `atmosphere_uid`, `comme
 1. Resolve the configured live source:
    - `agora`: use the configured source channel/UIds directly
    - `srt`: start one SRT ingest process and wait for `source publishing started`
-   - `srt_direct`: start the original viewer publisher, open one ffmpeg SRT audio pipe for STT, and start one direct encoded publisher per language
+   - `srt_direct`: start one buffered original publisher and wait for `source publishing started`
 2. Start match via API: `curl -X POST http://localhost:8080/api/matches/{id}/start`
 3. `agora` / `srt`: `subscribe_audio.go` subscribes to the resolved source channel and commentary/program UID, writing PCM to stdout
 4. `agora` / `srt`: Python STT reads from `subscribe_audio` stdout via `pcm_stream_from_pipe()`
-5. `srt_direct`: Python STT reads directly from the ffmpeg SRT audio pipe
+5. `srt_direct`: `subscribe_audio.go` subscribes to the buffered original channel and Python STT reads from its stdout
 6. `agora` / `srt`: per-language `relay_publish.go` subscribes to delayed source video and optional atmosphere, reads TTS from stdin, publishes to output channels
-7. `srt_direct`: per-language direct publishers read encoded video from SRT, read translated PCM from stdin, and delay first video to the shared `start_at`
+7. `srt_direct`: per-language `relay_publish.go` also subscribes to the buffered original channel, using `video_delay - source.original_buffer_seconds` as the downstream relay delay
 8. Viewers connect to per-language output channels
 
 ### Standalone one-language live test

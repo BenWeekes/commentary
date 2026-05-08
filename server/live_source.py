@@ -22,8 +22,8 @@ class ResolvedLiveSource:
     atmosphere_uid: int
     commentary_uid: int
     source_atmos_enabled: bool
-    input_url: str = ""
     original_channel: str = ""
+    source_buffer_seconds: float = 0.0
     owned_proc: subprocess.Popen | None = None
 
 
@@ -104,8 +104,8 @@ def resolve_live_source(
             atmosphere_uid=source.atmosphere_uid,
             commentary_uid=source.commentary_uid,
             source_atmos_enabled=True,
-            input_url="",
             original_channel=source.channel,
+            source_buffer_seconds=0.0,
             owned_proc=None,
         )
 
@@ -145,13 +145,13 @@ def resolve_live_source(
 
         return ResolvedLiveSource(
             source_type="srt_direct",
-            channel="",
-            video_uid=0,
+            channel=source.original_channel,
+            video_uid=source.publish_uid,
             atmosphere_uid=0,
-            commentary_uid=0,
+            commentary_uid=source.publish_uid,
             source_atmos_enabled=False,
-            input_url=source.url,
             original_channel=source.original_channel,
+            source_buffer_seconds=source.original_buffer_seconds,
             owned_proc=proc,
         )
 
@@ -197,8 +197,8 @@ def resolve_live_source(
         atmosphere_uid=0,
         commentary_uid=source.publish_uid,
         source_atmos_enabled=False,
-        input_url=source.url,
         original_channel=source.ingest_channel,
+        source_buffer_seconds=0.0,
         owned_proc=proc,
     )
 

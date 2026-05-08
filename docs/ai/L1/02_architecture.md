@@ -85,7 +85,7 @@ Live matches support three source modes:
 - `source.type = srt`
   Pulls one remote SRT feed, republishes it into an internal Agora channel, then runs the normal live worker from there.
 - `source.type = srt_direct`
-  Pulls one remote SRT feed twice: one ffmpeg audio decode pipe feeds STT directly, while each translated output channel publishes encoded video directly from the SRT input. A separate original viewer channel is still republished into Agora with a small source buffer.
+  Pulls one remote SRT feed once, republishes a buffered original channel into Agora using encoded video, then runs STT and translated relays from that same original channel.
 
 Agora-backed live matches use a source channel where the broadcaster publishes three UIDs:
 
@@ -140,9 +140,10 @@ For `source.type = srt`:
 
 For `source.type = srt_direct`:
 
-- STT reads raw PCM from an ffmpeg SRT audio decode pipe, not from Agora
-- translated language channels publish encoded video directly from the SRT input and take translated PCM from stdin
-- the original viewer channel is still published into Agora, using `source.original_channel` and `source.original_buffer_seconds`
+- the source is pulled once and published into `source.original_channel` using encoded H.264 with `source.original_buffer_seconds` of source-side buffering
+- STT subscribes to that buffered original channel
+- translated relays also subscribe to that same buffered original channel
+- downstream relay delay is reduced by `source.original_buffer_seconds` so total end-to-end delay still matches `video_delay`
 - there is still no separate source-atmosphere bed; outputs are delayed video + translated TTS only
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
