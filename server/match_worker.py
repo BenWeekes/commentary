@@ -1211,6 +1211,8 @@ class MatchWorker:
                         audio_start = round(play_at - pipe.video_start, 2)
                     xlat_time = data.get("translate_time")
                     tts_time = data.get("tts_time")
+                    local_speed = data.get("local_speed_factor")
+                    speed = local_speed if local_speed is not None else (1.0 if tts_time else None)
                     play_started_at = data.get("play_started_at")
                     play_ended_at = data.get("play_ended_at")
                     start_lag_ms = None
@@ -1225,7 +1227,7 @@ class MatchWorker:
                         "play_started_at": play_started_at,
                         "play_ended_at": play_ended_at,
                         "start_lag_ms": start_lag_ms,
-                        "xlat_ms": round(xlat_time * 1000) if xlat_time else None,
+                        "trans_ms": round(xlat_time * 1000) if xlat_time else None,
                         "tts_ms": round(tts_time * 1000) if tts_time else None,
                         "status": status,
                         "interrupted_by": interrupted_by,
@@ -1235,7 +1237,8 @@ class MatchWorker:
                         "total_buffered_ms": data.get("total_buffered_ms", 0),
                         "pre_translated": data.get("pre_translated", False),
                         "queue_wait_ms": data.get("queue_wait_ms", 0),
-                        "local_speed_factor": data.get("local_speed_factor"),
+                        "speed": speed,
+                        "local_speed_factor": local_speed,
                         "fit_from_ms": data.get("fit_from_ms"),
                         "fit_to_ms": data.get("fit_to_ms"),
                         "fit_deadline_ms": data.get("fit_deadline_ms"),

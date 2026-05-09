@@ -355,6 +355,11 @@
       return v + 'ms';
     }
 
+    function fmtSpeed(v) {
+      if (v === null || v === undefined) return '-';
+      return Number(v).toFixed(2) + 'x';
+    }
+
     function fmtAudioStart(v) {
       if (v === null || v === undefined) return '-';
       var m = Math.floor(v / 60);
@@ -673,8 +678,9 @@
       html += th('Status', 'played = audio delivered, dropped = too late, replaced = superseded, interrupted = cut short');
       html += th('Src', 'stt = commentator utterance, sr = Sportradar gap-fill event');
       html += th('Lag', 'Milliseconds late vs scheduled play time (0 = on time)');
-      html += th('Xlat', 'Translation API round-trip time in ms');
+      html += th('Trans', 'Translation API round-trip time in ms');
       html += th('TTS', 'ElevenLabs TTS fetch time in ms');
+      html += th('Speed', 'Local playback speed factor used to fit the clip before the next STT item');
       html += th('Dur', 'Actual audio duration played in ms');
       html += '</tr></thead>';
       html += '<tbody>';
@@ -690,8 +696,9 @@
         html += '<td class="' + statusClass(r.status) + '">' + esc(r.status) + '</td>';
         html += '<td class="' + sourceClass(r.source) + '">' + esc(r.source) + '</td>';
         html += '<td class="num">' + fmtMs(r.start_lag_ms) + '</td>';
-        html += '<td class="num">' + fmtMs(r.xlat_ms) + '</td>';
+        html += '<td class="num">' + fmtMs(r.trans_ms || r.xlat_ms) + '</td>';
         html += '<td class="num">' + fmtMs(r.tts_ms) + '</td>';
+        html += '<td class="num">' + fmtSpeed(r.speed || r.local_speed_factor) + '</td>';
         html += '<td class="num">' + fmtMs(r.play_duration_ms) + '</td>';
         html += '</tr>';
       });

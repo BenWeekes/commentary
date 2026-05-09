@@ -228,6 +228,109 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    /* Logs panel — visible by default; hide with ?logs=false */
+    body.with-logs #video-wrapper {
+      bottom: 232px;
+    }
+    #logs-panel {
+      display: none;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 220px;
+      background: #0a0a0a;
+      border-top: 1px solid #1e1e1e;
+      z-index: 5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body.with-logs #logs-panel { display: flex; flex-direction: column; }
+    #logs-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 0 12px;
+      border-bottom: 1px solid #1e1e1e;
+      background: #060606;
+      flex: 0 0 auto;
+      overflow-x: auto;
+    }
+    #logs-tabs .tab {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+      white-space: nowrap;
+    }
+    #logs-tabs .tab:hover { color: #aaa; }
+    #logs-tabs .tab.active {
+      color: #fff;
+      border-bottom-color: #2563eb;
+    }
+    #logs-content {
+      flex: 1 1 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    #logs-content .tab-panel {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: auto;
+    }
+    #logs-content .tab-panel.active { display: block; }
+    #logs-content .empty-state {
+      padding: 14px;
+      color: #555;
+      font-size: 12px;
+    }
+    #logs-content table.log-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    #logs-content table.log-table th {
+      text-align: left;
+      padding: 6px 10px;
+      background: #111;
+      color: #555;
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid #1e1e1e;
+      white-space: nowrap;
+      z-index: 1;
+    }
+    #logs-content table.log-table td {
+      padding: 4px 10px;
+      border-bottom: 1px solid #111;
+      color: #bbb;
+      vertical-align: top;
+      max-width: 360px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #logs-content table.log-table tr:hover td { background: #0d0d0d; }
+    #logs-content table.log-table .status-played    { color: #4ade80; }
+    #logs-content table.log-table .status-dropped   { color: #f87171; }
+    #logs-content table.log-table .status-replaced  { color: #fbbf24; }
+    #logs-content table.log-table .status-interrupted { color: #818cf8; }
+    #logs-content table.log-table .status-suppressed  { color: #f97316; }
+    #logs-content table.log-table .source-sr  { color: #60a5fa; font-weight: 600; }
+    #logs-content table.log-table .source-stt { color: #a78bfa; font-weight: 600; }
+    #logs-content table.log-table .num { font-family: monospace; color: #888; }
+    #logs-content table.log-table .text-cell {
+      white-space: nowrap;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -244,6 +347,11 @@
 
   <div id="video-wrapper">
     <div id="video-container"></div>
+  </div>
+
+  <div id="logs-panel">
+    <div id="logs-tabs"></div>
+    <div id="logs-content"></div>
   </div>
 
   <div id="spinner-overlay" class="hidden">
@@ -269,6 +377,8 @@
     var CTL   = params.get('ctl')   || window.location.origin;
     var MATCH = params.get('match') || '';
     var LANG  = params.get('lang')  || '';
+    var SHOW_LOGS = params.get('logs') !== 'false';
+    if (SHOW_LOGS) document.body.classList.add('with-logs');
 
     var statusEl        = document.getElementById('status-overlay');
     var liveBadge       = document.getElementById('live-badge');
@@ -337,6 +447,9 @@
           // Join all match channels once. Channel switches then only move
           // subscriptions, which is much faster than leave/join.
           prepareChannels(langSelect.value);
+
+          // Start tailing per-match logs into the bottom panel.
+          startLogsPolling(Object.keys(channels));
         })
         .catch(function(err) {
           console.error('Failed to load channels:', err);
@@ -444,7 +557,185 @@
     // Language change = channel switch (no API call needed)
     langSelect.addEventListener('change', function() {
       switchChannel(langSelect.value);
+      syncLogsTabToLang(langSelect.value);
     });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Logs panel (hidden when ?logs=false)
+    // ─────────────────────────────────────────────────────────────────
+    var logsTabsEl    = document.getElementById('logs-tabs');
+    var logsContentEl = document.getElementById('logs-content');
+    var logsActiveTab = 'stt';
+    var logCache      = {};   // {key: rows[]}
+    var logsPollTimer = null;
+    var configuredLangs = [];
+
+    function logEsc(s) {
+      if (s == null) return '';
+      var d = document.createElement('div');
+      d.textContent = String(s);
+      return d.innerHTML;
+    }
+    function fmtUtc(ts) {
+      if (!ts) return '-';
+      var d = new Date(ts * 1000);
+      var pad2 = function(n) { return String(n).padStart(2, '0'); };
+      var pad3 = function(n) { return String(n).padStart(3, '0'); };
+      return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) + '.' + pad3(d.getMilliseconds());
+    }
+    function fmtMs(v) { return (v == null) ? '-' : (v + 'ms'); }
+    function fmtSpeed(v) {
+      if (v == null) return '-';
+      return Number(v).toFixed(2) + 'x';
+    }
+    function fmtAudioStart(v) {
+      if (v == null) return '-';
+      var m = Math.floor(v / 60);
+      var s = (v % 60).toFixed(2);
+      return (m > 0 ? (m + ':' + s.padStart(5, '0')) : (s + 's'));
+    }
+    function truncate(s, n) {
+      if (!s) return '';
+      return s.length > n ? s.substring(0, n) + '...' : s;
+    }
+
+    function buildLogsTabs(langs) {
+      var tabs = [{ key: 'stt', label: 'STT' }];
+      langs.forEach(function(l) {
+        if (l === 'original') return;  // 'original' has no per-lang log
+        tabs.push({ key: l, label: l.toUpperCase() });
+      });
+      var tabsHtml = '';
+      var panelsHtml = '';
+      tabs.forEach(function(t) {
+        var cls = (t.key === logsActiveTab) ? ' active' : '';
+        tabsHtml += '<div class="tab' + cls + '" data-tab="' + t.key + '">' + logEsc(t.label) + '</div>';
+        panelsHtml += '<div class="tab-panel' + cls + '" id="logs-panel-' + t.key + '"></div>';
+      });
+      logsTabsEl.innerHTML = tabsHtml;
+      logsContentEl.innerHTML = panelsHtml;
+      logsTabsEl.querySelectorAll('.tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          activateLogsTab(tab.getAttribute('data-tab'));
+        });
+      });
+    }
+
+    function activateLogsTab(key) {
+      logsActiveTab = key;
+      logsTabsEl.querySelectorAll('.tab').forEach(function(t) {
+        t.classList.toggle('active', t.getAttribute('data-tab') === key);
+      });
+      logsContentEl.querySelectorAll('.tab-panel').forEach(function(p) {
+        p.classList.toggle('active', p.id === 'logs-panel-' + key);
+      });
+      renderLogsActiveTab();
+    }
+
+    function syncLogsTabToLang(lang) {
+      if (!SHOW_LOGS) return;
+      // 'original' has no per-lang log → fall back to STT tab.
+      var target = (lang === 'original') ? 'stt' : lang;
+      if (logsTabsEl.querySelector('[data-tab="' + target + '"]')) {
+        activateLogsTab(target);
+      }
+    }
+
+    function renderSttPanel(rows) {
+      var panel = document.getElementById('logs-panel-stt');
+      if (!panel) return;
+      if (!rows || rows.length === 0) {
+        panel.innerHTML = '<div class="empty-state">No STT log data yet</div>';
+        return;
+      }
+      var html = '<table class="log-table"><thead><tr>'
+        + '<th>Scheduled</th><th>Text</th><th>Offset</th><th>Recognized</th>'
+        + '</tr></thead><tbody>';
+      // Server returns newest-first already; no client-side reverse.
+      rows.forEach(function(r) {
+        html += '<tr>'
+          + '<td class="num">' + logEsc(fmtUtc(r.play_at)) + '</td>'
+          + '<td class="text-cell" title="' + logEsc(r.text) + '">' + logEsc(truncate(r.text, 140)) + '</td>'
+          + '<td class="num">' + logEsc(fmtAudioStart(r.audio_start)) + ' - ' + logEsc(fmtAudioStart(r.audio_end)) + '</td>'
+          + '<td class="num">' + logEsc(r.wall_clock || '-') + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table>';
+      panel.innerHTML = html;
+    }
+
+    function statusClass(s) { return 'status-' + (s || '').replace(/\s+/g, '-'); }
+    function sourceClass(s) { return 'source-' + (s || ''); }
+
+    function renderLangPanel(lang, rows) {
+      var panel = document.getElementById('logs-panel-' + lang);
+      if (!panel) return;
+      if (!rows || rows.length === 0) {
+        panel.innerHTML = '<div class="empty-state">No log data for ' + lang.toUpperCase() + ' yet</div>';
+        return;
+      }
+      var html = '<table class="log-table"><thead><tr>'
+        + '<th>Played</th><th>Original</th><th>Translated</th><th>Status</th><th>Src</th>'
+        + '<th>Lag</th><th>Trans</th><th>TTS</th><th>Speed</th><th>Dur</th>'
+        + '</tr></thead><tbody>';
+      rows.forEach(function(r) {
+        var playTime = r.play_started_at || r.play_at;
+        html += '<tr>'
+          + '<td class="num">' + logEsc(fmtUtc(playTime)) + '</td>'
+          + '<td class="text-cell" title="' + logEsc(r.original) + '">' + logEsc(truncate(r.original, 80)) + '</td>'
+          + '<td class="text-cell" title="' + logEsc(r.translated) + '">' + logEsc(truncate(r.translated, 80)) + '</td>'
+          + '<td class="' + statusClass(r.status) + '">' + logEsc(r.status) + '</td>'
+          + '<td class="' + sourceClass(r.source) + '">' + logEsc(r.source) + '</td>'
+          + '<td class="num">' + logEsc(fmtMs(r.start_lag_ms)) + '</td>'
+          + '<td class="num">' + logEsc(fmtMs(r.trans_ms || r.xlat_ms)) + '</td>'
+          + '<td class="num">' + logEsc(fmtMs(r.tts_ms)) + '</td>'
+          + '<td class="num">' + logEsc(fmtSpeed(r.speed || r.local_speed_factor)) + '</td>'
+          + '<td class="num">' + logEsc(fmtMs(r.play_duration_ms)) + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table>';
+      panel.innerHTML = html;
+    }
+
+    function renderLogsActiveTab() {
+      if (logsActiveTab === 'stt') {
+        renderSttPanel(logCache.stt);
+      } else {
+        renderLangPanel(logsActiveTab, logCache[logsActiveTab]);
+      }
+    }
+
+    function fetchLogTab(key) {
+      var url = CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/logs/' + key + '?tail=60';
+      return fetch(url, { mode: 'cors' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          if (data && data.rows) logCache[key] = data.rows;
+        })
+        .catch(function() { /* swallow — keep stale cache */ });
+    }
+
+    function pollLogsOnce() {
+      var fetches = [fetchLogTab('stt')];
+      configuredLangs.forEach(function(l) {
+        if (l !== 'original') fetches.push(fetchLogTab(l));
+      });
+      Promise.all(fetches).then(renderLogsActiveTab);
+    }
+
+    function startLogsPolling(langs) {
+      if (!SHOW_LOGS) return;
+      configuredLangs = langs.slice();
+      buildLogsTabs(configuredLangs);
+      // Sync the panel to whatever language the viewer joined with.
+      syncLogsTabToLang(LANG);
+      // Initial fetch + 2s interval.
+      pollLogsOnce();
+      if (logsPollTimer) clearInterval(logsPollTimer);
+      logsPollTimer = setInterval(function() {
+        if (document.visibilityState === 'visible') pollLogsOnce();
+      }, 2000);
+    }
 
     function subscribeAll(state) {
       if (!state) return Promise.resolve();
@@ -513,6 +804,7 @@
     }
 
     window.addEventListener('beforeunload', function() {
+      if (logsPollTimer) clearInterval(logsPollTimer);
       Object.keys(clientsByLang).forEach(function(lang) {
         var state = clientsByLang[lang];
         if (state && state.joined) {

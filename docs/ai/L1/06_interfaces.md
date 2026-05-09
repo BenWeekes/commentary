@@ -215,8 +215,9 @@ Utterance fields:
 - `uid` (STT utterance id, or `null` for SR)
 - `audio_start`
 - `play_at`
-- `xlat_ms`
+- `trans_ms`
 - `tts_ms`
+- `speed`
 - `status`
 - `original`
 - `translated`

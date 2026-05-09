@@ -57,13 +57,11 @@ def _compute_intervals(ttk: float | None) -> tuple[float, float]:
     """
     if ttk is None:
         return (60.0, 300.0)       # unknown kickoff: check 60s, refresh 5min
-    if ttk > 30 * 60:
-        return (60.0, 600.0)       # >30min: check 60s, refresh only if stale
-    if ttk > 10 * 60:
-        return (60.0, 300.0)       # 30-10min: check 60s, refresh 5min
-    if ttk > 3 * 60:
-        return (30.0, 60.0)        # 10-3min: check 30s, refresh 60s
-    return (5.0, 15.0)             # <3min: check 5s, refresh 15s
+    if ttk > 5 * 60:
+        return (60.0, 3600.0)      # known kickoff: no lineup refresh until final 5min
+    if ttk > 0:
+        return (5.0, 60.0)         # final 5min: check 5s, refresh 1min
+    return (5.0, 60.0)             # in-game window: check 5s, refresh 1min
 
 
 # ── Scheduler ────────────────────────────────────────────────────────
@@ -184,9 +182,14 @@ class Scheduler:
         # Update intervals based on proximity to kickoff
         ms.check_interval, ms.refresh_interval = _compute_intervals(ttk)
 
+        outside_after_window = ttk is not None and ttk < -self._AUTO_STOP_AFTER_S
+        inside_refresh_window = ttk is None or (-self._AUTO_STOP_AFTER_S <= ttk <= 5 * 60)
+
         # Check if we need to refresh SR data
         needs_refresh = False
-        if ms.last_refresh_at == 0:
+        if not inside_refresh_window:
+            needs_refresh = False
+        elif ms.last_refresh_at == 0:
             needs_refresh = True  # never refreshed
         elif now - ms.last_refresh_at > ms.refresh_interval:
             needs_refresh = True
@@ -197,8 +200,6 @@ class Scheduler:
         # Get current worker state
         worker = self._orchestrator.get_worker(mid)
         worker_state = worker.status.state if worker else "idle"
-
-        outside_after_window = ttk is not None and ttk < -self._AUTO_STOP_AFTER_S
 
         # State machine transitions
         if worker_state in ("starting", "running"):
@@ -311,6 +312,7 @@ class Scheduler:
         elif result.get("status") == "already_refreshing":
             pass  # another thread is handling it
         else:
+            ms.last_refresh_at = now
             ms.last_error = result.get("error", result.get("status", "unknown"))
             print(f"[SCHED] {mid} refresh failed: {ms.last_error}")
 
