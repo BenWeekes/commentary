@@ -83,6 +83,8 @@ matches:
       publish_uid: 73
       original_buffer_seconds: 1.0
       retry_seconds: 60
+      audio_stream_index: 2
+      atmosphere_audio_stream_index: 1
     video_uid: 73
     video_delay: 14.0
     languages: [es, pt, fr, tr, de]

@@ -26,6 +26,7 @@ class ResolvedLiveSource:
     original_channel: str = ""
     source_buffer_seconds: float = 0.0
     local_pcm_addr: str = ""
+    local_atmos_pcm_addr: str = ""
     local_video_addr: str = ""
     owned_proc: subprocess.Popen | None = None
 
@@ -88,14 +89,14 @@ def _wait_for_stdout_signal(
     raise RuntimeError(f"timed out waiting for source readiness signal '{signal_text}'")
 
 
-_LOCAL_READY_RE = re.compile(r"local sources ready pcm=(?P<pcm>\S*) video=(?P<video>\S*)")
+_LOCAL_READY_RE = re.compile(r"local sources ready pcm=(?P<pcm>\S*)(?: atmos_pcm=(?P<atmos_pcm>\S*))? video=(?P<video>\S*)")
 
 
-def _parse_local_ready_line(line: str) -> tuple[str, str]:
+def _parse_local_ready_line(line: str) -> tuple[str, str, str]:
     match = _LOCAL_READY_RE.search(line)
     if not match:
         raise RuntimeError(f"could not parse local source line: {line}")
-    return match.group("pcm"), match.group("video")
+    return match.group("pcm"), match.group("atmos_pcm") or "", match.group("video")
 
 
 def resolve_live_source(
@@ -131,7 +132,10 @@ def resolve_live_source(
             retry_seconds=source.retry_seconds,
             source_buffer_seconds=source.original_buffer_seconds,
             pcm_listen="127.0.0.1:0",
+            atmos_pcm_listen="127.0.0.1:0",
             video_listen="127.0.0.1:0",
+            audio_stream_index=source.audio_stream_index,
+            atmos_audio_stream_index=source.atmosphere_audio_stream_index,
             app_id=server_cfg.agora_app_id,
             app_cert=server_cfg.agora_app_cert,
         )
@@ -148,7 +152,7 @@ def resolve_live_source(
                 stop_event=stop_event,
                 tag=f"{tag} SRC",
             )
-            local_pcm_addr, local_video_addr = _parse_local_ready_line(ready_line)
+            local_pcm_addr, local_atmos_pcm_addr, local_video_addr = _parse_local_ready_line(ready_line)
             _wait_for_stdout_signal(
                 proc,
                 "source publishing started",
@@ -172,10 +176,11 @@ def resolve_live_source(
             video_uid=source.publish_uid,
             atmosphere_uid=0,
             commentary_uid=0,
-            source_atmos_enabled=False,
+            source_atmos_enabled=bool(local_atmos_pcm_addr),
             original_channel=source.original_channel,
             source_buffer_seconds=0.0,
             local_pcm_addr=local_pcm_addr,
+            local_atmos_pcm_addr=local_atmos_pcm_addr,
             local_video_addr=local_video_addr,
             owned_proc=proc,
         )

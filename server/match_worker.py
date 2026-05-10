@@ -657,6 +657,8 @@ class MatchWorker:
                 ]
                 if resolved.source_type == "srt_direct":
                     relay_cmd.extend(["--video-source-tcp", resolved.local_video_addr])
+                    if resolved.local_atmos_pcm_addr:
+                        relay_cmd.extend(["--atmos-source-tcp", resolved.local_atmos_pcm_addr])
                 else:
                     relay_cmd.extend([
                         "--source-channel", resolved.channel,

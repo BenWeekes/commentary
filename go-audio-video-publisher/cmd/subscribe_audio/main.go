@@ -13,6 +13,8 @@ import (
 	rtctokenbuilder "github.com/AgoraIO/Tools/DynamicKey/AgoraDynamicKey/go/src/rtctokenbuilder2"
 )
 
+const mediaTokenTTLSeconds = uint32(24 * 60 * 60)
+
 func main() {
 	appID := flag.String("app-id", envOr("AGORA_APP_ID", ""), "Agora App ID")
 	appCert := flag.String("app-certificate", envOr("AGORA_APP_CERTIFICATE", ""), "Agora App Certificate")
@@ -43,7 +45,7 @@ func run(appID, appCert, channel, targetUID, localUID string, stop <-chan os.Sig
 		var err error
 		token, err = rtctokenbuilder.BuildTokenWithUserAccount(
 			appID, appCert, channel, localUID,
-			rtctokenbuilder.RoleSubscriber, 3600, 3600)
+			rtctokenbuilder.RoleSubscriber, mediaTokenTTLSeconds, mediaTokenTTLSeconds)
 		if err != nil {
 			return fmt.Errorf("build token: %w", err)
 		}

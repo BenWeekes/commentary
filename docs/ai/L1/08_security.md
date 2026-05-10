@@ -25,7 +25,7 @@
 - Go publisher generates its own token internally via `buildToken()` → `rtctokenbuilder.BuildTokenWithUserAccount()` with `RolePublisher`
 - Both modes pass `AGORA_APP_CERT` to the Go publisher via the `AGORA_APP_CERTIFICATE` env var
 - Both modes refuse to start without `AGORA_APP_CERT` — there is no empty-cert fallback
-- Token expiry: 86400s (24 hours) for viewer tokens, 3600s (1 hour) for publisher tokens
+- Token expiry: 86400s (24 hours) for viewer tokens and Go media publisher/subscriber tokens
 - The `APP_CERT` is used for HMAC-SHA256 signing — never expose it to clients
 
 ### Token generation flow (production server)

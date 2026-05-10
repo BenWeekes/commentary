@@ -29,6 +29,8 @@ import (
 	"github.com/benweekes/go-audio-video-publisher/internal/localstream"
 )
 
+const mediaTokenTTLSeconds = uint32(24 * 60 * 60)
+
 type config struct {
 	appID                         string
 	appCert                       string
@@ -60,7 +62,10 @@ type config struct {
 	startAt                       time.Time
 	sourceBuffer                  time.Duration
 	pcmListen                     string
+	atmosPcmListen                string
 	videoListen                   string
+	audioStreamIndex              int
+	atmosAudioStreamIndex         int
 	debugSleep                    bool
 }
 
@@ -153,7 +158,10 @@ func parseConfig() (*config, error) {
 	flag.Float64Var(&startAtUnix, "start-at", 0, "Absolute Unix timestamp to start source video")
 	flag.Float64Var(&sourceBufferSeconds, "source-buffer-seconds", 0, "Extra delay applied before source media is sent")
 	flag.StringVar(&cfg.pcmListen, "pcm-listen", "", "Local TCP listen address for raw PCM fanout (for example 127.0.0.1:0)")
+	flag.StringVar(&cfg.atmosPcmListen, "atmos-pcm-listen", "", "Local TCP listen address for raw atmosphere PCM fanout (for example 127.0.0.1:0)")
 	flag.StringVar(&cfg.videoListen, "video-listen", "", "Local TCP listen address for cleaned H264 fanout (for example 127.0.0.1:0)")
+	flag.IntVar(&cfg.audioStreamIndex, "audio-stream-index", -1, "Input AV stream index to use for commentary/program audio; -1 auto-selects")
+	flag.IntVar(&cfg.atmosAudioStreamIndex, "atmos-audio-stream-index", -1, "Input AV stream index to use for atmosphere audio fanout; -1 disables separate atmosphere")
 	flag.BoolVar(&cfg.debugSleep, "debug-sleep-log", false, "Log pacing sleeps while sending media")
 	flag.Parse()
 
@@ -170,8 +178,8 @@ func parseConfig() (*config, error) {
 		return nil, errors.New("--audio-from-stdin requires --input")
 	case cfg.audioFromStdin && (cfg.hasEncodedInputs() || cfg.hasRawInputs()):
 		return nil, errors.New("--audio-from-stdin only supports --input media mode")
-	case (cfg.pcmListen != "" || cfg.videoListen != "") && cfg.input == "":
-		return nil, errors.New("--pcm-listen/--video-listen require --input")
+	case (cfg.pcmListen != "" || cfg.atmosPcmListen != "" || cfg.videoListen != "") && cfg.input == "":
+		return nil, errors.New("--pcm-listen/--atmos-pcm-listen/--video-listen require --input")
 	case cfg.videoMode != "encoded" && cfg.videoMode != "yuv" && cfg.videoMode != "reencode":
 		return nil, errors.New("--video-mode must be one of: encoded, yuv, reencode")
 	case cfg.videoListen != "" && cfg.videoMode == "yuv":
@@ -292,21 +300,30 @@ func run(cfg *config, stop <-chan os.Signal) error {
 		return err
 	}
 	defer pcmServer.close()
+	atmosPCMServer, err := startPCMServer(cfg.atmosPcmListen)
+	if err != nil {
+		return err
+	}
+	defer atmosPCMServer.close()
 	videoFanout, err := startVideoFanout(cfg.videoListen)
 	if err != nil {
 		return err
 	}
 	defer videoFanout.close()
-	if pcmServer != nil || videoFanout != nil {
+	if pcmServer != nil || atmosPCMServer != nil || videoFanout != nil {
 		pcmAddr := ""
+		atmosPCMAddr := ""
 		videoAddr := ""
 		if pcmServer != nil {
 			pcmAddr = pcmServer.addr
 		}
+		if atmosPCMServer != nil {
+			atmosPCMAddr = atmosPCMServer.addr
+		}
 		if videoFanout != nil {
 			videoAddr = videoFanout.addr
 		}
-		fmt.Printf("local sources ready pcm=%s video=%s\n", pcmAddr, videoAddr)
+		fmt.Printf("local sources ready pcm=%s atmos_pcm=%s video=%s\n", pcmAddr, atmosPCMAddr, videoAddr)
 	}
 
 	svcCfg := agoraservice.NewAgoraServiceConfig()
@@ -453,8 +470,8 @@ func run(cfg *config, stop <-chan os.Signal) error {
 			err = streamEncodedAssets(con, cfg, stop, disconnected)
 		} else if cfg.hasRawInputs() {
 			err = streamRawAssets(con, cfg, stop, disconnected)
-		} else if pcmServer != nil || videoFanout != nil {
-			err = streamMediaWithLocalFanout(con, cfg, stop, disconnected, pcmServer, videoFanout)
+		} else if pcmServer != nil || atmosPCMServer != nil || videoFanout != nil {
+			err = streamMediaWithLocalFanout(con, cfg, stop, disconnected, pcmServer, atmosPCMServer, videoFanout)
 		} else if cfg.audioFromStdin {
 			err = streamMediaWithPCMStdin(con, cfg, stop, disconnected)
 		} else {
@@ -605,10 +622,11 @@ func streamMediaWithLocalFanout(
 	stop <-chan os.Signal,
 	disconnected <-chan string,
 	pcmServer *pcmServer,
+	atmosPCMServer *pcmServer,
 	videoFanout *videoFanout,
 ) error {
-	audioPublisher := startDelayedAudioPublisher(con)
-	defer audioPublisher.close()
+	audioMixer := startSourceAudioMixer(con)
+	defer audioMixer.close()
 	videoPublisher := startDelayedVideoPublisher(con)
 	defer videoPublisher.close()
 	videoStats := &videoBitrateLogger{}
@@ -620,7 +638,7 @@ func streamMediaWithLocalFanout(
 
 	for {
 		fileName := C.CString(cfg.input)
-		decoder := C.open_media_file(fileName)
+		decoder := C.open_media_file_with_audio_streams(fileName, C.int(cfg.audioStreamIndex), C.int(cfg.atmosAudioStreamIndex))
 		C.free(unsafe.Pointer(fileName))
 		if decoder == nil {
 			if !remoteInput {
@@ -633,7 +651,7 @@ func streamMediaWithLocalFanout(
 				return fmt.Errorf("open media file %q after %.0fs without media", cfg.input, maxNoMedia.Seconds())
 			}
 			fmt.Fprintf(os.Stderr, "open media file %q failed; retrying in %s\n", cfg.input, retryInterval)
-			if err := holdLocalPCM(pcmServer, stop, disconnected, retryInterval); err != nil {
+			if err := holdLocalPCM(pcmServer, atmosPCMServer, stop, disconnected, retryInterval); err != nil {
 				return err
 			}
 			continue
@@ -642,7 +660,8 @@ func streamMediaWithLocalFanout(
 		var packet *C.struct__MediaPacket
 		frame := C.struct__MediaFrame{}
 		C.memset(unsafe.Pointer(&frame), 0, C.sizeof_struct__MediaFrame)
-		audioChunker := &audioChunker{}
+		commentaryChunker := &audioChunker{}
+		atmosChunker := &audioChunker{}
 		h264Parser := &h264AUParser{}
 		h264Cleaner := &h264Repacketizer{}
 
@@ -680,7 +699,7 @@ func streamMediaWithLocalFanout(
 					return fmt.Errorf("no media from input for %.0fs: code=%d", maxNoMedia.Seconds(), int(ret))
 				}
 				fmt.Fprintf(os.Stderr, "media read ended code=%d; keeping local outputs alive and retrying in %s\n", int(ret), retryInterval)
-				if err := holdLocalPCM(pcmServer, stop, disconnected, retryInterval); err != nil {
+				if err := holdLocalPCM(pcmServer, atmosPCMServer, stop, disconnected, retryInterval); err != nil {
 					return err
 				}
 				reopen = true
@@ -729,7 +748,13 @@ func streamMediaWithLocalFanout(
 
 			switch packet.media_type {
 			case C.AVMEDIA_TYPE_AUDIO:
-				chunks, err := decodeAudioChunks(decoder, packet, &frame, audioChunker)
+				packetStreamIndex := int(packet.pkt.stream_index)
+				isAtmos := cfg.atmosAudioStreamIndex >= 0 && packetStreamIndex == cfg.atmosAudioStreamIndex
+				chunker := commentaryChunker
+				if isAtmos {
+					chunker = atmosChunker
+				}
+				chunks, err := decodeAudioChunks(decoder, packet, &frame, chunker)
 				packet = nil
 				if err != nil {
 					if remoteInput {
@@ -741,12 +766,16 @@ func streamMediaWithLocalFanout(
 				}
 				chunkPublishAt := originalBase.Add(delta)
 				for _, chunk := range chunks {
-					if pcmServer != nil {
+					if isAtmos && atmosPCMServer != nil {
+						atmosPCMServer.writeChunk(chunk)
+					}
+					if !isAtmos && pcmServer != nil {
 						pcmServer.writeChunk(chunk)
 					}
-					audioPublisher.enqueue(delayedAudioChunk{
+					audioMixer.enqueue(sourceAudioChunk{
 						pcm:       append([]byte(nil), chunk...),
 						publishAt: chunkPublishAt,
+						isAtmos:   isAtmos,
 					})
 					chunkPublishAt = chunkPublishAt.Add(10 * time.Millisecond)
 				}
@@ -793,7 +822,7 @@ func streamMediaWithLocalFanout(
 	}
 }
 
-func holdLocalPCM(pcmServer *pcmServer, stop <-chan os.Signal, disconnected <-chan string, duration time.Duration) error {
+func holdLocalPCM(pcmServer *pcmServer, atmosPCMServer *pcmServer, stop <-chan os.Signal, disconnected <-chan string, duration time.Duration) error {
 	if duration <= 0 {
 		return nil
 	}
@@ -813,6 +842,9 @@ func holdLocalPCM(pcmServer *pcmServer, stop <-chan os.Signal, disconnected <-ch
 		}
 		if pcmServer != nil {
 			pcmServer.writeChunk(silence)
+		}
+		if atmosPCMServer != nil {
+			atmosPCMServer.writeChunk(silence)
 		}
 		nextTick = nextTick.Add(10 * time.Millisecond)
 	}
@@ -1789,16 +1821,14 @@ func mediaBaseTime(cfg *config) time.Time {
 }
 
 func buildToken(appID string, appCert string, channel string, uid string) (string, error) {
-	tokenExpirationInSeconds := uint32(3600)
-	privilegeExpirationInSeconds := uint32(3600)
 	token, err := rtctokenbuilder.BuildTokenWithUserAccount(
 		appID,
 		appCert,
 		channel,
 		uid,
 		rtctokenbuilder.RolePublisher,
-		tokenExpirationInSeconds,
-		privilegeExpirationInSeconds,
+		mediaTokenTTLSeconds,
+		mediaTokenTTLSeconds,
 	)
 	if err != nil {
 		return "", fmt.Errorf("build token: %w", err)

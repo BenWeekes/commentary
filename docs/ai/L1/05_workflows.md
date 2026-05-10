@@ -105,8 +105,11 @@ For `source.type = srt_direct`:
 - the SRT source is pulled once
 - the viewer-facing original channel is published into `source.original_channel` with encoded video preserved
 - `source.original_buffer_seconds` adds a small source-side delay for original viewing jitter smoothing
-- Python STT reads local PCM from the source process directly
+- `source.audio_stream_index` selects the commentary/program audio stream for STT and original-channel commentary
+- `source.atmosphere_audio_stream_index` optionally selects a separate atmosphere stream
+- Python STT reads commentary PCM from the source process directly
 - per-language `relay_publish.go` reads cleaned local H.264 from the source process directly
+- per-language `relay_publish.go` reads delayed atmosphere PCM from the source process when configured, then mixes it with translated TTS
 - translated relay delay stays equal to `video_delay`; the original-channel buffer affects viewer-original playback only
 
 ```bash
@@ -134,7 +137,7 @@ Legacy flat live fields (`source_channel`, `video_uid`, `atmosphere_uid`, `comme
 4. `agora` / `srt`: Python STT reads from `subscribe_audio` stdout via `pcm_stream_from_pipe()`
 5. `srt_direct`: Python STT connects to the source process's local PCM socket
 6. `agora` / `srt`: per-language `relay_publish.go` subscribes to delayed source video and optional atmosphere, reads TTS from stdin, publishes to output channels
-7. `srt_direct`: per-language `relay_publish.go` connects to the source process's local H.264 socket and uses the full configured `video_delay`
+7. `srt_direct`: per-language `relay_publish.go` connects to the source process's local H.264 and optional atmosphere PCM sockets, and uses the full configured `video_delay`
 8. Viewers connect to per-language output channels
 
 ### Standalone one-language live test
@@ -215,6 +218,7 @@ Each per-language output channel contains:
 - Mixed audio:
   - Agora live source: delayed atmosphere + translated TTS
   - SRT live source: translated TTS only
+  - SRT direct live source with `atmosphere_audio_stream_index`: delayed atmosphere + translated TTS
 - No original commentary (UID 75 is excluded from output)
 
 ### Notable limitations in live mode

@@ -190,11 +190,19 @@ It is **not** an Agora RTC token and is not sent to Agora as a credential.
 
 `convert_to_pcm()` produces WAV files with variable-size headers (typically 78 bytes, not the assumed 44). `pcm_chunks_realtime()` uses `wave.open()` to read PCM data correctly.
 
-## video_start is estimated before publisher confirms
+## Live target_start is authoritative
 
-STT starts processing audio during the video delay, before the Go publisher confirms video has started. The pipeline sets a temporary `video_start = time.time() + video_delay` (the `target_start`) and schedules early STT utterances against it. Once the publisher reports "video delay complete", `pipe.video_start` and `_video_start_ref[0]` are updated to the actual value. Subsequent STT utterances use the corrected timestamps. Utterances scheduled before the correction may have slight drift (typically <50ms).
+STT starts processing audio during the video delay, before the Go publisher confirms video has started. The worker computes one shared `target_start` and passes it into the Go publisher/relay processes as an absolute start time. STT utterances are scheduled against that target from the beginning.
 
-In server mode, each language publisher has its own `video_start`. The MatchWorker warns if any publisher's actual `video_start` drifts more than 500ms from `target_start`.
+When a publisher reports `video delay complete`, the timestamp is diagnostic only. The live language clocks are not retimed afterward; retiming already queued live utterances can create audible drift. MatchWorker still warns if any publisher's actual first-video time drifts more than 500ms from `target_start`.
+
+## Agora media tokens must outlive the match
+
+Viewer tokens are 24h, but the Go media publishers also generate their own publisher/subscriber tokens. If those media tokens are shorter than the match, publishing can silently fail while SRT decoding still appears healthy in logs. Keep the Go media token TTL at 24h (`mediaTokenTTLSeconds`) for:
+
+- `go-audio-video-publisher/main.go`
+- `go-audio-video-publisher/cmd/relay_publish/main.go`
+- `go-audio-video-publisher/cmd/subscribe_audio/main.go`
 
 ## Related Deep Dives
 

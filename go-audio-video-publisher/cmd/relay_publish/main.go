@@ -19,6 +19,8 @@ import (
 	"github.com/benweekes/go-audio-video-publisher/internal/localstream"
 )
 
+const mediaTokenTTLSeconds = uint32(24 * 60 * 60)
+
 // videoFrame holds a received encoded video frame for delay buffering.
 type videoFrame struct {
 	data      []byte
@@ -38,6 +40,7 @@ func main() {
 	sourceChannel := flag.String("source-channel", "", "Source Agora channel to subscribe to")
 	outputChannel := flag.String("output-channel", "", "Output Agora channel to publish to")
 	videoSourceTCP := flag.String("video-source-tcp", "", "Local TCP source for cleaned H264 frames (bypasses Agora video subscription)")
+	atmosSourceTCP := flag.String("atmos-source-tcp", "", "Local TCP source for raw 16kHz mono PCM atmosphere chunks")
 	videoUID := flag.String("video-uid", "73", "Remote UID for video in source channel")
 	atmosUID := flag.String("atmos-uid", "74", "Remote UID for atmosphere audio in source channel")
 	atmosEnabled := flag.Bool("atmos-enabled", true, "Whether to subscribe to and mix source atmosphere audio")
@@ -73,9 +76,10 @@ func main() {
 		sourceChannel:  *sourceChannel,
 		outputChannel:  *outputChannel,
 		videoSourceTCP: *videoSourceTCP,
+		atmosSourceTCP: *atmosSourceTCP,
 		videoUID:       *videoUID,
 		atmosUID:       *atmosUID,
-		atmosEnabled:   *atmosEnabled && *videoSourceTCP == "",
+		atmosEnabled:   *atmosEnabled && (*videoSourceTCP == "" || *atmosSourceTCP != ""),
 		videoDelay:     time.Duration(*videoDelay * float64(time.Second)),
 		startAt:        startAtTime,
 		subUID:         *subUID,
@@ -93,6 +97,7 @@ type relayConfig struct {
 	sourceChannel  string
 	outputChannel  string
 	videoSourceTCP string
+	atmosSourceTCP string
 	videoUID       string
 	atmosUID       string
 	atmosEnabled   bool
@@ -141,6 +146,9 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	var droppedAtmosChunks int64
 	var droppedCatchupFrames int64
 	var videoFrameCount int64
+	var pushedAudioChunks int64
+	var pushedAtmosAudioChunks int64
+	var pushedTTSAudioChunks int64
 
 	if cfg.videoSourceTCP == "" {
 		subToken := ""
@@ -148,7 +156,7 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 			var err error
 			subToken, err = rtctokenbuilder.BuildTokenWithUserAccount(
 				cfg.appID, cfg.appCert, cfg.sourceChannel, cfg.subUID,
-				rtctokenbuilder.RoleSubscriber, 3600, 3600)
+				rtctokenbuilder.RoleSubscriber, mediaTokenTTLSeconds, mediaTokenTTLSeconds)
 			if err != nil {
 				return fmt.Errorf("build subscriber token: %w", err)
 			}
@@ -327,13 +335,48 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 		}()
 	}
 
+	if cfg.videoSourceTCP != "" && cfg.atmosEnabled && cfg.atmosSourceTCP != "" {
+		logStderr("[SRC] using local atmosphere source %s", cfg.atmosSourceTCP)
+		go func() {
+			for {
+				conn, err := net.Dial("tcp", cfg.atmosSourceTCP)
+				if err != nil {
+					select {
+					case <-stop:
+						return
+					case <-time.After(500 * time.Millisecond):
+						continue
+					}
+				}
+				if tcp, ok := conn.(*net.TCPConn); ok {
+					_ = tcp.SetNoDelay(true)
+				}
+				for {
+					chunk := make([]byte, 320)
+					if _, err := io.ReadFull(conn, chunk); err != nil {
+						_ = conn.Close()
+						break
+					}
+					ac := &atmosChunk{pcm: chunk, receiveAt: time.Now()}
+					select {
+					case atmosBuffer <- ac:
+					default:
+						<-atmosBuffer
+						atmosBuffer <- ac
+						atomic.AddInt64(&droppedAtmosChunks, 1)
+					}
+				}
+			}
+		}()
+	}
+
 	// --- Publisher connection (output channel) ---
 	pubToken := ""
 	if cfg.appCert != "" {
 		var err error
 		pubToken, err = rtctokenbuilder.BuildTokenWithUserAccount(
 			cfg.appID, cfg.appCert, cfg.outputChannel, cfg.pubUID,
-			rtctokenbuilder.RolePublisher, 3600, 3600)
+			rtctokenbuilder.RolePublisher, mediaTokenTTLSeconds, mediaTokenTTLSeconds)
 		if err != nil {
 			return fmt.Errorf("build publisher token: %w", err)
 		}
@@ -413,6 +456,8 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	done := make(chan error, 3)
 	var wg sync.WaitGroup
 
+	catchupTolerance := 200 * time.Millisecond
+
 	// Video relay goroutine: pop from buffer, delay, push to publisher.
 	// In --start-at mode, waits until the absolute start time before publishing
 	// any frames (ensures all language relays start in sync).
@@ -420,7 +465,6 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	go func() {
 		defer wg.Done()
 		videoDelayComplete := false
-		catchupTolerance := 200 * time.Millisecond
 
 		// If startAt is set, wait until that time before publishing anything
 		if !cfg.startAt.IsZero() {
@@ -483,6 +527,17 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 	go func() {
 		defer wg.Done()
 		defer close(atmosReady)
+
+		if !cfg.startAt.IsZero() {
+			if wait := time.Until(cfg.startAt); wait > 0 {
+				select {
+				case <-time.After(wait):
+				case <-stop:
+					return
+				}
+			}
+		}
+
 		for {
 			select {
 			case <-stop:
@@ -491,8 +546,19 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 				if !ok {
 					return
 				}
-				if remaining := cfg.videoDelay - time.Since(ac.receiveAt); remaining > 0 {
-					time.Sleep(remaining)
+				publishAt := ac.receiveAt.Add(cfg.videoDelay)
+				if !cfg.startAt.IsZero() {
+					if lateBy := time.Since(publishAt); lateBy > catchupTolerance {
+						atomic.AddInt64(&droppedAtmosChunks, 1)
+						continue
+					}
+					if wait := time.Until(publishAt); wait > 0 {
+						time.Sleep(wait)
+					}
+				} else {
+					if remaining := cfg.videoDelay - time.Since(ac.receiveAt); remaining > 0 {
+						time.Sleep(remaining)
+					}
 				}
 				select {
 				case atmosReady <- ac.pcm:
@@ -584,6 +650,14 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 			rc := pubCon.PushAudioPcmData(output, 16000, 1, elapsedMs)
 			if rc != 0 {
 				logStderr("[PUB] PushAudioPcmData failed: %d", rc)
+			} else {
+				atomic.AddInt64(&pushedAudioChunks, 1)
+				if atmosPCM != nil {
+					atomic.AddInt64(&pushedAtmosAudioChunks, 1)
+				}
+				if ttsPCM != nil {
+					atomic.AddInt64(&pushedTTSAudioChunks, 1)
+				}
 			}
 			nextTick = nextTick.Add(10 * time.Millisecond)
 			elapsedMs += 10
@@ -597,8 +671,11 @@ func run(cfg *relayConfig, stop <-chan os.Signal) error {
 		for {
 			select {
 			case <-ticker.C:
-				logStderr("[STATS] video_frames=%d atmos_dropped=%d video_dropped=%d catchup_dropped=%d",
+				logStderr("[STATS] video_frames=%d audio_chunks=%d atmos_chunks=%d tts_chunks=%d atmos_dropped=%d video_dropped=%d catchup_dropped=%d",
 					atomic.LoadInt64(&videoFrameCount),
+					atomic.LoadInt64(&pushedAudioChunks),
+					atomic.LoadInt64(&pushedAtmosAudioChunks),
+					atomic.LoadInt64(&pushedTTSAudioChunks),
 					atomic.LoadInt64(&droppedAtmosChunks),
 					atomic.LoadInt64(&droppedVideoFrames),
 					atomic.LoadInt64(&droppedCatchupFrames))

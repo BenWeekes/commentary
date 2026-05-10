@@ -92,13 +92,13 @@ Live mode does **not** currently poll real-time SR commentary endpoints or injec
 
 - Agora live source: delayed video + delayed atmosphere + translated TTS
 - SRT live source: delayed video + translated TTS only
-- SRT direct live source: delayed video + translated TTS only; Python STT reads local PCM and `relay_publish` reads local cleaned H.264, while original viewing uses a separate buffered Agora channel
+- SRT direct live source: delayed video + translated TTS, plus delayed atmosphere when `source.atmosphere_audio_stream_index` is configured; Python STT reads local commentary PCM and `relay_publish` reads local cleaned H.264 plus optional atmosphere PCM, while original viewing uses a separate buffered Agora channel
 
 ### Publisher UID
 
 | UID | Role | Publishes |
 |---|---|---|
-| 73 | Go publisher (per language channel) | H.264 video + PCM audio (TTS + atmosphere) |
+| 73 | Go publisher (per language channel) | H.264 video + PCM audio (TTS plus optional delayed atmosphere) |
 | 100+ | Viewers (browser) | Nothing (audience role) |
 
 ### Channel profile
@@ -106,7 +106,8 @@ Live mode does **not** currently poll real-time SR commentary endpoints or injec
 - Channel profile: live broadcasting
 - Video codec: H.264
 - Audio: PCM 16kHz mono via publisher stdin → Agora SDK
-- Token: v007 format, 24-hour expiry, generated per viewer via `server/token_api.py`
+- Viewer token: v007 format, 24-hour expiry, generated per viewer via `server/token_api.py`
+- Media publisher token: Agora RTC token with publisher privileges, 24-hour expiry, generated inside the Go publisher tools
 
 ### Standalone live test channel contract
 
@@ -373,6 +374,18 @@ go run relay_publish.go <app_id> <source_channel> <output_channel> <video_delay>
 Environment: `AGORA_APP_CERTIFICATE`, `DYLD_LIBRARY_PATH`
 
 One `relay_publish` process runs per language.
+
+### SRT Direct Local Source Contract
+
+For `source.type = srt_direct`, the server starts one `publish_srt_to_agora.py` / Go source process. That process owns the only SRT connection and exposes local sockets for the rest of the pipeline:
+
+| Local source | Consumer | Content |
+|---|---|---|
+| `pcm` | Python STT | selected commentary/program audio, 16kHz mono S16LE |
+| `atmos_pcm` | per-language `relay_publish.go` | selected atmosphere audio, 16kHz mono S16LE |
+| `video` | per-language `relay_publish.go` | cleaned H.264 access units |
+
+The source process also publishes `source.original_channel` for viewer original mode. That channel carries encoded video plus a commentary/atmosphere mix delayed by `source.original_buffer_seconds`.
 
 ### Live Mode Source Channel Layout
 

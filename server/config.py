@@ -17,6 +17,8 @@ class LiveSourceConfig:
     retry_seconds: float = 5.0
     original_channel: str = ""
     original_buffer_seconds: float = 1.0
+    audio_stream_index: int = -1
+    atmosphere_audio_stream_index: int = -1
 
 
 @dataclass
@@ -41,7 +43,7 @@ class MatchConfig:
     # Shared
     video_delay: float = 7.0
     events_offset: int = 0
-    max_stt_duration: float = 5.0
+    max_stt_duration: float = 6.5
     languages: list[str] = field(default_factory=lambda: ["es", "pt", "fr", "tr", "de"])
     prestart_seconds: float = 30.0
 
@@ -99,6 +101,8 @@ def _parse_live_source(raw_match: dict) -> LiveSourceConfig | None:
             retry_seconds=source_raw.get("retry_seconds", 5.0),
             original_channel=source_raw.get("original_channel", f"{raw_match.get('match_id', '')}-original"),
             original_buffer_seconds=source_raw.get("original_buffer_seconds", 1.0),
+            audio_stream_index=source_raw.get("audio_stream_index", -1),
+            atmosphere_audio_stream_index=source_raw.get("atmosphere_audio_stream_index", -1),
         )
 
     if any(k in raw_match for k in ("source_channel", "video_uid", "atmosphere_uid", "commentary_uid")):
@@ -200,7 +204,7 @@ def load_config(yaml_path: str) -> ServerConfig:
             source=live_source,
             video_delay=m.get("video_delay", 7.0),
             events_offset=m.get("events_offset", 0),
-            max_stt_duration=m.get("max_stt_duration", 5.0),
+            max_stt_duration=m.get("max_stt_duration", 6.5),
             languages=m.get("languages", ["es", "pt", "fr", "tr", "de"]),
             prestart_seconds=m.get("prestart_seconds", 30.0),
             display_name=m.get("display_name", ""),

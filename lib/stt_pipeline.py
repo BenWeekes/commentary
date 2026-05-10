@@ -39,6 +39,10 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
     dg_client = DeepgramClient()
 
     terms = keyterms if keyterms is not None else TERMS_LIST
+    terms = [term.strip() for term in terms if term and term.strip()]
+    if len(terms) > 100:
+        print(f"[{log_tag}] Limiting Deepgram keyterms from {len(terms)} to 100")
+        terms = terms[:100]
     corr_list = corrections if corrections is not None else CORRECTIONS
 
     def _vs():
@@ -51,27 +55,53 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
 
     utterance_count = [0]
 
-    with dg_client.listen.v1.connect(
-        model="nova-3",
-        language="en",
-        encoding="linear16",
-        sample_rate=16000,
-        punctuate="true",
-        smart_format="true",
-        interim_results="true",
-        utterance_end_ms="1000",
-        endpointing="200",
-        keyterm=terms,
-    ) as ws:
+    connect_kwargs = {
+        "model": "nova-3",
+        "language": "en",
+        "encoding": "linear16",
+        "sample_rate": 16000,
+        "punctuate": "true",
+        "smart_format": "true",
+        "interim_results": "true",
+        "utterance_end_ms": "1000",
+        "endpointing": "500",
+    }
+    if terms:
+        connect_kwargs["keyterm"] = terms
+
+    try:
+        ws_context = dg_client.listen.v1.connect(**connect_kwargs)
+        ws = ws_context.__enter__()
+    except Exception as exc:
+        if not terms or "400" not in str(exc):
+            raise
+        print(f"[{log_tag}] Deepgram rejected keyterms ({exc}); retrying without keyterms")
+        connect_kwargs.pop("keyterm", None)
+        ws_context = dg_client.listen.v1.connect(**connect_kwargs)
+        ws = ws_context.__enter__()
+
+    audio_thread = None
+    try:
 
         def feed_audio():
-            if is_file:
-                for chunk, _ in pcm_chunks_realtime(pcm_path):
-                    ws.send_media(chunk)
-            else:
-                for chunk, _ in pcm_stream_from_pipe(audio_source, stop_event):
-                    ws.send_media(chunk)
-            ws.send_close_stream()
+            try:
+                if is_file:
+                    for chunk, _ in pcm_chunks_realtime(pcm_path):
+                        if stop_event.is_set():
+                            break
+                        ws.send_media(chunk)
+                else:
+                    for chunk, _ in pcm_stream_from_pipe(audio_source, stop_event):
+                        if stop_event.is_set():
+                            break
+                        ws.send_media(chunk)
+                if not stop_event.is_set():
+                    ws.send_close_stream()
+            except Exception as exc:
+                if stop_event.is_set() or "ConnectionClosed" in type(exc).__name__:
+                    print(f"[{log_tag}] Audio feed stopped — Deepgram websocket closed")
+                else:
+                    raise
 
         wall_start = time.time()
         vs_val = video_start_fn() if video_start_fn else None
@@ -157,6 +187,12 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
             force_split_end[0] = 0.0
             force_split_text[0] = ""
             _emit(transcript, audio_start, audio_end)
+    finally:
+        if audio_thread and audio_thread.is_alive() and stop_event.is_set():
+            audio_thread.join(timeout=1.0)
+        ws_context.__exit__(None, None, None)
+        if audio_thread and audio_thread.is_alive():
+            audio_thread.join(timeout=1.0)
 
     if pcm_path:
         os.unlink(pcm_path)
@@ -166,7 +202,7 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
 
 def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
                      last_stt_time, stop_event, lang_file=None,
-                     video_delay=3.0, max_stt_duration=5.0,
+                     video_delay=3.0, max_stt_duration=6.5,
                      get_current_lang=None):
     """
     Stream audio through Deepgram → Corrections → Translate → ElevenLabs TTS.
@@ -213,7 +249,7 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
 
 def run_stt_pipeline_multi(audio_path, on_utterance, deepgram_key, stop_event,
                            video_start_ref, video_delay=7.0,
-                           max_stt_duration=5.0, keyterms=None,
+                           max_stt_duration=6.5, keyterms=None,
                            corrections=None):
     """Run STT pipeline with a multi-language callback.
 
@@ -255,7 +291,7 @@ def run_stt_pipeline_multi(audio_path, on_utterance, deepgram_key, stop_event,
 
 def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
                           video_start_ref, video_delay=7.0,
-                          max_stt_duration=5.0, keyterms=None,
+                          max_stt_duration=6.5, keyterms=None,
                           corrections=None):
     """Run STT pipeline from a live audio pipe (subprocess stdout).
 

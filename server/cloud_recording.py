@@ -1,7 +1,7 @@
 """Agora Cloud Recording REST API wrapper.
 
-Provides acquire → start → query → stop lifecycle for mix-mode audio-only
-recording of per-language output channels.  Each channel gets its own
+Provides acquire → start → query → stop lifecycle for mix-mode audio+video
+recording of per-language output channels. Each channel gets its own
 recording session saved to S3 as HLS segments.
 
 Uses urllib.request (same pattern as sr_data.py) — no extra dependencies.
@@ -82,11 +82,11 @@ def start_channel_recording(
     recording_uid: int,
     storage_config: dict,
 ) -> RecordingSession:
-    """Acquire resource + start mix-mode audio-only recording for one channel.
+    """Acquire resource + start mix-mode audio+video recording for one channel.
 
     Uses mix mode so all UIDs in the channel are recorded into a single
-    mixed audio file (HLS).  Mix mode supports subscribeAudioUids with
-    #allstream# to capture all publishers automatically.
+    mixed HLS output. Mix mode supports #allstream# subscriptions to
+    capture all publishers automatically.
 
     Args:
         app_id: Agora App ID.
@@ -111,7 +111,7 @@ def start_channel_recording(
     # Step 2: Generate token for recording UID on this channel
     token = generate_viewer_token(app_id, app_cert, channel, recording_uid)
 
-    # Step 3: Start recording (mix mode — single mixed audio file per channel)
+    # Step 3: Start recording (mix mode — single mixed AV output per channel)
     path = (f"/v1/apps/{app_id}/cloud_recording/resourceid/{resource_id}"
             f"/mode/mix/start")
     body = {
@@ -120,9 +120,10 @@ def start_channel_recording(
         "clientRequest": {
             "token": token,
             "recordingConfig": {
-                "streamTypes": 0,  # audio only
+                "streamTypes": 2,  # audio + video
                 "channelType": 1,  # live broadcast
                 "subscribeAudioUids": ["#allstream#"],
+                "subscribeVideoUids": ["#allstream#"],
                 "maxIdleTime": 120,
             },
             "recordingFileConfig": {

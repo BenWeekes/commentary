@@ -44,6 +44,9 @@ typedef struct _MediaPacket {
 
 // open file for decode or demux, return decoder handle
 extern void * open_media_file(const char *file_name);
+extern void * open_media_file_with_audio_streams(const char *file_name, int audio_stream_index, int secondary_audio_stream_index);
+extern int primary_audio_stream_index(void *decoder);
+extern int secondary_audio_stream_index(void *decoder);
 // demux and alloc packet
 extern int get_packet(void *decoder, MediaPacket **packet);
 // free packet

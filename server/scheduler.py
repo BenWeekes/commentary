@@ -70,7 +70,10 @@ class Scheduler:
     """Single daemon thread that manages live match lifecycle."""
 
     _AUTO_START_BEFORE_S = 30 * 60
-    _AUTO_STOP_AFTER_S = 15 * 60
+    # Keep live matches running through the full fixture. This is measured
+    # from kickoff, so it needs to cover normal time, half-time, stoppage,
+    # and a post-match buffer.
+    _AUTO_STOP_AFTER_S = 150 * 60
 
     def __init__(self, config: ServerConfig, orchestrator, match_store):
         self._config = config

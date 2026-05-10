@@ -141,11 +141,13 @@ For `source.type = srt`:
 For `source.type = srt_direct`:
 
 - the source is pulled once by a single Go process
-- that process decodes commentary/program audio to local PCM for Python STT immediately
+- that process can select separate SRT audio streams for commentary/program audio and stadium atmosphere (`source.audio_stream_index`, `source.atmosphere_audio_stream_index`)
+- commentary/program audio is decoded to local PCM for Python STT immediately
+- atmosphere audio is decoded to a separate local PCM fanout for translated relays when configured
 - the same process repacketizes encoded H.264 and exposes it over a local TCP fanout for per-language `relay_publish`
-- the viewer-facing original channel is still published into `source.original_channel` with `source.original_buffer_seconds` of source-side buffering
+- the viewer-facing original channel is still published into `source.original_channel` with `source.original_buffer_seconds` of source-side buffering; original audio is the selected commentary plus atmosphere mix
 - translated relays use the full configured `video_delay`; the original-channel buffer is only for original viewing jitter smoothing
-- there is still no separate source-atmosphere bed; translated outputs are delayed video + translated TTS only
+- translated outputs are delayed video plus mixed audio: delayed atmosphere from the local fanout and translated TTS
 
 **Delay buffering** is the core design constraint: video and atmosphere are held for `video_delay` seconds to give the STT → translate → TTS pipeline time to process. The viewer sees delayed video with translated audio arriving in sync.
 

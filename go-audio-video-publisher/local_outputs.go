@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
+	"math"
 	"net"
 	"sync"
 	"time"
@@ -14,8 +16,9 @@ type pcmServer struct {
 	listener net.Listener
 	addr     string
 
-	mu   sync.Mutex
-	conn net.Conn
+	mu      sync.Mutex
+	nextID  int
+	clients map[int]net.Conn
 }
 
 func startPCMServer(addr string) (*pcmServer, error) {
@@ -29,6 +32,7 @@ func startPCMServer(addr string) (*pcmServer, error) {
 	s := &pcmServer{
 		listener: ln,
 		addr:     ln.Addr().String(),
+		clients:  map[int]net.Conn{},
 	}
 	go s.acceptLoop()
 	return s, nil
@@ -41,10 +45,9 @@ func (s *pcmServer) acceptLoop() {
 			return
 		}
 		s.mu.Lock()
-		if s.conn != nil {
-			_ = s.conn.Close()
-		}
-		s.conn = conn
+		id := s.nextID
+		s.nextID++
+		s.clients[id] = conn
 		s.mu.Unlock()
 	}
 }
@@ -54,22 +57,35 @@ func (s *pcmServer) writeChunk(chunk []byte) {
 		return
 	}
 	s.mu.Lock()
-	conn := s.conn
+	clients := make(map[int]net.Conn, len(s.clients))
+	for id, conn := range s.clients {
+		clients[id] = conn
+	}
 	s.mu.Unlock()
-	if conn == nil {
-		return
-	}
-	if tcp, ok := conn.(*net.TCPConn); ok {
-		_ = tcp.SetWriteDeadline(time.Now().Add(250 * time.Millisecond))
-	}
-	if _, err := conn.Write(chunk); err != nil {
-		s.mu.Lock()
-		if s.conn == conn {
-			_ = s.conn.Close()
-			s.conn = nil
+
+	var failures []int
+	for id, conn := range clients {
+		if tcp, ok := conn.(*net.TCPConn); ok {
+			_ = tcp.SetWriteDeadline(time.Now().Add(250 * time.Millisecond))
 		}
-		s.mu.Unlock()
+		if _, err := conn.Write(chunk); err != nil {
+			failures = append(failures, id)
+		}
 	}
+	for _, id := range failures {
+		if conn, ok := clients[id]; ok {
+			s.removeClient(id, conn)
+		}
+	}
+}
+
+func (s *pcmServer) removeClient(id int, conn net.Conn) {
+	s.mu.Lock()
+	if existing, ok := s.clients[id]; ok && existing == conn {
+		delete(s.clients, id)
+	}
+	s.mu.Unlock()
+	_ = conn.Close()
 }
 
 func (s *pcmServer) close() {
@@ -78,9 +94,9 @@ func (s *pcmServer) close() {
 	}
 	_ = s.listener.Close()
 	s.mu.Lock()
-	if s.conn != nil {
-		_ = s.conn.Close()
-		s.conn = nil
+	for id, conn := range s.clients {
+		_ = conn.Close()
+		delete(s.clients, id)
 	}
 	s.mu.Unlock()
 }
@@ -214,6 +230,182 @@ type delayedVideoFrame struct {
 type delayedAudioPublisher struct {
 	con   *agoraservice.RtcConnection
 	queue chan delayedAudioChunk
+}
+
+type sourceAudioChunk struct {
+	pcm       []byte
+	publishAt time.Time
+	isAtmos   bool
+}
+
+type sourceAudioMixer struct {
+	con *agoraservice.RtcConnection
+	in  chan sourceAudioChunk
+}
+
+func startSourceAudioMixer(con *agoraservice.RtcConnection) *sourceAudioMixer {
+	m := &sourceAudioMixer{
+		con: con,
+		in:  make(chan sourceAudioChunk, 800),
+	}
+	go m.run()
+	return m
+}
+
+func (m *sourceAudioMixer) enqueue(chunk sourceAudioChunk) {
+	if m == nil {
+		return
+	}
+	m.in <- chunk
+}
+
+func (m *sourceAudioMixer) close() {
+	if m == nil {
+		return
+	}
+	close(m.in)
+}
+
+func (m *sourceAudioMixer) run() {
+	const tick = 10 * time.Millisecond
+	silence := make([]byte, 320)
+	var commentary []sourceAudioChunk
+	var atmos []sourceAudioChunk
+	var nextTick time.Time
+	elapsedMs := int64(0)
+	inputOpen := true
+
+	for inputOpen || len(commentary) > 0 || len(atmos) > 0 {
+		if nextTick.IsZero() {
+			chunk, ok := <-m.in
+			if !ok {
+				return
+			}
+			if chunk.isAtmos {
+				atmos = append(atmos, chunk)
+			} else {
+				commentary = append(commentary, chunk)
+			}
+			nextTick = chunk.publishAt
+		}
+
+		collectUntil := time.Until(nextTick)
+		if collectUntil > 0 {
+			timer := time.NewTimer(collectUntil)
+			collecting := true
+			for collecting {
+				select {
+				case chunk, ok := <-m.in:
+					if !ok {
+						inputOpen = false
+						collecting = false
+						break
+					}
+					if chunk.isAtmos {
+						atmos = append(atmos, chunk)
+					} else {
+						commentary = append(commentary, chunk)
+					}
+				case <-timer.C:
+					collecting = false
+				}
+			}
+			if !timer.Stop() {
+				select {
+				case <-timer.C:
+				default:
+				}
+			}
+		}
+
+		drainReady := true
+		for drainReady {
+			select {
+			case chunk, ok := <-m.in:
+				if !ok {
+					inputOpen = false
+					drainReady = false
+					break
+				}
+				if chunk.isAtmos {
+					atmos = append(atmos, chunk)
+				} else {
+					commentary = append(commentary, chunk)
+				}
+			default:
+				drainReady = false
+			}
+		}
+
+		commentaryPCM, newCommentary := popDueAudioChunk(commentary, nextTick)
+		commentary = newCommentary
+		atmosPCM, newAtmos := popDueAudioChunk(atmos, nextTick)
+		atmos = newAtmos
+
+		output := silence
+		switch {
+		case commentaryPCM != nil && atmosPCM != nil:
+			output = mixPCM(commentaryPCM, atmosPCM, 1.0, 0.35)
+		case commentaryPCM != nil:
+			output = commentaryPCM
+		case atmosPCM != nil:
+			output = scalePCM(atmosPCM, 0.35)
+		}
+
+		if rc := m.con.PushAudioPcmData(output, 16000, 1, elapsedMs); rc != 0 {
+			fmt.Printf("PushAudioPcmData ret=%d size=%d\n", rc, len(output))
+		} else {
+			signalSourcePublishingStarted()
+		}
+		nextTick = nextTick.Add(tick)
+		elapsedMs += 10
+	}
+}
+
+func popDueAudioChunk(chunks []sourceAudioChunk, tickAt time.Time) ([]byte, []sourceAudioChunk) {
+	if len(chunks) == 0 {
+		return nil, chunks
+	}
+	dueWindow := tickAt.Add(5 * time.Millisecond)
+	if chunks[0].publishAt.After(dueWindow) {
+		return nil, chunks
+	}
+	pcm := chunks[0].pcm
+	return pcm, chunks[1:]
+}
+
+func mixPCM(primary, secondary []byte, primaryVol, secondaryVol float64) []byte {
+	n := len(primary)
+	if len(secondary) < n {
+		n = len(secondary)
+	}
+	out := make([]byte, n)
+	for i := 0; i+1 < n; i += 2 {
+		a := float64(int16(binary.LittleEndian.Uint16(primary[i:]))) * primaryVol
+		b := float64(int16(binary.LittleEndian.Uint16(secondary[i:]))) * secondaryVol
+		mixed := int32(a + b)
+		if mixed > math.MaxInt16 {
+			mixed = math.MaxInt16
+		} else if mixed < math.MinInt16 {
+			mixed = math.MinInt16
+		}
+		binary.LittleEndian.PutUint16(out[i:], uint16(int16(mixed)))
+	}
+	return out
+}
+
+func scalePCM(pcm []byte, vol float64) []byte {
+	out := make([]byte, len(pcm))
+	for i := 0; i+1 < len(pcm); i += 2 {
+		scaled := int32(float64(int16(binary.LittleEndian.Uint16(pcm[i:]))) * vol)
+		if scaled > math.MaxInt16 {
+			scaled = math.MaxInt16
+		} else if scaled < math.MinInt16 {
+			scaled = math.MinInt16
+		}
+		binary.LittleEndian.PutUint16(out[i:], uint16(int16(scaled)))
+	}
+	return out
 }
 
 func startDelayedAudioPublisher(con *agoraservice.RtcConnection) *delayedAudioPublisher {

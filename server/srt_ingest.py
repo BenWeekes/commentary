@@ -59,7 +59,10 @@ def start_srt_original_publish(
     retry_seconds: float,
     source_buffer_seconds: float,
     pcm_listen: str = "",
+    atmos_pcm_listen: str = "",
     video_listen: str = "",
+    audio_stream_index: int = -1,
+    atmos_audio_stream_index: int = -1,
     app_id: str,
     app_cert: str,
 ) -> subprocess.Popen:
@@ -74,7 +77,10 @@ def start_srt_original_publish(
         video_mode="encoded",
         source_buffer_seconds=source_buffer_seconds,
         pcm_listen=pcm_listen,
+        atmos_pcm_listen=atmos_pcm_listen,
         video_listen=video_listen,
+        audio_stream_index=audio_stream_index,
+        atmos_audio_stream_index=atmos_audio_stream_index,
     )
 
 
@@ -89,7 +95,10 @@ def _start_srt_publish(
     video_mode: str,
     source_buffer_seconds: float,
     pcm_listen: str = "",
+    atmos_pcm_listen: str = "",
     video_listen: str = "",
+    audio_stream_index: int = -1,
+    atmos_audio_stream_index: int = -1,
 ) -> subprocess.Popen:
     """Start a long-running SRT publisher process."""
     env = os.environ.copy()
@@ -114,9 +123,13 @@ def _start_srt_publish(
         "--source-buffer-seconds", str(source_buffer_seconds),
         "--retry-seconds", str(retry_seconds),
         "--max-attempts", "0",
+        "--audio-stream-index", str(audio_stream_index),
+        "--atmos-audio-stream-index", str(atmos_audio_stream_index),
     ]
     if pcm_listen:
         cmd.extend(["--pcm-listen", pcm_listen])
+    if atmos_pcm_listen:
+        cmd.extend(["--atmos-pcm-listen", atmos_pcm_listen])
     if video_listen:
         cmd.extend(["--video-listen", video_listen])
     return subprocess.Popen(

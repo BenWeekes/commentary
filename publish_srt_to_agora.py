@@ -81,7 +81,12 @@ def main() -> None:
     parser.add_argument("--source-buffer-seconds", type=float, default=0.0,
                         help="Extra wall-clock delay applied before sending source media")
     parser.add_argument("--pcm-listen", default="", help="Local TCP listen address for raw PCM fanout")
+    parser.add_argument("--atmos-pcm-listen", default="", help="Local TCP listen address for raw atmosphere PCM fanout")
     parser.add_argument("--video-listen", default="", help="Local TCP listen address for cleaned H264 fanout")
+    parser.add_argument("--audio-stream-index", type=int, default=-1,
+                        help="Input AV stream index to use for commentary/program audio")
+    parser.add_argument("--atmos-audio-stream-index", type=int, default=-1,
+                        help="Input AV stream index to use for atmosphere audio")
     parser.add_argument("--viewer-base-url", default=DEFAULT_VIEWER_BASE_URL, help="Base URL for viewer_test.html")
     parser.add_argument("--retry-seconds", type=float, default=5.0, help="Delay before retrying a failed pull")
     parser.add_argument("--max-attempts", type=int, default=0, help="Max attempts before exiting; 0 means retry forever")
@@ -112,9 +117,13 @@ def main() -> None:
         "--input", args.srt_url,
         "--video-mode", args.video_mode,
         "--source-buffer-seconds", str(args.source_buffer_seconds),
+        "--audio-stream-index", str(args.audio_stream_index),
+        "--atmos-audio-stream-index", str(args.atmos_audio_stream_index),
     ]
     if args.pcm_listen:
         cmd.extend(["--pcm-listen", args.pcm_listen])
+    if args.atmos_pcm_listen:
+        cmd.extend(["--atmos-pcm-listen", args.atmos_pcm_listen])
     if args.video_listen:
         cmd.extend(["--video-listen", args.video_listen])
     print(f"[SRT->AGORA] starting {' '.join(cmd)}")

@@ -56,6 +56,7 @@ typedef struct _MediaDecoder {
   AVFormatContext *fmt_ctx;
   DecodeContext video_ctx;
   DecodeContext audio_ctx;
+  DecodeContext secondary_audio_ctx;
   AVPacket *pkt;
 
   // for avsync
@@ -73,6 +74,12 @@ typedef struct _MediaDecoder {
   AVPacket *video_enc_pkt;
   int64_t video_enc_next_pts;
 } MediaDecoder;
+
+static void init_decode_context(DecodeContext *decode_ctx) {
+  memset(decode_ctx, 0, sizeof(DecodeContext));
+  decode_ctx->stream_index = -1;
+  decode_ctx->is_eof = 1;
+}
 
 int init_swr(DecodeContext *decode_ctx) {
   AVChannelLayout mono_layout = AV_CHANNEL_LAYOUT_MONO;
@@ -236,21 +243,38 @@ int deinit_decoder(DecodeContext *decode_ctx) {
   return 0;
 }
 
-int init_decoder(MediaDecoder *decoder, int media_type) {
+int init_decoder(MediaDecoder *decoder, int media_type, int preferred_stream_index) {
   AVFormatContext *fmt_ctx = decoder->fmt_ctx;
   DecodeContext *decode_ctx = NULL;
   if (media_type == AVMEDIA_TYPE_VIDEO) {
     decode_ctx = &decoder->video_ctx;
   } else if (media_type == AVMEDIA_TYPE_AUDIO) {
     decode_ctx = &decoder->audio_ctx;
+    if (preferred_stream_index >= 0 &&
+        decoder->audio_ctx.stream_index >= 0 &&
+        preferred_stream_index != decoder->audio_ctx.stream_index) {
+      decode_ctx = &decoder->secondary_audio_ctx;
+    }
   } else {
     return -1;
   }
   int result = 0;
 
-  decode_ctx->stream_index = av_find_best_stream(fmt_ctx, media_type, -1, -1, NULL, 0);
+  if (preferred_stream_index >= 0) {
+    if (preferred_stream_index >= (int)fmt_ctx->nb_streams ||
+        fmt_ctx->streams[preferred_stream_index]->codecpar->codec_type != media_type) {
+      av_log(NULL, AV_LOG_ERROR, "Requested stream index %d is not a %s stream\n",
+        preferred_stream_index, media_type == AVMEDIA_TYPE_AUDIO ? "audio" : "video");
+      deinit_decoder(decode_ctx);
+      return -1;
+    }
+    decode_ctx->stream_index = preferred_stream_index;
+  } else {
+    decode_ctx->stream_index = av_find_best_stream(fmt_ctx, media_type, -1, -1, NULL, 0);
+  }
   if (decode_ctx->stream_index < 0) {
-    av_log(NULL, AV_LOG_ERROR, "Can't find video stream in input file\n");
+    av_log(NULL, AV_LOG_ERROR, "Can't find %s stream in input file\n",
+      media_type == AVMEDIA_TYPE_AUDIO ? "audio" : "video");
     deinit_decoder(decode_ctx);
     return -1;
   }
@@ -314,8 +338,15 @@ int init_decoder(MediaDecoder *decoder, int media_type) {
 }
 
 void * open_media_file(const char *file_name) {
+    return open_media_file_with_audio_streams(file_name, -1, -1);
+}
+
+void * open_media_file_with_audio_streams(const char *file_name, int audio_stream_index, int secondary_audio_stream_index) {
     MediaDecoder *decoder = (MediaDecoder *)malloc(sizeof(MediaDecoder));
     memset(decoder, 0, sizeof(MediaDecoder));
+    init_decode_context(&decoder->video_ctx);
+    init_decode_context(&decoder->audio_ctx);
+    init_decode_context(&decoder->secondary_audio_ctx);
     decoder->video_tail_pkt = &decoder->head_pkt;
     decoder->audio_tail_pkt = &decoder->head_pkt;
 
@@ -344,9 +375,28 @@ void * open_media_file(const char *file_name) {
     }
     decoder->pkt = pkt;
 
-    init_decoder(decoder, AVMEDIA_TYPE_VIDEO);
-    init_decoder(decoder, AVMEDIA_TYPE_AUDIO);
+    init_decoder(decoder, AVMEDIA_TYPE_VIDEO, -1);
+    init_decoder(decoder, AVMEDIA_TYPE_AUDIO, audio_stream_index);
+    if (secondary_audio_stream_index >= 0 && secondary_audio_stream_index != decoder->audio_ctx.stream_index) {
+      init_decoder(decoder, AVMEDIA_TYPE_AUDIO, secondary_audio_stream_index);
+    }
     return decoder;
+}
+
+int primary_audio_stream_index(void *decoder) {
+  MediaDecoder *d = (MediaDecoder *)decoder;
+  if (!d) {
+    return -1;
+  }
+  return d->audio_ctx.stream_index;
+}
+
+int secondary_audio_stream_index(void *decoder) {
+  MediaDecoder *d = (MediaDecoder *)decoder;
+  if (!d) {
+    return -1;
+  }
+  return d->secondary_audio_ctx.stream_index;
 }
 
 void push_packet(MediaDecoder *d, MediaPacket *pkt) {
@@ -426,7 +476,7 @@ MediaPacket *pop_packet(MediaDecoder *d) {
     // Only skip when both streams exist and the buffer is insufficient
     if (video_exist && audio_exist) {
         if (video_size < AVSYNC_MAX_VIDEO_SIZE && audio_size < AVSYNC_MAX_AUDIO_SIZE) {
-            av_log(NULL, AV_LOG_DEBUG, "Both streams buffer insufficient, video_size %lld, audio_size %lld\n", video_size, audio_size);
+            av_log(NULL, AV_LOG_DEBUG, "Both streams buffer insufficient, video_size %ld, audio_size %ld\n", video_size, audio_size);
             return NULL;
         }
     }
@@ -476,7 +526,8 @@ int get_packet(void *decoder, MediaPacket **packet) {
           mpkt->framerate_num = s->r_frame_rate.num;
           mpkt->framerate_den = s->r_frame_rate.den;
           push_packet(d, mpkt);
-      } else if (pkt->stream_index == d->audio_ctx.stream_index) {
+      } else if (pkt->stream_index == d->audio_ctx.stream_index ||
+          pkt->stream_index == d->secondary_audio_ctx.stream_index) {
           AVStream *s = fmt_ctx->streams[pkt->stream_index];
           MediaPacket *mpkt = (MediaPacket *)malloc(sizeof(MediaPacket));
           memset(mpkt, 0, sizeof(MediaPacket));
@@ -613,6 +664,9 @@ int decode_packet(void *decoder, MediaPacket *packet, MediaFrame *frame) {
     decode_ctx = &d->video_ctx;
   } else if (media_type == AVMEDIA_TYPE_AUDIO) {
     decode_ctx = &d->audio_ctx;
+    if (pkt->stream_index == d->secondary_audio_ctx.stream_index) {
+      decode_ctx = &d->secondary_audio_ctx;
+    }
   } else {
     // this branch should not be reached
     av_packet_unref(pkt);
@@ -868,7 +922,8 @@ int get_frame(void *decoder, MediaFrame *frame) {
       if (result >= 0) {
         if (pkt->stream_index == d->video_ctx.stream_index) {
             media_type = AVMEDIA_TYPE_VIDEO;
-        } else if (pkt->stream_index == d->audio_ctx.stream_index) {
+        } else if (pkt->stream_index == d->audio_ctx.stream_index ||
+            pkt->stream_index == d->secondary_audio_ctx.stream_index) {
             media_type = AVMEDIA_TYPE_AUDIO;
         } else {
             // skip other streams
@@ -897,6 +952,9 @@ int get_frame(void *decoder, MediaFrame *frame) {
         decode_ctx = &d->video_ctx;
       } else if (media_type == AVMEDIA_TYPE_AUDIO) {
         decode_ctx = &d->audio_ctx;
+        if (pkt->stream_index == d->secondary_audio_ctx.stream_index) {
+          decode_ctx = &d->secondary_audio_ctx;
+        }
       } else {
         // this branch should not be reached
         av_packet_unref(pkt);
@@ -975,6 +1033,7 @@ void close_media_file(void *decoder) {
     MediaDecoder *d = (MediaDecoder *)decoder;
     deinit_decoder(&d->video_ctx);
     deinit_decoder(&d->audio_ctx);
+    deinit_decoder(&d->secondary_audio_ctx);
     // free avsync
     int count = 0;
     while (d->head_pkt.next) {
