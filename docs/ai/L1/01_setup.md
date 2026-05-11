@@ -24,7 +24,7 @@ cp .env.example .env
 
 | Package | Version | Purpose |
 |---|---|---|
-| `openai` | >=1.0.0 | GPT-4o-mini / GPT-5.4-mini translation API |
+| `openai` | >=1.0.0 | GPT-5.4 / GPT-4o-mini translation API |
 | `websockets` | >=12.0 | ElevenLabs TTS WebSocket client |
 | `deepgram-sdk` | >=3.0.0 | Deepgram Nova-3 STT |
 | `pyyaml` | >=6.0 | Server mode YAML config parsing |
@@ -61,7 +61,7 @@ The production server uses a YAML config file (`matches.yaml`) instead of CLI ar
 
 ```yaml
 control_port: 8080
-translation_model: "gpt-4o-mini"
+translation_model: "gpt-5.4"
 
 matches:
   - match_id: bmg_fch_demo
@@ -78,7 +78,7 @@ File paths in `matches.yaml` are resolved relative to the config file's director
 
 ### Live match config
 
-Live matches use a separate config file `matches_live.yaml`. Live entries now use a nested `source:` block. For existing Agora-backed live matches, legacy flat fields still work during migration. See [05_workflows.md](05_workflows.md) for details.
+Live matches use a separate config file `matches_live.yaml`. Current SRT matches use `source.type = srt_direct`, which pulls the remote SRT feed directly because the media-gateway path does not handle this source cleanly enough for RTC output. The direct ingester decodes selected commentary and atmosphere tracks to local PCM, repacketizes SRT H.264 into Agora-friendly access units, and publishes a buffered original channel. For existing Agora-backed live matches, legacy flat fields still work during migration. See [05_workflows.md](05_workflows.md) for details.
 
 ### Validate config (dry run)
 

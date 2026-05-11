@@ -91,7 +91,7 @@ commentary/
 |---|---|---|
 | `lib/constants.py` | `SAMPLE_RATE`, `CHANNELS`, `BYTES_PER_10MS`, `VIDEO_DELAY_S`, `MAX_LATENCY_S`, `SILENCE_GAP_S`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL` | standalone |
 | `lib/corrections.py` | `TERMS_LIST` (91 terms), `CORRECTIONS` (60 pairs), `apply_corrections()` | standalone |
-| `lib/translator.py` | `LANG_NAMES` (12 languages), `LANG_VOICES`, `DEFAULT_VOICE_ID`, `voice_for_lang()`, `TRANSLATE_SYSTEM` (6 rules), `TRANSLATE_SYSTEM_WITH_ROSTER` (roster-aware, 7 rules), `translate_text()` — supports `gpt-4o-mini` and `gpt-5.4-mini` | standalone (takes `oai_client` param) |
+| `lib/translator.py` | `LANG_NAMES` (12 languages), `LANG_VOICES`, `DEFAULT_VOICE_ID`, `voice_for_lang()`, `TRANSLATE_SYSTEM` (6 rules), `TRANSLATE_SYSTEM_WITH_ROSTER` (roster-aware, 7 rules), `translate_text()` — supports `gpt-5.4`, `gpt-5.4-mini`, and `gpt-4o-mini` | standalone (takes `oai_client` param) |
 | `lib/audio.py` | `load_atmosphere()`, `convert_to_pcm()`, `pcm_chunks_realtime()` | standalone (stdlib only) |
 | `lib/events.py` | `load_events_file()` — parses `offset\|PRIORITY\|message` format | standalone |
 | `lib/tts_engine.py` | `_ts()` helper, `TTSEngine` class — TTS worker, pipe writer, lookahead, telemetry metadata slots (`_playback_meta_slot`, `_sr_playback_meta_slot`, `_skipped_meta`), two-phase shutdown (`_closing` + `_stop`) | `lib.constants` |

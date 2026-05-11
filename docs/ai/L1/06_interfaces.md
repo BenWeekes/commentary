@@ -146,7 +146,7 @@ Optional:
 - `--commentary-uid` (default `75`)
 - `--video-delay`
 - `--start-margin`
-- `--translation-model` (default `gpt-5.4-mini`)
+- `--translation-model` (server default `gpt-5.4`; standalone test defaults may differ)
 - `--max-stt-duration`
 - `--match-id`
 - `--sport-event-id`
@@ -219,6 +219,11 @@ Utterance fields:
 - `trans_ms`
 - `tts_ms`
 - `speed`
+- `local_speed_factor`
+- `fit_from_ms`
+- `fit_to_ms`
+- `fit_deadline_ms`
+- `fit_cpu_ms`
 - `status`
 - `original`
 - `translated`
@@ -313,7 +318,7 @@ wss://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream-input?model_id={mode
 ```
 
 Message sequence:
-1. Send initial config: `{"text": " ", "voice_settings": {...}, "xi_api_key": "..."}`
+1. Send initial config: `{"text": " ", "voice_settings": {"speed": 1.0, "stability": 1.0, "similarity_boost": 1.0}, "xi_api_key": "..."}`
 2. Send text: `{"text": "...", "try_trigger_generation": true}`
 3. Send flush: `{"text": ""}`
 4. Receive audio chunks: `{"audio": "base64...", "isFinal": false}`
@@ -377,13 +382,13 @@ One `relay_publish` process runs per language.
 
 ### SRT Direct Local Source Contract
 
-For `source.type = srt_direct`, the server starts one `publish_srt_to_agora.py` / Go source process. That process owns the only SRT connection and exposes local sockets for the rest of the pipeline:
+For `source.type = srt_direct`, the server starts one `publish_srt_to_agora.py` / Go source process. That process owns the only SRT connection and exposes local sockets for the rest of the pipeline. This path exists because the remote SRT feed needs explicit FFmpeg/libav pull, audio-stream selection, and H.264 cleanup before RTC publishing:
 
 | Local source | Consumer | Content |
 |---|---|---|
 | `pcm` | Python STT | selected commentary/program audio, 16kHz mono S16LE |
 | `atmos_pcm` | per-language `relay_publish.go` | selected atmosphere audio, 16kHz mono S16LE |
-| `video` | per-language `relay_publish.go` | cleaned H.264 access units |
+| `video` | per-language `relay_publish.go` | cleaned H.264 access units: Annex B, no `AUD`/filler NALs, SPS/PPS carried before keyframes |
 
 The source process also publishes `source.original_channel` for viewer original mode. That channel carries encoded video plus a commentary/atmosphere mix delayed by `source.original_buffer_seconds`.
 

@@ -85,7 +85,7 @@ Live matches support three source modes:
 - `source.type = srt`
   Pulls one remote SRT feed, republishes it into an internal Agora channel, then runs the normal live worker from there.
 - `source.type = srt_direct`
-  Pulls one remote SRT feed once, exposes local PCM + cleaned H.264 fanout for the translated path, and separately republishes a buffered original channel into Agora for viewer "original".
+  Pulls one remote SRT feed once with FFmpeg/libav because the media-gateway path is not reliable for this feed. It exposes local commentary PCM, optional local atmosphere PCM, and cleaned H.264 fanout for the translated path, and separately republishes a buffered original channel into Agora for viewer "original".
 
 Agora-backed live matches use a source channel where the broadcaster publishes three UIDs:
 
@@ -144,7 +144,7 @@ For `source.type = srt_direct`:
 - that process can select separate SRT audio streams for commentary/program audio and stadium atmosphere (`source.audio_stream_index`, `source.atmosphere_audio_stream_index`)
 - commentary/program audio is decoded to local PCM for Python STT immediately
 - atmosphere audio is decoded to a separate local PCM fanout for translated relays when configured
-- the same process repacketizes encoded H.264 and exposes it over a local TCP fanout for per-language `relay_publish`
+- the same process converts H.264 to Annex B if needed, parses complete access units, drops `AUD`/filler NALs, preserves SPS/PPS for keyframes, and exposes cleaned H.264 over a local TCP fanout for per-language `relay_publish`
 - the viewer-facing original channel is still published into `source.original_channel` with `source.original_buffer_seconds` of source-side buffering; original audio is the selected commentary plus atmosphere mix
 - translated relays use the full configured `video_delay`; the original-channel buffer is only for original viewing jitter smoothing
 - translated outputs are delayed video plus mixed audio: delayed atmosphere from the local fanout and translated TTS
@@ -163,7 +163,7 @@ Live auto-managed matches are now handled by `server/scheduler.py`. The schedule
 ## Timing Model
 
 ```
-The Go publisher delays video by --video-delay seconds (default 7s).
+The Go publisher/relay delays video by `--video-delay` seconds. Current live configs use 14s.
 The STT audio feed starts immediately, giving translations a head start.
 
 For STT utterances:
@@ -201,14 +201,14 @@ In the current codebase, the SR-event branch above applies to demo/event-file mo
 
 ### Server mode startup differences
 
-In server mode, each language has its own Go publisher with its own `video_start`. The MatchWorker:
+In server mode, each language has its own Go publisher/relay, but the MatchWorker computes one shared `target_start` before STT begins:
 
-1. Starts all N Go publishers in sequence, waits for audio-ready on each
-2. Sets provisional `video_start_ref` for STT
-3. Starts STT thread immediately (processes during video delay)
-4. Waits for all publishers to report "video delay complete"
-5. Computes mean `video_start` across all languages; logs warning if spread >500ms
-6. Updates `video_start_ref` to actual mean; per-language pipelines use their own `video_start` for `play_at`
+1. Resolve the live source and any local SRT-direct fanout sockets
+2. Compute shared `target_start = now + connection_margin + relay_delay`
+3. Store that target in `video_start_ref` for STT scheduling
+4. Start each per-language relay with `--start-at {target_start}`
+5. Start STT immediately so Deepgram, translation, and TTS work during the delay window
+6. Treat publisher "video delay complete" timestamps as diagnostics only; do not retime language clocks after startup
 
 ## Translation Optimization
 
@@ -220,7 +220,7 @@ When multiple items are queued in a TTSEngine, a `ThreadPoolExecutor(max_workers
 
 ### OpenAI warmup
 
-The first translation call per process to `gpt-5.4-mini` incurs a ~15s cold-start penalty. In server mode, `MatchWorker._run_demo()` fires one throwaway "Kick off." translation per language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This absorbs the cold-start before the pipeline is timing-sensitive.
+The first translation call per process can incur a cold-start penalty. In server mode, `MatchWorker._run_demo()` fires one throwaway "Kick off." translation per language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This absorbs the cold-start before the pipeline is timing-sensitive.
 
 ## Playback Rules
 
@@ -289,12 +289,19 @@ Two models are benchmarked for translation:
 
 | Model | Avg latency | Notes |
 |---|---|---|
-| `gpt-4o-mini` (temp=0.0) | ~0.95s/call | Fastest, most reliable, no blank responses |
-| `gpt-5.4-mini` (reasoning=low) | ~1.67s/call | Slightly more natural phrasing, occasional blank responses |
+| `gpt-5.4` (reasoning=low) | current live default | Natural football phrasing while preserving meaning |
+| `gpt-4o-mini` (temp=0.0) | older fallback | Fast and reliable fallback |
+| `gpt-5.4-mini` (reasoning=low) | benchmarked fallback | Slightly more natural than `gpt-4o-mini`, occasional blank responses |
 
-Both produce faithful translations. `gpt-5.4-mini` with `reasoning=medium` is not recommended — it rewrites commentary and returns blank responses.
+The live prompt tells the model to translate exactly what was said, avoid adding/removing/rewriting meaning, keep length and structure close to the original, fix roster names, and use natural football terminology in the target language.
 
-The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4-mini` with `reasoning_effort="medium"` but accepts `model` and `reasoning_effort` parameters to switch. Server mode defaults to `gpt-4o-mini` via the `translation_model` config field.
+The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4` with `reasoning_effort="low"` and accepts `model` and `reasoning_effort` parameters to switch. Server mode defaults to `gpt-5.4` via `server/config.py`, and `matches_live.yaml` also sets `translation_model: "gpt-5.4"`.
+
+## TTS Speed Fitting
+
+ElevenLabs is requested with `speed=1.0`, `stability=1.0`, and `similarity_boost=1.0`. The engine does not ask ElevenLabs to speak faster by default; instead it fits generated PCM locally only when needed.
+
+When a translated STT clip is longer than the available gap before the next STT play time, `TTSEngine` runs ffmpeg `atempo` on the PCM to shorten it without changing pitch. The cap is `2.5x`, and a small guard keeps audio from colliding with the next STT item. Language logs record the applied speed as `speed` / `local_speed_factor`, plus `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, and `fit_cpu_ms`.
 
 ## Roster-Aware Translation
 

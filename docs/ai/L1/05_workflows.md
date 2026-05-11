@@ -90,7 +90,7 @@ Live matches are configured in `matches_live.yaml`. Live entries support a neste
 
 - `source.type = agora` for an existing Agora source channel with explicit source UIDs
 - `source.type = srt` for a direct SRT pull that is republished into an internal Agora source channel
-- `source.type = srt_direct` for a direct SRT pull that exposes local PCM/H.264 to the translated path and separately publishes one buffered original Agora channel for viewing
+- `source.type = srt_direct` for a direct SRT pull that bypasses the media-gateway path, exposes local PCM/H.264 to the translated path, and separately publishes one buffered original Agora channel for viewing
 
 For `source.type = srt`:
 
@@ -103,12 +103,13 @@ For `source.type = srt`:
 For `source.type = srt_direct`:
 
 - the SRT source is pulled once
+- the SRT endpoint is treated as single-caller; do not run another probe/subscriber against the same URL while the ingester is live
 - the viewer-facing original channel is published into `source.original_channel` with encoded video preserved
 - `source.original_buffer_seconds` adds a small source-side delay for original viewing jitter smoothing
 - `source.audio_stream_index` selects the commentary/program audio stream for STT and original-channel commentary
 - `source.atmosphere_audio_stream_index` optionally selects a separate atmosphere stream
 - Python STT reads commentary PCM from the source process directly
-- per-language `relay_publish.go` reads cleaned local H.264 from the source process directly
+- per-language `relay_publish.go` reads cleaned local H.264 from the source process directly; the ingester converts SRT H.264 to Annex B if needed, parses full access units, drops `AUD`/filler NALs, and carries SPS/PPS forward for keyframes
 - per-language `relay_publish.go` reads delayed atmosphere PCM from the source process when configured, then mixes it with translated TTS
 - translated relay delay stays equal to `video_delay`; the original-channel buffer affects viewer-original playback only
 
@@ -148,8 +149,8 @@ What it exercises:
 
 1. `subscribe_audio` subscribes to the source commentary UID
 2. Deepgram STT reads live PCM from the subscriber stdout
-3. GPT translation runs with `gpt-5.4-mini` and `reasoning_effort="low"`
-4. ElevenLabs TTS generates PCM for one target language
+3. GPT translation runs with `gpt-5.4-mini` and `reasoning_effort="low"` by default in this standalone script; pass `--translation-model gpt-5.4` to match the current server live config
+4. ElevenLabs TTS generates PCM for one target language; server mode keeps ElevenLabs speed at `1.0` and uses local ffmpeg `atempo` speed fitting when a generated clip must fit before the next STT item
 5. `relay_publish` republishes delayed video + delayed atmosphere + translated TTS into a separate output channel
 
 Real-source example:

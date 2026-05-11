@@ -62,7 +62,7 @@ Server mode uses `matches.yaml` for configuration. Top-level fields:
 | Field | Type | Default | Purpose |
 |---|---|---|---|
 | `control_port` | int | 8080 | HTTP API port |
-| `translation_model` | string | `gpt-4o-mini` | GPT model for translation |
+| `translation_model` | string | `gpt-5.4` | GPT model for translation |
 | `agora_app_id` | string | from env | Overrides `AGORA_APP_ID` env var |
 | `agora_app_cert` | string | from env | Overrides `AGORA_APP_CERT` env var |
 
@@ -97,7 +97,7 @@ Derived constants: 32,000 bytes/second, 1,920,000 bytes/minute.
 
 | Code | Language | Voice ID | Notes |
 |---|---|---|---|
-| `es` | Spanish | `QpDQJR3frbDwOhTIo8nW` | Latin American accent |
+| `es` | Spanish | `jdSy6qWNc1T4C8czPgat` | Latin American accent |
 | `fr` | French | `LcKoSBj8CeBInl4bQHtq` | |
 | `de` | German | `g8JjujAzgjLre020BW2u` | |
 | `pt` | Portuguese | `HR2TRGmi4QbMsO5omv7l` | Brazilian |
@@ -162,6 +162,8 @@ Additional telemetry fields per utterance:
 - `pre_translated` — `true` if translation was served from the pre-translation cache, `false` if inline
 - `queue_wait_ms` — milliseconds the item waited in the queue before the TTS worker started processing it
 - `total_buffered_ms` — total TTS audio duration in milliseconds
+- `speed` / `local_speed_factor` — local ffmpeg `atempo` factor applied to fit before the next STT item; `1.0` means no local speed-up
+- `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms` — source duration, fitted duration, available playback window, and ffmpeg processing cost for local speed fitting
 
 Items that never played are `dropped`, `replaced`, or `suppressed`, not `interrupted`. Only `_pipe_writer` can emit `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
 

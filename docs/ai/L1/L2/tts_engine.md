@@ -40,9 +40,10 @@ Cache is cleared on interrupt. The executor is shut down (non-blocking) during `
   3. Calls `translate_fn(text)` if provided (JIT translation, fallback when no cache hit)
   4. Connects to ElevenLabs WebSocket
   5. Sends text, receives base64-encoded PCM audio chunks → `_audio_buf`
-  6. Waits for `play_at` time if scheduled (drops if late)
-  7. Sets `_playback_ready` event when all audio is received (full pre-buffer)
-  8. While pipe writer drains the buffer, grabs next queue item and processes into `_lookahead_buf`
+  6. If needed, runs local ffmpeg `atempo` speed fitting so this clip fits before the next queued STT play time
+  7. Waits for `play_at` time if scheduled (drops if late)
+  8. Sets `_playback_ready` event when all audio is received (full pre-buffer)
+  9. While pipe writer drains the buffer, grabs next queue item and processes into `_lookahead_buf`
 
 ### _pipe_writer thread
 
@@ -77,6 +78,19 @@ With pre-translation (queue items translated ahead of time):
 ```
 
 The lookahead saves the full playback duration (typically 3-5s) from the next item's timing budget.
+
+## Speed Fitting
+
+ElevenLabs is called with `speed=1.0`, `stability=1.0`, and `similarity_boost=1.0`. The engine keeps the voice stable and performs dynamic speed changes locally after audio is generated.
+
+When an STT item has a later STT item queued, `_fit_current_audio_to_next_play_at()` compares the generated PCM duration with the available window before the next STT `play_at`, minus a small guard. If the clip needs more than a 5% reduction, it runs ffmpeg `atempo` on the PCM:
+
+- pitch is preserved by `atempo`
+- factors above `2.0x` are chained as multiple `atempo` filters
+- the maximum local speed factor is `2.5x`
+- SR events are not used as the fit deadline; the fit target is the next STT item
+
+The result metadata includes `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, and `fit_cpu_ms`, which are written to per-language JSONL logs.
 
 ## Scheduling
 
@@ -140,9 +154,10 @@ A single-slot design is safe because `_pipe_writer` captures the slot into a loc
 - `played` — utterance started and completed normally
 - `interrupted` — playback started but was cut short (only set by `_pipe_writer` when `_interrupt` is detected during active playback)
 - `dropped` — item never started playback (cleared from queue by `speak(interrupt=True)`, TTS returned no audio, or shutdown)
+- `replaced` — queued STT item never started because a fresher STT item took the slot
 - `suppressed` — STT utterance was discarded because SR was already occupying the slot
 
-Items that never played (queue clears, TTS failures, shutdown) are always `dropped`, not `interrupted`. Only `_pipe_writer` can set `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
+Items that never played are `dropped`, `replaced`, or `suppressed`, not `interrupted`. Only `_pipe_writer` can set `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
 
 ## Shutdown
 
@@ -172,6 +187,7 @@ Typical fields sent to `on_telemetry`:
 - `play_at`
 - `pre_translated` — `true` if translation was served from the pre-translation cache
 - `queue_wait_ms` — milliseconds the item spent waiting in the queue before processing started
+- `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms` — local ffmpeg speed-fitting telemetry
 
 ## Audio Chunk Format
 

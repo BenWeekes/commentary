@@ -59,13 +59,13 @@ The Go publisher delays video by `--video-delay` seconds while the STT pipeline 
 play_at = video_start + audio_start
 ```
 
-`video_start` is set when the Go publisher finishes its delay and starts sending frames. Since the audio feed began `video_delay` seconds earlier, translations are already ready when the viewer sees each moment.
+In live server mode, `video_start` is the worker's shared `target_start`: an absolute wall-clock start passed into every relay/publisher. Publisher "video delay complete" messages are diagnostics; the live language clocks are not retimed after startup because that can create audible drift.
 
 The TTS worker holds the audio until `play_at`, then plays at the exact scheduled time. If translate+TTS takes too long and `play_at` has already passed, the utterance is dropped.
 
 ### Server mode timing
 
-In server mode, `video_start_ref` is a mutable list (`[float]`) shared between the STT thread and the MatchWorker. It's initially set to `time.time() + video_delay` (estimate), then updated to the mean of all per-language publisher `video_start` values once publishers confirm. Each language pipeline uses its own `pipe.video_start` for accurate per-language `play_at` computation.
+In server mode, the worker computes one authoritative `target_start` and gives each language pipeline the same schedule basis. Each pipeline still owns its own publisher process and logs its own diagnostics, but STT `play_at` scheduling is based on the shared target so languages do not drift apart.
 
 ## Deepgram Configuration
 
@@ -78,11 +78,11 @@ endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 - `endpointing=200`: Deepgram fires speech_final after 200ms silence (faster turns)
 - `utterance_end_ms=1000`: Minimum allowed by Deepgram API
 - `is_final=True` results are processed; interims are monitored for forced splitting
-- `keyterm`: ~91 player/team names for recognition boost (from `lib/corrections.py`). For live matches, keyterms can be generated dynamically from the Sportradar lineups API (full names, surnames, team names, venue, referees)
+- `keyterm`: player/team names for recognition boost. For live matches, keyterms are generated dynamically from the Sportradar lineups API and stored under `match_data/{match_id}/keyterms.txt` (full names, surnames, team names, venue, referees). Static `TERMS_LIST` remains a fallback.
 
 ## Latency Budget
 
-With `--video-delay N` (default 7s):
+With `--video-delay N` (live config currently uses 14s):
 
 ```
 Budget per utterance ≈ N - utterance_duration - ~1.5s (translate + TTS fetch)
@@ -92,13 +92,13 @@ Example: 5s utterance, 7s delay → 7 - 5 - 1.5 = 0.5s margin (tight)
 Example: 7s utterance, 7s delay → 7 - 7 - 1.5 = -1.5s margin (drops likely)
 ```
 
-The TTS worker uses **lookahead**: while the current utterance plays (3-5s), the next one is already being translated and TTS'd in parallel. This means playback duration of the current item doesn't eat into the next item's budget, recovering 3-5s of margin per utterance.
+The TTS worker uses **lookahead**: while the current utterance plays, the next one is already being translated and TTS'd in parallel. It also locally speed-fits generated PCM with ffmpeg `atempo` when the current clip would overrun the next STT play time. Speed fitting targets the next STT item only, not future SR events.
 
 ## Forced Split (Long Utterance Protection)
 
 Stadium crowd noise prevents Deepgram's VAD from detecting commentary pauses — audio levels only drop from -20 dB (speech) to -37 dB (crowd), well above Deepgram's silence threshold. This causes occasional mega-batches (6-10s) that exhaust the video delay budget.
 
-The pipeline monitors interim results and force-splits when duration exceeds `--max-stt-duration` (default 5.0s):
+The pipeline monitors interim results and force-splits when duration exceeds `--max-stt-duration`:
 
 ```
 Normal:   is_final(3.5s) → emit → is_final(4.2s) → emit

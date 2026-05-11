@@ -115,18 +115,22 @@ Very short phrases (e.g., "to Scally.") sometimes produce zero audio bytes from 
 
 Under load, ElevenLabs WebSocket connections can drop silently. The TTSEngine logs `[TTS #N] WARNING: No audio received` when this happens. The pipeline continues with the next utterance.
 
-## gpt-5.4-mini blank responses
+## GPT reasoning model blank responses
 
-`gpt-5.4-mini` with `reasoning_effort="medium"` occasionally returns empty strings, especially for garbled or ambiguous STT input. This cascades to empty translations for all languages on that utterance.
+`gpt-5.4-mini` with `reasoning_effort="medium"` occasionally returned empty strings in testing, especially for garbled or ambiguous STT input. This cascades to empty translations for all languages on that utterance.
 
 **Workarounds**:
 - Use `reasoning_effort="low"` — much lower blank rate
-- Use `gpt-4o-mini` — no blank responses observed (server mode default)
+- Use `gpt-4o-mini` as a fallback if a reasoning model regresses
 - Use `max_completion_tokens` (not `max_tokens`) with gpt-5.4-mini — `max_tokens` returns HTTP 400
 
-## gpt-5.4-mini parameter differences
+## GPT reasoning model parameter differences
 
-`gpt-5.4-mini` uses `max_completion_tokens` instead of `max_tokens`. The `translate_text()` function in `lib/translator.py` handles this: when `reasoning_effort` is set, it uses `max_completion_tokens`; otherwise it uses `max_tokens` with `temperature`.
+`gpt-5.4` / `gpt-5.4-mini` use `max_completion_tokens` instead of `max_tokens` when reasoning is enabled. The `translate_text()` function in `lib/translator.py` handles this: when `reasoning_effort` is set, it uses `max_completion_tokens`; otherwise it uses `max_tokens` with `temperature`.
+
+## SRT source is single-caller
+
+The live SRT endpoint accepts one caller. In normal operation, only the `srt_direct` ingester should connect to it. Use the ingester's original Agora channel or local fanout logs for inspection; do not run a second SRT probe during a live match unless you first stop the server-side ingester.
 
 ## Deepgram keyword limit
 
