@@ -125,6 +125,16 @@ def start_channel_recording(
                 "subscribeAudioUids": ["#allstream#"],
                 "subscribeVideoUids": ["#allstream#"],
                 "maxIdleTime": 120,
+                # Mix mode defaults to 360x640 portrait at 500kbps — override
+                # to landscape HD so the recording matches the source frame.
+                "transcodingConfig": {
+                    "width": 1280,
+                    "height": 720,
+                    "fps": 25,
+                    "bitrate": 4000,         # kbps
+                    "mixedVideoLayout": 1,   # 1 = best-fit (single publisher fills canvas)
+                    "backgroundColor": "#000000",
+                },
             },
             "recordingFileConfig": {
                 "avFileType": ["hls"],
