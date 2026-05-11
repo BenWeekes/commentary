@@ -16,7 +16,7 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 | `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages; `original` is included for live matches and for demo matches only while the original pipeline is running |
 | `/api/matches/{id}/transcript` | GET | `{match_id, transcript: [{text, ts, audio_start}]}` | Recent English STT text (last 50 utterances) |
 | `/api/matches/{id}/detail` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, ...}` | Match config, keyterms, current log directory, and persisted match metadata |
-| `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 500 lines) |
+| `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 10000 lines) |
 | `/api/matches/{id}/refresh-data` | POST | `{status, match_id, keyterm_count?, roster_player_count?, kickoff_utc?}` | Refresh Sportradar fixture data into `match_store` for the next live run |
 | `/api/matches/{id}/start` | POST | match status JSON | Start a demo match |
 | `/api/matches/{id}/stop` | POST | match status JSON | Stop a match |

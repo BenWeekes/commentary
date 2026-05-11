@@ -408,7 +408,7 @@ class StatusHandler(BaseHTTPRequestHandler):
 
             qs = parse_qs(parsed.query)
             tail = int(qs.get("tail", ["100"])[0])
-            tail = max(1, min(tail, 500))
+            tail = max(1, min(tail, 10000))
 
             # Historical run support: ?run=YYYYMMDD_HHMMSS
             run_name = qs.get("run", [""])[0]

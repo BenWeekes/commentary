@@ -64,6 +64,29 @@
     .summary-bar .stat-label { color: #555; }
     .summary-bar .stat-value { color: #ccc; font-weight: 600; }
 
+    .run-toolbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: #666;
+    }
+    .run-toolbar-label {
+      color: #555;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+    }
+    .run-toolbar-current {
+      color: #888;
+      font-family: monospace;
+    }
+
     .tabs {
       max-width: 1200px;
       margin: 0 auto;
@@ -292,6 +315,8 @@
 
   <div class="summary-bar" id="summary-bar"></div>
 
+  <div class="run-toolbar" id="run-toolbar"></div>
+
   <div class="tabs" id="tabs"></div>
 
   <div class="tab-content" id="tab-content"></div>
@@ -306,6 +331,7 @@
     var params = new URLSearchParams(window.location.search);
     var CTL = window.location.origin;
     var MATCH = params.get('match') || '';
+    var selectedRun = params.get('run') || '';  // empty = current run
     var activeTab = 'overview';
     var matchData = null;
     var detailData = null;  // from /api/matches/{id}/detail
@@ -555,19 +581,6 @@
       } else {
         html += '<div style="font-size:13px;color:#444;font-style:italic;">Not started yet</div>';
       }
-      // Historical runs
-      var runs = detail.runs || [];
-      if (runs.length > 1) {
-        html += '<div style="margin-top:10px;">';
-        html += '<span style="font-size:11px;color:#555;">Historical runs: </span>';
-        html += '<select class="run-select" id="run-selector" onchange="selectRun(this.value)">';
-        html += '<option value="">Current</option>';
-        runs.forEach(function(r) {
-          html += '<option value="' + esc(r) + '">' + esc(r) + '</option>';
-        });
-        html += '</select>';
-        html += '</div>';
-      }
       html += '</div>';
 
       // Per-language telemetry
@@ -729,10 +742,47 @@
       }
     }
 
-    var selectedRun = '';  // empty = current run
+    function updateRunUrl() {
+      var next = new URL(window.location.href);
+      if (selectedRun) {
+        next.searchParams.set('run', selectedRun);
+      } else {
+        next.searchParams.delete('run');
+      }
+      window.history.replaceState({}, '', next.toString());
+    }
+
+    function renderRunToolbar() {
+      var toolbar = document.getElementById('run-toolbar');
+      if (!toolbar) return;
+      var detail = detailData || {};
+      var runs = detail.runs || [];
+      if (runs.length === 0 && !selectedRun) {
+        toolbar.innerHTML = '';
+        return;
+      }
+
+      var html = '<span class="run-toolbar-label">Run</span>';
+      html += '<select class="run-select" id="run-toolbar-selector" onchange="selectRun(this.value)">';
+      html += '<option value="">Current</option>';
+      var found = selectedRun === '';
+      runs.forEach(function(r) {
+        var selected = r === selectedRun ? ' selected' : '';
+        if (r === selectedRun) found = true;
+        html += '<option value="' + esc(r) + '"' + selected + '>' + esc(r) + '</option>';
+      });
+      if (selectedRun && !found) {
+        html += '<option value="' + esc(selectedRun) + '" selected>' + esc(selectedRun) + '</option>';
+      }
+      html += '</select>';
+      html += '<span class="run-toolbar-current">' + esc(selectedRun || 'current') + '</span>';
+      toolbar.innerHTML = html;
+    }
 
     function selectRun(runName) {
       selectedRun = runName || '';
+      updateRunUrl();
+      renderRunToolbar();
       // Re-fetch logs from the selected run
       var langs = (matchData && matchData.configured_languages) || [];
       var fetches = [fetchLogs('stt')];
@@ -768,7 +818,7 @@
     }
 
     function fetchLogs(key) {
-      var url = CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/logs/' + key + '?tail=200';
+      var url = CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/logs/' + key + '?tail=5000';
       if (selectedRun) url += '&run=' + encodeURIComponent(selectedRun);
       return fetch(url)
         .then(function(r) { return r.ok ? r.json() : null; })
@@ -786,7 +836,10 @@
       return fetch(CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/detail', { mode: 'cors' })
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(data) {
-          if (data) detailData = data;
+          if (data) {
+            detailData = data;
+            renderRunToolbar();
+          }
         })
         .catch(function() {});
     }
