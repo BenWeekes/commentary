@@ -1,0 +1,22 @@
+control_port: 8081
+translation_model: "gpt-5.4"
+
+matches:
+  - match_id: bmg_fch_demo_srt
+    display_name: "BMG vs FCH Demo via SRT"
+    mode: live
+    enabled: true
+    auto_manage: false
+    sport_event_id: "sr:sport_event:61514104"
+    source:
+      type: srt_direct
+      url: "srt://127.0.0.1:10080?mode=caller&latency=200000"
+      original_channel: bmg_fch_demo_srt-original
+      publish_uid: 73
+      original_buffer_seconds: 1.0
+      retry_seconds: 5
+      audio_stream_index: 1
+    video_uid: 73
+    video_delay: 14.0
+    max_stt_duration: 6.5
+    languages: [en]

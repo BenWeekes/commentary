@@ -199,6 +199,30 @@ and open:
 http://localhost:8080/viewer_live.html?match=livepipe_e2e01&lang=es
 ```
 
+### Demo artifacts through local SRT
+
+Use this when you need to test live SRT timing with known demo media. It loops `clips/bmg_fch_demo_5min/source.mp4` as MPEG-TS over a local SRT listener, then runs the normal `srt_direct` live path against that stream.
+
+Terminal 1:
+
+```bash
+tools/run_demo_srt_listener.sh 10080
+```
+
+Terminal 2:
+
+```bash
+python3 -m server.main --config matches_demo_live_srt.yaml
+```
+
+Then start `bmg_fch_demo_srt` from the status page and open:
+
+```text
+http://localhost:8081/viewer_live.html?match=bmg_fch_demo_srt&lang=en
+```
+
+This publishes an English passthrough translated channel. It still goes through live SRT pull, H.264 cleanup, local PCM to Deepgram, live `play_at` scheduling, ElevenLabs TTS, and per-language relay publishing, so it verifies the live clock path rather than the file-backed demo scheduler.
+
 ### Fully standalone browser watch
 
 `test_live_pipeline.py` also prints a standalone watch URL for `viewer_test.html`. This is a local `file://...` URL with:
