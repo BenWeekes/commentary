@@ -322,6 +322,7 @@ class MatchWorker:
         self._keyterms = None
         self._telemetry_lock = threading.Lock()
         self._recording_sessions: dict[str, RecordingSession] = {}
+        self._recording_meta: dict[str, dict] = {}
         self._stt_schedule_meta_by_lang: dict[str, dict[tuple[float, str], dict]] = {}
 
     def start(self):
@@ -339,6 +340,7 @@ class MatchWorker:
         self._lang_logs = {}
         self._keyterms = None
         self._recording_sessions = {}
+        self._recording_meta = {}
         self._stt_schedule_meta_by_lang = {}
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
@@ -1326,6 +1328,7 @@ class MatchWorker:
         for lang, pipe in self._pipelines.items():
             if lang == "original":
                 continue
+            started_at = time.time()
             try:
                 session = start_channel_recording(
                     app_id=self._server.agora_app_id,
@@ -1337,9 +1340,32 @@ class MatchWorker:
                     storage_config=cr,
                 )
                 self._recording_sessions[lang] = session
+                self._recording_meta[lang] = {
+                    "language": lang,
+                    "channel": session.channel,
+                    "uid": session.uid,
+                    "resource_id": session.resource_id,
+                    "sid": session.sid,
+                    "mode": session.mode,
+                    "status": "recording",
+                    "started_at": started_at,
+                    "started_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started_at)),
+                    "s3_url": self._recording_s3_url(session),
+                }
+                self._write_recordings_meta()
                 print(f"[{tag}] Recording started for {pipe.channel} "
                       f"(sid={session.sid})")
             except Exception as e:
+                self._recording_meta[lang] = {
+                    "language": lang,
+                    "channel": pipe.channel,
+                    "uid": str(recording_uid),
+                    "status": "start_failed",
+                    "started_at": started_at,
+                    "started_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started_at)),
+                    "error": str(e),
+                }
+                self._write_recordings_meta()
                 print(f"[{tag}] WARNING: Recording start failed for "
                       f"{pipe.channel} (non-fatal): {e}")
             recording_uid += 1
@@ -1359,12 +1385,84 @@ class MatchWorker:
                 )
                 upload_status = resp.get("serverResponse", {}).get(
                     "uploadingStatus", "unknown")
+                stopped_at = time.time()
+                meta = self._recording_meta.setdefault(lang, {
+                    "language": lang,
+                    "channel": session.channel,
+                    "uid": session.uid,
+                    "resource_id": session.resource_id,
+                    "sid": session.sid,
+                    "mode": session.mode,
+                    "s3_url": self._recording_s3_url(session),
+                })
+                meta.update({
+                    "status": "stopped",
+                    "stopped_at": stopped_at,
+                    "stopped_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(stopped_at)),
+                    "upload_status": upload_status,
+                })
+                self._write_recordings_meta()
                 print(f"[{tag}] Recording stopped for {session.channel} "
                       f"(upload={upload_status})")
             except Exception as e:
+                meta = self._recording_meta.setdefault(lang, {
+                    "language": lang,
+                    "channel": session.channel,
+                    "uid": session.uid,
+                    "resource_id": session.resource_id,
+                    "sid": session.sid,
+                    "mode": session.mode,
+                    "s3_url": self._recording_s3_url(session),
+                })
+                meta.update({
+                    "status": "stop_failed",
+                    "error": str(e),
+                })
+                self._write_recordings_meta()
                 print(f"[{tag}] WARNING: Recording stop failed for "
                       f"{session.channel} (non-fatal): {e}")
         self._recording_sessions.clear()
+
+    def _recording_s3_url(self, session: RecordingSession) -> str | None:
+        """Return the expected public HLS URL for the Agora S3 recording."""
+        cr = self._server.cloud_recording or {}
+        if cr.get("vendor") != 1:
+            return None
+        bucket = cr.get("bucket")
+        if not bucket:
+            return None
+        region_map = {
+            0: "us-east-1",
+            1: "us-east-2",
+            2: "us-west-1",
+            3: "us-west-2",
+        }
+        region = region_map.get(cr.get("region"))
+        if not region:
+            return None
+        prefix = cr.get("fileNamePrefix") or []
+        parts = [str(p).strip("/") for p in prefix if str(p).strip("/")]
+        parts.append(f"{session.sid}_{session.channel}.m3u8")
+        return f"https://{bucket}.s3.{region}.amazonaws.com/" + "/".join(parts)
+
+    def _write_recordings_meta(self):
+        """Persist per-run cloud recording metadata for the detail UI."""
+        if not self._log_dir:
+            return
+        path = os.path.join(self._log_dir, "recordings.json")
+        tmp = path + ".tmp"
+        data = {
+            "match_id": self._match.match_id,
+            "run": os.path.basename(self._log_dir),
+            "recordings": self._recording_meta,
+        }
+        try:
+            with open(tmp, "w") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                f.write("\n")
+            os.replace(tmp, path)
+        except Exception as e:
+            print(f"[MATCH {self._match.match_id}] WARNING: failed to write recordings metadata: {e}")
 
     def _cleanup(self, tag):
         """Stop all pipelines, kill publishers, and close log files."""

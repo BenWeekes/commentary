@@ -49,6 +49,7 @@ Useful files:
 
 - `stt.jsonl` — shared STT utterance log with header, keyterms, roster, and per-utterance timestamps
 - `{lang}.jsonl` — per-language translation/TTS/playback outcomes (`played`, `dropped`, `interrupted`, `suppressed`)
+- `recordings.json` — per-language cloud recording session metadata, upload status, and expected S3 HLS URLs when cloud recording is enabled
 - `match_data/{match_id}/latest_run.txt` — newest run pointer
 
 Quick inspection:
@@ -218,6 +219,8 @@ http://localhost:8081/viewer_live.html?match=bmg_fch_demo_srt&lang=en
 The demo SRT stream layout matches the live two-audio-track case: stream `0` is H.264 video, stream `1` is atmosphere AAC, and stream `2` is commentary AAC. The YAML therefore uses `atmosphere_audio_stream_index: 1` and `audio_stream_index: 2`. `tools/run_demo_srt_listener.sh` is kept as a manual probe for ffprobe/player testing, but the status-page workflow should use the owned `demo_srt_direct` source.
 
 This publishes an English passthrough translated channel. It still goes through live SRT pull, H.264 cleanup, local commentary PCM to Deepgram, live `play_at` scheduling, delayed atmosphere fanout, ElevenLabs TTS, and per-language relay publishing, so it verifies the live clock and split-audio path rather than the file-backed demo scheduler.
+
+For a short live-clock smoke test, run `test_live_pipeline.py` with `--assert-skew-ms 50 --stop-after-utterances N` against a live/demo source. The test fails if live `intended_skew_ms` drifts beyond the threshold.
 
 ### Fully standalone browser watch
 

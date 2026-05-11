@@ -583,6 +583,30 @@
       }
       html += '</div>';
 
+      // Recording links for the selected/current run
+      var recContainer = detail.recordings || {};
+      var recs = recContainer.recordings || {};
+      var recLangs = Object.keys(recs).sort();
+      if (recLangs.length > 0) {
+        html += '<div class="overview-card">';
+        html += '<h3>Recordings</h3>';
+        recLangs.forEach(function(lang) {
+          var rec = recs[lang] || {};
+          var label = lang.toUpperCase();
+          var status = rec.upload_status || rec.status || '-';
+          var sid = rec.sid ? String(rec.sid).substring(0, 8) : '-';
+          var text = esc(status) + ' · ' + esc(sid);
+          if (rec.s3_url) {
+            text = '<a href="' + esc(rec.s3_url) + '" target="_blank" style="color:#60a5fa;text-decoration:none;">' + text + '</a>';
+          }
+          html += '<div class="lang-row">';
+          html += '<span class="lang-name">' + label + '</span>';
+          html += '<span class="lang-stats">' + text + '</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
       // Per-language telemetry
       var langKeys = Object.keys(langs).filter(function(k) { return k !== 'original'; });
       if (langKeys.length > 0) {
@@ -783,9 +807,9 @@
       selectedRun = runName || '';
       updateRunUrl();
       renderRunToolbar();
-      // Re-fetch logs from the selected run
+      // Re-fetch detail and logs from the selected run
       var langs = (matchData && matchData.configured_languages) || [];
-      var fetches = [fetchLogs('stt')];
+      var fetches = [fetchDetail(), fetchLogs('stt')];
       langs.forEach(function(lang) { fetches.push(fetchLogs(lang)); });
       Promise.all(fetches).then(function() { renderActiveTab(); });
     }
@@ -833,7 +857,9 @@
     var tabsBuilt = false;
 
     function fetchDetail() {
-      return fetch(CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/detail', { mode: 'cors' })
+      var url = CTL + '/api/matches/' + encodeURIComponent(MATCH) + '/detail';
+      if (selectedRun) url += '?run=' + encodeURIComponent(selectedRun);
+      return fetch(url, { mode: 'cors' })
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(data) {
           if (data) {

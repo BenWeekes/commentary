@@ -15,7 +15,7 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 | `/api/matches/{id}/status` | GET | `{match_id, state, stt_utterance_count, languages, error, started_at}` | Single match status |
 | `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages; `original` is included for live matches and for demo matches only while the original pipeline is running |
 | `/api/matches/{id}/transcript` | GET | `{match_id, transcript: [{text, ts, audio_start}]}` | Recent English STT text (last 50 utterances) |
-| `/api/matches/{id}/detail` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, ...}` | Match config, keyterms, current log directory, and persisted match metadata |
+| `/api/matches/{id}/detail?run=YYYYMMDD_HHMMSS` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, recordings, ...}` | Match config, keyterms, current log directory, selected-run recording metadata, and persisted match metadata |
 | `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 10000 lines) |
 | `/api/matches/{id}/refresh-data` | POST | `{status, match_id, keyterm_count?, roster_player_count?, kickoff_utc?}` | Refresh Sportradar fixture data into `match_store` for the next live run |
 | `/api/matches/{id}/start` | POST | match status JSON | Start a demo match |
@@ -166,9 +166,16 @@ These are internal runtime files written by `server/match_worker.py`, not HTTP e
 match_data/{match_id}/runs/{YYYYMMDD_HHMMSS}/
   stt.jsonl
   {lang}.jsonl
+  recordings.json
 ```
 
 `match_data/{match_id}/latest_run.txt` stores the newest run directory name.
+
+### `recordings.json`
+
+Written when cloud recording is enabled. It records one entry per language channel, including `sid`, `resource_id`, `channel`, recording UID, start/stop times, upload status, and the expected S3 HLS URL when it can be derived from the configured storage provider.
+
+Current cloud recording settings use Agora mix mode with `streamTypes=2` (audio + video), live-broadcast channel type, `#allstream#` audio/video subscriptions, and 1280x720 landscape transcoding at 25fps / 4000kbps. The detail page surfaces these per-language links for the selected run.
 
 ### `stt.jsonl`
 

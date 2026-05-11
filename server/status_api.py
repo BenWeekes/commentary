@@ -345,6 +345,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                     keyterms_source = "global_default"
 
             # Current log dir info
+            qs = parse_qs(parsed.query)
+            selected_run = qs.get("run", [""])[0]
             log_dir = getattr(worker, '_log_dir', None)
             log_files = {}
             if log_dir and os.path.isdir(log_dir):
@@ -364,6 +366,18 @@ class StatusHandler(BaseHTTPRequestHandler):
             # Match metadata and roster from match_store
             match_meta = store.read_match_meta(match_id)
             roster_data = store.read_roster(match_id)
+            recordings = {}
+            recordings_dir = log_dir
+            if selected_run:
+                recordings_dir = os.path.join(store._match_dir(match_id), "runs", selected_run)
+            if recordings_dir:
+                recordings_path = os.path.join(recordings_dir, "recordings.json")
+                if os.path.isfile(recordings_path):
+                    try:
+                        with open(recordings_path) as f:
+                            recordings = json.load(f)
+                    except Exception:
+                        recordings = {}
 
             s = worker.status
             result = {
@@ -384,6 +398,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "keyterms_source": keyterms_source,
                 "log_dir": log_dir,
                 "log_files": log_files,
+                "selected_run": selected_run,
+                "recordings": recordings,
                 "translation_model": self.server_config.translation_model,
                 "video_delay": match_cfg.video_delay if match_cfg else None,
                 "runs": runs[:20],

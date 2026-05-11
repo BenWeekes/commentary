@@ -271,6 +271,8 @@ def main() -> None:
     parser.add_argument("--viewer-base-url", default="http://localhost:8080", help="Base URL for printed server-backed viewer_live.html link")
     parser.add_argument("--viewer-test-path", default=os.path.join(ROOT_DIR, "viewer_test.html"), help="Path to standalone viewer HTML for printed watch URL")
     parser.add_argument("--write-test-config", default="", help="Optional path to write a one-match live test config for viewer_live.html")
+    parser.add_argument("--assert-skew-ms", type=float, default=0.0, help="Fail if any live intended_skew_ms exceeds this absolute value; 0 disables")
+    parser.add_argument("--stop-after-utterances", type=int, default=0, help="Stop after this many STT utterances; useful for smoke tests")
     parser.add_argument("--prepare-only", action="store_true", help="Write derived config/URLs and exit without starting the pipeline")
     args = parser.parse_args()
 
@@ -361,6 +363,8 @@ def main() -> None:
     relay_proc = None
     tts = None
     video_start_ref = [None]
+    utterance_count = [0]
+    skew_failures: list[tuple[float, str]] = []
 
     def handle_signal(signum, frame):
         stop_event.set()
@@ -478,6 +482,10 @@ def main() -> None:
                 return (translated, voice_id)
 
             play_at_text = f"{play_at:.3f}" if play_at is not None else "-"
+            utterance_count[0] += 1
+            if args.assert_skew_ms and intended_skew_ms is not None:
+                if abs(intended_skew_ms) > args.assert_skew_ms:
+                    skew_failures.append((intended_skew_ms, text))
             print(
                 "[LIVE-TEST STT] "
                 f"audio={audio_start:.2f}-{audio_end:.2f}s "
@@ -485,6 +493,9 @@ def main() -> None:
                 f"skew={intended_skew_ms}ms \"{text[:100]}\""
             )
             tts.speak(text, play_at=play_at, translate_fn=translate_fn)
+            if args.stop_after_utterances and utterance_count[0] >= args.stop_after_utterances:
+                print(f"[LIVE-TEST] reached --stop-after-utterances={args.stop_after_utterances}")
+                stop_event.set()
 
         stt_thread = threading.Thread(
             target=run_stt_pipeline_live,
@@ -536,6 +547,14 @@ def main() -> None:
         drain_end = time.time() + args.video_delay
         while time.time() < drain_end and not stop_event.is_set():
             time.sleep(0.5)
+        if skew_failures:
+            preview = "; ".join(
+                f"{round(skew)}ms {text[:40]!r}" for skew, text in skew_failures[:3]
+            )
+            raise SystemExit(
+                f"[LIVE-TEST] intended_skew_ms exceeded {args.assert_skew_ms}ms "
+                f"for {len(skew_failures)} utterances: {preview}"
+            )
 
     finally:
         stop_event.set()

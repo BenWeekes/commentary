@@ -235,6 +235,12 @@ Optional logrotate config — create `/etc/logrotate.d/commentary`:
 }
 ```
 
+### Cloud recording output
+
+When `cloud_recording` is configured, each language output channel starts an Agora Cloud Recording mix-mode session. The current request records audio + video (`streamTypes=2`), subscribes to all audio/video publishers with `#allstream#`, and transcodes to 1280x720 landscape at 25fps / 4000kbps so a single video publisher fills the canvas.
+
+Each run writes `match_data/{match_id}/runs/{run}/recordings.json` with the recording `sid`, resource ID, start/stop timestamps, upload status, and expected S3 HLS URL. The match detail page shows these links for the selected run.
+
 ## 9. Verification checklist
 
 1. **Validate config** (dry run):
