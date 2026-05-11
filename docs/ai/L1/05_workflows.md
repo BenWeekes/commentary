@@ -201,27 +201,23 @@ http://localhost:8080/viewer_live.html?match=livepipe_e2e01&lang=es
 
 ### Demo artifacts through local SRT
 
-Use this when you need to test live SRT timing with known demo media. It loops `clips/bmg_fch_demo_5min/source.mp4` as MPEG-TS over a local SRT listener, then runs the normal `srt_direct` live path against that stream.
+Use this when you need to test live SRT timing with known demo media. `source.type = demo_srt_direct` starts one owned FFmpeg looper for `clips/bmg_fch_demo_5min/source.mp4` plus `clips/bmg_fch_demo_5min/atmosphere.wav`, publishes that as MPEG-TS over local SRT, then runs the normal `srt_direct` live path against it.
 
-Terminal 1:
-
-```bash
-tools/run_demo_srt_listener.sh 10080
-```
-
-Terminal 2:
+Start the demo-live server:
 
 ```bash
 python3 -m server.main --config matches_demo_live_srt.yaml
 ```
 
-Then start `bmg_fch_demo_srt` from the status page and open:
+Then start `bmg_fch_demo_srt` from the status page. Start owns both the local SRT looper and the match worker; Stop terminates both. Only one looper can bind the configured `demo_srt_port`, so concurrent starts on the same port are rejected. Open:
 
 ```text
 http://localhost:8081/viewer_live.html?match=bmg_fch_demo_srt&lang=en
 ```
 
-This publishes an English passthrough translated channel. It still goes through live SRT pull, H.264 cleanup, local PCM to Deepgram, live `play_at` scheduling, ElevenLabs TTS, and per-language relay publishing, so it verifies the live clock path rather than the file-backed demo scheduler.
+The demo SRT stream layout matches the live two-audio-track case: stream `0` is H.264 video, stream `1` is atmosphere AAC, and stream `2` is commentary AAC. The YAML therefore uses `atmosphere_audio_stream_index: 1` and `audio_stream_index: 2`. `tools/run_demo_srt_listener.sh` is kept as a manual probe for ffprobe/player testing, but the status-page workflow should use the owned `demo_srt_direct` source.
+
+This publishes an English passthrough translated channel. It still goes through live SRT pull, H.264 cleanup, local commentary PCM to Deepgram, live `play_at` scheduling, delayed atmosphere fanout, ElevenLabs TTS, and per-language relay publishing, so it verifies the live clock and split-audio path rather than the file-backed demo scheduler.
 
 ### Fully standalone browser watch
 

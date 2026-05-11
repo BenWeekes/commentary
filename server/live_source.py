@@ -9,7 +9,7 @@ import signal
 import subprocess
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from server.config import MatchConfig, ServerConfig, get_live_source
 from server.srt_ingest import start_srt_ingest, start_srt_original_publish
@@ -29,6 +29,11 @@ class ResolvedLiveSource:
     local_atmos_pcm_addr: str = ""
     local_video_addr: str = ""
     owned_proc: subprocess.Popen | None = None
+    owned_procs: list[tuple[subprocess.Popen, str]] = field(default_factory=list)
+
+
+_DEMO_SRT_LOCK = threading.Lock()
+_DEMO_SRT_BY_PORT: dict[int, subprocess.Popen] = {}
 
 
 def _log_stream(stream, tag: str):
@@ -44,14 +49,100 @@ def _kill_proc(proc: subprocess.Popen | None, tag: str):
     if not proc or proc.poll() is not None:
         return
     try:
-        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     except (ProcessLookupError, OSError):
         pass
     try:
         proc.wait(timeout=5)
     except subprocess.TimeoutExpired:
-        pass
-    print(f"  [{tag}] process killed")
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except (ProcessLookupError, OSError):
+            pass
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
+    print(f"  [{tag}] process stopped")
+
+
+def _build_demo_srt_url(port: int) -> str:
+    return f"srt://127.0.0.1:{port}?mode=caller&latency=200000"
+
+
+def _run_unique_uid(base_uid: int) -> int:
+    return 100000 + ((base_uid * 1000 + int(time.time() * 1000)) % 800000)
+
+
+def _start_demo_srt_loop(source, tag: str) -> tuple[subprocess.Popen, str]:
+    """Start one looped local SRT listener for demo-live testing."""
+    port = int(source.demo_srt_port)
+    srt_url = _build_demo_srt_url(port)
+    with _DEMO_SRT_LOCK:
+        existing = _DEMO_SRT_BY_PORT.get(port)
+        if existing and existing.poll() is None:
+            raise RuntimeError(f"demo SRT looper already running on port {port}")
+        _DEMO_SRT_BY_PORT.pop(port, None)
+
+        cmd = [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel", "info",
+            "-stream_loop", "-1",
+            "-re",
+            "-i", source.demo_media_file,
+            "-stream_loop", "-1",
+            "-re",
+            "-i", source.demo_atmosphere_file,
+            "-map", "0:v:0",
+            "-map", "1:a:0",
+            "-map", "0:a:0",
+            "-c:v", "copy",
+            "-bsf:v", "h264_mp4toannexb",
+            "-c:a", "aac",
+            "-ar:a", "16000",
+            "-ac:a", "1",
+            "-b:a", "64k",
+            "-f", "mpegts",
+            f"srt://0.0.0.0:{port}?mode=listener&latency=200000",
+        ]
+        print(f"[{tag}] Starting demo SRT loop on {srt_url}")
+        print(f"[{tag}] Demo stream map: #0:0 video, #0:1 atmosphere, #0:2 commentary")
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os.setsid,
+        )
+        _DEMO_SRT_BY_PORT[port] = proc
+
+    threading.Thread(
+        target=_log_stream,
+        args=(proc.stdout, f"{tag} DEMO SRT out"),
+        daemon=True,
+    ).start()
+    threading.Thread(
+        target=_log_stream,
+        args=(proc.stderr, f"{tag} DEMO SRT err"),
+        daemon=True,
+    ).start()
+
+    time.sleep(0.75)
+    if proc.poll() is not None:
+        with _DEMO_SRT_LOCK:
+            if _DEMO_SRT_BY_PORT.get(port) is proc:
+                _DEMO_SRT_BY_PORT.pop(port, None)
+        raise RuntimeError(f"demo SRT looper exited early with code {proc.returncode}")
+
+    return proc, srt_url
+
+
+def _release_demo_srt_proc(proc: subprocess.Popen, tag: str) -> None:
+    with _DEMO_SRT_LOCK:
+        for port, current in list(_DEMO_SRT_BY_PORT.items()):
+            if current is proc:
+                _DEMO_SRT_BY_PORT.pop(port, None)
+    _kill_proc(proc, tag=tag)
 
 
 def _wait_for_stdout_signal(
@@ -123,12 +214,19 @@ def resolve_live_source(
             owned_proc=None,
         )
 
-    if source.type == "srt_direct":
-        print(f"[{tag}] Starting direct SRT original publish → Agora channel={source.original_channel} uid={source.publish_uid}")
+    demo_srt_proc: subprocess.Popen | None = None
+    if source.type in ("srt_direct", "demo_srt_direct"):
+        srt_url = source.url
+        publish_uid = source.publish_uid
+        if source.type == "demo_srt_direct":
+            demo_srt_proc, srt_url = _start_demo_srt_loop(source, tag)
+            publish_uid = _run_unique_uid(source.publish_uid)
+
+        print(f"[{tag}] Starting direct SRT original publish → Agora channel={source.original_channel} uid={publish_uid}")
         proc = start_srt_original_publish(
-            srt_url=source.url,
+            srt_url=srt_url,
             channel=source.original_channel,
-            publish_uid=source.publish_uid,
+            publish_uid=publish_uid,
             retry_seconds=source.retry_seconds,
             source_buffer_seconds=source.original_buffer_seconds,
             pcm_listen="127.0.0.1:0",
@@ -162,6 +260,8 @@ def resolve_live_source(
             )
         except Exception:
             _kill_proc(proc, tag=f"{tag} SRC")
+            if demo_srt_proc:
+                _release_demo_srt_proc(demo_srt_proc, tag=f"{tag} DEMO SRT")
             raise
 
         threading.Thread(
@@ -173,7 +273,7 @@ def resolve_live_source(
         return ResolvedLiveSource(
             source_type="srt_direct",
             channel=source.original_channel,
-            video_uid=source.publish_uid,
+            video_uid=publish_uid,
             atmosphere_uid=0,
             commentary_uid=0,
             source_atmos_enabled=bool(local_atmos_pcm_addr),
@@ -183,6 +283,7 @@ def resolve_live_source(
             local_atmos_pcm_addr=local_atmos_pcm_addr,
             local_video_addr=local_video_addr,
             owned_proc=proc,
+            owned_procs=[(demo_srt_proc, f"{tag} DEMO SRT")] if demo_srt_proc else [],
         )
 
     if source.type != "srt":
@@ -235,6 +336,9 @@ def resolve_live_source(
 
 def stop_resolved_live_source(resolved: ResolvedLiveSource | None, tag: str) -> None:
     """Stop any owned live-source ingest process."""
-    if not resolved or not resolved.owned_proc:
+    if not resolved:
         return
-    _kill_proc(resolved.owned_proc, tag=f"{tag} SRC")
+    if resolved.owned_proc:
+        _kill_proc(resolved.owned_proc, tag=f"{tag} SRC")
+    for proc, proc_tag in resolved.owned_procs:
+        _release_demo_srt_proc(proc, tag=proc_tag)

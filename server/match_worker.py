@@ -23,6 +23,30 @@ from lib.events import load_events_file
 
 MATCH_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                               "match_data")
+GO_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                      "go-audio-video-publisher")
+
+
+def _go_process_env(app_cert: str) -> dict:
+    env = os.environ.copy()
+    env["AGORA_APP_CERTIFICATE"] = app_cert
+    go_bin = "/usr/local/go/bin"
+    if os.path.isdir(go_bin):
+        path_parts = env.get("PATH", "").split(os.pathsep)
+        if go_bin not in path_parts:
+            env["PATH"] = go_bin + os.pathsep + env.get("PATH", "")
+
+    linux_sdk_path = os.path.join(GO_DIR, "agora-sdk", "agora_sdk")
+    if "LD_LIBRARY_PATH" not in env and os.path.isdir(linux_sdk_path):
+        env["LD_LIBRARY_PATH"] = os.path.abspath(linux_sdk_path)
+
+    default_sdk_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "codex",
+        "server-custom-llm", "go-audio-subscriber", "sdk", "agora_sdk_mac"
+    )
+    if "DYLD_LIBRARY_PATH" not in env:
+        env["DYLD_LIBRARY_PATH"] = os.path.abspath(default_sdk_path)
+    return env
 
 
 def _load_match_keyterms(match_id):
@@ -111,18 +135,9 @@ def _start_publisher(h264_file, channel, video_delay, app_id, app_cert, start_at
             When provided, overrides video_delay (Go publisher sleeps until
             this wall-clock time instead of sleeping a relative duration).
     """
-    base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                            "go-audio-video-publisher")
+    base_dir = GO_DIR
     sender = os.path.join(base_dir, "reference", "agora_go_sdk", "send_h264_pcm_uid73.go")
-    default_sdk_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "codex",
-        "server-custom-llm", "go-audio-subscriber", "sdk", "agora_sdk_mac"
-    )
-
-    env = os.environ.copy()
-    env["AGORA_APP_CERTIFICATE"] = app_cert
-    if "DYLD_LIBRARY_PATH" not in env:
-        env["DYLD_LIBRARY_PATH"] = os.path.abspath(default_sdk_path)
+    env = _go_process_env(app_cert)
 
     abs_h264 = os.path.abspath(h264_file)
     cmd = ["go", "run", sender, app_id, channel, abs_h264, "stdin"]
@@ -256,14 +271,21 @@ def _kill_publisher(proc, tag="PUB"):
     """Kill publisher and all child processes."""
     if proc and proc.poll() is None:
         try:
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
         except (ProcessLookupError, OSError):
             pass
         try:
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
-            pass
-        print(f"  [{tag}] Publisher killed.")
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            except (ProcessLookupError, OSError):
+                pass
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+        print(f"  [{tag}] Publisher stopped.")
 
 
 def _log_pub_stream(stream, tag):
@@ -576,18 +598,8 @@ class MatchWorker:
             self._load_roster(tag)
             resolved = resolve_live_source(self._match, self._server, self._stop, tag)
 
-            base_dir = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "go-audio-video-publisher")
-            default_sdk_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "..", "codex", "server-custom-llm", "go-audio-subscriber",
-                "sdk", "agora_sdk_mac")
-
-            env = os.environ.copy()
-            env["AGORA_APP_CERTIFICATE"] = self._server.agora_app_cert
-            if "DYLD_LIBRARY_PATH" not in env:
-                env["DYLD_LIBRARY_PATH"] = os.path.abspath(default_sdk_path)
+            base_dir = GO_DIR
+            env = _go_process_env(self._server.agora_app_cert)
 
             live_audio_source = None
             if resolved.source_type == "srt_direct":
@@ -643,7 +655,8 @@ class MatchWorker:
             self._open_stt_log(target_start)
 
             # --- Start relay_publish.go per language ---
-            for lang in self._match.languages:
+            relay_pub_uid_base = 200000 + (int(time.time() * 1000) % 700000)
+            for lang_index, lang in enumerate(self._match.languages):
                 if self._stop.is_set():
                     break
 
@@ -656,6 +669,7 @@ class MatchWorker:
                     f"--atmos-enabled={'true' if resolved.source_atmos_enabled else 'false'}",
                     "--video-delay", str(relay_delay),
                     "--start-at", f"{target_start:.3f}",
+                    "--pub-uid", str(relay_pub_uid_base + lang_index),
                 ]
                 if resolved.source_type == "srt_direct":
                     relay_cmd.extend(["--video-source-tcp", resolved.local_video_addr])

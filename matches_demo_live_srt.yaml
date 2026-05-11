@@ -9,13 +9,16 @@ matches:
     auto_manage: false
     sport_event_id: "sr:sport_event:61514104"
     source:
-      type: srt_direct
-      url: "srt://127.0.0.1:10080?mode=caller&latency=200000"
+      type: demo_srt_direct
+      demo_media_file: clips/bmg_fch_demo_5min/source.mp4
+      demo_atmosphere_file: clips/bmg_fch_demo_5min/atmosphere.wav
+      demo_srt_port: 10080
       original_channel: bmg_fch_demo_srt-original
       publish_uid: 73
       original_buffer_seconds: 1.0
       retry_seconds: 5
-      audio_stream_index: 1
+      audio_stream_index: 2
+      atmosphere_audio_stream_index: 1
     video_uid: 73
     video_delay: 14.0
     max_stt_duration: 6.5

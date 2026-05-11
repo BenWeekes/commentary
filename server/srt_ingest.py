@@ -105,6 +105,11 @@ def _start_srt_publish(
     env.setdefault("AGORA_APP_ID", app_id)
     env.setdefault("AGORA_APP_CERT", app_cert)
     env.setdefault("AGORA_APP_CERTIFICATE", app_cert)
+    go_bin = Path("/usr/local/go/bin")
+    if go_bin.exists():
+        path_parts = env.get("PATH", "").split(os.pathsep)
+        if str(go_bin) not in path_parts:
+            env["PATH"] = str(go_bin) + os.pathsep + env.get("PATH", "")
     if "DYLD_LIBRARY_PATH" not in env:
         mac_sdk = _first_existing(SDK_DIR_MAC, LEGACY_SDK_PATH_MAC)
         if mac_sdk:
