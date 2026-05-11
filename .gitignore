@@ -28,9 +28,7 @@ sportradar.live
 logs/
 
 # Per-match data (live matches — refreshed dynamically, may contain SR data)
-match_data/*/runs/
-match_data/*/roster.json
-match_data/*/sr_cache.json
+match_data/
 
 # OS
 .DS_Store
