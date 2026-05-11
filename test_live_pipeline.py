@@ -509,9 +509,9 @@ def main() -> None:
             timeout=int(args.start_margin + args.video_delay) + 20,
             tag="LIVE-TEST RELAY",
         )
-        # Correct video_start to actual publisher time (mirrors match_worker)
-        tts.video_start = vs
-        video_start_ref[0] = vs
+        # Keep the live target_start authoritative. run_stt_pipeline_live
+        # schedules from first PCM sent + video_delay; retiming this ref to
+        # the relay signal would reintroduce the old live skew in the smoke test.
         print(
             "[LIVE-TEST] relay video live "
             f"(target={target_start:.3f}, actual={vs:.3f}, drift={vs - target_start:+.3f}s)"

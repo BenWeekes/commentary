@@ -144,7 +144,7 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
 
             print(f"  [{_vs()}] [{log_tag}{tag}] audio={audio_start:.1f}-{audio_end:.1f}s "
                   f"remaining={remaining:.2f}s"
-                  + (f" play_at={play_at:.3f}" if play_at else ""))
+                  + (f" play_at_wall={play_at:.3f}" if play_at else ""))
             print(f"           \"{corrected[:70]}\"")
 
             emit_fn(corrected, audio_start, audio_end)
