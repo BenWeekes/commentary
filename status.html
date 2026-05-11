@@ -287,7 +287,11 @@
 
         html += '<span class="match-actions">';
 
-        if (isDemo) {
+        // Manual-control rows = demo OR live with auto_manage=false (e.g. demo_srt_direct).
+        // Auto-managed live matches keep the Refresh-only UX so operators don't
+        // race the scheduler.
+        var manualControl = isDemo || m.auto_manage === false;
+        if (manualControl) {
           var isRunnable = !m.worker_state || m.worker_state === 'idle' || m.worker_state === 'stopped' || m.worker_state === 'error';
           if (isRunnable) {
             html += '<button class="btn btn-start" onclick="matchAction(\'' + esc(mid) + '\', \'start\')">Start</button>';

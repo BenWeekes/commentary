@@ -17,17 +17,28 @@ cloud_recording:
   fileNamePrefix: ["TEST9"]
 
 matches:
-  # Demo (pre-recorded clip — manual start)
+  # Demo — loops the BMG vs FCH clip through a local SRT listener and runs
+  # the same live srt_direct pipeline used for real matches. Manual start.
   - match_id: bmg_fch_demo
-    display_name: "BMG vs FCH (Demo)"
-    mode: demo
+    display_name: "BMG vs FCH (Demo via SRT)"
+    mode: live
     enabled: true
     auto_manage: false
     sport_event_id: "sr:sport_event:61514104"
-    audio: clips/bmg_fch_demo_5min/audio.mp3
-    video_h264: clips/bmg_fch_demo_5min/video.h264
-    events: clips/bmg_fch_demo_5min/events.txt
+    source:
+      type: demo_srt_direct
+      demo_media_file: clips/bmg_fch_demo_5min/source.mp4
+      demo_atmosphere_file: clips/bmg_fch_demo_5min/atmosphere.wav
+      demo_srt_port: 10080
+      original_channel: bmg_fch_demo-original
+      publish_uid: 73
+      original_buffer_seconds: 1.0
+      retry_seconds: 5
+      audio_stream_index: 2
+      atmosphere_audio_stream_index: 1
+    video_uid: 73
     video_delay: 14.0
+    max_stt_duration: 6.5
     languages: [es, pt, fr, tr, de]
 
   # May 8, 18:30 UTC — Dortmund vs Frankfurt
