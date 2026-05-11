@@ -10,7 +10,8 @@ from lib.tts_engine import _ts
 
 def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
                   max_stt_duration=5.0, video_start_fn=None, keyterms=None,
-                  corrections=None, log_tag="STT"):
+                  corrections=None, log_tag="STT", audio_feed_start_ref=None,
+                  play_at_fn=None):
     """Shared Deepgram connection, audio feeding, and forced-split logic.
 
     Args:
@@ -26,6 +27,11 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
         corrections: list of (wrong, right) tuples. Defaults to CORRECTIONS.
             Pass empty list to disable corrections.
         log_tag: prefix for log lines.
+        audio_feed_start_ref: optional mutable one-element list. When provided,
+            the first successful send_media() wall clock is stored in [0].
+        play_at_fn: optional callable(audio_start) -> float|None used for
+            debug timing logs. The actual emitted schedule still comes from
+            emit_fn, so live callers can choose their own clock.
 
     Returns:
         int: total number of utterances emitted.
@@ -83,6 +89,17 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
     audio_thread = None
     try:
 
+        def mark_first_chunk_sent():
+            if audio_feed_start_ref is None or audio_feed_start_ref[0] is not None:
+                return
+            anchor = time.time()
+            audio_feed_start_ref[0] = anchor
+            vs_val = video_start_fn() if video_start_fn else None
+            if vs_val:
+                print(f"[{log_tag}] First PCM sent — {anchor - vs_val:.2f}s after video_start")
+            else:
+                print(f"[{log_tag}] First PCM sent")
+
         def feed_audio():
             try:
                 if is_file:
@@ -90,11 +107,13 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
                         if stop_event.is_set():
                             break
                         ws.send_media(chunk)
+                        mark_first_chunk_sent()
                 else:
                     for chunk, _ in pcm_stream_from_pipe(audio_source, stop_event):
                         if stop_event.is_set():
                             break
                         ws.send_media(chunk)
+                        mark_first_chunk_sent()
                 if not stop_event.is_set():
                     ws.send_close_stream()
             except Exception as exc:
@@ -120,12 +139,12 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
         def _emit(text, audio_start, audio_end, tag=""):
             corrected = apply_corrections(text, corr_list)
             vs_now = video_start_fn() if video_start_fn else None
-            play_at = (vs_now + audio_start) if vs_now else None
+            play_at = play_at_fn(audio_start) if play_at_fn else ((vs_now + audio_start) if vs_now else None)
             remaining = (play_at - time.time()) if play_at else 0.0
 
             print(f"  [{_vs()}] [{log_tag}{tag}] audio={audio_start:.1f}-{audio_end:.1f}s "
                   f"remaining={remaining:.2f}s"
-                  + (f" play_at=V+{audio_start:.1f}" if vs_now else ""))
+                  + (f" play_at={play_at:.3f}" if play_at else ""))
             print(f"           \"{corrected[:70]}\"")
 
             emit_fn(corrected, audio_start, audio_end)
@@ -312,10 +331,28 @@ def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
         int: total number of utterances emitted.
     """
 
-    def emit_fn(corrected, audio_start, audio_end):
+    audio_feed_start_wall = [None]
+
+    def live_play_at(audio_start):
+        anchor = audio_feed_start_wall[0]
+        if anchor is not None:
+            return anchor + audio_start + video_delay
         vs = video_start_ref[0] if video_start_ref[0] else 0.0
-        play_at = vs + audio_start
-        on_utterance(corrected, audio_start, audio_end, play_at)
+        return vs + audio_start if vs else None
+
+    def intended_skew_ms(audio_start, play_at):
+        anchor = audio_feed_start_wall[0]
+        if anchor is None or play_at is None:
+            return None
+        intended = anchor + audio_start + video_delay
+        return round((play_at - intended) * 1000)
+
+    def emit_fn(corrected, audio_start, audio_end):
+        play_at = live_play_at(audio_start)
+        on_utterance(
+            corrected, audio_start, audio_end, play_at,
+            intended_skew_ms=intended_skew_ms(audio_start, play_at),
+        )
 
     print(f"[STT-LIVE] Pipeline: live pipe → STT → Correct → multi-lang fan-out")
     print(f"[STT-LIVE] Video delay: {video_delay}s (pipeline budget)")
@@ -330,4 +367,6 @@ def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
         keyterms=keyterms,
         corrections=corrections,
         log_tag="STT-LIVE",
+        audio_feed_start_ref=audio_feed_start_wall,
+        play_at_fn=live_play_at,
     )

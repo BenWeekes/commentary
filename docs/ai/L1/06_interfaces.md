@@ -215,11 +215,13 @@ Utterance fields:
 - `source` (`stt` or `sr`)
 - `uid` (STT utterance id, or `null` for SR)
 - `audio_start`
+- `audio_end`
 - `play_at`
 - `trans_ms`
 - `tts_ms`
 - `speed`
 - `local_speed_factor`
+- `intended_skew_ms`
 - `fit_from_ms`
 - `fit_to_ms`
 - `fit_deadline_ms`

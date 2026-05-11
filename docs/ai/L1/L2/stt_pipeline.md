@@ -59,13 +59,19 @@ The Go publisher delays video by `--video-delay` seconds while the STT pipeline 
 play_at = video_start + audio_start
 ```
 
-In live server mode, `video_start` is the worker's shared `target_start`: an absolute wall-clock start passed into every relay/publisher. Publisher "video delay complete" messages are diagnostics; the live language clocks are not retimed after startup because that can create audible drift.
+In live server mode, the STT schedule is anchored to the wall clock when the first PCM chunk is successfully sent to Deepgram. For live pipe audio:
+
+```python
+play_at = first_pcm_sent_wall + audio_start + video_delay
+```
+
+Publisher "video delay complete" messages are diagnostics; the live language clocks are not retimed after startup because that can create audible drift. The per-language logs include `intended_skew_ms`, which compares the actual scheduled `play_at` against the formula above and should stay near 0ms.
 
 The TTS worker holds the audio until `play_at`, then plays at the exact scheduled time. If translate+TTS takes too long and `play_at` has already passed, the utterance is dropped.
 
 ### Server mode timing
 
-In server mode, the worker computes one authoritative `target_start` and gives each language pipeline the same schedule basis. Each pipeline still owns its own publisher process and logs its own diagnostics, but STT `play_at` scheduling is based on the shared target so languages do not drift apart.
+In demo server mode, the worker computes one authoritative `target_start` and gives each language pipeline the same schedule basis. In live server mode, the STT callback passes the already-computed live `play_at` through to each language; `MatchWorker` must not recompute it from `pipe.video_start + audio_start`.
 
 ## Deepgram Configuration
 

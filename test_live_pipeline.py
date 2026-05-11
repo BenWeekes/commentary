@@ -457,9 +457,13 @@ def main() -> None:
         tts.video_start = target_start
         tts.start()
 
-        def on_utterance(text: str, audio_start: float, audio_end: float, play_at: float) -> None:
-            lang_play_at = (tts.video_start + audio_start) if tts.video_start else play_at
-
+        def on_utterance(
+            text: str,
+            audio_start: float,
+            audio_end: float,
+            play_at: float,
+            intended_skew_ms: int | None = None,
+        ) -> None:
             def translate_fn(english_text: str):
                 voice_id = voice_for_lang(args.lang)
                 if args.lang == "en":
@@ -473,12 +477,14 @@ def main() -> None:
                 )
                 return (translated, voice_id)
 
+            play_at_text = f"{play_at:.3f}" if play_at is not None else "-"
             print(
                 "[LIVE-TEST STT] "
                 f"audio={audio_start:.2f}-{audio_end:.2f}s "
-                f"play_at={lang_play_at:.3f} \"{text[:100]}\""
+                f"play_at={play_at_text} "
+                f"skew={intended_skew_ms}ms \"{text[:100]}\""
             )
-            tts.speak(text, play_at=lang_play_at, translate_fn=translate_fn)
+            tts.speak(text, play_at=play_at, translate_fn=translate_fn)
 
         stt_thread = threading.Thread(
             target=run_stt_pipeline_live,

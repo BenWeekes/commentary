@@ -164,6 +164,7 @@ Additional telemetry fields per utterance:
 - `total_buffered_ms` — total TTS audio duration in milliseconds
 - `speed` / `local_speed_factor` — local ffmpeg `atempo` factor applied to fit before the next STT item; `1.0` means no local speed-up
 - `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms` — source duration, fitted duration, available playback window, and ffmpeg processing cost for local speed fitting
+- `intended_skew_ms` — live STT schedule skew versus `first_pcm_sent_wall + audio_start + video_delay`; should stay near 0ms
 
 Items that never played are `dropped`, `replaced`, or `suppressed`, not `interrupted`. Only `_pipe_writer` can emit `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
 

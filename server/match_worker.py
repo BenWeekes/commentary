@@ -300,6 +300,7 @@ class MatchWorker:
         self._keyterms = None
         self._telemetry_lock = threading.Lock()
         self._recording_sessions: dict[str, RecordingSession] = {}
+        self._stt_schedule_meta_by_lang: dict[str, dict[tuple[float, str], dict]] = {}
 
     def start(self):
         """Spawn background thread to run the match. Safe to call again after stop()."""
@@ -316,6 +317,7 @@ class MatchWorker:
         self._lang_logs = {}
         self._keyterms = None
         self._recording_sessions = {}
+        self._stt_schedule_meta_by_lang = {}
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
@@ -1112,7 +1114,7 @@ class MatchWorker:
         """Return recent English STT utterances as list of {text, ts}."""
         return list(self._recent_transcript)
 
-    def _on_utterance(self, text, audio_start, audio_end, play_at):
+    def _on_utterance(self, text, audio_start, audio_end, play_at, intended_skew_ms=None):
         """Fan out a corrected STT utterance to all language pipelines."""
         self._stt_utterance_count += 1
         self._recent_transcript.append({
@@ -1150,8 +1152,19 @@ class MatchWorker:
                         roster=self._roster), vid)
                 return translate
 
-            # Use per-language video_start for accurate play_at timing
-            lang_play_at = (pipe.video_start + audio_start) if pipe.video_start else play_at
+            if self._match.mode == "live":
+                lang_play_at = play_at
+                if lang_play_at is not None and play_at is not None:
+                    intended_skew_ms = (intended_skew_ms or 0) + round((lang_play_at - play_at) * 1000)
+            else:
+                # Demo file audio has a known video_start anchor; keep the
+                # existing per-language schedule for that path.
+                lang_play_at = (pipe.video_start + audio_start) if pipe.video_start else play_at
+            self._stt_schedule_meta_by_lang.setdefault(lang, {})[(lang_play_at, text)] = {
+                "audio_start": audio_start,
+                "audio_end": audio_end,
+                "intended_skew_ms": intended_skew_ms,
+            }
             pipe.tts.speak(text, play_at=lang_play_at, translate_fn=make_translate_fn())
 
     def _on_telemetry(self, lang, data):
@@ -1208,8 +1221,16 @@ class MatchWorker:
             if lang_log:
                 try:
                     play_at = data.get("play_at")
+                    stt_schedule_meta = {}
+                    if play_at is not None:
+                        skew_key = (play_at, data.get("text"))
+                        stt_schedule_meta = self._stt_schedule_meta_by_lang.get(lang, {}).pop(skew_key, {})
+                    intended_skew_ms = stt_schedule_meta.get("intended_skew_ms")
                     audio_start = None
-                    if play_at and pipe.video_start:
+                    audio_end = stt_schedule_meta.get("audio_end")
+                    if "audio_start" in stt_schedule_meta:
+                        audio_start = round(stt_schedule_meta["audio_start"], 2)
+                    elif play_at and pipe.video_start:
                         audio_start = round(play_at - pipe.video_start, 2)
                     xlat_time = data.get("translate_time")
                     tts_time = data.get("tts_time")
@@ -1225,10 +1246,12 @@ class MatchWorker:
                         "source": source,
                         "uid": data.get("uid"),
                         "audio_start": audio_start,
+                        "audio_end": round(audio_end, 2) if audio_end is not None else None,
                         "play_at": play_at,
                         "play_started_at": play_started_at,
                         "play_ended_at": play_ended_at,
                         "start_lag_ms": start_lag_ms,
+                        "intended_skew_ms": intended_skew_ms,
                         "trans_ms": round(xlat_time * 1000) if xlat_time else None,
                         "tts_ms": round(tts_time * 1000) if tts_time else None,
                         "status": status,

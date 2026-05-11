@@ -678,6 +678,7 @@
       html += th('Status', 'played = audio delivered, dropped = too late, replaced = superseded, interrupted = cut short');
       html += th('Src', 'stt = commentator utterance, sr = Sportradar gap-fill event');
       html += th('Lag', 'Milliseconds late vs scheduled play time (0 = on time)');
+      html += th('Skew', 'Schedule skew versus live audio capture + configured video delay');
       html += th('Trans', 'Translation API round-trip time in ms');
       html += th('TTS', 'ElevenLabs TTS fetch time in ms');
       html += th('Speed', 'Local playback speed factor used to fit the clip before the next STT item');
@@ -685,7 +686,7 @@
       html += '</tr></thead>';
       html += '<tbody>';
       if (filtered.length === 0) {
-        html += '<tr><td colspan="9" style="text-align:center;color:#555;padding:20px;">No matching rows</td></tr>';
+        html += '<tr><td colspan="11" style="text-align:center;color:#555;padding:20px;">No matching rows</td></tr>';
       }
       filtered.forEach(function(r) {
         var playTime = r.play_started_at || r.play_at;
@@ -696,6 +697,7 @@
         html += '<td class="' + statusClass(r.status) + '">' + esc(r.status) + '</td>';
         html += '<td class="' + sourceClass(r.source) + '">' + esc(r.source) + '</td>';
         html += '<td class="num">' + fmtMs(r.start_lag_ms) + '</td>';
+        html += '<td class="num">' + fmtMs(r.intended_skew_ms) + '</td>';
         html += '<td class="num">' + fmtMs(r.trans_ms || r.xlat_ms) + '</td>';
         html += '<td class="num">' + fmtMs(r.tts_ms) + '</td>';
         html += '<td class="num">' + fmtSpeed(r.speed || r.local_speed_factor) + '</td>';
