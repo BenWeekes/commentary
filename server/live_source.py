@@ -148,6 +148,28 @@ def _start_demo_srt_source(source, tag: str) -> tuple[subprocess.Popen, str]:
     return proc, srt_url
 
 
+def _stop_when_demo_source_ends(
+    proc: subprocess.Popen,
+    stop_event: threading.Event,
+    tag: str,
+    delay_s: float,
+) -> None:
+    """Stop a single-pass demo match after the local media source has ended."""
+    return_code = proc.wait()
+    if stop_event.is_set():
+        return
+    delay_s = max(0.0, delay_s)
+    print(f"[{tag}] Demo SRT source exited with {return_code}; stopping match in {delay_s:.1f}s")
+    deadline = time.time() + delay_s
+    while time.time() < deadline:
+        if stop_event.is_set():
+            return
+        time.sleep(min(0.5, deadline - time.time()))
+    if not stop_event.is_set():
+        print(f"[{tag}] Demo SRT single pass complete — stopping match")
+        stop_event.set()
+
+
 def _release_demo_srt_proc(proc: subprocess.Popen, tag: str) -> None:
     with _DEMO_SRT_LOCK:
         for port, current in list(_DEMO_SRT_BY_PORT.items()):
@@ -244,6 +266,17 @@ def resolve_live_source(
         if source.type == "demo_srt_direct":
             demo_srt_proc, srt_url = _start_demo_srt_source(source, tag)
             publish_uid = _run_unique_uid(source.publish_uid)
+            if not source.demo_loop:
+                threading.Thread(
+                    target=_stop_when_demo_source_ends,
+                    args=(
+                        demo_srt_proc,
+                        stop_event,
+                        tag,
+                        match_cfg.video_delay + source.original_buffer_seconds + 5.0,
+                    ),
+                    daemon=True,
+                ).start()
 
         print(f"[{tag}] Starting direct SRT original publish → Agora channel={source.original_channel} uid={publish_uid}")
         proc = start_srt_original_publish(
