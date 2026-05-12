@@ -1,0 +1,2013 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M05 vs UNI STT Gold vs Realtime</title>
+<style>
+:root { color-scheme: light; --border:#d7dee8; --head:#0f172a; --muted:#64748b; --bg:#f8fafc; --good:#ecfdf5; --warn:#fffbeb; --bad:#fef2f2; }
+body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111827; background:white; }
+header { padding:22px 28px 16px; border-bottom:1px solid var(--border); background:var(--bg); position:sticky; top:0; z-index:3; }
+h1 { margin:0 0 8px; font-size:24px; color:var(--head); }
+.meta { display:flex; flex-wrap:wrap; gap:10px 18px; color:var(--muted); font-size:14px; }
+main { padding:22px 28px 40px; }
+.controls { margin:0 0 14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+input, select { font:inherit; padding:8px 10px; border:1px solid var(--border); border-radius:6px; }
+input { min-width:320px; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th, td { border:1px solid var(--border); padding:8px 9px; vertical-align:top; }
+th { background:#eef2f7; text-align:left; position:sticky; top:86px; z-index:2; }
+td:nth-child(1), td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(5), td:nth-child(6) { white-space:nowrap; color:#334155; }
+tr.good { background:var(--good); }
+tr.warn { background:var(--warn); }
+tr.bad { background:var(--bad); }
+details { margin-top:6px; color:#475569; }
+summary { cursor:pointer; }
+.turn { margin:4px 0; }
+.turn span { color:#64748b; font-variant-numeric: tabular-nums; }
+.hidden { display:none; }
+</style></head><body>
+<header><h1>M05 vs UNI STT Gold vs Realtime</h1>
+<div class="meta">
+<span>Gold: match_data/m05_uni_md33/eval/20260510_190915/gold_soniox_corrected/turns.json</span>
+<span>Realtime: Soniox realtime endpoint=1500ms</span>
+<span>Rows: 195</span>
+<span>Window WER: 0.346</span>
+<span>Generated: 2026-05-12 09:24:06Z</span>
+</div></header>
+<main>
+<div class="controls">
+<input id="filter" placeholder="Filter gold or realtime text">
+<select id="level"><option value="all">All rows</option><option value="bad">WER &gt; 0.45</option><option value="warn">WER 0.15-0.45</option><option value="good">WER <= 0.15</option><option value="multi">Multiple realtime turns</option></select>
+</div>
+<table id="rows"><thead><tr><th>Time UTC</th><th>Source Offset</th><th>Speaker</th><th>WER</th><th>Overlap</th><th>Turns</th><th>Gold</th><th>Realtime</th></tr></thead>
+<tbody>
+<tr class="good">
+  <td>19:09:26.825</td>
+  <td>0:00:01.380-0:00:19.020</td>
+  <td>S0</td>
+  <td>0.05</td>
+  <td>0.94</td>
+  <td>3</td>
+  <td>And it doesn&#x27;t matter that both sides are arithmetically safe. There&#x27;s still a bite to this game, and the fans, of course, playing their part. Football here in Germany is always about wider extension of community.</td>
+  <td>And it doesn&#x27;t matter that both sides are arithmetically safe. Still a bite to this game, and the fans, of course, playing their part. Football here in Germany is always about wider extension of community.<details><summary>turns</summary><div class="turn"><span>0:00:01.260-0:00:04.920</span> And it doesn&#x27;t matter that both sides are arithmetically safe.</div><div class="turn"><span>0:00:06.540-0:00:10.680</span> Still a bite to this game, and the fans, of course, playing their part.</div><div class="turn"><span>0:00:13.740-0:00:18.840</span> Football here in Germany is always about wider extension of community.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:09:49.445</td>
+  <td>0:00:24.000-0:00:32.580</td>
+  <td>S0</td>
+  <td>0.05</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>Fans here are not customers. They are the living, breathing football club, along with the players and the coaches.</td>
+  <td>Fans here are not customers. They are, they living, breathing football club, along with the players and the coaches.<details><summary>turns</summary><div class="turn"><span>0:00:24.000-0:00:25.800</span> Fans here are not customers.</div><div class="turn"><span>0:00:27.300-0:00:32.400</span> They are, they living, breathing football club, along with the players and the coaches.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:09:59.045</td>
+  <td>0:00:33.600-0:00:34.080</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>That&#x27;s it.</td>
+  <td>That&#x27;s it.<details><summary>turns</summary><div class="turn"><span>0:00:33.600-0:00:33.960</span> That&#x27;s it.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:10:03.605</td>
+  <td>0:00:38.160-0:00:45.720</td>
+  <td>S0</td>
+  <td>0.73</td>
+  <td>0.52</td>
+  <td>2</td>
+  <td>Everyone does it together. I think it is what differentiates German football from football and</td>
+  <td>Everyone does it together. I think it is what differentiates a German football from football in other so many other parts of the world nowadays.<details><summary>turns</summary><div class="turn"><span>0:00:38.160-0:00:39.480</span> Everyone does it together.</div><div class="turn"><span>0:00:41.940-0:00:49.200</span> I think it is what differentiates a German football from football in other so many other parts of the world nowadays.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:10:12.725</td>
+  <td>0:00:47.280-0:00:49.260</td>
+  <td>S0</td>
+  <td>1.62</td>
+  <td>0.42</td>
+  <td>1</td>
+  <td>so many other parts of the world nowadays.</td>
+  <td>I think it is what differentiates a German football from football in other so many other parts of the world nowadays.<details><summary>turns</summary><div class="turn"><span>0:00:41.940-0:00:49.200</span> I think it is what differentiates a German football from football in other so many other parts of the world nowadays.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:10:18.965</td>
+  <td>0:00:53.520-0:00:54.000</td>
+  <td>S0</td>
+  <td>0.50</td>
+  <td>0.50</td>
+  <td>1</td>
+  <td>Now, Becker.</td>
+  <td>Becker<details><summary>turns</summary><div class="turn"><span>0:00:53.700-0:00:54.000</span> Becker</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:10:22.865</td>
+  <td>0:00:57.420-0:00:59.160</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>So much goes through. Amiri.</td>
+  <td>so much goes through Amiri.<details><summary>turns</summary><div class="turn"><span>0:00:57.420-0:00:59.040</span> so much goes through Amiri.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:10:28.625</td>
+  <td>0:01:03.180-0:01:09.120</td>
+  <td>S0</td>
+  <td>0.10</td>
+  <td>0.82</td>
+  <td>4</td>
+  <td>Kohr. Stepping forward. He&#x27;ll take it away. Diogo Leite.</td>
+  <td>Kohr. Stepping forwards. He&#x27;ll take it away. Diogo Leite.<details><summary>turns</summary><div class="turn"><span>0:01:03.240-0:01:03.360</span> Kohr.</div><div class="turn"><span>0:01:04.320-0:01:05.160</span> Stepping forwards.</div><div class="turn"><span>0:01:05.880-0:01:07.800</span> He&#x27;ll take it away.</div><div class="turn"><span>0:01:08.280-0:01:09.000</span> Diogo Leite.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:10:36.545</td>
+  <td>0:01:11.100-0:01:23.640</td>
+  <td>S0</td>
+  <td>0.17</td>
+  <td>0.77</td>
+  <td>3</td>
+  <td>Certainly unfamiliar terrain for him. And Veratschnig, as I mentioned, has a very good recovery pace. He was able to get in there and solve the problem for Mainz.</td>
+  <td>Slightly unfamiliar to Reid for him. And Veratschnig, as I mentioned, has very good recovery pace. He&#x27;s able to get in there and solve the problem for Mainz.<details><summary>turns</summary><div class="turn"><span>0:01:11.100-0:01:13.080</span> Slightly unfamiliar to Reid for him.</div><div class="turn"><span>0:01:14.400-0:01:18.360</span> And Veratschnig, as I mentioned, has very good recovery pace.</div><div class="turn"><span>0:01:19.740-0:01:23.520</span> He&#x27;s able to get in there and solve the problem for Mainz.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:10:51.185</td>
+  <td>0:01:25.740-0:01:32.400</td>
+  <td>S1</td>
+  <td>0.64</td>
+  <td>0.52</td>
+  <td>2</td>
+  <td>Oh, that just reminds me that I think Felix Exner has an excellent game.</td>
+  <td>Now that just reminds me that I think Philipps Exner has an excellent game. Here&#x27;s Kohr with that low ball.<details><summary>turns</summary><div class="turn"><span>0:01:25.740-0:01:32.160</span> Now that just reminds me that I think Philipps Exner has an excellent game.</div><div class="turn"><span>0:01:32.640-0:01:35.760</span> Here&#x27;s Kohr with that low ball.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:10:58.085</td>
+  <td>0:01:32.640-0:01:39.900</td>
+  <td>S0</td>
+  <td>0.83</td>
+  <td>0.54</td>
+  <td>3</td>
+  <td>Here&#x27;s Kohr with that low ball. That&#x27;s a good point. The referee, come back to that.</td>
+  <td>Now that just reminds me that I think Philipps Exner has an excellent game. Here&#x27;s Kohr with that low ball. That&#x27;s a good point. The referee will come back to that.<details><summary>turns</summary><div class="turn"><span>0:01:25.740-0:01:32.160</span> Now that just reminds me that I think Philipps Exner has an excellent game.</div><div class="turn"><span>0:01:32.640-0:01:35.760</span> Here&#x27;s Kohr with that low ball.</div><div class="turn"><span>0:01:37.080-0:01:39.840</span> That&#x27;s a good point. The referee will come back to that.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:11:06.905</td>
+  <td>0:01:41.460-0:01:43.740</td>
+  <td>S0</td>
+  <td>0.25</td>
+  <td>0.60</td>
+  <td>1</td>
+  <td>Again, Diogo Leite and</td>
+  <td>Again, Diogo Leitch and.<details><summary>turns</summary><div class="turn"><span>0:01:41.460-0:01:45.360</span> Again, Diogo Leitch and.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:11:11.525</td>
+  <td>0:01:46.080-0:01:57.960</td>
+  <td>S0</td>
+  <td>0.07</td>
+  <td>0.92</td>
+  <td>4</td>
+  <td>the other defenders have to concentrate to the maximum. Kemlein. Burke. Involved again there, but.</td>
+  <td>The other defenders have to concentrate to the maximum. Kemlein. But involved. Again there, but.<details><summary>turns</summary><div class="turn"><span>0:01:46.080-0:01:50.040</span> The other defenders have to concentrate to the maximum.</div><div class="turn"><span>0:01:50.700-0:01:51.120</span> Kemlein.</div><div class="turn"><span>0:01:52.620-0:01:54.240</span> But involved.</div><div class="turn"><span>0:01:54.660-0:01:57.120</span> Again there, but.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:11:23.945</td>
+  <td>0:01:58.500-0:02:17.220</td>
+  <td>S1</td>
+  <td>0.16</td>
+  <td>0.84</td>
+  <td>1</td>
+  <td>A game like this that played at that intensity with so many duels and aerial battles is not easy to officiate, and I think he&#x27;s found the right balance tonight between letting play get on but also doing enough to protect players.</td>
+  <td>Game like this, they&#x27;ve played it that intensity with so many duels in aerial battles. It&#x27;s not easy to officiate, and I think he&#x27;s found the right balance tonight between letting play get on, but also doing enough to protect players.<details><summary>turns</summary><div class="turn"><span>0:01:58.620-0:02:17.040</span> Game like this, they&#x27;ve played it that intensity with so many duels in aerial battles. It&#x27;s not easy to officiate, and I think he&#x27;s found the right balance tonight between letting play get on, but also doing enough to protect players.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:11:51.065</td>
+  <td>0:02:25.620-0:02:28.800</td>
+  <td>S0</td>
+  <td>0.17</td>
+  <td>0.71</td>
+  <td>1</td>
+  <td>Veratschnig venture forward. Here&#x27;s Kohr.</td>
+  <td>Veratschnig ventured forward. Here&#x27;s Kohr.<details><summary>turns</summary><div class="turn"><span>0:02:25.620-0:02:28.680</span> Veratschnig ventured forward. Here&#x27;s Kohr.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:11:55.805</td>
+  <td>0:02:30.360-0:02:33.900</td>
+  <td>S0</td>
+  <td>0.11</td>
+  <td>0.80</td>
+  <td>2</td>
+  <td>Diogo Leite at the reading of that situation. Kemlein.</td>
+  <td>Diogo Leitch at the reading of that situation. Kemlein.<details><summary>turns</summary><div class="turn"><span>0:02:30.360-0:02:32.400</span> Diogo Leitch at the reading of that situation.</div><div class="turn"><span>0:02:33.240-0:02:33.720</span> Kemlein.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:12:03.785</td>
+  <td>0:02:38.340-0:02:39.300</td>
+  <td>S0</td>
+  <td>0.50</td>
+  <td>0.67</td>
+  <td>1</td>
+  <td>Derrick Kohn.</td>
+  <td>And Derrick Kohn<details><summary>turns</summary><div class="turn"><span>0:02:38.160-0:02:39.300</span> And Derrick Kohn</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:12:07.925</td>
+  <td>0:02:42.480-0:02:49.080</td>
+  <td>S0</td>
+  <td>0.06</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Schafer goes down, and that is going to be a yellow card for Jae-sung Lee.</td>
+  <td>Schafer goes down, and that is going to be a yellow card for Jae-sung Lee and.<details><summary>turns</summary><div class="turn"><span>0:02:42.480-0:02:50.520</span> Schafer goes down, and that is going to be a yellow card for Jae-sung Lee and.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:12:17.345</td>
+  <td>0:02:51.900-0:02:54.540</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>Yeah. And I agree with that as well.</td>
+  <td>Yeah. And I agree with that as well.<details><summary>turns</summary><div class="turn"><span>0:02:51.900-0:02:51.960</span> Yeah.</div><div class="turn"><span>0:02:53.220-0:02:54.360</span> And I agree with that as well.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:12:21.785</td>
+  <td>0:02:56.340-0:02:57.840</td>
+  <td>S1</td>
+  <td>0.75</td>
+  <td>0.43</td>
+  <td>1</td>
+  <td>Just stopping the counterattack,</td>
+  <td>Just stopping the counter-attack, not.<details><summary>turns</summary><div class="turn"><span>0:02:56.340-0:02:59.640</span> Just stopping the counter-attack, not.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:12:25.445</td>
+  <td>0:03:00.000-0:03:03.600</td>
+  <td>S1</td>
+  <td>0.62</td>
+  <td>0.67</td>
+  <td>2</td>
+  <td>not no chance to get on the ball.</td>
+  <td>Just stopping the counter-attack, not. No chance to get on the ball.<details><summary>turns</summary><div class="turn"><span>0:02:56.340-0:02:59.640</span> Just stopping the counter-attack, not.</div><div class="turn"><span>0:03:00.000-0:03:01.200</span> No chance to get on the ball.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:12:31.205</td>
+  <td>0:03:05.760-0:03:11.520</td>
+  <td>S1</td>
+  <td>0.08</td>
+  <td>0.86</td>
+  <td>1</td>
+  <td>I feel the subs for Mainz have taken their flow a little bit.</td>
+  <td>I feel the Sots for Mainz have taken their flow a little bit.<details><summary>turns</summary><div class="turn"><span>0:03:05.820-0:03:10.680</span> I feel the Sots for Mainz have taken their flow a little bit.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:12:38.705</td>
+  <td>0:03:13.260-0:03:14.700</td>
+  <td>S1</td>
+  <td>0.17</td>
+  <td>0.86</td>
+  <td>1</td>
+  <td>But at the same time, Union</td>
+  <td>But at the same time, Union have.<details><summary>turns</summary><div class="turn"><span>0:03:13.320-0:03:16.320</span> But at the same time, Union have.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:12:41.945</td>
+  <td>0:03:16.500-0:03:17.280</td>
+  <td>S1</td>
+  <td>1.20</td>
+  <td>0.45</td>
+  <td>2</td>
+  <td>have not been able to</td>
+  <td>But at the same time, Union have. Not been able to.<details><summary>turns</summary><div class="turn"><span>0:03:13.320-0:03:16.320</span> But at the same time, Union have.</div><div class="turn"><span>0:03:16.680-0:03:18.960</span> Not been able to.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:12:45.725</td>
+  <td>0:03:20.280-0:03:23.580</td>
+  <td>S1</td>
+  <td>0.08</td>
+  <td>0.93</td>
+  <td>1</td>
+  <td>get up the pitch and to pile on a little bit of pressure</td>
+  <td>Get up the pitch and to pile on a little bit of pressure towards.<details><summary>turns</summary><div class="turn"><span>0:03:20.340-0:03:25.200</span> Get up the pitch and to pile on a little bit of pressure towards.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:12:50.885</td>
+  <td>0:03:25.440-0:03:26.400</td>
+  <td>S1</td>
+  <td>3.25</td>
+  <td>0.24</td>
+  <td>2</td>
+  <td>towards Mainz&#x27;s goal.</td>
+  <td>Get up the pitch and to pile on a little bit of pressure towards. Mainz&#x27;s goal.<details><summary>turns</summary><div class="turn"><span>0:03:20.340-0:03:25.200</span> Get up the pitch and to pile on a little bit of pressure towards.</div><div class="turn"><span>0:03:25.740-0:03:26.280</span> Mainz&#x27;s goal.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:12:55.325</td>
+  <td>0:03:29.880-0:03:32.160</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah, I think that&#x27;s a fair summary, Moritz.</td>
+  <td>Yeah, I think that&#x27;s a fair summary, Moritz.<details><summary>turns</summary><div class="turn"><span>0:03:29.880-0:03:32.040</span> Yeah, I think that&#x27;s a fair summary, Moritz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:12:59.405</td>
+  <td>0:03:33.960-0:03:34.320</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Doekhi.</td>
+  <td>Doekhi.<details><summary>turns</summary><div class="turn"><span>0:03:33.960-0:03:34.200</span> Doekhi.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:13:02.285</td>
+  <td>0:03:36.840-0:03:46.980</td>
+  <td>S0</td>
+  <td>0.08</td>
+  <td>0.92</td>
+  <td>4</td>
+  <td>It&#x27;s an open secret that English clubs have been watching him for a while. Emilio Doekhi. And born in Rotterdam, in the Netherlands.</td>
+  <td>I think it&#x27;s an open secret that English clubs have been watching him for a while. Emilio Doekhi. And born in Rotterdam. In the Netherlands,<details><summary>turns</summary><div class="turn"><span>0:03:36.600-0:03:40.320</span> I think it&#x27;s an open secret that English clubs have been watching him for a while.</div><div class="turn"><span>0:03:41.520-0:03:42.120</span> Emilio Doekhi.</div><div class="turn"><span>0:03:42.960-0:03:45.000</span> And born in Rotterdam.</div><div class="turn"><span>0:03:46.020-0:03:46.980</span> In the Netherlands,</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:13:17.285</td>
+  <td>0:03:51.840-0:03:56.280</td>
+  <td>S0</td>
+  <td>0.14</td>
+  <td>0.75</td>
+  <td>3</td>
+  <td>Potulski. Here. There&#x27;s Jausch with Ilic.</td>
+  <td>Potulski. Here. There&#x27;s Joost with Ilic.<details><summary>turns</summary><div class="turn"><span>0:03:51.840-0:03:52.320</span> Potulski.</div><div class="turn"><span>0:03:53.760-0:03:53.880</span> Here.</div><div class="turn"><span>0:03:54.840-0:03:56.160</span> There&#x27;s Joost with Ilic.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:13:23.705</td>
+  <td>0:03:58.260-0:03:58.500</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah.</td>
+  <td>Yeah.<details><summary>turns</summary><div class="turn"><span>0:03:58.260-0:03:58.320</span> Yeah.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:13:26.585</td>
+  <td>0:04:01.140-0:04:08.340</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>3</td>
+  <td>He&#x27;ll learn. Ilic. Very clever and strong.</td>
+  <td>He&#x27;ll learn. Ilic. Very clever and strong.<details><summary>turns</summary><div class="turn"><span>0:04:01.140-0:04:01.440</span> He&#x27;ll learn.</div><div class="turn"><span>0:04:02.760-0:04:02.880</span> Ilic.</div><div class="turn"><span>0:04:04.260-0:04:07.320</span> Very clever and strong.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:13:39.545</td>
+  <td>0:04:14.100-0:04:15.600</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>So a chance for Trimmel.</td>
+  <td>So a chance for Trimmel.<details><summary>turns</summary><div class="turn"><span>0:04:14.100-0:04:15.480</span> So a chance for Trimmel.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:13:43.325</td>
+  <td>0:04:17.880-0:04:21.060</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>To get it forward.</td>
+  <td>To get it forward.<details><summary>turns</summary><div class="turn"><span>0:04:17.940-0:04:20.400</span> To get it forward.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:13:48.605</td>
+  <td>0:04:23.160-0:04:41.700</td>
+  <td>S0</td>
+  <td>0.11</td>
+  <td>0.85</td>
+  <td>4</td>
+  <td>Chips in by Trimmel. Diogo Leite who was up, not the only one either for Union. Woo-yeong Jeong and. Pass didn&#x27;t work out. There&#x27;s Amiri going after that one, but Trimmel was in the vicinity.</td>
+  <td>Chips in by Trimmel. Diogo Leitch was up, not the only one, either, for Union. Union Jeong and pass didn&#x27;t work out. There&#x27;s Amiri going after that one, but Trimmel was in the vicinity.<details><summary>turns</summary><div class="turn"><span>0:04:23.160-0:04:24.360</span> Chips in by Trimmel.</div><div class="turn"><span>0:04:25.860-0:04:29.880</span> Diogo Leitch was up, not the only one, either, for Union.</div><div class="turn"><span>0:04:31.320-0:04:35.280</span> Union Jeong and pass didn&#x27;t work out.</div><div class="turn"><span>0:04:36.900-0:04:41.520</span> There&#x27;s Amiri going after that one, but Trimmel was in the vicinity.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:14:09.005</td>
+  <td>0:04:43.560-0:04:43.860</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Kohn.</td>
+  <td>Kohn.<details><summary>turns</summary><div class="turn"><span>0:04:43.560-0:04:43.680</span> Kohn.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:14:13.445</td>
+  <td>0:04:48.000-0:04:54.060</td>
+  <td>S0</td>
+  <td>0.09</td>
+  <td>0.82</td>
+  <td>2</td>
+  <td>Becker. Shoveled it out. Amiri was there again. It&#x27;s Trimmel.</td>
+  <td>Becker shovelled it out. Amiri was there again. It&#x27;s Trimmel.<details><summary>turns</summary><div class="turn"><span>0:04:48.000-0:04:50.400</span> Becker shovelled it out.</div><div class="turn"><span>0:04:51.900-0:04:54.000</span> Amiri was there again. It&#x27;s Trimmel.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:14:21.605</td>
+  <td>0:04:56.160-0:05:00.840</td>
+  <td>S0</td>
+  <td>0.07</td>
+  <td>0.93</td>
+  <td>2</td>
+  <td>Another scrape that one away. It&#x27;s almost going to open up there for</td>
+  <td>Another scrape that one away. It&#x27;s almost going to open up there for Mainz.<details><summary>turns</summary><div class="turn"><span>0:04:56.100-0:04:57.840</span> Another scrape that one away.</div><div class="turn"><span>0:04:59.100-0:05:02.520</span> It&#x27;s almost going to open up there for Mainz.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:14:27.785</td>
+  <td>0:05:02.340-0:05:12.240</td>
+  <td>S0</td>
+  <td>0.83</td>
+  <td>0.55</td>
+  <td>4</td>
+  <td>Mainz. Freak it has been given in favor of the home side, but complaints from the Union players. Khedira leading that particular charge.</td>
+  <td>It&#x27;s almost going to open up there for Mainz. Freak it has been given in favour of the home side, but complaints from the Union players. Khedira, leading that particular charge. At first side, I&#x27;m with the referee. And.<details><summary>turns</summary><div class="turn"><span>0:04:59.100-0:05:02.520</span> It&#x27;s almost going to open up there for Mainz.</div><div class="turn"><span>0:05:03.360-0:05:09.240</span> Freak it has been given in favour of the home side, but complaints from the Union players.</div><div class="turn"><span>0:05:09.900-0:05:12.120</span> Khedira, leading that particular charge.</div><div class="turn"><span>0:05:12.540-0:05:15.840</span> At first side, I&#x27;m with the referee. And.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:14:37.985</td>
+  <td>0:05:12.540-0:05:14.220</td>
+  <td>S1</td>
+  <td>0.88</td>
+  <td>0.47</td>
+  <td>2</td>
+  <td>At first sight, I&#x27;m with the referee.</td>
+  <td>Khedira, leading that particular charge. At first side, I&#x27;m with the referee. And.<details><summary>turns</summary><div class="turn"><span>0:05:09.900-0:05:12.120</span> Khedira, leading that particular charge.</div><div class="turn"><span>0:05:12.540-0:05:15.840</span> At first side, I&#x27;m with the referee. And.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:14:41.525</td>
+  <td>0:05:16.080-0:05:21.960</td>
+  <td>S1</td>
+  <td>0.38</td>
+  <td>0.71</td>
+  <td>3</td>
+  <td>I&#x27;d like to see a different angle. I think it&#x27;s a race to the ball, and Lee gets there just ahead of</td>
+  <td>At first side, I&#x27;m with the referee. And. Like to see a different angle. I think it&#x27;s a race to the ball, and Lee gets there just ahead of Jeong.<details><summary>turns</summary><div class="turn"><span>0:05:12.540-0:05:15.840</span> At first side, I&#x27;m with the referee. And.</div><div class="turn"><span>0:05:16.260-0:05:17.400</span> Like to see a different angle.</div><div class="turn"><span>0:05:18.240-0:05:23.640</span> I think it&#x27;s a race to the ball, and Lee gets there just ahead of Jeong.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:14:49.385</td>
+  <td>0:05:23.940-0:05:26.700</td>
+  <td>S1</td>
+  <td>5.67</td>
+  <td>0.16</td>
+  <td>2</td>
+  <td>Jeong. And therefore,</td>
+  <td>I think it&#x27;s a race to the ball, and Lee gets there just ahead of Jeong. And therefore, Freak.<details><summary>turns</summary><div class="turn"><span>0:05:18.240-0:05:23.640</span> I think it&#x27;s a race to the ball, and Lee gets there just ahead of Jeong.</div><div class="turn"><span>0:05:26.160-0:05:28.320</span> And therefore, Freak.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:14:53.945</td>
+  <td>0:05:28.500-0:05:31.500</td>
+  <td>S1</td>
+  <td>0.43</td>
+  <td>0.50</td>
+  <td>3</td>
+  <td>free kick awarded to Mainz. Correct decision.</td>
+  <td>And therefore, Freak. Awarded to Mainz. Correct decision.<details><summary>turns</summary><div class="turn"><span>0:05:26.160-0:05:28.320</span> And therefore, Freak.</div><div class="turn"><span>0:05:29.040-0:05:29.640</span> Awarded to Mainz.</div><div class="turn"><span>0:05:30.720-0:05:31.320</span> Correct decision.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:14:59.045</td>
+  <td>0:05:33.600-0:05:37.200</td>
+  <td>S0</td>
+  <td>0.11</td>
+  <td>0.80</td>
+  <td>2</td>
+  <td>So Korean players together. Know each other very well.</td>
+  <td>So Korean players together. Now each other very well.<details><summary>turns</summary><div class="turn"><span>0:05:33.600-0:05:35.520</span> So Korean players together.</div><div class="turn"><span>0:05:36.180-0:05:37.080</span> Now each other very well.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:15:07.805</td>
+  <td>0:05:42.360-0:05:54.240</td>
+  <td>S0</td>
+  <td>0.09</td>
+  <td>0.88</td>
+  <td>5</td>
+  <td>Sota Kawasaki poised to come on for Mainz with 13 minutes of normal time remaining. Here at the Mewa Arena. And Nadiem Amiri.</td>
+  <td>Sota Kawasaki. Tries to come on for Mainz. 13 minutes of normal time remaining. Here at the Mewa Arena. And Nadiem Amiri<details><summary>turns</summary><div class="turn"><span>0:05:42.360-0:05:43.680</span> Sota Kawasaki.</div><div class="turn"><span>0:05:44.880-0:05:46.560</span> Tries to come on for Mainz.</div><div class="turn"><span>0:05:47.280-0:05:49.680</span> 13 minutes of normal time remaining.</div><div class="turn"><span>0:05:50.580-0:05:51.600</span> Here at the Mewa Arena.</div><div class="turn"><span>0:05:52.800-0:05:54.240</span> And Nadiem Amiri</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:15:22.805</td>
+  <td>0:05:57.360-0:06:00.540</td>
+  <td>S0</td>
+  <td>0.30</td>
+  <td>0.77</td>
+  <td>1</td>
+  <td>It&#x27;s Amiri at the creative controls, but that is</td>
+  <td>it&#x27;s Amiri at the creative controls, but that is going to be.<details><summary>turns</summary><div class="turn"><span>0:05:57.360-0:06:02.160</span> it&#x27;s Amiri at the creative controls, but that is going to be.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:15:27.785</td>
+  <td>0:06:02.340-0:06:07.560</td>
+  <td>S0</td>
+  <td>0.63</td>
+  <td>0.61</td>
+  <td>3</td>
+  <td>going to be caught every day of the week by Carl Klaus. See what he&#x27;s trying here. Burke.</td>
+  <td>it&#x27;s Amiri at the creative controls, but that is going to be. Caught every day of the week by Karl Klaus. See what he&#x27;s trying here. But.<details><summary>turns</summary><div class="turn"><span>0:05:57.360-0:06:02.160</span> it&#x27;s Amiri at the creative controls, but that is going to be.</div><div class="turn"><span>0:06:02.700-0:06:06.360</span> Caught every day of the week by Karl Klaus. See what he&#x27;s trying here.</div><div class="turn"><span>0:06:07.260-0:06:08.880</span> But.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:15:35.225</td>
+  <td>0:06:09.780-0:06:13.560</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Trying to close in.</td>
+  <td>Trying to close in.<details><summary>turns</summary><div class="turn"><span>0:06:09.780-0:06:12.360</span> Trying to close in.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:15:41.645</td>
+  <td>0:06:16.200-0:06:24.060</td>
+  <td>S0</td>
+  <td>0.10</td>
+  <td>0.95</td>
+  <td>2</td>
+  <td>Just a word about Derrick Kohn. And that Christian name of his and the spelling of it. All stems from</td>
+  <td>Just a word about Derrick Kohn. And that Christian name of his and the spelling of it. All stems from a detective.<details><summary>turns</summary><div class="turn"><span>0:06:16.200-0:06:21.960</span> Just a word about Derrick Kohn. And that Christian name of his and the spelling of it.</div><div class="turn"><span>0:06:23.520-0:06:25.680</span> All stems from a detective.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:15:51.185</td>
+  <td>0:06:25.740-0:06:34.800</td>
+  <td>S0</td>
+  <td>0.46</td>
+  <td>0.69</td>
+  <td>3</td>
+  <td>a detective series on German TV many moons ago, which actually I remember watching when I first came to this country as a student.</td>
+  <td>All stems from a detective. Series. On German TV, many moons ago, which actually I remember watching when I first came to this country as a student. There&#x27;s this very popular or well-known.<details><summary>turns</summary><div class="turn"><span>0:06:23.520-0:06:25.680</span> All stems from a detective.</div><div class="turn"><span>0:06:26.520-0:06:34.680</span> Series. On German TV, many moons ago, which actually I remember watching when I first came to this country as a student.</div><div class="turn"><span>0:06:35.040-0:06:37.320</span> There&#x27;s this very popular or well-known.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:16:00.485</td>
+  <td>0:06:35.040-0:06:37.440</td>
+  <td>S1</td>
+  <td>3.12</td>
+  <td>0.19</td>
+  <td>3</td>
+  <td>Yes, it&#x27;s very popular or well-known.</td>
+  <td>Series. On German TV, many moons ago, which actually I remember watching when I first came to this country as a student. There&#x27;s this very popular or well-known. Derrick.<details><summary>turns</summary><div class="turn"><span>0:06:26.520-0:06:34.680</span> Series. On German TV, many moons ago, which actually I remember watching when I first came to this country as a student.</div><div class="turn"><span>0:06:35.040-0:06:37.320</span> There&#x27;s this very popular or well-known.</div><div class="turn"><span>0:06:37.740-0:06:37.920</span> Derrick.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:16:03.185</td>
+  <td>0:06:37.740-0:06:38.100</td>
+  <td>S0</td>
+  <td>10.00</td>
+  <td>0.10</td>
+  <td>3</td>
+  <td>Derrick.</td>
+  <td>There&#x27;s this very popular or well-known. Derrick. Derrick, yes.<details><summary>turns</summary><div class="turn"><span>0:06:35.040-0:06:37.320</span> There&#x27;s this very popular or well-known.</div><div class="turn"><span>0:06:37.740-0:06:37.920</span> Derrick.</div><div class="turn"><span>0:06:38.340-0:06:38.880</span> Derrick, yes.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:16:03.785</td>
+  <td>0:06:38.340-0:06:39.000</td>
+  <td>S1</td>
+  <td>14.00</td>
+  <td>0.08</td>
+  <td>3</td>
+  <td>Derrick, yes.</td>
+  <td>Derrick. Derrick, yes. I remember, obviously, that&#x27;s my name as well. Remember being asked if I had something to do with the detective series, with a name like that.<details><summary>turns</summary><div class="turn"><span>0:06:37.740-0:06:37.920</span> Derrick.</div><div class="turn"><span>0:06:38.340-0:06:38.880</span> Derrick, yes.</div><div class="turn"><span>0:06:39.240-0:06:46.080</span> I remember, obviously, that&#x27;s my name as well. Remember being asked if I had something to do with the detective series, with a name like that.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:16:04.685</td>
+  <td>0:06:39.240-0:06:53.220</td>
+  <td>S0</td>
+  <td>0.08</td>
+  <td>0.95</td>
+  <td>6</td>
+  <td>I remember, obviously, that&#x27;s my name as well. Remember being asked if I had something to do with the detective series with a name like that. Got asked about that quite a few times back in the day. But apparently his parents were big fans of Derrick.</td>
+  <td>Derrick, yes. I remember, obviously, that&#x27;s my name as well. Remember being asked if I had something to do with the detective series, with a name like that. Got asked about that quite a few times back in the day. Yeah. But apparently his parents were big fans of Derrick. Yes.<details><summary>turns</summary><div class="turn"><span>0:06:38.340-0:06:38.880</span> Derrick, yes.</div><div class="turn"><span>0:06:39.240-0:06:46.080</span> I remember, obviously, that&#x27;s my name as well. Remember being asked if I had something to do with the detective series, with a name like that.</div><div class="turn"><span>0:06:47.160-0:06:49.200</span> Got asked about that quite a few times back in the day.</div><div class="turn"><span>0:06:49.380-0:06:49.680</span> Yeah.</div><div class="turn"><span>0:06:49.980-0:06:53.160</span> But apparently his parents were big fans of Derrick.</div><div class="turn"><span>0:06:53.580-0:06:53.640</span> Yes.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:16:19.025</td>
+  <td>0:06:53.580-0:07:00.780</td>
+  <td>S1</td>
+  <td>0.69</td>
+  <td>0.63</td>
+  <td>3</td>
+  <td>Yes. Well, there&#x27;s absolutely no resemblance between Derrick Kohn and Derrick. But</td>
+  <td>But apparently his parents were big fans of Derrick. Yes. Well, there&#x27;s absolutely no resemblance between Derrick Kohn and Derrick. But<details><summary>turns</summary><div class="turn"><span>0:06:49.980-0:06:53.160</span> But apparently his parents were big fans of Derrick.</div><div class="turn"><span>0:06:53.580-0:06:53.640</span> Yes.</div><div class="turn"><span>0:06:54.240-0:07:00.840</span> Well, there&#x27;s absolutely no resemblance between Derrick Kohn and Derrick. But</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:16:28.745</td>
+  <td>0:07:03.300-0:07:05.580</td>
+  <td>S1</td>
+  <td>0.10</td>
+  <td>0.91</td>
+  <td>2</td>
+  <td>I didn&#x27;t know that, and it&#x27;s quite amusing.</td>
+  <td>I didn&#x27;t know that, and it&#x27;s quite amusing. Yeah.<details><summary>turns</summary><div class="turn"><span>0:07:03.360-0:07:05.400</span> I didn&#x27;t know that, and it&#x27;s quite amusing.</div><div class="turn"><span>0:07:05.820-0:07:05.880</span> Yeah.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:16:31.265</td>
+  <td>0:07:05.820-0:07:06.000</td>
+  <td>S0</td>
+  <td>10.00</td>
+  <td>0.09</td>
+  <td>2</td>
+  <td>Yeah.</td>
+  <td>I didn&#x27;t know that, and it&#x27;s quite amusing. Yeah.<details><summary>turns</summary><div class="turn"><span>0:07:03.360-0:07:05.400</span> I didn&#x27;t know that, and it&#x27;s quite amusing.</div><div class="turn"><span>0:07:05.820-0:07:05.880</span> Yeah.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:16:36.725</td>
+  <td>0:07:11.280-0:07:25.920</td>
+  <td>S0</td>
+  <td>0.12</td>
+  <td>0.84</td>
+  <td>3</td>
+  <td>Mainz have been using the right-hand side quite a bit, but they&#x27;ve elected to attack from the left. Here I&#x27;m Vene. And Becker with the flick. Look at all the defenders back. Crowd of defenders for Union.</td>
+  <td>Mainz. Not been using the right-hand side quite a bit, but they&#x27;ve elected to attack from the left. Here Mwene. And Becker with a flick. Look at all the defenders back. Crowd of defenders for Union.<details><summary>turns</summary><div class="turn"><span>0:07:11.640-0:07:11.760</span> Mainz.</div><div class="turn"><span>0:07:12.900-0:07:19.800</span> Not been using the right-hand side quite a bit, but they&#x27;ve elected to attack from the left. Here Mwene.</div><div class="turn"><span>0:07:21.000-0:07:25.800</span> And Becker with a flick. Look at all the defenders back. Crowd of defenders for Union.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:16:52.925</td>
+  <td>0:07:27.480-0:07:33.480</td>
+  <td>S0</td>
+  <td>0.07</td>
+  <td>0.93</td>
+  <td>2</td>
+  <td>There it breaks down. There&#x27;s Jae-sung Lee and Amiri on the scene.</td>
+  <td>Here it breaks down. There&#x27;s Jae-sung Lee and Amiri on the scene.<details><summary>turns</summary><div class="turn"><span>0:07:27.480-0:07:28.440</span> Here it breaks down.</div><div class="turn"><span>0:07:29.760-0:07:33.360</span> There&#x27;s Jae-sung Lee and Amiri on the scene.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:17:01.085</td>
+  <td>0:07:35.640-0:07:38.580</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Kaishu Sano for Sheraldo Becker.</td>
+  <td>Kaishu Sano for Sheraldo Becker.<details><summary>turns</summary><div class="turn"><span>0:07:35.640-0:07:38.400</span> Kaishu Sano for Sheraldo Becker.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:17:06.425</td>
+  <td>0:07:40.980-0:07:51.480</td>
+  <td>S0</td>
+  <td>0.06</td>
+  <td>0.89</td>
+  <td>2</td>
+  <td>Then by Becker again. Not worrisome for Klaus. And Aljoscha Kemlein, and here is the aforementioned Derrick Kohn.</td>
+  <td>In by Becker. Again, not worrisome for Klaus. And Aljoscha, Kemlein, and here is the aforementioned Derrick Kohn.<details><summary>turns</summary><div class="turn"><span>0:07:40.980-0:07:45.240</span> In by Becker. Again, not worrisome for Klaus.</div><div class="turn"><span>0:07:46.800-0:07:51.360</span> And Aljoscha, Kemlein, and here is the aforementioned Derrick Kohn.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:17:19.385</td>
+  <td>0:07:53.940-0:07:55.740</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Take it away by Veratschnig.</td>
+  <td>Take it away by Veratschnig.<details><summary>turns</summary><div class="turn"><span>0:07:54.000-0:07:55.560</span> Take it away by Veratschnig.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:17:24.365</td>
+  <td>0:07:58.920-0:08:05.700</td>
+  <td>S0</td>
+  <td>0.25</td>
+  <td>0.79</td>
+  <td>2</td>
+  <td>So Amiri&#x27;s pass. Veratschnig continued his counter. And Dr. Florian Exner</td>
+  <td>It&#x27;s Amiri&#x27;s pass. Veratschnig continued his counter. And Dr. Florian Exner decides.<details><summary>turns</summary><div class="turn"><span>0:07:58.920-0:07:59.760</span> It&#x27;s Amiri&#x27;s pass.</div><div class="turn"><span>0:08:00.540-0:08:07.320</span> Veratschnig continued his counter. And Dr. Florian Exner decides.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:17:33.005</td>
+  <td>0:08:07.560-0:08:08.220</td>
+  <td>S0</td>
+  <td>5.00</td>
+  <td>0.17</td>
+  <td>2</td>
+  <td>decides that the</td>
+  <td>Veratschnig continued his counter. And Dr. Florian Exner decides. That the yellow card should be handed out here.<details><summary>turns</summary><div class="turn"><span>0:08:00.540-0:08:07.320</span> Veratschnig continued his counter. And Dr. Florian Exner decides.</div><div class="turn"><span>0:08:07.920-0:08:12.120</span> That the yellow card should be handed out here.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:17:35.285</td>
+  <td>0:08:09.840-0:08:12.240</td>
+  <td>S0</td>
+  <td>0.29</td>
+  <td>0.78</td>
+  <td>1</td>
+  <td>yellow card should be handed out here</td>
+  <td>That the yellow card should be handed out here.<details><summary>turns</summary><div class="turn"><span>0:08:07.920-0:08:12.120</span> That the yellow card should be handed out here.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:17:39.185</td>
+  <td>0:08:13.740-0:08:14.280</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>for Kohn.</td>
+  <td>For Kohn.<details><summary>turns</summary><div class="turn"><span>0:08:13.740-0:08:14.160</span> For Kohn.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:17:45.665</td>
+  <td>0:08:20.220-0:08:57.360</td>
+  <td>S0</td>
+  <td>0.04</td>
+  <td>0.97</td>
+  <td>7</td>
+  <td>Meanwhile, changes of foot for Mainz. Armindo Sieb will be coming on. There was a formal farewell to him prior to the match because he will be leaving. It&#x27;s been a two-year loan from Bayern. And Becker, the goal scorer, and not any old goal either scoring against his former club that he served so well. Also departing. Tietz has gone off. And it&#x27;s not just Armindo Sieb on the pitch. It&#x27;s also Nelson Weiper.</td>
+  <td>Meanwhile, changes of for Mainz. Armindo Sieb. Be coming on. There&#x27;s a formal farewell to him prior to the match, because he will be leaving. It&#x27;s been a two-year loan from Bayern. And Becker the goal scorer, and not any old goal either. Scoring against his former club that he served so well. Also departing Tietz. Has gone off. And it&#x27;s not just Armindo Sieb. On the pitch, it&#x27;s also Nelson Weiper.<details><summary>turns</summary><div class="turn"><span>0:08:20.220-0:08:24.720</span> Meanwhile, changes of for Mainz. Armindo Sieb.</div><div class="turn"><span>0:08:26.160-0:08:26.760</span> Be coming on.</div><div class="turn"><span>0:08:27.540-0:08:44.400</span> There&#x27;s a formal farewell to him prior to the match, because he will be leaving. It&#x27;s been a two-year loan from Bayern. And Becker the goal scorer, and not any old goal either. Scoring against his former club that he served so well.</div><div class="turn"><span>0:08:46.260-0:08:48.480</span> Also departing Tietz.</div><div class="turn"><span>0:08:49.680-0:08:51.480</span> Has gone off.</div><div class="turn"><span>0:08:51.960-0:08:53.400</span> And it&#x27;s not just Armindo Sieb.</div><div class="turn"><span>0:08:54.060-0:08:57.240</span> On the pitch, it&#x27;s also Nelson Weiper.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:18:27.665</td>
+  <td>0:09:02.220-0:09:19.740</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>4</td>
+  <td>Tall striker. Hasn&#x27;t had things go his way too much in this campaign. It&#x27;s been on the outside looking in, but we know what a threat he can be. Has been for Germany&#x27;s under-21s. Amiri sending it in, and the header there from Posch.</td>
+  <td>Tall striker. Hasn&#x27;t had things go his way too much. In this campaign, it&#x27;s been on the outside looking in, but we know what a threat he can be. Has been for Germany&#x27;s under-21s. Amiri sending it in, and the header there from Posch.<details><summary>turns</summary><div class="turn"><span>0:09:02.220-0:09:02.880</span> Tall striker.</div><div class="turn"><span>0:09:03.720-0:09:10.800</span> Hasn&#x27;t had things go his way too much. In this campaign, it&#x27;s been on the outside looking in, but we know what a threat he can be.</div><div class="turn"><span>0:09:12.420-0:09:15.120</span> Has been for Germany&#x27;s under-21s.</div><div class="turn"><span>0:09:16.560-0:09:19.560</span> Amiri sending it in, and the header there from Posch.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:18:46.985</td>
+  <td>0:09:21.540-0:09:22.440</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Wide of the target.</td>
+  <td>Wide of the target.<details><summary>turns</summary><div class="turn"><span>0:09:21.540-0:09:22.320</span> Wide of the target.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:18:50.825</td>
+  <td>0:09:25.380-0:09:33.540</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>Juranovic on for Trimmel. That&#x27;s the Union change at this pretty late stage of the game, Moritz.</td>
+  <td>Juranovic on for Trimmel. That&#x27;s the Union change at this pretty late stage of the game, Moritz.<details><summary>turns</summary><div class="turn"><span>0:09:25.380-0:09:28.200</span> Juranovic on for Trimmel.</div><div class="turn"><span>0:09:28.920-0:09:33.360</span> That&#x27;s the Union change at this pretty late stage of the game, Moritz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:19:01.385</td>
+  <td>0:09:35.940-0:09:47.160</td>
+  <td>S1</td>
+  <td>0.03</td>
+  <td>0.93</td>
+  <td>1</td>
+  <td>Yeah, and again, just before seeing a good delivery from Amiri. Posch, he stands in the air well. I&#x27;m a little surprised he couldn&#x27;t get his header on target.</td>
+  <td>Yeah, and again, just before seeing a good delivery from Amiri, Posch, he stands in the air well. I&#x27;m a little surprised he couldn&#x27;t get his head on target.<details><summary>turns</summary><div class="turn"><span>0:09:35.940-0:09:46.920</span> Yeah, and again, just before seeing a good delivery from Amiri, Posch, he stands in the air well. I&#x27;m a little surprised he couldn&#x27;t get his head on target.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:19:15.305</td>
+  <td>0:09:49.860-0:10:00.480</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Kohn, we&#x27;ve just seen. He hasn&#x27;t got great momentum or much momentum or flow at the moment.</td>
+  <td>Kohn, we&#x27;ve just seen he hasn&#x27;t got great momentum or much momentum or flow at the moment.<details><summary>turns</summary><div class="turn"><span>0:09:49.860-0:09:59.400</span> Kohn, we&#x27;ve just seen he hasn&#x27;t got great momentum or much momentum or flow at the moment.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:19:27.785</td>
+  <td>0:10:02.340-0:10:08.460</td>
+  <td>S0</td>
+  <td>0.33</td>
+  <td>0.84</td>
+  <td>1</td>
+  <td>And that booking, as you saw from our caption, is fifth of the season, so he will not be taking part</td>
+  <td>And that booking, as you saw from our caption, is fifth of the season. So he will not be taking part in the final game of the campaign.<details><summary>turns</summary><div class="turn"><span>0:10:02.340-0:10:11.760</span> And that booking, as you saw from our caption, is fifth of the season. So he will not be taking part in the final game of the campaign.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:19:35.405</td>
+  <td>0:10:09.960-0:10:11.940</td>
+  <td>S0</td>
+  <td>3.00</td>
+  <td>0.24</td>
+  <td>1</td>
+  <td>in the final game of the campaign.</td>
+  <td>And that booking, as you saw from our caption, is fifth of the season. So he will not be taking part in the final game of the campaign.<details><summary>turns</summary><div class="turn"><span>0:10:02.340-0:10:11.760</span> And that booking, as you saw from our caption, is fifth of the season. So he will not be taking part in the final game of the campaign.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:19:45.785</td>
+  <td>0:10:20.340-0:10:33.660</td>
+  <td>S0</td>
+  <td>0.28</td>
+  <td>0.71</td>
+  <td>4</td>
+  <td>Goal apiece here. We did think we had witnessed one of the great goals of the season earlier from Philipp Tietz, but it was annulled because of offside. Wafer-thin margin. Schafer here for Union. Potulski</td>
+  <td>One goal apiece here. We did think we had witnessed one of the great goals of the season. Earlier from Peter Tietz, but it was an old because of offside. Weiper thin margin. Schafer here for Union. But Turski was able to.<details><summary>turns</summary><div class="turn"><span>0:10:20.340-0:10:21.240</span> One goal apiece here.</div><div class="turn"><span>0:10:21.900-0:10:25.080</span> We did think we had witnessed one of the great goals of the season.</div><div class="turn"><span>0:10:25.680-0:10:32.280</span> Earlier from Peter Tietz, but it was an old because of offside. Weiper thin margin. Schafer here for Union.</div><div class="turn"><span>0:10:33.060-0:10:35.280</span> But Turski was able to.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:20:00.785</td>
+  <td>0:10:35.340-0:10:38.940</td>
+  <td>S0</td>
+  <td>0.40</td>
+  <td>0.71</td>
+  <td>2</td>
+  <td>was able to read that.</td>
+  <td>But Turski was able to. Read that.<details><summary>turns</summary><div class="turn"><span>0:10:33.060-0:10:35.280</span> But Turski was able to.</div><div class="turn"><span>0:10:36.060-0:10:37.920</span> Read that.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:20:10.865</td>
+  <td>0:10:45.420-0:11:05.580</td>
+  <td>S0</td>
+  <td>0.06</td>
+  <td>0.91</td>
+  <td>2</td>
+  <td>Once again, we&#x27;re seeing Oliver Burke given a lengthy run, and that has been a feature of the matches under Marie-Louise Eta. Wasn&#x27;t necessarily the case when Stefan Baumgart was in charge. Usually, if Burke started, then he&#x27;d be given 60 or 65 minutes, and then</td>
+  <td>Once again, we&#x27;re seeing Oliver Burke given a lengthy run. And that has been a feature of the match as under Marie-Louise Eta. Wasn&#x27;t necessarily the case when Stefan Baumgart was in charge. Usually, if Burke started, then he&#x27;d be given 60 or 65 minutes. And then Union.<details><summary>turns</summary><div class="turn"><span>0:10:45.420-0:10:54.000</span> Once again, we&#x27;re seeing Oliver Burke given a lengthy run. And that has been a feature of the match as under Marie-Louise Eta.</div><div class="turn"><span>0:10:55.080-0:11:07.200</span> Wasn&#x27;t necessarily the case when Stefan Baumgart was in charge. Usually, if Burke started, then he&#x27;d be given 60 or 65 minutes. And then Union.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:20:32.825</td>
+  <td>0:11:07.380-0:11:13.980</td>
+  <td>S0</td>
+  <td>3.13</td>
+  <td>0.25</td>
+  <td>3</td>
+  <td>Union would look to other players, but she clearly does believe in Burke&#x27;s abilities.</td>
+  <td>Wasn&#x27;t necessarily the case when Stefan Baumgart was in charge. Usually, if Burke started, then he&#x27;d be given 60 or 65 minutes. And then Union. Would look to other players. But she clearly does believe in Burke. Abilities. Yes, and late in games, they tend to open up a little bit more, which should play into his strength.<details><summary>turns</summary><div class="turn"><span>0:10:55.080-0:11:07.200</span> Wasn&#x27;t necessarily the case when Stefan Baumgart was in charge. Usually, if Burke started, then he&#x27;d be given 60 or 65 minutes. And then Union.</div><div class="turn"><span>0:11:07.800-0:11:13.320</span> Would look to other players. But she clearly does believe in Burke. Abilities.</div><div class="turn"><span>0:11:14.100-0:11:22.440</span> Yes, and late in games, they tend to open up a little bit more, which should play into his strength.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:20:39.545</td>
+  <td>0:11:14.100-0:11:23.400</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yes, and late in games they tend to open up a little bit more, which should play into his strength.</td>
+  <td>Yes, and late in games, they tend to open up a little bit more, which should play into his strength.<details><summary>turns</summary><div class="turn"><span>0:11:14.100-0:11:22.440</span> Yes, and late in games, they tend to open up a little bit more, which should play into his strength.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:20:51.485</td>
+  <td>0:11:26.040-0:11:27.960</td>
+  <td>S0</td>
+  <td>3.40</td>
+  <td>0.23</td>
+  <td>2</td>
+  <td>Here&#x27;s Weiper for Mainz.</td>
+  <td>Here&#x27;s Weiper. For Mainz. Just trying to push it on, and Diogo Leite is under a little bit of pressure. There.<details><summary>turns</summary><div class="turn"><span>0:11:25.980-0:11:26.520</span> Here&#x27;s Weiper.</div><div class="turn"><span>0:11:27.360-0:11:35.400</span> For Mainz. Just trying to push it on, and Diogo Leite is under a little bit of pressure. There.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:20:55.025</td>
+  <td>0:11:29.580-0:11:35.580</td>
+  <td>S0</td>
+  <td>0.19</td>
+  <td>0.84</td>
+  <td>1</td>
+  <td>Trying to push it on, and Diogo Leite is under a little bit of pressure there.</td>
+  <td>For Mainz. Just trying to push it on, and Diogo Leite is under a little bit of pressure. There.<details><summary>turns</summary><div class="turn"><span>0:11:27.360-0:11:35.400</span> For Mainz. Just trying to push it on, and Diogo Leite is under a little bit of pressure. There.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:21:02.525</td>
+  <td>0:11:37.080-0:11:46.260</td>
+  <td>S0</td>
+  <td>0.07</td>
+  <td>0.95</td>
+  <td>2</td>
+  <td>From Sieb inside the box, it&#x27;s in Mwene here. And it&#x27;s Kaishu Sano. Kept it on the ground in Mwene. Mischievous back flick. Jae-sung Lee.</td>
+  <td>From Sieb inside the box. It&#x27;s Mwene here. And it&#x27;s Kaishu Sano kept it on the ground. Mwene mischievous back flick. Jae-sung Lee<details><summary>turns</summary><div class="turn"><span>0:11:37.080-0:11:39.720</span> From Sieb inside the box. It&#x27;s Mwene here.</div><div class="turn"><span>0:11:40.380-0:11:46.080</span> And it&#x27;s Kaishu Sano kept it on the ground. Mwene mischievous back flick. Jae-sung Lee</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:21:14.465</td>
+  <td>0:11:49.020-0:11:58.860</td>
+  <td>S0</td>
+  <td>0.11</td>
+  <td>0.83</td>
+  <td>4</td>
+  <td>Sano. And away by Diogo Leite. Wasn&#x27;t cleared away decisively. Weiper. Boot was raised. But no wrongdoing.</td>
+  <td>Sano and away by Diogo Leite. Was it cleared away? Decisively. Weiper. Boot was raised. But no wrongdoing.<details><summary>turns</summary><div class="turn"><span>0:11:49.080-0:11:54.360</span> Sano and away by Diogo Leite. Was it cleared away? Decisively.</div><div class="turn"><span>0:11:55.140-0:11:55.320</span> Weiper.</div><div class="turn"><span>0:11:55.920-0:11:56.640</span> Boot was raised.</div><div class="turn"><span>0:11:57.660-0:11:58.680</span> But no wrongdoing.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:21:27.845</td>
+  <td>0:12:02.400-0:12:12.000</td>
+  <td>S0</td>
+  <td>0.07</td>
+  <td>0.88</td>
+  <td>2</td>
+  <td>And Kaishu Sano. He&#x27;s trying to keep Juranovic in check. Look at this. All of a sudden, Ilic. For Union and off the frame of the goal.</td>
+  <td>And Kaishu Sano is trying to keep Juranovic in check. Look at this. All of a sudden, Ilic for Union. And off the frame of the goal.<details><summary>turns</summary><div class="turn"><span>0:12:02.400-0:12:09.960</span> And Kaishu Sano is trying to keep Juranovic in check. Look at this. All of a sudden, Ilic for Union.</div><div class="turn"><span>0:12:10.740-0:12:11.880</span> And off the frame of the goal.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:21:40.445</td>
+  <td>0:12:15.000-0:12:23.460</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Well, space. Opening up. And perhaps again here, it&#x27;s Burke. He has to be content with a corner.</td>
+  <td>Well, space opening up. And perhaps again here it&#x27;s Burke. He has to be content with a corner.<details><summary>turns</summary><div class="turn"><span>0:12:15.000-0:12:23.280</span> Well, space opening up. And perhaps again here it&#x27;s Burke. He has to be content with a corner.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:21:51.725</td>
+  <td>0:12:26.280-0:12:27.060</td>
+  <td>S0</td>
+  <td>4.50</td>
+  <td>0.25</td>
+  <td>1</td>
+  <td>Well, Ilic.</td>
+  <td>Well, Ilic what a move. What a move for him here.<details><summary>turns</summary><div class="turn"><span>0:12:26.340-0:12:29.880</span> Well, Ilic what a move. What a move for him here.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:21:52.985</td>
+  <td>0:12:27.540-0:12:30.000</td>
+  <td>S1</td>
+  <td>0.44</td>
+  <td>0.40</td>
+  <td>1</td>
+  <td>What a move. What a move going in here.</td>
+  <td>Well, Ilic what a move. What a move for him here.<details><summary>turns</summary><div class="turn"><span>0:12:26.340-0:12:29.880</span> Well, Ilic what a move. What a move for him here.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:21:57.365</td>
+  <td>0:12:31.920-0:12:43.740</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>So much dedication into that moment. Only one thing on his mind, and he almost got it right to score another immaculate goal.</td>
+  <td>So much dedication into that moment. Only one thing on his mind, and he almost got it right to score another immaculate goal.<details><summary>turns</summary><div class="turn"><span>0:12:31.920-0:12:36.840</span> So much dedication into that moment.</div><div class="turn"><span>0:12:38.700-0:12:43.740</span> Only one thing on his mind, and he almost got it right to score another immaculate goal.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:22:17.405</td>
+  <td>0:12:51.960-0:12:53.520</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>And a let-off for Mainz.</td>
+  <td>And a let-off for Mainz.<details><summary>turns</summary><div class="turn"><span>0:12:51.900-0:12:53.400</span> And a let-off for Mainz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:22:20.765</td>
+  <td>0:12:55.320-0:12:57.300</td>
+  <td>S0</td>
+  <td>0.11</td>
+  <td>0.89</td>
+  <td>1</td>
+  <td>It did look as though they perhaps had overcommitted.</td>
+  <td>Did look as though they perhaps had overcommitted<details><summary>turns</summary><div class="turn"><span>0:12:55.320-0:12:57.300</span> Did look as though they perhaps had overcommitted</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:22:25.085</td>
+  <td>0:12:59.640-0:13:00.240</td>
+  <td>S0</td>
+  <td>3.00</td>
+  <td>0.25</td>
+  <td>1</td>
+  <td>Juranovic.</td>
+  <td>Juranovic and will take.<details><summary>turns</summary><div class="turn"><span>0:12:59.640-0:13:01.800</span> Juranovic and will take.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:22:27.365</td>
+  <td>0:13:01.920-0:13:12.960</td>
+  <td>S0</td>
+  <td>0.12</td>
+  <td>0.87</td>
+  <td>2</td>
+  <td>Will take the corner. The man who&#x27;s only just come on. Who&#x27;s looking for Ilic, as you would. As anyone would. Armindo Sieb.</td>
+  <td>Juranovic and will take. The corner. The man who&#x27;s only just come on, who&#x27;s looking for Ilic, as you would. Is anyone would? Armindo Sieb.<details><summary>turns</summary><div class="turn"><span>0:12:59.640-0:13:01.800</span> Juranovic and will take.</div><div class="turn"><span>0:13:02.280-0:13:12.840</span> The corner. The man who&#x27;s only just come on, who&#x27;s looking for Ilic, as you would. Is anyone would? Armindo Sieb.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:22:43.145</td>
+  <td>0:13:17.700-0:13:24.240</td>
+  <td>S0</td>
+  <td>0.11</td>
+  <td>0.84</td>
+  <td>1</td>
+  <td>And Carl Klaus. Grabbing it right beside the byline a little bit more than five minutes to go.</td>
+  <td>And Karl Klaus grabbing it right beside the byline. Little bit more than five minutes to go.<details><summary>turns</summary><div class="turn"><span>0:13:17.700-0:13:24.120</span> And Karl Klaus grabbing it right beside the byline. Little bit more than five minutes to go.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:22:56.405</td>
+  <td>0:13:30.960-0:13:50.280</td>
+  <td>S0</td>
+  <td>0.23</td>
+  <td>0.81</td>
+  <td>4</td>
+  <td>And voting for man of the match. Underway now. So use the QR code on the screen. Go to the official Bundesliga app. Voting officially open. And I can give you a list of candidates.</td>
+  <td>And voting for man of the match. Underway now. So use the QR code on the screen. Go to the official Bundesliga app. Voting officially open and I can give you a list of candidates. Very difficult one when I think about it.<details><summary>turns</summary><div class="turn"><span>0:13:30.960-0:13:32.880</span> And voting for man of the match.</div><div class="turn"><span>0:13:33.720-0:13:42.120</span> Underway now. So use the QR code on the screen. Go to the official Bundesliga app.</div><div class="turn"><span>0:13:42.840-0:13:50.160</span> Voting officially open and I can give you a list of candidates.</div><div class="turn"><span>0:13:50.700-0:13:52.800</span> Very difficult one when I think about it.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:16.085</td>
+  <td>0:13:50.640-0:13:52.920</td>
+  <td>S1</td>
+  <td>1.62</td>
+  <td>0.40</td>
+  <td>3</td>
+  <td>Very difficult one when I think about it.</td>
+  <td>Voting officially open and I can give you a list of candidates. Very difficult one when I think about it. Yeah?<details><summary>turns</summary><div class="turn"><span>0:13:42.840-0:13:50.160</span> Voting officially open and I can give you a list of candidates.</div><div class="turn"><span>0:13:50.700-0:13:52.800</span> Very difficult one when I think about it.</div><div class="turn"><span>0:13:53.100-0:13:53.160</span> Yeah?</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:18.545</td>
+  <td>0:13:53.100-0:13:53.340</td>
+  <td>S0</td>
+  <td>35.00</td>
+  <td>0.03</td>
+  <td>4</td>
+  <td>Yeah?</td>
+  <td>Very difficult one when I think about it. Yeah? Yes. I&#x27;ve got the official list here, but I&#x27;ll let you think for a second or two about who you might give it to, Moritz.<details><summary>turns</summary><div class="turn"><span>0:13:50.700-0:13:52.800</span> Very difficult one when I think about it.</div><div class="turn"><span>0:13:53.100-0:13:53.160</span> Yeah?</div><div class="turn"><span>0:13:53.460-0:13:53.520</span> Yes.</div><div class="turn"><span>0:13:53.760-0:13:59.520</span> I&#x27;ve got the official list here, but I&#x27;ll let you think for a second or two about who you might give it to, Moritz.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:18.965</td>
+  <td>0:13:53.520-0:13:53.640</td>
+  <td>S1</td>
+  <td>27.00</td>
+  <td>0.04</td>
+  <td>3</td>
+  <td>Yes.</td>
+  <td>Yeah? Yes. I&#x27;ve got the official list here, but I&#x27;ll let you think for a second or two about who you might give it to, Moritz.<details><summary>turns</summary><div class="turn"><span>0:13:53.100-0:13:53.160</span> Yeah?</div><div class="turn"><span>0:13:53.460-0:13:53.520</span> Yes.</div><div class="turn"><span>0:13:53.760-0:13:59.520</span> I&#x27;ve got the official list here, but I&#x27;ll let you think for a second or two about who you might give it to, Moritz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:23:19.265</td>
+  <td>0:13:53.820-0:13:59.640</td>
+  <td>S0</td>
+  <td>0.04</td>
+  <td>0.96</td>
+  <td>2</td>
+  <td>I&#x27;ve got the official list here, but I&#x27;ll let you think for a second or two about who you might give it to, Moritz.</td>
+  <td>Yes. I&#x27;ve got the official list here, but I&#x27;ll let you think for a second or two about who you might give it to, Moritz.<details><summary>turns</summary><div class="turn"><span>0:13:53.460-0:13:53.520</span> Yes.</div><div class="turn"><span>0:13:53.760-0:13:59.520</span> I&#x27;ve got the official list here, but I&#x27;ll let you think for a second or two about who you might give it to, Moritz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:23:28.985</td>
+  <td>0:14:03.540-0:14:05.520</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yes, yes, yes. So for Mainz.</td>
+  <td>Yes, yes, yes. So for Mainz,<details><summary>turns</summary><div class="turn"><span>0:14:03.540-0:14:05.520</span> Yes, yes, yes. So for Mainz,</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:35.045</td>
+  <td>0:14:09.600-0:14:09.660</td>
+  <td>S1</td>
+  <td>1.00</td>
+  <td>0.00</td>
+  <td>0</td>
+  <td>Paul</td>
+  <td><details><summary>turns</summary></details></td>
+</tr>
+<tr class="warn">
+  <td>19:23:36.605</td>
+  <td>0:14:11.160-0:14:12.660</td>
+  <td>S1</td>
+  <td>0.20</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Nebel. I like Paul Nebel.</td>
+  <td>Paul Nebel, I like Paul Nebel.<details><summary>turns</summary><div class="turn"><span>0:14:10.920-0:14:12.600</span> Paul Nebel, I like Paul Nebel.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:42.125</td>
+  <td>0:14:16.680-0:14:18.960</td>
+  <td>S0</td>
+  <td>1.00</td>
+  <td>0.56</td>
+  <td>3</td>
+  <td>Here&#x27;s Weiper for Mainz.</td>
+  <td>Here&#x27;s Weiper. For Mainz. I think for Union, yeah.<details><summary>turns</summary><div class="turn"><span>0:14:16.680-0:14:17.160</span> Here&#x27;s Weiper.</div><div class="turn"><span>0:14:17.940-0:14:18.840</span> For Mainz.</div><div class="turn"><span>0:14:19.380-0:14:22.440</span> I think for Union, yeah.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:44.765</td>
+  <td>0:14:19.320-0:14:20.820</td>
+  <td>S1</td>
+  <td>0.75</td>
+  <td>0.67</td>
+  <td>2</td>
+  <td>I think for Union.</td>
+  <td>For Mainz. I think for Union, yeah.<details><summary>turns</summary><div class="turn"><span>0:14:17.940-0:14:18.840</span> For Mainz.</div><div class="turn"><span>0:14:19.380-0:14:22.440</span> I think for Union, yeah.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:47.405</td>
+  <td>0:14:21.960-0:14:22.140</td>
+  <td>S0</td>
+  <td>4.00</td>
+  <td>0.20</td>
+  <td>1</td>
+  <td>Yeah.</td>
+  <td>I think for Union, yeah.<details><summary>turns</summary><div class="turn"><span>0:14:19.380-0:14:22.440</span> I think for Union, yeah.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:48.545</td>
+  <td>0:14:23.100-0:14:23.640</td>
+  <td>S1</td>
+  <td>0.50</td>
+  <td>0.33</td>
+  <td>1</td>
+  <td>Carl Klaus.</td>
+  <td>Karl Klaus.<details><summary>turns</summary><div class="turn"><span>0:14:23.100-0:14:23.520</span> Karl Klaus.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:50.765</td>
+  <td>0:14:25.320-0:14:28.500</td>
+  <td>S1</td>
+  <td>0.90</td>
+  <td>0.62</td>
+  <td>2</td>
+  <td>Could be in the mix. Could be a goalkeeper, actually.</td>
+  <td>Could be in the mix. Could be a goalkeeper. Actually, would this man be in the mix at all?<details><summary>turns</summary><div class="turn"><span>0:14:25.320-0:14:27.240</span> Could be in the mix. Could be a goalkeeper.</div><div class="turn"><span>0:14:28.020-0:14:30.240</span> Actually, would this man be in the mix at all?</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:23:54.245</td>
+  <td>0:14:28.800-0:14:30.420</td>
+  <td>S0</td>
+  <td>0.11</td>
+  <td>0.90</td>
+  <td>1</td>
+  <td>Would this man be in the mix at all?</td>
+  <td>Actually, would this man be in the mix at all?<details><summary>turns</summary><div class="turn"><span>0:14:28.020-0:14:30.240</span> Actually, would this man be in the mix at all?</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:56.645</td>
+  <td>0:14:31.200-0:14:31.680</td>
+  <td>S1</td>
+  <td>1.00</td>
+  <td>0.50</td>
+  <td>2</td>
+  <td>Trimmel?</td>
+  <td>Trimmel? Yeah.<details><summary>turns</summary><div class="turn"><span>0:14:31.200-0:14:31.560</span> Trimmel?</div><div class="turn"><span>0:14:31.740-0:14:31.800</span> Yeah.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:57.245</td>
+  <td>0:14:31.800-0:14:33.720</td>
+  <td>S0</td>
+  <td>0.60</td>
+  <td>0.91</td>
+  <td>4</td>
+  <td>Yeah. He&#x27;s on the list, I&#x27;ll tell you.</td>
+  <td>Trimmel? Yeah. He&#x27;s on the list, I&#x27;ll tell you. He&#x27;s on the list.<details><summary>turns</summary><div class="turn"><span>0:14:31.200-0:14:31.560</span> Trimmel?</div><div class="turn"><span>0:14:31.740-0:14:31.800</span> Yeah.</div><div class="turn"><span>0:14:32.580-0:14:33.600</span> He&#x27;s on the list, I&#x27;ll tell you.</div><div class="turn"><span>0:14:33.840-0:14:34.200</span> He&#x27;s on the list.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:59.285</td>
+  <td>0:14:33.840-0:14:34.320</td>
+  <td>S1</td>
+  <td>2.80</td>
+  <td>0.56</td>
+  <td>3</td>
+  <td>He&#x27;s on the list?</td>
+  <td>He&#x27;s on the list, I&#x27;ll tell you. He&#x27;s on the list. He&#x27;s on the list.<details><summary>turns</summary><div class="turn"><span>0:14:32.580-0:14:33.600</span> He&#x27;s on the list, I&#x27;ll tell you.</div><div class="turn"><span>0:14:33.840-0:14:34.200</span> He&#x27;s on the list.</div><div class="turn"><span>0:14:34.440-0:14:34.920</span> He&#x27;s on the list.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:23:59.885</td>
+  <td>0:14:34.440-0:14:35.040</td>
+  <td>S0</td>
+  <td>1.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>He&#x27;s on the list.</td>
+  <td>He&#x27;s on the list. He&#x27;s on the list.<details><summary>turns</summary><div class="turn"><span>0:14:33.840-0:14:34.200</span> He&#x27;s on the list.</div><div class="turn"><span>0:14:34.440-0:14:34.920</span> He&#x27;s on the list.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:01.265</td>
+  <td>0:14:35.820-0:14:42.660</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah, I wouldn&#x27;t have him there. He&#x27;s played a good game.</td>
+  <td>Yeah, I wouldn&#x27;t have him there. He&#x27;s played a good game.<details><summary>turns</summary><div class="turn"><span>0:14:35.820-0:14:41.880</span> Yeah, I wouldn&#x27;t have him there. He&#x27;s played a good game.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:08.945</td>
+  <td>0:14:43.500-0:14:48.720</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>I&#x27;ll give you the complete list in a second. And get your reaction, Moritz. First this corner.</td>
+  <td>I&#x27;ll give you the complete list in a second and get your reaction. Moritz, first this corner.<details><summary>turns</summary><div class="turn"><span>0:14:43.500-0:14:46.440</span> I&#x27;ll give you the complete list in a second and get your reaction.</div><div class="turn"><span>0:14:47.220-0:14:48.600</span> Moritz, first this corner.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:18.125</td>
+  <td>0:14:52.680-0:14:59.520</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>3</td>
+  <td>Amiri for Mainz. I think for Weiper. That time Ilic was defending, so too. Diogo Leite.</td>
+  <td>Amiri for Mainz. I think for Weiper. That time Ilic was defending, so too. Diogo Leite.<details><summary>turns</summary><div class="turn"><span>0:14:52.620-0:14:54.360</span> Amiri for Mainz.</div><div class="turn"><span>0:14:54.780-0:14:55.560</span> I think for Weiper.</div><div class="turn"><span>0:14:56.160-0:14:59.400</span> That time Ilic was defending, so too. Diogo Leite.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:26.465</td>
+  <td>0:15:01.020-0:15:02.580</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah, maybe Ilic, actually.</td>
+  <td>Yeah, maybe Ilic actually.<details><summary>turns</summary><div class="turn"><span>0:15:01.020-0:15:02.400</span> Yeah, maybe Ilic actually.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:24:29.465</td>
+  <td>0:15:04.020-0:15:13.080</td>
+  <td>S0</td>
+  <td>0.15</td>
+  <td>0.83</td>
+  <td>4</td>
+  <td>High ball in there by Mwene. Yes, Ilic is one of the candidates. The others. You want the others? I&#x27;ll tell you the others. Yeah.</td>
+  <td>High ball in there by Mwene. Yes, Ilic is one of the candidates. The others, you want the others? I&#x27;ll tell you the others, yeah. Come on, believe me.<details><summary>turns</summary><div class="turn"><span>0:15:04.020-0:15:05.400</span> High ball in there by Mwene.</div><div class="turn"><span>0:15:07.200-0:15:09.360</span> Yes, Ilic is one of the candidates.</div><div class="turn"><span>0:15:10.620-0:15:12.960</span> The others, you want the others? I&#x27;ll tell you the others, yeah.</div><div class="turn"><span>0:15:13.200-0:15:14.280</span> Come on, believe me.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:38.585</td>
+  <td>0:15:13.140-0:15:14.400</td>
+  <td>S1</td>
+  <td>3.75</td>
+  <td>0.21</td>
+  <td>3</td>
+  <td>Come on, relieve me.</td>
+  <td>The others, you want the others? I&#x27;ll tell you the others, yeah. Come on, believe me. Zentner.<details><summary>turns</summary><div class="turn"><span>0:15:10.620-0:15:12.960</span> The others, you want the others? I&#x27;ll tell you the others, yeah.</div><div class="turn"><span>0:15:13.200-0:15:14.280</span> Come on, believe me.</div><div class="turn"><span>0:15:14.460-0:15:14.760</span> Zentner.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:40.385</td>
+  <td>0:15:14.940-0:15:15.660</td>
+  <td>S0</td>
+  <td>4.50</td>
+  <td>0.10</td>
+  <td>3</td>
+  <td>Moritz, Zentner.</td>
+  <td>Zentner. What means Zentner? Could be a goalkeeper, I said.<details><summary>turns</summary><div class="turn"><span>0:15:14.460-0:15:14.760</span> Zentner.</div><div class="turn"><span>0:15:14.940-0:15:15.600</span> What means Zentner?</div><div class="turn"><span>0:15:15.840-0:15:16.920</span> Could be a goalkeeper, I said.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:41.285</td>
+  <td>0:15:15.840-0:15:17.100</td>
+  <td>S1</td>
+  <td>0.83</td>
+  <td>0.55</td>
+  <td>3</td>
+  <td>Could be a goalkeeper, I said.</td>
+  <td>What means Zentner? Could be a goalkeeper, I said. Sheraldo Becker.<details><summary>turns</summary><div class="turn"><span>0:15:14.940-0:15:15.600</span> What means Zentner?</div><div class="turn"><span>0:15:15.840-0:15:16.920</span> Could be a goalkeeper, I said.</div><div class="turn"><span>0:15:17.460-0:15:18.120</span> Sheraldo Becker.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:42.905</td>
+  <td>0:15:17.460-0:15:18.240</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Sheraldo Becker.</td>
+  <td>Sheraldo Becker.<details><summary>turns</summary><div class="turn"><span>0:15:17.460-0:15:18.120</span> Sheraldo Becker.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:44.585</td>
+  <td>0:15:19.140-0:15:20.040</td>
+  <td>S1</td>
+  <td>2.33</td>
+  <td>0.30</td>
+  <td>2</td>
+  <td>Yeah, nice goal.</td>
+  <td>Yeah, nice goal. The aforementioned by your good self, Nebel.<details><summary>turns</summary><div class="turn"><span>0:15:19.140-0:15:19.920</span> Yeah, nice goal.</div><div class="turn"><span>0:15:20.520-0:15:23.280</span> The aforementioned by your good self, Nebel.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:45.965</td>
+  <td>0:15:20.520-0:15:23.460</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>The aforementioned by your good self, Nebel.</td>
+  <td>The aforementioned by your good self, Nebel.<details><summary>turns</summary><div class="turn"><span>0:15:20.520-0:15:23.280</span> The aforementioned by your good self, Nebel.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:49.985</td>
+  <td>0:15:24.540-0:15:24.780</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah.</td>
+  <td>Yeah.<details><summary>turns</summary><div class="turn"><span>0:15:24.540-0:15:24.600</span> Yeah.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:51.485</td>
+  <td>0:15:26.040-0:15:26.880</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Christopher Trimmel.</td>
+  <td>Christopher Trimmel.<details><summary>turns</summary><div class="turn"><span>0:15:26.040-0:15:26.760</span> Christopher Trimmel.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:53.465</td>
+  <td>0:15:28.020-0:15:28.260</td>
+  <td>S1</td>
+  <td>3.00</td>
+  <td>0.25</td>
+  <td>2</td>
+  <td>Okay.</td>
+  <td>Okay. And Stefan Posch.<details><summary>turns</summary><div class="turn"><span>0:15:28.020-0:15:28.080</span> Okay.</div><div class="turn"><span>0:15:28.620-0:15:29.400</span> And Stefan Posch.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:24:54.125</td>
+  <td>0:15:28.680-0:15:29.520</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>And Stefan Posch.</td>
+  <td>And Stefan Posch.<details><summary>turns</summary><div class="turn"><span>0:15:28.620-0:15:29.400</span> And Stefan Posch.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:56.405</td>
+  <td>0:15:30.960-0:15:32.100</td>
+  <td>S1</td>
+  <td>3.50</td>
+  <td>0.22</td>
+  <td>2</td>
+  <td>Stefan Posch?</td>
+  <td>Stefan Posch. You&#x27;re not sure about that one?<details><summary>turns</summary><div class="turn"><span>0:15:30.960-0:15:31.920</span> Stefan Posch.</div><div class="turn"><span>0:15:32.220-0:15:33.120</span> You&#x27;re not sure about that one?</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:57.665</td>
+  <td>0:15:32.220-0:15:33.240</td>
+  <td>S0</td>
+  <td>0.71</td>
+  <td>0.64</td>
+  <td>3</td>
+  <td>You&#x27;re not sure about that one.</td>
+  <td>Stefan Posch. You&#x27;re not sure about that one? That was a—<details><summary>turns</summary><div class="turn"><span>0:15:30.960-0:15:31.920</span> Stefan Posch.</div><div class="turn"><span>0:15:32.220-0:15:33.120</span> You&#x27;re not sure about that one?</div><div class="turn"><span>0:15:33.420-0:15:34.740</span> That was a—</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:24:58.805</td>
+  <td>0:15:33.360-0:15:34.740</td>
+  <td>S1</td>
+  <td>4.67</td>
+  <td>0.33</td>
+  <td>3</td>
+  <td>That was a...</td>
+  <td>You&#x27;re not sure about that one? That was a— You&#x27;re not sure about that one?<details><summary>turns</summary><div class="turn"><span>0:15:32.220-0:15:33.120</span> You&#x27;re not sure about that one?</div><div class="turn"><span>0:15:33.420-0:15:34.740</span> That was a—</div><div class="turn"><span>0:15:34.920-0:15:35.880</span> You&#x27;re not sure about that one?</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:25:00.425</td>
+  <td>0:15:34.980-0:15:36.000</td>
+  <td>S0</td>
+  <td>0.71</td>
+  <td>0.64</td>
+  <td>4</td>
+  <td>You&#x27;re not sure about that one?</td>
+  <td>That was a— You&#x27;re not sure about that one? Yeah. Okay.<details><summary>turns</summary><div class="turn"><span>0:15:33.420-0:15:34.740</span> That was a—</div><div class="turn"><span>0:15:34.920-0:15:35.880</span> You&#x27;re not sure about that one?</div><div class="turn"><span>0:15:36.060-0:15:36.120</span> Yeah.</div><div class="turn"><span>0:15:36.300-0:15:36.360</span> Okay.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:25:01.565</td>
+  <td>0:15:36.120-0:15:36.300</td>
+  <td>S1</td>
+  <td>8.00</td>
+  <td>0.11</td>
+  <td>3</td>
+  <td>Yeah.</td>
+  <td>You&#x27;re not sure about that one? Yeah. Okay.<details><summary>turns</summary><div class="turn"><span>0:15:34.920-0:15:35.880</span> You&#x27;re not sure about that one?</div><div class="turn"><span>0:15:36.060-0:15:36.120</span> Yeah.</div><div class="turn"><span>0:15:36.300-0:15:36.360</span> Okay.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:25:01.805</td>
+  <td>0:15:36.360-0:15:36.540</td>
+  <td>S0</td>
+  <td>8.00</td>
+  <td>0.11</td>
+  <td>3</td>
+  <td>Okay.</td>
+  <td>You&#x27;re not sure about that one? Yeah. Okay.<details><summary>turns</summary><div class="turn"><span>0:15:34.920-0:15:35.880</span> You&#x27;re not sure about that one?</div><div class="turn"><span>0:15:36.060-0:15:36.120</span> Yeah.</div><div class="turn"><span>0:15:36.300-0:15:36.360</span> Okay.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:25:03.485</td>
+  <td>0:15:38.040-0:15:40.080</td>
+  <td>S1</td>
+  <td>0.60</td>
+  <td>0.71</td>
+  <td>2</td>
+  <td>Plenty of Austrians voting here.</td>
+  <td>Plenty of Austrians voting here. Here&#x27;s Kohn.<details><summary>turns</summary><div class="turn"><span>0:15:38.100-0:15:39.840</span> Plenty of Austrians voting here.</div><div class="turn"><span>0:15:40.260-0:15:40.800</span> Here&#x27;s Kohn.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:25:05.705</td>
+  <td>0:15:40.260-0:15:48.780</td>
+  <td>S0</td>
+  <td>0.22</td>
+  <td>0.83</td>
+  <td>4</td>
+  <td>Here&#x27;s Kohn. And Ilic. Trying to nod it back. Can they keep this going? Oliver Burke! Oh, that&#x27;s brilliant! Oliver Burke!</td>
+  <td>Plenty of Austrians voting here. Here&#x27;s Kohn. And Ilic trying to nod it back. Can they keep this going? Oliver Burke, oh, that&#x27;s brilliant. Oliver Burke.<details><summary>turns</summary><div class="turn"><span>0:15:38.100-0:15:39.840</span> Plenty of Austrians voting here.</div><div class="turn"><span>0:15:40.260-0:15:40.800</span> Here&#x27;s Kohn.</div><div class="turn"><span>0:15:41.460-0:15:46.680</span> And Ilic trying to nod it back. Can they keep this going? Oliver Burke, oh, that&#x27;s brilliant.</div><div class="turn"><span>0:15:47.820-0:15:48.600</span> Oliver Burke.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:25:16.865</td>
+  <td>0:15:51.420-0:15:51.960</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Magical!</td>
+  <td>Magical.<details><summary>turns</summary><div class="turn"><span>0:15:51.420-0:15:51.840</span> Magical.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:25:20.765</td>
+  <td>0:15:55.320-0:16:14.340</td>
+  <td>S0</td>
+  <td>0.07</td>
+  <td>0.91</td>
+  <td>3</td>
+  <td>Well, that&#x27;s the way to send a message to your national team coach ahead of the World Cup. Oliver Burke for Marie-Louise Eta side. And is that the goal? That&#x27;s going to give Union a matchday 33 victory.</td>
+  <td>Well, that&#x27;s the way to send a message. To your national team coach ahead of the World Cup. Oliver Burke for Marie-Louise Eta&#x27;s side. And is that the goal? Let&#x27;s try to give Union a matchday 33 victory.<details><summary>turns</summary><div class="turn"><span>0:15:55.320-0:15:57.240</span> Well, that&#x27;s the way to send a message.</div><div class="turn"><span>0:15:57.960-0:16:09.720</span> To your national team coach ahead of the World Cup. Oliver Burke for Marie-Louise Eta&#x27;s side. And is that the goal?</div><div class="turn"><span>0:16:10.500-0:16:14.160</span> Let&#x27;s try to give Union a matchday 33 victory.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:25:41.405</td>
+  <td>0:16:15.960-0:16:19.320</td>
+  <td>S1</td>
+  <td>0.20</td>
+  <td>0.82</td>
+  <td>1</td>
+  <td>I hope so, Derrick. I mean, as a neutral. But</td>
+  <td>I hope so, Derrick. I mean, as a neutral, but to me.<details><summary>turns</summary><div class="turn"><span>0:16:15.960-0:16:20.880</span> I hope so, Derrick. I mean, as a neutral, but to me.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:25:46.505</td>
+  <td>0:16:21.060-0:16:37.980</td>
+  <td>S1</td>
+  <td>0.30</td>
+  <td>0.80</td>
+  <td>5</td>
+  <td>to me, Burke, he scored that for you because... Look at this. Bob, he&#x27;s in the box. A little bit of luck and then... Left foot. Cool finish. Not too much power.</td>
+  <td>I hope so, Derrick. I mean, as a neutral, but to me. Burke, he scored that for you because— Look at this. Bob, he&#x27;s in the box, a little bit of luck, and then left. Foot. Cool finish. Not too much power.<details><summary>turns</summary><div class="turn"><span>0:16:15.960-0:16:20.880</span> I hope so, Derrick. I mean, as a neutral, but to me.</div><div class="turn"><span>0:16:21.660-0:16:24.960</span> Burke, he scored that for you because—</div><div class="turn"><span>0:16:26.700-0:16:27.240</span> Look at this.</div><div class="turn"><span>0:16:28.260-0:16:32.520</span> Bob, he&#x27;s in the box, a little bit of luck, and then left.</div><div class="turn"><span>0:16:32.940-0:16:37.980</span> Foot. Cool finish. Not too much power.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:26:05.525</td>
+  <td>0:16:40.080-0:16:41.820</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>But enough to get it past Zentner.</td>
+  <td>But enough to get it past Zentner.<details><summary>turns</summary><div class="turn"><span>0:16:40.080-0:16:41.760</span> But enough to get it past Zentner.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:26:09.605</td>
+  <td>0:16:44.160-0:16:51.300</td>
+  <td>S1</td>
+  <td>0.05</td>
+  <td>0.95</td>
+  <td>2</td>
+  <td>And he muscled his way off or through. Posch, who was just mentioned as a man of the match candidate.</td>
+  <td>And he muscled his way off or through Posch. Who was just mentioned as a man of the match candidate. Score.<details><summary>turns</summary><div class="turn"><span>0:16:44.160-0:16:48.000</span> And he muscled his way off or through Posch.</div><div class="turn"><span>0:16:48.300-0:16:52.800</span> Who was just mentioned as a man of the match candidate. Score.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:26:18.545</td>
+  <td>0:16:53.100-0:16:57.540</td>
+  <td>S1</td>
+  <td>1.44</td>
+  <td>0.40</td>
+  <td>2</td>
+  <td>Scoring the winning goal may get a late surge.</td>
+  <td>Who was just mentioned as a man of the match candidate. Score. In the winning goal, may get a late surge.<details><summary>turns</summary><div class="turn"><span>0:16:48.300-0:16:52.800</span> Who was just mentioned as a man of the match candidate. Score.</div><div class="turn"><span>0:16:53.340-0:16:59.040</span> In the winning goal, may get a late surge.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:26:24.725</td>
+  <td>0:16:59.280-0:17:00.840</td>
+  <td>S1</td>
+  <td>1.80</td>
+  <td>0.36</td>
+  <td>2</td>
+  <td>For your player, Oliver Burke.</td>
+  <td>In the winning goal, may get a late surge. For your player, Oliver Burke.<details><summary>turns</summary><div class="turn"><span>0:16:53.340-0:16:59.040</span> In the winning goal, may get a late surge.</div><div class="turn"><span>0:16:59.340-0:17:00.720</span> For your player, Oliver Burke.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:26:28.265</td>
+  <td>0:17:02.820-0:17:08.820</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Well, we have discussed it throughout the game. Big smile. Etched on the face of Oliver Burke.</td>
+  <td>Well, we have discussed it throughout the game. Big smile etched on the face of Oliver Burke.<details><summary>turns</summary><div class="turn"><span>0:17:02.820-0:17:08.640</span> Well, we have discussed it throughout the game. Big smile etched on the face of Oliver Burke.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:26:36.785</td>
+  <td>0:17:11.340-0:17:17.100</td>
+  <td>S0</td>
+  <td>0.40</td>
+  <td>0.75</td>
+  <td>2</td>
+  <td>And now can Mainz respond? 15% on the goal probability.</td>
+  <td>And now can Mainz, 15. Percent on the goal probability. And Union.<details><summary>turns</summary><div class="turn"><span>0:17:11.340-0:17:14.760</span> And now can Mainz, 15.</div><div class="turn"><span>0:17:15.360-0:17:18.720</span> Percent on the goal probability. And Union.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:26:44.165</td>
+  <td>0:17:18.720-0:17:20.220</td>
+  <td>S0</td>
+  <td>1.20</td>
+  <td>0.56</td>
+  <td>2</td>
+  <td>And Union on the cusp</td>
+  <td>Percent on the goal probability. And Union. On the cusp of.<details><summary>turns</summary><div class="turn"><span>0:17:15.360-0:17:18.720</span> Percent on the goal probability. And Union.</div><div class="turn"><span>0:17:19.560-0:17:21.840</span> On the cusp of.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:26:47.585</td>
+  <td>0:17:22.140-0:17:32.100</td>
+  <td>S0</td>
+  <td>0.15</td>
+  <td>0.90</td>
+  <td>3</td>
+  <td>of winning this match. It would be Marie-Louise Eta&#x27;s first Bundesliga victory. As head coach of the Eisenen.</td>
+  <td>On the cusp of. Winning this match. It would be Marie-Louise Eta&#x27;s first Bundesliga victory. As head coach of the Eisenen<details><summary>turns</summary><div class="turn"><span>0:17:19.560-0:17:21.840</span> On the cusp of.</div><div class="turn"><span>0:17:22.560-0:17:28.680</span> Winning this match. It would be Marie-Louise Eta&#x27;s first Bundesliga victory.</div><div class="turn"><span>0:17:29.640-0:17:32.100</span> As head coach of the Eisenen</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:27:01.565</td>
+  <td>0:17:36.120-0:17:37.560</td>
+  <td>S0</td>
+  <td>0.29</td>
+  <td>0.71</td>
+  <td>1</td>
+  <td>It&#x27;s not over just yet, though.</td>
+  <td>not over just yet, though.<details><summary>turns</summary><div class="turn"><span>0:17:36.360-0:17:37.440</span> not over just yet, though.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:27:08.825</td>
+  <td>0:17:43.380-0:17:51.420</td>
+  <td>S0</td>
+  <td>0.12</td>
+  <td>1.00</td>
+  <td>3</td>
+  <td>Taken by Amiri. Posch was competing for it. Never easy against the likes of Doekhi. And Mwene.</td>
+  <td>Taken by Amiri and Posch was competing for it. Never easy against the likes of Doekhi. Mwene.<details><summary>turns</summary><div class="turn"><span>0:17:43.380-0:17:46.680</span> Taken by Amiri and Posch was competing for it.</div><div class="turn"><span>0:17:47.700-0:17:49.800</span> Never easy against the likes of Doekhi.</div><div class="turn"><span>0:17:50.760-0:17:51.120</span> Mwene.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:27:18.845</td>
+  <td>0:17:53.400-0:18:05.580</td>
+  <td>S0</td>
+  <td>0.09</td>
+  <td>0.89</td>
+  <td>4</td>
+  <td>Still alive here and the acrobatic attempt. And it&#x27;s not quite the scramble in there at Sieb. It&#x27;s Potulski with that attempt. And then Weiper. Try to keep it going for Mainz.</td>
+  <td>Still alive here, and the acrobatic attempt. And it&#x27;s not quite the scramble in there. It&#x27;s Sieb. It&#x27;s Potulski with that attempt. And then Weiper. Tried to keep it going for Mainz.<details><summary>turns</summary><div class="turn"><span>0:17:53.340-0:17:55.320</span> Still alive here, and the acrobatic attempt.</div><div class="turn"><span>0:17:55.980-0:18:01.080</span> And it&#x27;s not quite the scramble in there. It&#x27;s Sieb. It&#x27;s Potulski with that attempt.</div><div class="turn"><span>0:18:01.620-0:18:02.280</span> And then Weiper.</div><div class="turn"><span>0:18:03.660-0:18:05.400</span> Tried to keep it going for Mainz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:27:36.605</td>
+  <td>0:18:11.160-0:18:13.800</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah, Potulski has been quite a presence in the box.</td>
+  <td>Yeah, Potulski has been quite a presence in the box.<details><summary>turns</summary><div class="turn"><span>0:18:11.160-0:18:13.680</span> Yeah, Potulski has been quite a presence in the box.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:27:40.985</td>
+  <td>0:18:15.540-0:18:24.720</td>
+  <td>S0</td>
+  <td>0.75</td>
+  <td>0.59</td>
+  <td>2</td>
+  <td>Now they&#x27;ll look at this. Oliver Burke had so much to do. You said, Moritz, sometimes you need to get a little break, and maybe he did.</td>
+  <td>Another look at this. Oliver Burke had so much to do. As you said, Moritz, sometimes you need to get a little break and maybe he did. He did, but he was in the box as well, which he tends to be wide crossing.<details><summary>turns</summary><div class="turn"><span>0:18:15.540-0:18:24.600</span> Another look at this. Oliver Burke had so much to do. As you said, Moritz, sometimes you need to get a little break and maybe he did.</div><div class="turn"><span>0:18:24.960-0:18:31.440</span> He did, but he was in the box as well, which he tends to be wide crossing.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:27:50.405</td>
+  <td>0:18:24.960-0:18:28.620</td>
+  <td>S1</td>
+  <td>3.00</td>
+  <td>0.28</td>
+  <td>2</td>
+  <td>He did. But he was in the box as well, which</td>
+  <td>Another look at this. Oliver Burke had so much to do. As you said, Moritz, sometimes you need to get a little break and maybe he did. He did, but he was in the box as well, which he tends to be wide crossing.<details><summary>turns</summary><div class="turn"><span>0:18:15.540-0:18:24.600</span> Another look at this. Oliver Burke had so much to do. As you said, Moritz, sometimes you need to get a little break and maybe he did.</div><div class="turn"><span>0:18:24.960-0:18:31.440</span> He did, but he was in the box as well, which he tends to be wide crossing.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:27:55.565</td>
+  <td>0:18:30.120-0:18:33.660</td>
+  <td>S1</td>
+  <td>1.00</td>
+  <td>0.58</td>
+  <td>2</td>
+  <td>he tends to be wide crossing a lot of the time.</td>
+  <td>He did, but he was in the box as well, which he tends to be wide crossing. A lot of the time.<details><summary>turns</summary><div class="turn"><span>0:18:24.960-0:18:31.440</span> He did, but he was in the box as well, which he tends to be wide crossing.</div><div class="turn"><span>0:18:32.700-0:18:33.480</span> A lot of the time.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:27:59.945</td>
+  <td>0:18:34.500-0:18:53.760</td>
+  <td>S0</td>
+  <td>0.07</td>
+  <td>0.89</td>
+  <td>4</td>
+  <td>And Union. With Kemlein. Maybe have designs on another one. And the defenders are post-it missing. Well, the angle was tight, but that did not deter Union, and Juranovic has buried it. And that should put it beyond all doubts.</td>
+  <td>And Union with Kemlein maybe have designs on another one, and the defenders are posted missing. Well, the angle was tight, but that did not deter Union and Juranovic. Has buried it. And that should put it beyond all doubt.<details><summary>turns</summary><div class="turn"><span>0:18:34.440-0:18:42.480</span> And Union with Kemlein maybe have designs on another one, and the defenders are posted missing.</div><div class="turn"><span>0:18:44.100-0:18:48.480</span> Well, the angle was tight, but that did not deter Union and Juranovic.</div><div class="turn"><span>0:18:49.620-0:18:50.400</span> Has buried it.</div><div class="turn"><span>0:18:51.300-0:18:53.640</span> And that should put it beyond all doubt.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:28:21.545</td>
+  <td>0:18:56.100-0:19:03.540</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>3</td>
+  <td>3-1. Joy for the Union fans. And for Marie-Louise Eta.</td>
+  <td>3-1. Joy for the Union fans. And for Marie-Louise Eta.<details><summary>turns</summary><div class="turn"><span>0:18:56.100-0:18:58.080</span> 3-1.</div><div class="turn"><span>0:18:58.620-0:19:00.120</span> Joy for the Union fans.</div><div class="turn"><span>0:19:01.200-0:19:03.360</span> And for Marie-Louise Eta.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:28:30.725</td>
+  <td>0:19:05.280-0:19:11.880</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>Looks as though she&#x27;s going to get her first Bundesliga victory. But a glum-faced Urs Fischer.</td>
+  <td>Looks as though she&#x27;s going to get her first Bundesliga victory. But a glum-faced Urs Fischer.<details><summary>turns</summary><div class="turn"><span>0:19:05.280-0:19:09.120</span> Looks as though she&#x27;s going to get her first Bundesliga victory.</div><div class="turn"><span>0:19:09.660-0:19:11.760</span> But a glum-faced Urs Fischer.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:28:40.625</td>
+  <td>0:19:15.180-0:19:15.960</td>
+  <td>S1</td>
+  <td>0.25</td>
+  <td>0.80</td>
+  <td>1</td>
+  <td>Yeah, this type of</td>
+  <td>Yeah, this type of counter.<details><summary>turns</summary><div class="turn"><span>0:19:15.180-0:19:17.520</span> Yeah, this type of counter.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:28:43.325</td>
+  <td>0:19:17.880-0:19:19.560</td>
+  <td>S1</td>
+  <td>1.75</td>
+  <td>0.27</td>
+  <td>2</td>
+  <td>counterattack is exactly what</td>
+  <td>Yeah, this type of counter. Attack is exactly what can.<details><summary>turns</summary><div class="turn"><span>0:19:15.180-0:19:17.520</span> Yeah, this type of counter.</div><div class="turn"><span>0:19:18.360-0:19:21.120</span> Attack is exactly what can.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:28:46.805</td>
+  <td>0:19:21.360-0:19:23.760</td>
+  <td>S1</td>
+  <td>1.50</td>
+  <td>0.30</td>
+  <td>2</td>
+  <td>can hurt his teams.</td>
+  <td>Attack is exactly what can. Hurt his team&#x27;s<details><summary>turns</summary><div class="turn"><span>0:19:18.360-0:19:21.120</span> Attack is exactly what can.</div><div class="turn"><span>0:19:21.660-0:19:23.760</span> Hurt his team&#x27;s</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:28:51.665</td>
+  <td>0:19:26.220-0:19:37.500</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>3</td>
+  <td>They usually have better counter control. They lose a duel, and then it&#x27;s really well done by Tim Skarke. Having the support of Juranovic.</td>
+  <td>they usually have better counter control— They lose a duel, and then it&#x27;s really well done by Tim Skarke. Having the support of Juranovic,<details><summary>turns</summary><div class="turn"><span>0:19:26.220-0:19:29.400</span> they usually have better counter control—</div><div class="turn"><span>0:19:31.020-0:19:34.560</span> They lose a duel, and then it&#x27;s really well done by Tim Skarke.</div><div class="turn"><span>0:19:35.760-0:19:37.500</span> Having the support of Juranovic,</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:29:11.705</td>
+  <td>0:19:46.260-0:19:52.200</td>
+  <td>S1</td>
+  <td>0.04</td>
+  <td>0.94</td>
+  <td>1</td>
+  <td>It&#x27;s a tap-in for him, but he had to stay with it. He had to be in that position to score.</td>
+  <td>Bob, it&#x27;s a tap-in for him, but he had to stay with it. He had to be in that position to score.<details><summary>turns</summary><div class="turn"><span>0:19:46.260-0:19:52.080</span> Bob, it&#x27;s a tap-in for him, but he had to stay with it. He had to be in that position to score.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:29:19.565</td>
+  <td>0:19:54.120-0:20:00.480</td>
+  <td>S0</td>
+  <td>0.08</td>
+  <td>0.85</td>
+  <td>1</td>
+  <td>Well, they substitutes. Combining there. Tim Skarke. And you&#x27;ll see Juranovic.</td>
+  <td>Well, they substitute combining there. Tim Skarke, and you&#x27;ll see Juranovic—<details><summary>turns</summary><div class="turn"><span>0:19:54.120-0:20:02.040</span> Well, they substitute combining there. Tim Skarke, and you&#x27;ll see Juranovic—</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:29:30.245</td>
+  <td>0:20:04.800-0:20:13.080</td>
+  <td>S0</td>
+  <td>0.10</td>
+  <td>0.85</td>
+  <td>2</td>
+  <td>Has been an injury hit season. As far as he&#x27;s concerned. Not off the mark in this particular campaign.</td>
+  <td>Has been an injury hit season. As far as he&#x27;s concerned, and off the mark, and this particular campaign.<details><summary>turns</summary><div class="turn"><span>0:20:04.800-0:20:07.920</span> Has been an injury hit season.</div><div class="turn"><span>0:20:08.220-0:20:12.960</span> As far as he&#x27;s concerned, and off the mark, and this particular campaign.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:29:42.545</td>
+  <td>0:20:17.100-0:20:20.580</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Well, it looks as though it is going to be 10 unbeaten for Union against Mainz.</td>
+  <td>Well, it looks as though it is going to be 10 unbeaten for Union against Mainz.<details><summary>turns</summary><div class="turn"><span>0:20:17.100-0:20:20.400</span> Well, it looks as though it is going to be 10 unbeaten for Union against Mainz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:29:47.945</td>
+  <td>0:20:22.500-0:20:25.560</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>And this away venue very much to their liking.</td>
+  <td>And this away venue, very much to their liking.<details><summary>turns</summary><div class="turn"><span>0:20:22.500-0:20:25.440</span> And this away venue, very much to their liking.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:29:52.985</td>
+  <td>0:20:27.540-0:20:32.760</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>Five minutes to be added on. Difficult to visualize a route back for Mainz, Moritz.</td>
+  <td>Five minutes to be added on. Difficult to visualize. A route back for Mainz, Moritz.<details><summary>turns</summary><div class="turn"><span>0:20:27.540-0:20:30.000</span> Five minutes to be added on. Difficult to visualize.</div><div class="turn"><span>0:20:30.600-0:20:32.640</span> A route back for Mainz, Moritz.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:29:59.105</td>
+  <td>0:20:33.660-0:20:40.560</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>Yeah, there&#x27;s not a lot of time left, and I think also. That double blow just</td>
+  <td>Yeah, there&#x27;s not a lot of time left, and I think also— That double blow just.<details><summary>turns</summary><div class="turn"><span>0:20:33.660-0:20:37.680</span> Yeah, there&#x27;s not a lot of time left, and I think also—</div><div class="turn"><span>0:20:39.180-0:20:42.120</span> That double blow just.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:30:08.465</td>
+  <td>0:20:43.020-0:20:45.360</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>took it out of them.</td>
+  <td>Took it out of them.<details><summary>turns</summary><div class="turn"><span>0:20:43.080-0:20:43.800</span> Took it out of them.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:30:15.665</td>
+  <td>0:20:50.220-0:21:17.220</td>
+  <td>S0</td>
+  <td>0.01</td>
+  <td>1.00</td>
+  <td>6</td>
+  <td>Well, there&#x27;s still the chance that Union could actually finish ahead of Mainz in the table. They knew they had to win this game in order to keep that opportunity alive. So it will come down to what happens on the final day, but both teams are able to be slightly relaxed about it all. Knowing that the priority was to stay up, and they had done that before a ball was kicked in anger this evening. Doekhi forwards.</td>
+  <td>Well, there&#x27;s still the chance, but Union could actually finish ahead of Mainz. In the table. They knew they had to win this game. In order to keep that opportunity alive. So it will come down to what happens on the final day, but both teams are able to be slightly relaxed about it all. Knowing that the priority was to stay up, and they had done that before a ball was kicked in anger this evening. Doekhi forwards.<details><summary>turns</summary><div class="turn"><span>0:20:50.220-0:20:53.880</span> Well, there&#x27;s still the chance, but Union could actually finish ahead of Mainz.</div><div class="turn"><span>0:20:54.720-0:20:57.360</span> In the table. They knew they had to win this game.</div><div class="turn"><span>0:20:58.140-0:21:00.240</span> In order to keep that opportunity alive.</div><div class="turn"><span>0:21:01.440-0:21:07.320</span> So it will come down to what happens on the final day, but both teams are able to be slightly relaxed about it all.</div><div class="turn"><span>0:21:08.280-0:21:15.480</span> Knowing that the priority was to stay up, and they had done that before a ball was kicked in anger this evening.</div><div class="turn"><span>0:21:16.260-0:21:17.040</span> Doekhi forwards.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:30:45.845</td>
+  <td>0:21:20.400-0:21:32.220</td>
+  <td>S0</td>
+  <td>0.42</td>
+  <td>0.73</td>
+  <td>1</td>
+  <td>Jumping up for it was Jae-sung Lee. There&#x27;s in Mwene, and that was committed play. Just took a touch off Diogo Leite, but Mwene going back in, and Amiri trying to steady himself for the shorts.</td>
+  <td>Jumping up for it was Jae-sung Lee. There&#x27;s Mwene, and that was committed play. Just took a touch off Diogo Leite, but Mwene going back in, and Amiri trying to steady himself for the shots. And all appealing, the Union players and Dr. Florian Exner comes to their aid.<details><summary>turns</summary><div class="turn"><span>0:21:20.400-0:21:40.320</span> Jumping up for it was Jae-sung Lee. There&#x27;s Mwene, and that was committed play. Just took a touch off Diogo Leite, but Mwene going back in, and Amiri trying to steady himself for the shots. And all appealing, the Union players and Dr. Florian Exner comes to their aid.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:30:59.345</td>
+  <td>0:21:33.900-0:21:40.500</td>
+  <td>S0</td>
+  <td>2.53</td>
+  <td>0.29</td>
+  <td>1</td>
+  <td>They&#x27;re all appealing, the Union players, and Dr. Florian Exner comes to their aid.</td>
+  <td>Jumping up for it was Jae-sung Lee. There&#x27;s Mwene, and that was committed play. Just took a touch off Diogo Leite, but Mwene going back in, and Amiri trying to steady himself for the shots. And all appealing, the Union players and Dr. Florian Exner comes to their aid.<details><summary>turns</summary><div class="turn"><span>0:21:20.400-0:21:40.320</span> Jumping up for it was Jae-sung Lee. There&#x27;s Mwene, and that was committed play. Just took a touch off Diogo Leite, but Mwene going back in, and Amiri trying to steady himself for the shots. And all appealing, the Union players and Dr. Florian Exner comes to their aid.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:31:08.765</td>
+  <td>0:21:43.320-0:21:43.980</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yes, again.</td>
+  <td>Yes, again,<details><summary>turns</summary><div class="turn"><span>0:21:43.320-0:21:43.980</span> Yes, again,</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:31:12.245</td>
+  <td>0:21:46.800-0:21:48.960</td>
+  <td>S1</td>
+  <td>0.67</td>
+  <td>0.60</td>
+  <td>2</td>
+  <td>Good call there.</td>
+  <td>good call there. Oliver Burke.<details><summary>turns</summary><div class="turn"><span>0:21:46.800-0:21:47.640</span> good call there.</div><div class="turn"><span>0:21:49.200-0:21:49.800</span> Oliver Burke.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:31:14.645</td>
+  <td>0:21:49.200-0:21:51.900</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>2</td>
+  <td>Oliver Burke. Goal-scoring moment.</td>
+  <td>Oliver Burke. Goal-scoring moment.<details><summary>turns</summary><div class="turn"><span>0:21:49.200-0:21:49.800</span> Oliver Burke.</div><div class="turn"><span>0:21:50.880-0:21:51.720</span> Goal-scoring moment.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:31:19.925</td>
+  <td>0:21:54.480-0:22:06.780</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah. A shot from so close is going to be difficult for Zentner and he as well. In the one-on-one. That&#x27;s not his main strength. I think he&#x27;s really good coming for crosses.</td>
+  <td>Yeah, a shot from so close is going to be difficult for Zentner, and he as well. In the one-on-one, that&#x27;s not his main strength. I think he&#x27;s really good coming for crosses.<details><summary>turns</summary><div class="turn"><span>0:21:54.540-0:22:06.600</span> Yeah, a shot from so close is going to be difficult for Zentner, and he as well. In the one-on-one, that&#x27;s not his main strength. I think he&#x27;s really good coming for crosses.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:31:34.805</td>
+  <td>0:22:09.360-0:22:10.440</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>He&#x27;s a good shot stopper.</td>
+  <td>He&#x27;s a good shot stopper.<details><summary>turns</summary><div class="turn"><span>0:22:09.360-0:22:10.320</span> He&#x27;s a good shot stopper.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:31:41.645</td>
+  <td>0:22:16.200-0:22:36.720</td>
+  <td>S0</td>
+  <td>0.02</td>
+  <td>0.98</td>
+  <td>3</td>
+  <td>Well, Urs Fischer gave so much to Union. His contribution will never be forgotten. It went the wrong way towards the end of his time in charge. That can happen to any coach at any club, but they won promotion. With Urs Fischer in the Bundesliga, they have stayed since then.</td>
+  <td>Urs Fischer. Gave so much to Union. His contribution will never be forgotten. It went the wrong way towards the end of his time in charge. That can happen to any coach at any club, but they won promotion with Urs Fischer. In the Bundesliga, they have stayed since then.<details><summary>turns</summary><div class="turn"><span>0:22:16.140-0:22:16.560</span> Urs Fischer.</div><div class="turn"><span>0:22:18.240-0:22:32.640</span> Gave so much to Union. His contribution will never be forgotten. It went the wrong way towards the end of his time in charge. That can happen to any coach at any club, but they won promotion with Urs Fischer.</div><div class="turn"><span>0:22:33.180-0:22:36.600</span> In the Bundesliga, they have stayed since then.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:32:04.385</td>
+  <td>0:22:38.940-0:22:40.500</td>
+  <td>S0</td>
+  <td>1.00</td>
+  <td>0.50</td>
+  <td>1</td>
+  <td>Union turning to</td>
+  <td>And Union turning to a woman.<details><summary>turns</summary><div class="turn"><span>0:22:39.000-0:22:42.120</span> And Union turning to a woman.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:32:07.625</td>
+  <td>0:22:42.180-0:22:44.280</td>
+  <td>S0</td>
+  <td>0.44</td>
+  <td>0.69</td>
+  <td>2</td>
+  <td>a woman as head coach for the first time</td>
+  <td>And Union turning to a woman. As head coach for the first time.<details><summary>turns</summary><div class="turn"><span>0:22:39.000-0:22:42.120</span> And Union turning to a woman.</div><div class="turn"><span>0:22:42.900-0:22:44.400</span> As head coach for the first time.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:32:11.345</td>
+  <td>0:22:45.900-0:22:48.960</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>in Bundesliga history. Marie-Louise Eta.</td>
+  <td>In Bundesliga history, Marie-Louise Eta.<details><summary>turns</summary><div class="turn"><span>0:22:45.900-0:22:48.840</span> In Bundesliga history, Marie-Louise Eta.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:32:17.105</td>
+  <td>0:22:51.660-0:23:06.360</td>
+  <td>S0</td>
+  <td>0.03</td>
+  <td>0.97</td>
+  <td>4</td>
+  <td>See now, and the end of the season. Marie-Louise Eta in charge, and she is going to record her first victory as a head coach working on her own in that role.</td>
+  <td>She now, and the end of the season. Marie-Louise Eta in charge, and she is going to record her first victory. As a head coach. Working on her own in that role.<details><summary>turns</summary><div class="turn"><span>0:22:51.660-0:22:53.760</span> She now, and the end of the season.</div><div class="turn"><span>0:22:54.900-0:23:02.160</span> Marie-Louise Eta in charge, and she is going to record her first victory.</div><div class="turn"><span>0:23:02.940-0:23:03.720</span> As a head coach.</div><div class="turn"><span>0:23:04.740-0:23:06.120</span> Working on her own in that role.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:32:36.725</td>
+  <td>0:23:11.280-0:23:13.980</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Yeah. Congrats and well done, and</td>
+  <td>Yeah, congrats, and well done, and.<details><summary>turns</summary><div class="turn"><span>0:23:11.220-0:23:15.600</span> Yeah, congrats, and well done, and.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:32:42.485</td>
+  <td>0:23:17.040-0:23:18.960</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>many, many to come, perhaps.</td>
+  <td>Many, many to come, perhaps.<details><summary>turns</summary><div class="turn"><span>0:23:17.040-0:23:18.840</span> Many, many to come, perhaps.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:32:48.125</td>
+  <td>0:23:22.680-0:23:26.340</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Now she is certainly greatly respected throughout football Germany.</td>
+  <td>Now she is certainly greatly respected throughout football Germany.<details><summary>turns</summary><div class="turn"><span>0:23:22.680-0:23:26.160</span> Now she is certainly greatly respected throughout football Germany.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:32:54.125</td>
+  <td>0:23:28.680-0:23:35.040</td>
+  <td>S0</td>
+  <td>0.21</td>
+  <td>0.75</td>
+  <td>3</td>
+  <td>Skarke. Perhaps giddy after what happened inside the area earlier. Brought it there by</td>
+  <td>Skarke, perhaps giddy after what happened inside the area. Earlier. Clauded there by Marie.<details><summary>turns</summary><div class="turn"><span>0:23:28.680-0:23:32.160</span> Skarke, perhaps giddy after what happened inside the area.</div><div class="turn"><span>0:23:33.060-0:23:33.360</span> Earlier.</div><div class="turn"><span>0:23:34.320-0:23:36.600</span> Clauded there by Marie.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:33:02.045</td>
+  <td>0:23:36.600-0:24:14.820</td>
+  <td>S0</td>
+  <td>0.05</td>
+  <td>0.98</td>
+  <td>8</td>
+  <td>Marie-Louise Eta. And it is official now. Congratulated there by Horst Heldt, by everyone connected with Union. They are the victors. It&#x27;s a win for Marie-Louise Eta. And the Union fans who made the long Sunday night journey will reckon it was worth it. Couple of late goals to settle it. Oliver Burke with that massive goal in the 88th minute. And then the final dagger administered by Josip Juranovic. Final score. Mainz 1, Union 3.</td>
+  <td>Clauded there by Marie. Louise Eta. And it is official now. Congratulated there by Horst Heldt, by everyone connected with Union. They are the victors. It&#x27;s a win for Marie-Louise Eta. And the Union fans who made the long Sunday night journey will reckon it was worth it. A couple of late goals to settle it. Oliver Burke with that massive goal in the 88th minute. And then the final dagger administered by Josip Juranovic. Final score. Mainz 1, Union 3.<details><summary>turns</summary><div class="turn"><span>0:23:34.320-0:23:36.600</span> Clauded there by Marie.</div><div class="turn"><span>0:23:37.080-0:23:38.160</span> Louise Eta.</div><div class="turn"><span>0:23:39.180-0:23:47.040</span> And it is official now. Congratulated there by Horst Heldt, by everyone connected with Union. They are the victors.</div><div class="turn"><span>0:23:48.000-0:23:50.640</span> It&#x27;s a win for Marie-Louise Eta.</div><div class="turn"><span>0:23:51.720-0:24:05.040</span> And the Union fans who made the long Sunday night journey will reckon it was worth it. A couple of late goals to settle it. Oliver Burke with that massive goal in the 88th minute.</div><div class="turn"><span>0:24:05.760-0:24:10.080</span> And then the final dagger administered by Josip Juranovic.</div><div class="turn"><span>0:24:10.740-0:24:11.280</span> Final score.</div><div class="turn"><span>0:24:12.000-0:24:16.200</span> Mainz 1, Union 3.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:33:43.865</td>
+  <td>0:24:18.420-0:24:23.280</td>
+  <td>S0</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>Look at the reaction there from Marie-Louise Eta.</td>
+  <td>Look at the reaction there from Marie-Louise Eta.<details><summary>turns</summary><div class="turn"><span>0:24:18.360-0:24:23.160</span> Look at the reaction there from Marie-Louise Eta.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:33:50.645</td>
+  <td>0:24:25.200-0:24:28.140</td>
+  <td>S0</td>
+  <td>0.29</td>
+  <td>0.75</td>
+  <td>1</td>
+  <td>Louise Big Night. Louis, the nickname that</td>
+  <td>Louise, big night. Louise, the nickname that has.<details><summary>turns</summary><div class="turn"><span>0:24:25.200-0:24:29.760</span> Louise, big night. Louise, the nickname that has.</div></details></td>
+</tr>
+<tr class="warn">
+  <td>19:33:55.325</td>
+  <td>0:24:29.880-0:25:00.720</td>
+  <td>S0</td>
+  <td>0.15</td>
+  <td>0.84</td>
+  <td>4</td>
+  <td>has been bestowed upon her. She&#x27;s referred to as Louis by just about everyone at press conferences. Anybody who knows her has worked with her. And Mainz finding themselves on the wrong end of the scoreline despite the fact that Sheraldo Becker did score for them against his former club. But huge credit to Marie-Louise Eta and all the Union players. 3-1, the margin of victory. Moritz Volz.</td>
+  <td>Louise, big night. Louise, the nickname that has. Been bestowed upon her. She&#x27;s referred to as Louie by just about everyone at press conferences. Anybody who knows her has worked with her and Mainz finding themselves on the wrong end of the scoreline despite the fact that Geraldo Becker did score for them against his former club. But huge credits to Marie-Louise Eta. And all the Union players. 3-1, the margin of victory. Moritz Fuchs.<details><summary>turns</summary><div class="turn"><span>0:24:25.200-0:24:29.760</span> Louise, big night. Louise, the nickname that has.</div><div class="turn"><span>0:24:30.000-0:24:54.360</span> Been bestowed upon her. She&#x27;s referred to as Louie by just about everyone at press conferences. Anybody who knows her has worked with her and Mainz finding themselves on the wrong end of the scoreline despite the fact that Geraldo Becker did score for them against his former club. But huge credits to Marie-Louise Eta.</div><div class="turn"><span>0:24:54.900-0:24:56.520</span> And all the Union players.</div><div class="turn"><span>0:24:58.080-0:25:00.600</span> 3-1, the margin of victory. Moritz Fuchs.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:34:28.325</td>
+  <td>0:25:02.880-0:25:05.460</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>3-1 is probably a goal too high.</td>
+  <td>3-1 is probably a goal too high.<details><summary>turns</summary><div class="turn"><span>0:25:02.880-0:25:05.280</span> 3-1 is probably a goal too high.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:34:33.065</td>
+  <td>0:25:07.620-0:25:07.680</td>
+  <td>S1</td>
+  <td>0.00</td>
+  <td>1.00</td>
+  <td>1</td>
+  <td>But</td>
+  <td>But.<details><summary>turns</summary><div class="turn"><span>0:25:07.620-0:25:09.240</span> But.</div></details></td>
+</tr>
+<tr class="good">
+  <td>19:34:35.405</td>
+  <td>0:25:09.960-0:25:12.360</td>
+  <td>S1</td>
+  <td>0.12</td>
+  <td>0.89</td>
+  <td>1</td>
+  <td>it&#x27;s a really good win for Union.</td>
+  <td>It&#x27;s a really good win for Union. And.<details><summary>turns</summary><div class="turn"><span>0:25:10.020-0:25:13.920</span> It&#x27;s a really good win for Union. And.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:34:39.365</td>
+  <td>0:25:13.920-0:25:16.140</td>
+  <td>S1</td>
+  <td>1.50</td>
+  <td>0.46</td>
+  <td>2</td>
+  <td>And I&#x27;m really pleased for</td>
+  <td>It&#x27;s a really good win for Union. And. I&#x27;m really pleased for Louis.<details><summary>turns</summary><div class="turn"><span>0:25:10.020-0:25:13.920</span> It&#x27;s a really good win for Union. And.</div><div class="turn"><span>0:25:15.300-0:25:17.760</span> I&#x27;m really pleased for Louis.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:34:43.385</td>
+  <td>0:25:17.940-0:25:22.020</td>
+  <td>S1</td>
+  <td>0.62</td>
+  <td>0.67</td>
+  <td>2</td>
+  <td>Louis to get her first win. I think</td>
+  <td>I&#x27;m really pleased for Louis. To get her first win I think.<details><summary>turns</summary><div class="turn"><span>0:25:15.300-0:25:17.760</span> I&#x27;m really pleased for Louis.</div><div class="turn"><span>0:25:19.200-0:25:21.720</span> To get her first win I think.</div></details></td>
+</tr>
+<tr class="bad">
+  <td>19:34:48.965</td>
+  <td>0:25:23.520-0:25:24.600</td>
+  <td>S1</td>
+  <td>1.00</td>
+  <td>0.00</td>
+  <td>0</td>
+  <td>it&#x27;s what she deserves.</td>
+  <td><details><summary>turns</summary></details></td>
+</tr></tbody></table>
+</main>
+<script>
+const filter = document.getElementById('filter');
+const level = document.getElementById('level');
+const rows = Array.from(document.querySelectorAll('#rows tbody tr'));
+function applyFilter() {
+  const q = filter.value.toLowerCase();
+  const mode = level.value;
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    const turns = Number(row.children[5].textContent || '0');
+    let ok = !q || text.includes(q);
+    if (mode !== 'all') {
+      if (mode === 'multi') ok = ok && turns > 1;
+      else ok = ok && row.classList.contains(mode);
+    }
+    row.classList.toggle('hidden', !ok);
+  });
+}
+filter.addEventListener('input', applyFilter);
+level.addEventListener('change', applyFilter);
+</script></body></html>

@@ -94,6 +94,18 @@ class StatusHandler(BaseHTTPRequestHandler):
         if path == "/viewer_live.html":
             self._serve_file("viewer_live.html")
             return
+        if path == "/stt_eval_m05_uni_md33.html":
+            self._serve_file("stt_eval_m05_uni_md33.html")
+            return
+        if path == "/stt_compare_m05_uni_md33_soniox1000.html":
+            self._serve_file("stt_compare_m05_uni_md33_soniox1000.html")
+            return
+        if path == "/stt_compare_m05_uni_md33_soniox1500.html":
+            self._serve_file("stt_compare_m05_uni_md33_soniox1500.html")
+            return
+        if path == "/latency_test.mp4":
+            self._serve_file("clips/latency_test/source.mp4", content_type="video/mp4")
+            return
 
         # Root and legacy control.html redirect to status page
         if path in ("/", "/control.html"):
@@ -172,6 +184,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                     "source_type": source_type,
                     "source_label": source_label,
                     "source_detail": source_detail,
+                    "stt_provider": mc.stt_provider,
+                    "stt_endpoint_delay_ms": mc.stt_endpoint_delay_ms,
                 }
                 # Compute countdown
                 if ms and ms.kickoff_ts:
@@ -203,6 +217,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                     "stt_utterance_count": s.stt_utterance_count,
                     "languages": s.languages,
                     "configured_languages": mc.languages if mc else [],
+                    "stt_provider": mc.stt_provider if mc else "",
+                    "stt_endpoint_delay_ms": mc.stt_endpoint_delay_ms if mc else None,
                     "error": s.error,
                     "started_at": s.started_at,
                 }
@@ -226,6 +242,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "state": s.state,
                 "stt_utterance_count": s.stt_utterance_count,
                 "languages": s.languages,
+                "stt_provider": worker._match.stt_provider,
+                "stt_endpoint_delay_ms": worker._match.stt_endpoint_delay_ms,
                 "error": s.error,
                 "started_at": s.started_at,
             })
@@ -566,24 +584,36 @@ class StatusHandler(BaseHTTPRequestHandler):
             match_id, action = m.group(1), m.group(2)
             try:
                 if action == "start":
-                    self.orchestrator.start_match(match_id)
+                    content_len = int(self.headers.get("Content-Length", 0))
+                    body = self.rfile.read(content_len) if content_len > 0 else b"{}"
+                    try:
+                        data = json.loads(body) if body else {}
+                    except json.JSONDecodeError:
+                        self._respond(400, {"error": "invalid JSON"})
+                        return
+                    self.orchestrator.start_match(
+                        match_id,
+                        stt_provider=data.get("stt_provider"),
+                        stt_endpoint_delay_ms=data.get("stt_endpoint_delay_ms"),
+                    )
                 else:
-                    threading.Thread(
-                        target=self.orchestrator.stop_match,
-                        args=(match_id,),
-                        daemon=True,
-                    ).start()
+                    self.orchestrator.stop_match(match_id)
             except KeyError:
                 self._respond(404, {"error": f"match '{match_id}' not found"})
+                return
+            except (RuntimeError, ValueError) as e:
+                self._respond(400, {"error": str(e)})
                 return
 
             worker = self.orchestrator.get_worker(match_id)
             s = worker.status
             self._respond(200, {
                 "match_id": s.match_id,
-                "state": "stopping" if action == "stop" and s.state in ("starting", "running") else s.state,
+                "state": s.state,
                 "stt_utterance_count": s.stt_utterance_count,
                 "languages": s.languages,
+                "stt_provider": worker._match.stt_provider,
+                "stt_endpoint_delay_ms": worker._match.stt_endpoint_delay_ms,
                 "error": s.error,
                 "started_at": s.started_at,
             })

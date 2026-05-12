@@ -9,6 +9,11 @@
 
 control_port: 8080
 translation_model: "gpt-5.4"
+stt_playback_offset_ms: 0
+stt_playback_offsets_ms:
+  soniox: 700
+  deepgram: 830
+  deepgram_nova3: 830
 
 cloud_recording:
   vendor: 1
@@ -39,7 +44,66 @@ matches:
     video_uid: 73
     video_delay: 14.0
     max_stt_duration: 6.5
+    # Switch between deepgram_nova3 and soniox for live-demo STT comparisons.
+    stt_provider: soniox
+    stt_endpoint_delay_ms: 1500
     languages: [es, pt, fr, tr, de]
+
+  # Demo — loops the reviewed Mainz vs Union evaluation section through local
+  # SRT so Deepgram Nova-3 and Soniox can be compared against the gold transcript.
+  - match_id: m05_uni_eval_demo
+    display_name: "Mainz vs Union (Gold Eval via SRT)"
+    mode: live
+    enabled: true
+    auto_manage: false
+    sport_event_id: "sr:sport_event:61514186"
+    source:
+      type: demo_srt_direct
+      demo_media_file: clips/m05_uni_eval_25min/source.mp4
+      demo_srt_port: 10081
+      original_channel: m05_uni_eval_demo-original
+      publish_uid: 73
+      original_buffer_seconds: 1.0
+      retry_seconds: 5
+      audio_stream_index: 1
+      atmosphere_audio_stream_index: -1
+    video_uid: 73
+    video_delay: 14.0
+    max_stt_duration: 6.5
+    stt_provider: soniox
+    stt_endpoint_delay_ms: 1500
+    # Optional speaker-specific ElevenLabs voices. Fill these when voice IDs
+    # are chosen; per-language maps can override the default map.
+    speaker_voice_ids:
+      default:
+        s0: ""
+        s1: ""
+    languages: [en, es, pt, fr, tr, de]
+
+  # Latency probe — looped clip with spoken time markers every 5s.
+  # Use to measure end-to-end delay (source mark T vs listener wall-clock).
+  - match_id: latency_test
+    display_name: "Latency Test (5s Markers)"
+    mode: live
+    enabled: true
+    auto_manage: false
+    sport_event_id: ""
+    source:
+      type: demo_srt_direct
+      demo_media_file: clips/latency_test/source.mp4
+      demo_srt_port: 10082
+      original_channel: latency_test-original
+      publish_uid: 73
+      original_buffer_seconds: 1.0
+      retry_seconds: 5
+      audio_stream_index: 1
+      atmosphere_audio_stream_index: -1
+    video_uid: 73
+    video_delay: 14.0
+    max_stt_duration: 6.5
+    stt_provider: soniox
+    stt_endpoint_delay_ms: 1500
+    languages: [en, es]
 
   # May 8, 18:30 UTC — Dortmund vs Frankfurt
   - match_id: bvb_sge_md33

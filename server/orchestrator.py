@@ -45,7 +45,8 @@ class Orchestrator:
             print(f"[ORCH] Stopping match: {mid}")
             worker.stop()
 
-    def start_match(self, match_id: str):
+    def start_match(self, match_id: str, stt_provider: str | None = None,
+                    stt_endpoint_delay_ms: int | None = None):
         """Start a single match worker. Noop if already running.
         Per-match lock prevents double-start without blocking other matches."""
         worker = self._workers.get(match_id)
@@ -54,6 +55,7 @@ class Orchestrator:
         with self._match_locks[match_id]:
             if worker.status.state in ("starting", "running"):
                 return
+            worker.configure_stt(stt_provider, stt_endpoint_delay_ms)
             print(f"[ORCH] Starting match: {match_id}")
             worker.start()
 

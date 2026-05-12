@@ -11,7 +11,7 @@ from lib.tts_engine import _ts
 def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
                   max_stt_duration=5.0, video_start_fn=None, keyterms=None,
                   corrections=None, log_tag="STT", audio_feed_start_ref=None,
-                  play_at_fn=None):
+                  play_at_fn=None, endpointing_ms=500, utterance_end_ms=1000):
     """Shared Deepgram connection, audio feeding, and forced-split logic.
 
     Args:
@@ -69,8 +69,9 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
         "punctuate": "true",
         "smart_format": "true",
         "interim_results": "true",
-        "utterance_end_ms": "1000",
-        "endpointing": "500",
+        "utterance_end_ms": str(utterance_end_ms),
+        "endpointing": str(endpointing_ms),
+        "diarize": "true",
     }
     if terms:
         connect_kwargs["keyterm"] = terms
@@ -136,7 +137,44 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
         force_split_end = [0.0]
         force_split_text = [""]
 
-        def _emit(text, audio_start, audio_end, tag=""):
+        def _speaker_from_alt(alt, audio_start, audio_end):
+            counts = {}
+            for word in getattr(alt, "words", []) or []:
+                speaker = getattr(word, "speaker", None)
+                if speaker is None:
+                    continue
+                word_start = getattr(word, "start", None)
+                word_end = getattr(word, "end", None)
+                if word_start is not None and word_end is not None:
+                    if word_end < audio_start or word_start > audio_end:
+                        continue
+                counts[speaker] = counts.get(speaker, 0) + 1
+            if not counts:
+                return None
+            return max(counts.items(), key=lambda item: item[1])[0]
+
+        def _word_timings_from_alt(alt, audio_start, audio_end):
+            timings = []
+            for word in getattr(alt, "words", []) or []:
+                word_start = getattr(word, "start", None)
+                word_end = getattr(word, "end", None)
+                if word_start is None or word_end is None:
+                    continue
+                if word_end < audio_start or word_start > audio_end:
+                    continue
+                timings.append({
+                    "word": getattr(word, "word", None) or getattr(word, "punctuated_word", ""),
+                    "start": round(float(word_start), 3),
+                    "end": round(float(word_end), 3),
+                    "speaker": getattr(word, "speaker", None),
+                    "confidence": getattr(word, "confidence", None),
+                })
+            return timings
+
+        def _emit(text, audio_start, audio_end, tag="", speaker=None, word_timings=None):
+            if word_timings:
+                audio_start = min(w["start"] for w in word_timings)
+                audio_end = max(w["end"] for w in word_timings)
             corrected = apply_corrections(text, corr_list)
             vs_now = video_start_fn() if video_start_fn else None
             play_at = play_at_fn(audio_start) if play_at_fn else ((vs_now + audio_start) if vs_now else None)
@@ -144,10 +182,11 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
 
             print(f"  [{_vs()}] [{log_tag}{tag}] audio={audio_start:.1f}-{audio_end:.1f}s "
                   f"remaining={remaining:.2f}s"
+                  + (f" speaker={speaker}" if speaker is not None else "")
                   + (f" play_at_wall={play_at:.3f}" if play_at else ""))
             print(f"           \"{corrected[:70]}\"")
 
-            emit_fn(corrected, audio_start, audio_end)
+            emit_fn(corrected, audio_start, audio_end, speaker=speaker, word_timings=word_timings)
             utterance_count[0] += 1
 
         for msg in ws:
@@ -167,7 +206,10 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
                     if chunk_dur >= MAX_STT_DURATION:
                         print(f"  [{_vs()}] [{log_tag}] Force-splitting {chunk_dur:.1f}s interim "
                               f"at audio={audio_start:.1f}-{audio_end:.1f}s")
-                        _emit(transcript, audio_start, audio_end, tag=" SPLIT")
+                        word_timings = _word_timings_from_alt(alt, audio_start, audio_end)
+                        _emit(transcript, audio_start, audio_end, tag=" SPLIT",
+                              speaker=_speaker_from_alt(alt, audio_start, audio_end),
+                              word_timings=word_timings)
                         force_split_end[0] = audio_end
                         force_split_text[0] = transcript
                 continue
@@ -200,12 +242,18 @@ def _run_stt_core(audio_source, deepgram_key, stop_event, emit_fn,
                     continue
                 print(f"  [{_vs()}] [{log_tag}] Partial overlap — emitting remainder "
                       f"from {adj_start:.1f}s (original {audio_start:.1f}-{audio_end:.1f}s)")
-                _emit(remainder, adj_start, audio_end, tag=" REMAINDER")
+                word_timings = _word_timings_from_alt(alt, adj_start, audio_end)
+                _emit(remainder, adj_start, audio_end, tag=" REMAINDER",
+                      speaker=_speaker_from_alt(alt, adj_start, audio_end),
+                      word_timings=word_timings)
                 continue
 
             force_split_end[0] = 0.0
             force_split_text[0] = ""
-            _emit(transcript, audio_start, audio_end)
+            word_timings = _word_timings_from_alt(alt, audio_start, audio_end)
+            _emit(transcript, audio_start, audio_end,
+                  speaker=_speaker_from_alt(alt, audio_start, audio_end),
+                  word_timings=word_timings)
     finally:
         if audio_thread and audio_thread.is_alive() and stop_event.is_set():
             audio_thread.join(timeout=1.0)
@@ -238,7 +286,7 @@ def run_stt_pipeline(audio_path, tts, deepgram_key, lang, oai_client,
             return get_current_lang(lang_file, lang)
         return lang
 
-    def emit_fn(corrected, audio_start, audio_end):
+    def emit_fn(corrected, audio_start, audio_end, speaker=None, word_timings=None):
         play_at = tts.video_start + audio_start
 
         def make_stt_translate_fn():
@@ -288,10 +336,11 @@ def run_stt_pipeline_multi(audio_path, on_utterance, deepgram_key, stop_event,
         int: total number of utterances emitted.
     """
 
-    def emit_fn(corrected, audio_start, audio_end):
+    def emit_fn(corrected, audio_start, audio_end, speaker=None, word_timings=None):
         vs = video_start_ref[0] if video_start_ref[0] else 0.0
         play_at = vs + audio_start
-        on_utterance(corrected, audio_start, audio_end, play_at)
+        on_utterance(corrected, audio_start, audio_end, play_at,
+                     speaker=speaker, word_timings=word_timings)
 
     print(f"[STT] Pipeline: STT → Correct → multi-lang fan-out")
     print(f"[STT] Video delay: {video_delay}s (pipeline budget)")
@@ -311,7 +360,7 @@ def run_stt_pipeline_multi(audio_path, on_utterance, deepgram_key, stop_event,
 def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
                           video_start_ref, video_delay=7.0,
                           max_stt_duration=6.5, keyterms=None,
-                          corrections=None):
+                          corrections=None, source_media_start_ref=None):
     """Run STT pipeline from a live audio pipe (subprocess stdout).
 
     Same as run_stt_pipeline_multi but takes a pipe instead of a file path.
@@ -333,25 +382,36 @@ def run_stt_pipeline_live(audio_pipe, on_utterance, deepgram_key, stop_event,
 
     audio_feed_start_wall = [None]
 
+    def schedule_anchor():
+        if source_media_start_ref and source_media_start_ref[0] is not None:
+            return source_media_start_ref[0]
+        return audio_feed_start_wall[0]
+
     def live_play_at(audio_start):
-        anchor = audio_feed_start_wall[0]
+        anchor = schedule_anchor()
         if anchor is not None:
             return anchor + audio_start + video_delay
         vs = video_start_ref[0] if video_start_ref[0] else 0.0
         return vs + audio_start if vs else None
 
     def intended_skew_ms(audio_start, play_at):
-        anchor = audio_feed_start_wall[0]
+        anchor = schedule_anchor()
         if anchor is None or play_at is None:
             return None
         intended = anchor + audio_start + video_delay
         return round((play_at - intended) * 1000)
 
-    def emit_fn(corrected, audio_start, audio_end):
+    def emit_fn(corrected, audio_start, audio_end, speaker=None, word_timings=None):
         play_at = live_play_at(audio_start)
         on_utterance(
             corrected, audio_start, audio_end, play_at,
             intended_skew_ms=intended_skew_ms(audio_start, play_at),
+            speaker=speaker,
+            provider="deepgram",
+            schedule_anchor_wall=schedule_anchor(),
+            occurred_at=(schedule_anchor() + audio_start) if schedule_anchor() is not None else None,
+            occurred_end_at=(schedule_anchor() + audio_end) if schedule_anchor() is not None else None,
+            word_timings=word_timings,
         )
 
     print(f"[STT-LIVE] Pipeline: live pipe → STT → Correct → multi-lang fan-out")

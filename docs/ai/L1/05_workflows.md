@@ -149,7 +149,7 @@ Use `test_live_pipeline.py` to prove the live media path independently of full m
 What it exercises:
 
 1. `subscribe_audio` subscribes to the source commentary UID
-2. Deepgram STT reads live PCM from the subscriber stdout
+2. The configured live STT provider reads live PCM from the source publisher
 3. GPT translation runs with `gpt-5.4-mini` and `reasoning_effort="low"` by default in this standalone script; pass `--translation-model gpt-5.4` to match the current server live config
 4. ElevenLabs TTS generates PCM for one target language; server mode keeps ElevenLabs speed at `1.0` and uses local ffmpeg `atempo` speed fitting when a generated clip must fit before the next STT item
 5. `relay_publish` republishes delayed video + delayed atmosphere + translated TTS into a separate output channel
@@ -204,6 +204,23 @@ http://localhost:8080/viewer_live.html?match=livepipe_e2e01&lang=es
 
 Use this when you need to test live SRT timing with known demo media. `source.type = demo_srt_direct` starts one owned FFmpeg looper for `clips/bmg_fch_demo_5min/source.mp4` plus `clips/bmg_fch_demo_5min/atmosphere.wav`, publishes that as MPEG-TS over local SRT, then runs the normal `srt_direct` live path against it.
 
+On `status.html`, manual demo-live rows expose an STT provider selector before Start. Use `Deepgram Nova-3` and `Soniox` runs on the same local SRT demo source when comparing recognition quality; the chosen provider is sent as `stt_provider` in the start request and logged by `MatchWorker`. The current preferred eval-demo setting is Soniox with `stt_endpoint_delay_ms=1500`.
+
+`matches_live.yaml` also includes `m05_uni_eval_demo`, which loops the reviewed Mainz vs Union evaluation section through the same live path on local SRT port `10081`. The generated source file is `clips/m05_uni_eval_25min/source.mp4` and is intentionally ignored by git as a derived media artifact. This row has one program/commentary audio track and no separate atmosphere track, so `audio_stream_index: 1` and `atmosphere_audio_stream_index: -1`. Include `en` in the language list when generating shareable eval recordings; that channel speaks the corrected English STT via TTS and is useful for ear-checking sync against Original.
+
+Provider timing is normalized with per-provider offsets before TTS scheduling. The latency marker clip currently uses `soniox: 700ms` and `deepgram_nova3: 830ms`. These offsets compensate provider word/onset semantics only; the shared scheduler still uses the same source media clock and `video_delay` for all providers.
+
+Speaker-specific TTS voices can be configured per match with:
+
+```yaml
+speaker_voice_ids:
+  default:
+    s0: ELEVENLABS_VOICE_ID_FOR_SPEAKER_0
+    s1: ELEVENLABS_VOICE_ID_FOR_SPEAKER_1
+```
+
+Per-language maps such as `de: {s0: "...", s1: "..."}` override `default`. The mapping only takes effect when the selected STT provider emits speaker labels.
+
 Start the demo-live server:
 
 ```bash
@@ -218,7 +235,16 @@ http://localhost:8081/viewer_live.html?match=bmg_fch_demo_srt&lang=en
 
 The demo SRT stream layout matches the live two-audio-track case: stream `0` is H.264 video, stream `1` is atmosphere AAC, and stream `2` is commentary AAC. The YAML therefore uses `atmosphere_audio_stream_index: 1` and `audio_stream_index: 2`. `tools/run_demo_srt_listener.sh` is kept as a manual probe for ffprobe/player testing, but the status-page workflow should use the owned `demo_srt_direct` source.
 
-This publishes an English passthrough translated channel. It still goes through live SRT pull, H.264 cleanup, local commentary PCM to Deepgram, live `play_at` scheduling, delayed atmosphere fanout, ElevenLabs TTS, and per-language relay publishing, so it verifies the live clock and split-audio path rather than the file-backed demo scheduler.
+When `en` is configured as a language, the English output channel is not the raw source audio. It still goes through live SRT pull, H.264 cleanup, local commentary PCM to STT, deterministic roster/keyterm name correction, live `play_at` scheduling, ElevenLabs TTS, and per-language relay publishing. This verifies the live clock and translated-channel path rather than the file-backed demo scheduler.
+
+Recent eval learnings:
+
+- Soniox realtime `stt-rt-v4` was more accurate and faster than Deepgram Nova-3 on the Mainz/Union gold clip.
+- Deepgram Nova-3 provides useful word end times for the latency marker clip, but Soniox remains the preferred eval-demo STT provider for the Mainz/Union football clip.
+- `stt_endpoint_delay_ms=1500` gives more natural turns than very short endpoints while staying inside the 14s live delay for most turns.
+- Long Soniox turns must still be force-emitted with `max_stt_duration`; otherwise oversized chunks can miss `play_at` before translation starts.
+- Live correction should be deterministic and keyterm-driven. `GLOBAL_FOOTBALL_CORRECTIONS` handles high-confidence football phrases for both Deepgram and Soniox; roster/keyterm name correction then fixes proper names. An LLM correction pass found useful fixes but had high tail latency and could make semantic overcorrections.
+- TTS tempo fitting should target the known gap before the next STT item, not raw STT provider word spans. Current bounds are `0.667x` to `1.5x`; if the next STT play time is unknown, keep the generated duration.
 
 For a short live-clock smoke test, run `test_live_pipeline.py` with `--assert-skew-ms 50 --stop-after-utterances N` against a live/demo source. The test fails if live `intended_skew_ms` drifts beyond the threshold.
 

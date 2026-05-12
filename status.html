@@ -140,6 +140,16 @@
       align-items: center;
       gap: 8px;
     }
+    .stt-select {
+      background: #171717;
+      color: #ddd;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      height: 28px;
+    }
     .btn {
       padding: 5px 16px;
       border: none;
@@ -294,6 +304,11 @@
         if (manualControl) {
           var isRunnable = !m.worker_state || m.worker_state === 'idle' || m.worker_state === 'stopped' || m.worker_state === 'error';
           if (isRunnable) {
+            var sttProvider = m.stt_provider || 'deepgram_nova3';
+            html += '<select class="stt-select" id="stt-provider-' + esc(mid) + '" title="STT provider">';
+            html += '<option value="deepgram_nova3"' + (sttProvider === 'deepgram_nova3' ? ' selected' : '') + '>Deepgram Nova-3</option>';
+            html += '<option value="soniox"' + (sttProvider === 'soniox' ? ' selected' : '') + '>Soniox</option>';
+            html += '</select>';
             html += '<button class="btn btn-start" onclick="matchAction(\'' + esc(mid) + '\', \'start\')">Start</button>';
           } else if (workerActive) {
             html += '<button class="btn btn-stop" onclick="matchAction(\'' + esc(mid) + '\', \'stop\')">Stop</button>';
@@ -337,6 +352,10 @@
         }
         if (m.configured_languages && m.configured_languages.length > 0) {
           html += '<span>' + esc(m.configured_languages.join(', ').toUpperCase()) + '</span>';
+        }
+        if (m.stt_provider) {
+          var providerLabel = m.stt_provider === 'soniox' ? 'Soniox' : 'Deepgram Nova-3';
+          html += '<span>STT ' + esc(providerLabel) + '</span>';
         }
         if (m.last_refresh_at) {
           var freshAge = (Date.now() / 1000) - m.last_refresh_at;
@@ -382,17 +401,25 @@
     }
 
     function matchAction(matchId, action) {
+      var body = {};
+      if (action === 'start') {
+        var providerSelect = document.getElementById('stt-provider-' + matchId);
+        if (providerSelect) body.stt_provider = providerSelect.value;
+      }
       if (overviewData) {
         overviewData.forEach(function(m) {
           if (m.match_id === matchId) {
             m.worker_state = action === 'stop' ? 'stopping' : 'starting';
             m.scheduler_state = action === 'stop' ? 'stopping' : 'starting';
+            if (body.stt_provider) m.stt_provider = body.stt_provider;
           }
         });
         renderOverview(overviewData);
       }
       fetch(CTL + '/api/matches/' + encodeURIComponent(matchId) + '/' + action, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: action === 'start' ? JSON.stringify(body) : '{}'
       })
         .then(function() { poll(); })
         .catch(function(err) { console.error('matchAction failed:', err); });

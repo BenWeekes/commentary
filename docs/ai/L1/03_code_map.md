@@ -40,13 +40,14 @@ commentary/
 ├── lib/                           # Shared library (extracted from live_match.py)
 │   ├── __init__.py                # Package marker
 │   ├── constants.py               # SAMPLE_RATE, BYTES_PER_10MS, timing, ElevenLabs defaults
-│   ├── corrections.py             # TERMS_LIST, CORRECTIONS, apply_corrections()
+│   ├── corrections.py             # TERMS_LIST, GLOBAL_FOOTBALL_CORRECTIONS, CORRECTIONS, apply_corrections()
 │   ├── translator.py              # LANG_NAMES, LANG_VOICES, voice_for_lang(), translate_text()
 │   ├── audio.py                   # load_atmosphere(), convert_to_pcm(), pcm_chunks_realtime()
 │   ├── events.py                  # load_events_file() — parse offset|PRIORITY|message files
 │   ├── tts_engine.py              # TTSEngine class + _ts() helper (~648 lines)
 │   ├── sr_prefetcher.py           # SRPrefetcher class (~327 lines)
-│   └── stt_pipeline.py            # run_stt_pipeline(), run_stt_pipeline_multi() (~240 lines)
+│   ├── stt_pipeline.py            # Deepgram live/offline STT helpers
+│   └── soniox_stt_pipeline.py     # Soniox realtime live STT helper
 ├── data/
 │   ├── events/                    # Match event files (offset|priority|text)
 │   ├── audio/                     # Commentary audio samples
@@ -90,13 +91,14 @@ commentary/
 | Module | Contents | Dependencies |
 |---|---|---|
 | `lib/constants.py` | `SAMPLE_RATE`, `CHANNELS`, `BYTES_PER_10MS`, `VIDEO_DELAY_S`, `MAX_LATENCY_S`, `SILENCE_GAP_S`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL` | standalone |
-| `lib/corrections.py` | `TERMS_LIST` (91 terms), `CORRECTIONS` (60 pairs), `apply_corrections()` | standalone |
-| `lib/translator.py` | `LANG_NAMES` (12 languages), `LANG_VOICES`, `DEFAULT_VOICE_ID`, `voice_for_lang()`, `TRANSLATE_SYSTEM` (6 rules), `TRANSLATE_SYSTEM_WITH_ROSTER` (roster-aware, 7 rules), `translate_text()` — supports `gpt-5.4`, `gpt-5.4-mini`, and `gpt-4o-mini` | standalone (takes `oai_client` param) |
+| `lib/corrections.py` | `TERMS_LIST`, `GLOBAL_FOOTBALL_CORRECTIONS`, legacy `CORRECTIONS`, `apply_corrections()` | standalone |
+| `lib/translator.py` | `LANG_NAMES`, `LANG_VOICES`, `DEFAULT_VOICE_ID`, `voice_for_lang()`, `TRANSLATE_SYSTEM`, `TRANSLATE_SYSTEM_WITH_ROSTER`, deterministic roster/keyterm name correction, `translate_text()` | standalone (takes `oai_client` param) |
 | `lib/audio.py` | `load_atmosphere()`, `convert_to_pcm()`, `pcm_chunks_realtime()` | standalone (stdlib only) |
 | `lib/events.py` | `load_events_file()` — parses `offset\|PRIORITY\|message` format | standalone |
 | `lib/tts_engine.py` | `_ts()` helper, `TTSEngine` class — TTS worker, pipe writer, lookahead, telemetry metadata slots (`_playback_meta_slot`, `_sr_playback_meta_slot`, `_skipped_meta`), two-phase shutdown (`_closing` + `_stop`) | `lib.constants` |
 | `lib/sr_prefetcher.py` | `SRPrefetcher` class — SR prefetch, scheduling, metadata propagation into `TTSEngine` SR telemetry | `lib.constants`, `lib.tts_engine` |
-| `lib/stt_pipeline.py` | `_run_stt_core()` (shared Deepgram logic), `run_stt_pipeline()` (single-lang), `run_stt_pipeline_multi()` (multi-lang fan-out) | `lib.corrections`, `lib.translator`, `lib.audio`, `lib.tts_engine` |
+| `lib/stt_pipeline.py` | Deepgram Nova-3 STT, word timing extraction, forced splitting, live scheduling | `lib.corrections`, `lib.audio` |
+| `lib/soniox_stt_pipeline.py` | Soniox `stt-rt-v4` realtime STT, speaker-aware turn emission, global football corrections, max-duration splitting | `lib.corrections` |
 
 ## Module Map — live_match.py (dev-mode orchestrator)
 

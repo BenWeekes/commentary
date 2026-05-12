@@ -18,7 +18,7 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 | `/api/matches/{id}/detail?run=YYYYMMDD_HHMMSS` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, recordings, ...}` | Match config, keyterms, current log directory, selected-run recording metadata, and persisted match metadata |
 | `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 10000 lines) |
 | `/api/matches/{id}/refresh-data` | POST | `{status, match_id, keyterm_count?, roster_player_count?, kickoff_utc?}` | Refresh Sportradar fixture data into `match_store` for the next live run |
-| `/api/matches/{id}/start` | POST | match status JSON | Start a demo match |
+| `/api/matches/{id}/start` | POST | match status JSON | Start a demo/manual match. Optional JSON body: `{stt_provider: "deepgram_nova3"|"soniox", stt_endpoint_delay_ms?: 1500}` |
 | `/api/matches/{id}/stop` | POST | match status JSON | Stop a match |
 | `/api/token` | POST | `{token, channel, uid, appid}` | Single viewer token (body: `{match_id, lang}`) |
 
@@ -193,6 +193,10 @@ Header fields:
 - `languages`
 - `keyterms`
 - `roster`
+- `stt_provider` when present in the run metadata
+- `stt_playback_offset_ms`
+- `stt_playback_offsets_ms`
+- `source_media_start_wall` / `source_media_start_utc` when the live source exposes a source media origin
 
 Utterance fields:
 
@@ -201,7 +205,27 @@ Utterance fields:
 - `audio_end`
 - `wall_clock`
 - `play_at`
+- `play_at_utc`
+- `occurred_at` / `occurred_at_utc`
+- `occurred_end_at` / `occurred_end_at_utc`
+- `schedule_anchor_wall` / `schedule_anchor_utc`
 - `text`
+- `provider`
+- `stt_playback_offset_ms`
+- `word_timings` when provider word-level timestamps are available
+- `speaker` when the selected STT provider supplies diarization
+
+Name-correction rows:
+
+- `type="name_correction"`
+- `audio_start`
+- `audio_end`
+- `raw_text`
+- `corrected_text`
+- `corrections`
+- `correction_ms`
+- `correction_status` (`code` for deterministic live correction)
+- `speaker` when available
 
 ### `{lang}.jsonl`
 
@@ -215,6 +239,9 @@ Header fields:
 - `language`
 - `voice_id`
 - `video_start`
+- `stt_provider`
+- `stt_playback_offset_ms`
+- `stt_playback_offsets_ms`
 
 Utterance fields:
 
@@ -224,18 +251,32 @@ Utterance fields:
 - `audio_start`
 - `audio_end`
 - `play_at`
+- `play_at_utc`
+- `play_started_at` / `play_started_at_utc`
+- `occurred_at` / `occurred_at_utc`
+- `occurred_end_at` / `occurred_end_at_utc`
 - `trans_ms`
 - `tts_ms`
 - `speed`
 - `local_speed_factor`
 - `intended_skew_ms`
+- `stt_playback_offset_ms`
 - `fit_from_ms`
 - `fit_to_ms`
 - `fit_deadline_ms`
 - `fit_cpu_ms`
+- `fit_reason`
 - `status`
 - `original`
 - `translated`
+- `provider`
+- `word_timings` when provider word-level timestamps are available
+- `speaker` when the selected STT provider supplies diarization
+- `voice_id` used for this utterance, which may differ from the header when speaker-specific voices are configured
+- `raw_text`
+- `name_corrections`
+- `name_correction_ms`
+- `name_correction_status`
 - `play_duration_ms`
 
 ## Dev-Mode HTTP API (live_match.py)

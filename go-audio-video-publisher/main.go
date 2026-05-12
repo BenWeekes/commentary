@@ -735,7 +735,11 @@ func streamMediaWithLocalFanout(
 				firstPTS = sendPTS
 				localBase = time.Now()
 				originalBase = localBase.Add(cfg.sourceBuffer)
+				sourceZero := localBase.Add(-time.Duration(firstPTS) * time.Millisecond)
 				fmt.Printf("starting media stream at pts=%dms\n", firstPTS)
+				fmt.Printf("source media origin unix=%.6f pts=%dms\n", float64(localBase.UnixNano())/1e9, firstPTS)
+				fmt.Printf("source media clock first_packet_wall=%.6f first_pts_ms=%d source_zero_wall=%.6f\n",
+					float64(localBase.UnixNano())/1e9, firstPTS, float64(sourceZero.UnixNano())/1e9)
 			}
 			delta := time.Duration(sendPTS-firstPTS) * time.Millisecond
 			localTarget := localBase.Add(delta)

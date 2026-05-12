@@ -47,6 +47,11 @@ class MatchConfig:
     video_delay: float = 7.0
     events_offset: int = 0
     max_stt_duration: float = 6.5
+    stt_provider: str = "deepgram_nova3"
+    stt_endpoint_delay_ms: int = 1500
+    stt_playback_offset_ms: int = 0
+    stt_playback_offsets_ms: dict = field(default_factory=dict)
+    speaker_voice_ids: dict = field(default_factory=dict)
     languages: list[str] = field(default_factory=lambda: ["es", "pt", "fr", "tr", "de"])
     prestart_seconds: float = 30.0
 
@@ -67,6 +72,8 @@ class ServerConfig:
     sportradar_api_key: str
     control_port: int = 8080
     translation_model: str = "gpt-5.4"
+    stt_playback_offset_ms: int = 0
+    stt_playback_offsets_ms: dict = field(default_factory=dict)
     matches: list[MatchConfig] = field(default_factory=list)
     # Cloud Recording
     cloud_recording: dict | None = None
@@ -172,6 +179,8 @@ def load_config(yaml_path: str) -> ServerConfig:
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     elevenlabs_key = os.environ.get("ELEVENLABS_API_KEY", "")
     sportradar_key = os.environ.get("SPORTRADAR_API_KEY", "")
+    stt_playback_offset_ms = int(raw.get("stt_playback_offset_ms", 0))
+    stt_playback_offsets_ms = raw.get("stt_playback_offsets_ms", {}) or {}
 
     matches = []
     for m in raw.get("matches", []):
@@ -218,6 +227,11 @@ def load_config(yaml_path: str) -> ServerConfig:
             video_delay=m.get("video_delay", 7.0),
             events_offset=m.get("events_offset", 0),
             max_stt_duration=m.get("max_stt_duration", 6.5),
+            stt_provider=m.get("stt_provider", "deepgram_nova3"),
+            stt_endpoint_delay_ms=int(m.get("stt_endpoint_delay_ms", 1500)),
+            stt_playback_offset_ms=int(m.get("stt_playback_offset_ms", stt_playback_offset_ms)),
+            stt_playback_offsets_ms=m.get("stt_playback_offsets_ms", stt_playback_offsets_ms) or {},
+            speaker_voice_ids=m.get("speaker_voice_ids", {}) or {},
             languages=m.get("languages", ["es", "pt", "fr", "tr", "de"]),
             prestart_seconds=m.get("prestart_seconds", 30.0),
             display_name=m.get("display_name", ""),
@@ -255,6 +269,8 @@ def load_config(yaml_path: str) -> ServerConfig:
         sportradar_api_key=sportradar_key,
         control_port=raw.get("control_port", 8080),
         translation_model=raw.get("translation_model", "gpt-5.4"),
+        stt_playback_offset_ms=stt_playback_offset_ms,
+        stt_playback_offsets_ms=stt_playback_offsets_ms,
         matches=matches,
         cloud_recording=cloud_recording_raw,
         agora_customer_key=agora_customer_key,
@@ -338,9 +354,7 @@ def validate_config(cfg: ServerConfig, dry_run=False):
                         errors.append(f"{prefix}: source.demo_media_file required for live demo_srt_direct source")
                     elif not os.path.isfile(source.demo_media_file):
                         errors.append(f"{prefix}: source.demo_media_file not found: {source.demo_media_file}")
-                    if not source.demo_atmosphere_file:
-                        errors.append(f"{prefix}: source.demo_atmosphere_file required for live demo_srt_direct source")
-                    elif not os.path.isfile(source.demo_atmosphere_file):
+                    if source.demo_atmosphere_file and not os.path.isfile(source.demo_atmosphere_file):
                         errors.append(f"{prefix}: source.demo_atmosphere_file not found: {source.demo_atmosphere_file}")
                     if source.demo_srt_port <= 0:
                         errors.append(f"{prefix}: source.demo_srt_port must be > 0")

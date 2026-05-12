@@ -34,6 +34,10 @@ Translation is deferred to TTS time, not queue time. This means:
 
 Two approaches are used depending on context:
 
+### Global football corrections
+
+`GLOBAL_FOOTBALL_CORRECTIONS` in `lib/corrections.py` fixes high-confidence football STT errors that are safe across matches, such as contextual "Freak has been given" -> "Free kick has been given". The rules are intentionally anchored to surrounding words and are applied for both Deepgram and Soniox before translation.
+
 ### Static corrections (legacy, per-match)
 
 The `CORRECTIONS` list in `lib/corrections.py` (~60 entries) fixes systematic Deepgram misrecognitions via string replacement. Each correction is a `(wrong, right)` tuple applied in order. Used by `stt_realtime_translate.py` and the live pipeline.
@@ -78,7 +82,12 @@ Per-match fields under `matches:`:
 | `atmosphere` | string | no | Path to atmosphere WAV |
 | `video_delay` | float | 7.0 | Video delay in seconds |
 | `events_offset` | int | 0 | Match-time offset for events |
-| `max_stt_duration` | float | 5.0 | Force-split threshold in seconds |
+| `max_stt_duration` | float | 5.0 | Force-split threshold in seconds. Applied by Deepgram interim splitting and Soniox client-side turn splitting. |
+| `stt_provider` | string | `deepgram_nova3` | Live STT provider: `deepgram_nova3` or `soniox`; Soniox `stt-rt-v4` is the current eval-demo candidate. |
+| `stt_endpoint_delay_ms` | int | 1500 | Soniox realtime endpoint delay for final turn detection |
+| `stt_playback_offset_ms` | int | 0 | Default live STT playback offset in milliseconds, applied after provider timing normalization |
+| `stt_playback_offsets_ms` | map | `{}` | Optional provider-specific offsets, e.g. `{soniox: 700, deepgram_nova3: 830}` |
+| `speaker_voice_ids` | map | `{}` | Optional ElevenLabs voice IDs by STT speaker, e.g. `{default: {s0: "...", s1: "..."}}` or per language |
 | `languages` | list | `[es, pt, fr, tr, de]` | Target languages |
 
 File paths are resolved relative to the YAML file's directory (not the working directory).
@@ -119,6 +128,8 @@ Languages showing "default" use `DEFAULT_VOICE_ID` (`ImsA1Fn5TNc843fFdz99`).
 | `[TTS #N]` | TTSEngine utterance processing (N = utterance counter) |
 | `[PIPE]` | Pipe writer thread (audio delivery to Go publisher) |
 | `[STT]` | Deepgram transcription results |
+| `[STT-LIVE SONIOX]` | Soniox realtime final turns, including speaker label when supplied |
+| `[STT-LIVE SONIOX SPLIT]` | Client-side force emission when a Soniox turn reaches `max_stt_duration` |
 | `[SR]` | Sportradar event playback |
 | `[DROP Xs]` | STT utterance dropped — format: `DROPPED {ms}ms — {late}s past play_at (xlat={x}s, tts={t}s, queued_behind={q}s, pre_xlat={hit\|miss})` |
 | `[ATMOS]` | Atmosphere audio loading and toggle |
@@ -128,6 +139,16 @@ Languages showing "default" use `DEFAULT_VOICE_ID` (`ImsA1Fn5TNc843fFdz99`).
 | `[ORCH]` | Orchestrator match start/stop |
 | `[MATCH {id}]` | Per-match log lines (roster fetch, errors) |
 | `[TELEMETRY]` | TTSEngine telemetry callbacks (interruption warnings) |
+
+## Live Name Correction
+
+Live STT name correction is code-based, not an LLM call. It uses the current match roster/keyterms and only applies conservative proper-name fixes:
+
+- comma inside a known full name, e.g. `Sota, Kawasaki` -> `Sota Kawasaki`
+- wrong first name before a known surname, e.g. `Philip Tietz` -> `Philipp Tietz`
+- close capitalized name match, e.g. `Karl Klaus` -> `Carl Klaus`
+
+It does not expand ordinary surnames, does not touch lowercase words, does not rewrite possessives, and does not attempt broad football/STT semantic correction beyond the separate high-confidence `GLOBAL_FOOTBALL_CORRECTIONS` list. Each correction is written to `stt.jsonl` and copied into per-language rows as `name_corrections`.
 
 ## Structured Match Logs
 
@@ -162,9 +183,12 @@ Additional telemetry fields per utterance:
 - `pre_translated` — `true` if translation was served from the pre-translation cache, `false` if inline
 - `queue_wait_ms` — milliseconds the item waited in the queue before the TTS worker started processing it
 - `total_buffered_ms` — total TTS audio duration in milliseconds
-- `speed` / `local_speed_factor` — local ffmpeg `atempo` factor applied to fit before the next STT item; `1.0` means no local speed-up
-- `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms` — source duration, fitted duration, available playback window, and ffmpeg processing cost for local speed fitting
-- `intended_skew_ms` — live STT schedule skew versus `first_pcm_sent_wall + audio_start + video_delay`; should stay near 0ms
+- `speed` / `local_speed_factor` — local ffmpeg `atempo` factor applied to fit the known gap before the next STT item; `1.0` means no local tempo change
+- `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, `fit_reason` — generated duration, fitted duration, available playback window, ffmpeg cost, and reason (`next_play_at` for live gap fit)
+- `stt_playback_offset_ms` — effective provider-specific STT playback offset used for this utterance
+- `intended_skew_ms` — live STT schedule skew versus the provider-normalized source media schedule; provider offsets are logged separately
+- `speaker` — STT speaker label when the provider supplies diarization
+- `voice_id` — ElevenLabs voice used for the utterance, useful when speaker-specific voices are configured
 
 Items that never played are `dropped`, `replaced`, or `suppressed`, not `interrupted`. Only `_pipe_writer` can emit `interrupted` — it detects `_interrupt.is_set()` during active chunk drain.
 

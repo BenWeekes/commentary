@@ -28,6 +28,7 @@ class ResolvedLiveSource:
     local_pcm_addr: str = ""
     local_atmos_pcm_addr: str = ""
     local_video_addr: str = ""
+    source_media_start_wall: float | None = None
     owned_proc: subprocess.Popen | None = None
     owned_procs: list[tuple[subprocess.Popen, str]] = field(default_factory=list)
 
@@ -91,12 +92,24 @@ def _start_demo_srt_loop(source, tag: str) -> tuple[subprocess.Popen, str]:
             "-stream_loop", "-1",
             "-re",
             "-i", source.demo_media_file,
-            "-stream_loop", "-1",
-            "-re",
-            "-i", source.demo_atmosphere_file,
-            "-map", "0:v:0",
-            "-map", "1:a:0",
-            "-map", "0:a:0",
+        ]
+        if source.demo_atmosphere_file:
+            cmd.extend([
+                "-stream_loop", "-1",
+                "-re",
+                "-i", source.demo_atmosphere_file,
+                "-map", "0:v:0",
+                "-map", "1:a:0",
+                "-map", "0:a:0",
+            ])
+            stream_map = "#0:0 video, #0:1 atmosphere, #0:2 commentary"
+        else:
+            cmd.extend([
+                "-map", "0:v:0",
+                "-map", "0:a:0",
+            ])
+            stream_map = "#0:0 video, #0:1 commentary"
+        cmd.extend([
             "-c:v", "copy",
             "-bsf:v", "h264_mp4toannexb",
             "-c:a", "aac",
@@ -105,9 +118,9 @@ def _start_demo_srt_loop(source, tag: str) -> tuple[subprocess.Popen, str]:
             "-b:a", "64k",
             "-f", "mpegts",
             f"srt://0.0.0.0:{port}?mode=listener&latency=200000",
-        ]
+        ])
         print(f"[{tag}] Starting demo SRT loop on {srt_url}")
-        print(f"[{tag}] Demo stream map: #0:0 video, #0:1 atmosphere, #0:2 commentary")
+        print(f"[{tag}] Demo stream map: {stream_map}")
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -151,6 +164,7 @@ def _wait_for_stdout_signal(
     timeout: float,
     stop_event,
     tag: str,
+    seen_lines: list[str] | None = None,
 ) -> str:
     """Block until a specific stdout line appears or raise on failure/timeout."""
     deadline = time.monotonic() + timeout
@@ -171,6 +185,8 @@ def _wait_for_stdout_signal(
             text = line.decode(errors="replace").rstrip()
             if text:
                 print(f"  [{tag}] {text}")
+                if seen_lines is not None:
+                    seen_lines.append(text)
             if signal_text in text:
                 return text
     finally:
@@ -181,6 +197,7 @@ def _wait_for_stdout_signal(
 
 
 _LOCAL_READY_RE = re.compile(r"local sources ready pcm=(?P<pcm>\S*)(?: atmos_pcm=(?P<atmos_pcm>\S*))? video=(?P<video>\S*)")
+_SOURCE_MEDIA_ORIGIN_RE = re.compile(r"source media origin unix=(?P<unix>\d+(?:\.\d+)?) pts=(?P<pts>\d+)ms")
 
 
 def _parse_local_ready_line(line: str) -> tuple[str, str, str]:
@@ -188,6 +205,14 @@ def _parse_local_ready_line(line: str) -> tuple[str, str, str]:
     if not match:
         raise RuntimeError(f"could not parse local source line: {line}")
     return match.group("pcm"), match.group("atmos_pcm") or "", match.group("video")
+
+
+def _parse_source_media_start(lines: list[str]) -> float | None:
+    for line in lines:
+        match = _SOURCE_MEDIA_ORIGIN_RE.search(line)
+        if match:
+            return float(match.group("unix"))
+    return None
 
 
 def resolve_live_source(
@@ -251,13 +276,16 @@ def resolve_live_source(
                 tag=f"{tag} SRC",
             )
             local_pcm_addr, local_atmos_pcm_addr, local_video_addr = _parse_local_ready_line(ready_line)
+            source_start_lines: list[str] = []
             _wait_for_stdout_signal(
                 proc,
                 "source publishing started",
                 timeout=180.0,
                 stop_event=stop_event,
                 tag=f"{tag} SRC",
+                seen_lines=source_start_lines,
             )
+            source_media_start_wall = _parse_source_media_start(source_start_lines)
         except Exception:
             _kill_proc(proc, tag=f"{tag} SRC")
             if demo_srt_proc:
@@ -282,6 +310,7 @@ def resolve_live_source(
             local_pcm_addr=local_pcm_addr,
             local_atmos_pcm_addr=local_atmos_pcm_addr,
             local_video_addr=local_video_addr,
+            source_media_start_wall=source_media_start_wall,
             owned_proc=proc,
             owned_procs=[(demo_srt_proc, f"{tag} DEMO SRT")] if demo_srt_proc else [],
         )

@@ -23,6 +23,7 @@ go-audio-video-publisher/subscribe_audio
 *.h264
 *.pcm
 *.wav
+/clips/m05_uni_eval_25min/
 
 # Logs
 *.log

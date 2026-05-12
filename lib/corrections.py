@@ -31,6 +31,36 @@ TERMS_LIST = [
 
 # ─── Deterministic corrections ───────────────────────────────────────────
 
+GLOBAL_FOOTBALL_CORRECTIONS = [
+    # League / competition
+    ("Gundesliga", "Bundesliga"),
+
+    # Refereeing / set-pieces. Keep these context-anchored; bare "freak"
+    # can be valid football English ("freak goal", "freak deflection").
+    ("Falled by", "Fouled by"),
+    ("Freak it has been", "Free kick has been"),
+    ("Freak has been given", "Free kick has been given"),
+    (", Freak.", ", free kick."),
+    (". Freak.", ". Free kick."),
+    ("therefore, Freak", "therefore, free kick"),
+
+    # Score / standings phrasing
+    ("relegated battle", "relegation battle"),
+    ("Rock Blossom", "Rock Bottom"),
+    ("Not one a game", "Not won a game"),
+    ("three hole draw", "three-all draw"),
+    ("three o draw", "three-all draw"),
+    ("last guest winner", "last-gasp winner"),
+    ("laxed gasp winner", "last-gasp winner"),
+    ("at laxed gasp", "a last-gasp"),
+    ("in the lead.", "in the league."),
+    ("in the lead,", "in the league,"),
+
+    # General commentary phrasing
+    ("He's on a Way through", "He's on his way through"),
+    ("Fanged way back", "Banged away back"),
+]
+
 CORRECTIONS = [
     # ─── Team name misrecognitions ───
     ("Honsakovic in the blue", "Heidenheim in the blue"),

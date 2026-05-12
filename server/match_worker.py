@@ -16,7 +16,7 @@ import openai
 
 from lib.audio import load_atmosphere, convert_to_pcm
 from lib.constants import ELEVENLABS_MODEL, VIDEO_DELAY_S
-from lib.corrections import TERMS_LIST
+from lib.corrections import GLOBAL_FOOTBALL_CORRECTIONS, TERMS_LIST
 from lib.events import load_events_file
 
 # ─── Per-match keyterms loading ──────────────────────────────────────────
@@ -66,14 +66,17 @@ def _load_match_keyterms(match_id):
                 terms.append(line)
     return terms if terms else None
 from lib.sr_prefetcher import SRPrefetcher
+from lib.soniox_stt_pipeline import run_soniox_stt_pipeline_live
 from lib.stt_pipeline import run_stt_pipeline_multi, run_stt_pipeline_live
-from lib.translator import translate_text, voice_for_lang, LANG_VOICES
+from lib.translator import (
+    correct_names_text_code, translate_text, voice_for_lang, LANG_VOICES,
+)
 from lib.tts_engine import TTSEngine, _ts
 
 from server.cloud_recording import (
     RecordingSession, start_channel_recording, stop_channel_recording,
 )
-from server.config import MatchConfig, ServerConfig
+from server.config import MatchConfig, ServerConfig, get_live_source_channel
 from server.live_source import resolve_live_source, stop_resolved_live_source
 
 
@@ -297,6 +300,12 @@ def _log_pub_stream(stream, tag):
         print(f"  [{tag}] {text}")
 
 
+def _utc_hms_ms(ts):
+    if ts is None:
+        return None
+    return time.strftime("%H:%M:%S", time.gmtime(ts)) + f".{int(ts * 1000) % 1000:03d}Z"
+
+
 # ─── MatchWorker ──────────────────────────────────────────────────────────
 
 class MatchWorker:
@@ -313,6 +322,7 @@ class MatchWorker:
         self._oai_client = None
         self._roster = None
         self._video_start_ref = [None]  # mutable ref for STT
+        self._source_media_start_ref = [None]  # source media origin for srt_direct STT sync
         self._stt_utterance_count = 0
         self._recent_transcript = collections.deque(maxlen=50)
         # Structured log files
@@ -333,6 +343,7 @@ class MatchWorker:
         self._status.state = "starting"
         self._status.started_at = time.time()
         self._video_start_ref = [None]
+        self._source_media_start_ref = [None]
         self._stt_utterance_count = 0
         self._recent_transcript = collections.deque(maxlen=50)
         self._log_dir = None
@@ -349,7 +360,82 @@ class MatchWorker:
         """Signal stop and wait for cleanup."""
         self._stop.set()
         if self._thread:
-            self._thread.join(timeout=30)
+            self._thread.join(timeout=90)
+            if self._thread.is_alive():
+                self._status.error = "stop timed out waiting for worker cleanup"
+                print(f"[MATCH {self._match.match_id}] WARNING: stop timed out waiting for cleanup")
+
+    def configure_stt(self, provider: str | None = None, endpoint_delay_ms: int | None = None):
+        """Apply STT runtime options before a worker starts."""
+        if self._status.state in ("starting", "running"):
+            raise RuntimeError("cannot change STT provider while match is running")
+        if provider:
+            normalized = provider.strip().lower().replace("-", "_")
+            aliases = {
+                "deepgram": "deepgram_nova3",
+                "nova3": "deepgram_nova3",
+                "nova_3": "deepgram_nova3",
+                "deepgram_nova3": "deepgram_nova3",
+                "soniox": "soniox",
+                "soniox_rt": "soniox",
+                "soniox_realtime": "soniox",
+            }
+            if normalized not in aliases:
+                raise ValueError(f"unknown stt_provider '{provider}'")
+            self._match.stt_provider = aliases[normalized]
+        if endpoint_delay_ms is not None:
+            endpoint_delay_ms = int(endpoint_delay_ms)
+            if endpoint_delay_ms < 100 or endpoint_delay_ms > 5000:
+                raise ValueError("stt_endpoint_delay_ms must be between 100 and 5000")
+            self._match.stt_endpoint_delay_ms = endpoint_delay_ms
+
+    def _voice_for_lang_speaker(self, lang: str, speaker):
+        """Return a speaker-specific voice when configured, otherwise language default."""
+        voices = self._match.speaker_voice_ids or {}
+        if speaker is None or not isinstance(voices, dict):
+            return voice_for_lang(lang)
+
+        speaker_keys = [
+            str(speaker),
+            f"s{speaker}",
+            f"S{speaker}",
+            f"speaker_{speaker}",
+        ]
+        for scope in (lang, "default", "*"):
+            scoped = voices.get(scope)
+            if isinstance(scoped, dict):
+                for key in speaker_keys:
+                    voice_id = scoped.get(key)
+                    if voice_id:
+                        return voice_id
+        for key in speaker_keys:
+            voice_id = voices.get(key)
+            if voice_id:
+                return voice_id
+        return voice_for_lang(lang)
+
+    def _stt_provider_key(self, provider=None):
+        key = (provider or self._match.stt_provider or "deepgram_nova3").strip().lower().replace("-", "_")
+        aliases = {
+            "deepgram": "deepgram",
+            "nova3": "deepgram_nova3",
+            "nova_3": "deepgram_nova3",
+            "deepgram_nova3": "deepgram_nova3",
+            "soniox": "soniox",
+            "soniox_rt": "soniox",
+            "soniox_realtime": "soniox",
+        }
+        return aliases.get(key, key)
+
+    def _stt_playback_offset_ms(self, provider=None):
+        offsets = self._match.stt_playback_offsets_ms or {}
+        provider_key = self._stt_provider_key(provider)
+        for key in (provider_key, provider, self._match.stt_provider):
+            if key is not None and key in offsets:
+                return int(offsets[key])
+        if provider_key == "deepgram_nova3" and "deepgram" in offsets:
+            return int(offsets["deepgram"])
+        return int(self._match.stt_playback_offset_ms or 0)
 
     @property
     def status(self) -> MatchStatus:
@@ -380,6 +466,28 @@ class MatchWorker:
             }
         return self._status
 
+    def _warm_openai(self, tag):
+        """Warm translation calls before live STT starts spending schedule budget."""
+        warmup_langs = [l for l in self._match.languages if l != "en"]
+        if not warmup_langs:
+            return
+        print(f"[{tag}] Warming up OpenAI ({len(warmup_langs)} langs)...")
+        warmup_t0 = time.time()
+        warmup_threads = []
+        for wl in warmup_langs:
+            def _warmup(lang=wl):
+                try:
+                    translate_text(self._oai_client, "Kick off.",
+                                   lang, model=self._server.translation_model)
+                except Exception:
+                    pass
+            t = threading.Thread(target=_warmup, daemon=True)
+            t.start()
+            warmup_threads.append(t)
+        for t in warmup_threads:
+            t.join(timeout=20.0)
+        print(f"[{tag}] OpenAI warm — {time.time() - warmup_t0:.1f}s")
+
     def _run(self):
         """Dispatch to demo or live mode."""
         if self._match.mode == "live":
@@ -401,27 +509,7 @@ class MatchWorker:
         try:
             self._oai_client = openai.OpenAI(api_key=self._server.openai_api_key)
 
-            # Warm up OpenAI — first API call per process takes ~15s (model cold-start).
-            # Fire one throwaway translation per language in parallel so the penalty
-            # is absorbed during startup instead of delaying the first real utterance.
-            warmup_langs = [l for l in self._match.languages if l != "en"]
-            if warmup_langs:
-                print(f"[{tag}] Warming up OpenAI ({len(warmup_langs)} langs)...")
-                warmup_t0 = time.time()
-                warmup_threads = []
-                for wl in warmup_langs:
-                    def _warmup(lang=wl):
-                        try:
-                            translate_text(self._oai_client, "Kick off.",
-                                           lang, model=self._server.translation_model)
-                        except Exception:
-                            pass
-                    t = threading.Thread(target=_warmup, daemon=True)
-                    t.start()
-                    warmup_threads.append(t)
-                for t in warmup_threads:
-                    t.join(timeout=20.0)
-                print(f"[{tag}] OpenAI warm — {time.time() - warmup_t0:.1f}s")
+            self._warm_openai(tag)
 
             # Skip atmosphere for demo — only used in live mode
             atmosphere_pcm = None
@@ -597,8 +685,13 @@ class MatchWorker:
 
         try:
             self._oai_client = openai.OpenAI(api_key=self._server.openai_api_key)
+            self._warm_openai(tag)
             self._load_roster(tag)
             resolved = resolve_live_source(self._match, self._server, self._stop, tag)
+            self._source_media_start_ref[0] = resolved.source_media_start_wall
+            if resolved.source_media_start_wall is not None:
+                print(f"[{tag}] Source media origin={resolved.source_media_start_wall:.3f} "
+                      f"({_utc_hms_ms(resolved.source_media_start_wall)})")
 
             base_dir = GO_DIR
             env = _go_process_env(self._server.agora_app_cert)
@@ -1009,6 +1102,10 @@ class MatchWorker:
             "started_at": datetime.datetime.now().isoformat(timespec="milliseconds"),
             "video_delay": self._match.video_delay,
             "target_start": target_start,
+            "stt_playback_offset_ms": self._match.stt_playback_offset_ms,
+            "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
+            "source_media_start_wall": self._source_media_start_ref[0],
+            "source_media_start_utc": _utc_hms_ms(self._source_media_start_ref[0]),
             "languages": list(self._match.languages),
             "keyterms": list(self._keyterms) if self._keyterms else [],
             "roster": roster_list,
@@ -1025,6 +1122,8 @@ class MatchWorker:
             "language": lang,
             "voice_id": voice_id,
             "video_start": video_start,
+            "stt_playback_offset_ms": self._match.stt_playback_offset_ms,
+            "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
         }
         fh.write(json.dumps(header) + "\n")
         fh.flush()
@@ -1100,6 +1199,24 @@ class MatchWorker:
 
     def _run_stt_live(self, audio_pipe):
         """Run STT pipeline from a live audio pipe (subscribe_audio stdout)."""
+        provider = (self._match.stt_provider or "deepgram_nova3").lower()
+        print(f"[MATCH {self._match.match_id}] STT provider: {provider}")
+        if provider in ("soniox", "soniox_rt", "soniox_realtime"):
+            self._stt_utterance_count = run_soniox_stt_pipeline_live(
+                audio_pipe=audio_pipe,
+                on_utterance=self._on_utterance,
+                stop_event=self._stop,
+                video_start_ref=self._video_start_ref,
+                video_delay=self._match.video_delay,
+                keyterms=self._keyterms,
+                endpoint_delay_ms=self._match.stt_endpoint_delay_ms,
+                max_stt_duration=self._match.max_stt_duration,
+                source_media_start_ref=self._source_media_start_ref,
+                corrections=GLOBAL_FOOTBALL_CORRECTIONS,
+            )
+            return
+        if provider not in ("deepgram", "deepgram_nova3", "nova3", "nova-3"):
+            raise RuntimeError(f"unknown stt_provider '{self._match.stt_provider}'")
         self._stt_utterance_count = run_stt_pipeline_live(
             audio_pipe=audio_pipe,
             on_utterance=self._on_utterance,
@@ -1109,7 +1226,8 @@ class MatchWorker:
             video_delay=self._match.video_delay,
             max_stt_duration=self._match.max_stt_duration,
             keyterms=self._keyterms,
-            corrections=[],  # no static corrections for live — keyterms handle recognition
+            corrections=GLOBAL_FOOTBALL_CORRECTIONS,
+            source_media_start_ref=self._source_media_start_ref,
         )
 
     def _run_stt(self):
@@ -1130,8 +1248,10 @@ class MatchWorker:
         """Return recent English STT utterances as list of {text, ts}."""
         return list(self._recent_transcript)
 
-    def _on_utterance(self, text, audio_start, audio_end, play_at, intended_skew_ms=None):
-        """Fan out a corrected STT utterance to all language pipelines."""
+    def _on_utterance(self, text, audio_start, audio_end, play_at, intended_skew_ms=None,
+                      speaker=None, provider=None, schedule_anchor_wall=None,
+                      occurred_at=None, occurred_end_at=None, word_timings=None):
+        """Accept an STT utterance, correct English names once, then fan out."""
         self._stt_utterance_count += 1
         self._recent_transcript.append({
             "text": text,
@@ -1147,41 +1267,166 @@ class MatchWorker:
                     "audio_end": round(audio_end, 2),
                     "wall_clock": time.strftime("%H:%M:%S") + f".{int(time.time() * 1000) % 1000:03d}",
                     "play_at": play_at,
+                    "play_at_utc": _utc_hms_ms(play_at),
+                    "schedule_anchor_wall": schedule_anchor_wall,
+                    "schedule_anchor_utc": _utc_hms_ms(schedule_anchor_wall),
+                    "occurred_at": occurred_at,
+                    "occurred_at_utc": _utc_hms_ms(occurred_at),
+                    "occurred_end_at": occurred_end_at,
+                    "occurred_end_at_utc": _utc_hms_ms(occurred_end_at),
+                    "provider": provider,
+                    "stt_playback_offset_ms": self._stt_playback_offset_ms(provider),
                     "text": text,
                 }
+                if speaker is not None:
+                    line["speaker"] = speaker
+                if word_timings is not None:
+                    line["word_timings"] = word_timings
                 self._stt_log.write(json.dumps(line) + "\n")
                 self._stt_log.flush()
             except Exception:
                 pass
+
+        corrected_text, corrections, correction_ms = self._correct_names_for_utterance(text)
+        self._fanout_utterance(
+            raw_text=text,
+            corrected_text=corrected_text,
+            name_corrections=corrections,
+            name_correction_ms=correction_ms,
+            name_correction_status="code",
+            audio_start=audio_start,
+            audio_end=audio_end,
+            play_at=play_at,
+            intended_skew_ms=intended_skew_ms,
+            speaker=speaker,
+            schedule_anchor_wall=schedule_anchor_wall,
+            occurred_at=occurred_at,
+            occurred_end_at=occurred_end_at,
+            provider=provider,
+            word_timings=word_timings,
+        )
+
+    def _correct_names_for_utterance(self, text):
+        """Run the deterministic pre-translation English name-correction pass."""
+        t0 = time.monotonic()
+        corrected, corrections = correct_names_text_code(
+            text,
+            roster=self._roster,
+            keyterms=self._keyterms,
+        )
+        elapsed_ms = round((time.monotonic() - t0) * 1000)
+        if corrections or corrected != text:
+            print(f"[MATCH {self._match.match_id}] Name-corrected "
+                  f"{elapsed_ms}ms: \"{text[:70]}\" -> \"{corrected[:70]}\"")
+        return corrected, corrections, elapsed_ms
+
+    def _fanout_utterance(self, raw_text, corrected_text, name_corrections,
+                          name_correction_ms, name_correction_status,
+                          audio_start, audio_end, play_at,
+                          intended_skew_ms=None, speaker=None,
+                          schedule_anchor_wall=None, occurred_at=None,
+                          occurred_end_at=None, provider=None, word_timings=None):
+        """Fan out one corrected English utterance to all language pipelines."""
+        if self._stt_log:
+            try:
+                line = {
+                    "type": "name_correction",
+                    "audio_start": round(audio_start, 2),
+                    "audio_end": round(audio_end, 2),
+                    "raw_text": raw_text,
+                    "corrected_text": corrected_text,
+                    "corrections": name_corrections,
+                    "correction_ms": name_correction_ms,
+                    "correction_status": name_correction_status,
+                    "play_at": play_at,
+                    "play_at_utc": _utc_hms_ms(play_at),
+                    "schedule_anchor_wall": schedule_anchor_wall,
+                    "schedule_anchor_utc": _utc_hms_ms(schedule_anchor_wall),
+                    "occurred_at": occurred_at,
+                    "occurred_at_utc": _utc_hms_ms(occurred_at),
+                    "occurred_end_at": occurred_end_at,
+                    "occurred_end_at_utc": _utc_hms_ms(occurred_end_at),
+                    "provider": provider,
+                    "stt_playback_offset_ms": self._stt_playback_offset_ms(provider),
+                }
+                if speaker is not None:
+                    line["speaker"] = speaker
+                if word_timings is not None:
+                    line["word_timings"] = word_timings
+                self._stt_log.write(json.dumps(line) + "\n")
+                self._stt_log.flush()
+            except Exception:
+                pass
+
+        base_intended_skew_ms = intended_skew_ms
         for lang, pipe in self._pipelines.items():
             if lang == "original":
                 continue  # original pipeline plays file audio, not TTS
 
-            def make_translate_fn(target_lang=lang):
+            def make_translate_fn(target_lang=lang, stt_speaker=speaker):
                 def translate(t):
-                    vid = voice_for_lang(target_lang)
+                    vid = self._voice_for_lang_speaker(target_lang, stt_speaker)
                     if target_lang == "en":
                         return (t, vid)
                     return (translate_text(
                         self._oai_client, t, target_lang,
-                        model=self._server.translation_model,
-                        roster=self._roster), vid)
+                        model=self._server.translation_model), vid)
                 return translate
 
             if self._match.mode == "live":
-                lang_play_at = play_at
+                offset_ms = self._stt_playback_offset_ms(provider)
+                offset_s = offset_ms / 1000.0
+                lang_play_at = (play_at + offset_s) if play_at is not None else None
                 if lang_play_at is not None and play_at is not None:
-                    intended_skew_ms = (intended_skew_ms or 0) + round((lang_play_at - play_at) * 1000)
+                    lang_intended_skew_ms = (base_intended_skew_ms or 0) + round((lang_play_at - play_at) * 1000)
             else:
                 # Demo file audio has a known video_start anchor; keep the
                 # existing per-language schedule for that path.
                 lang_play_at = (pipe.video_start + audio_start) if pipe.video_start else play_at
-            self._stt_schedule_meta_by_lang.setdefault(lang, {})[(lang_play_at, text)] = {
+                lang_intended_skew_ms = base_intended_skew_ms
+            self._stt_schedule_meta_by_lang.setdefault(lang, {})[(lang_play_at, corrected_text)] = {
                 "audio_start": audio_start,
                 "audio_end": audio_end,
-                "intended_skew_ms": intended_skew_ms,
+                "intended_skew_ms": lang_intended_skew_ms,
+                "speaker": speaker,
+                "schedule_anchor_wall": schedule_anchor_wall,
+                "occurred_at": occurred_at,
+                "occurred_end_at": occurred_end_at,
+                "provider": provider,
+                "stt_playback_offset_ms": self._stt_playback_offset_ms(provider),
+                "word_timings": word_timings,
+                "raw_text": raw_text,
+                "name_corrections": name_corrections,
+                "name_correction_ms": name_correction_ms,
+                "name_correction_status": name_correction_status,
             }
-            pipe.tts.speak(text, play_at=lang_play_at, translate_fn=make_translate_fn())
+            target_duration_s = self._source_utterance_duration(audio_start, audio_end, word_timings)
+            pipe.tts.speak(
+                corrected_text,
+                play_at=lang_play_at,
+                translate_fn=make_translate_fn(),
+                target_duration_s=target_duration_s,
+            )
+
+    def _source_utterance_duration(self, audio_start, audio_end, word_timings):
+        if word_timings:
+            starts = [
+                w.get("start") for w in word_timings
+                if isinstance(w, dict) and isinstance(w.get("start"), (int, float))
+            ]
+            ends = [
+                w.get("end") for w in word_timings
+                if isinstance(w, dict) and isinstance(w.get("end"), (int, float))
+            ]
+            if starts and ends:
+                duration = max(ends) - min(starts)
+                if duration > 0:
+                    return duration
+        if isinstance(audio_start, (int, float)) and isinstance(audio_end, (int, float)):
+            duration = audio_end - audio_start
+            if duration > 0:
+                return duration
+        return None
 
     def _on_telemetry(self, lang, data):
         """Process telemetry from a TTSEngine pipe writer.
@@ -1263,17 +1508,34 @@ class MatchWorker:
                         "uid": data.get("uid"),
                         "audio_start": audio_start,
                         "audio_end": round(audio_end, 2) if audio_end is not None else None,
+                        "occurred_at": stt_schedule_meta.get("occurred_at"),
+                        "occurred_at_utc": _utc_hms_ms(stt_schedule_meta.get("occurred_at")),
+                        "occurred_end_at": stt_schedule_meta.get("occurred_end_at"),
+                        "occurred_end_at_utc": _utc_hms_ms(stt_schedule_meta.get("occurred_end_at")),
                         "play_at": play_at,
+                        "play_at_utc": _utc_hms_ms(play_at),
                         "play_started_at": play_started_at,
+                        "play_started_at_utc": _utc_hms_ms(play_started_at),
                         "play_ended_at": play_ended_at,
+                        "play_ended_at_utc": _utc_hms_ms(play_ended_at),
+                        "schedule_anchor_wall": stt_schedule_meta.get("schedule_anchor_wall"),
+                        "schedule_anchor_utc": _utc_hms_ms(stt_schedule_meta.get("schedule_anchor_wall")),
                         "start_lag_ms": start_lag_ms,
                         "intended_skew_ms": intended_skew_ms,
+                        "stt_playback_offset_ms": stt_schedule_meta.get("stt_playback_offset_ms"),
+                        "provider": stt_schedule_meta.get("provider"),
+                        "speaker": stt_schedule_meta.get("speaker"),
                         "trans_ms": round(xlat_time * 1000) if xlat_time else None,
                         "tts_ms": round(tts_time * 1000) if tts_time else None,
                         "status": status,
                         "interrupted_by": interrupted_by,
+                        "raw_original": stt_schedule_meta.get("raw_text"),
                         "original": data.get("text"),
                         "translated": data.get("translated"),
+                        "word_timings": stt_schedule_meta.get("word_timings"),
+                        "name_corrections": stt_schedule_meta.get("name_corrections"),
+                        "name_correction_ms": stt_schedule_meta.get("name_correction_ms"),
+                        "voice_id": data.get("voice_id"),
                         "play_duration_ms": data.get("actual_play_duration_ms", 0),
                         "total_buffered_ms": data.get("total_buffered_ms", 0),
                         "pre_translated": data.get("pre_translated", False),
@@ -1284,6 +1546,7 @@ class MatchWorker:
                         "fit_to_ms": data.get("fit_to_ms"),
                         "fit_deadline_ms": data.get("fit_deadline_ms"),
                         "fit_cpu_ms": data.get("fit_cpu_ms"),
+                        "fit_reason": data.get("fit_reason"),
                     }
                     lang_log.write(json.dumps(line) + "\n")
                     lang_log.flush()
@@ -1325,9 +1588,9 @@ class MatchWorker:
             return
 
         recording_uid = 800000
-        for lang, pipe in self._pipelines.items():
-            if lang == "original":
-                continue
+
+        def start_recording_for_channel(lang, channel):
+            nonlocal recording_uid
             started_at = time.time()
             try:
                 session = start_channel_recording(
@@ -1335,7 +1598,7 @@ class MatchWorker:
                     app_cert=self._server.agora_app_cert,
                     customer_key=self._server.agora_customer_key,
                     customer_secret=self._server.agora_customer_secret,
-                    channel=pipe.channel,
+                    channel=channel,
                     recording_uid=recording_uid,
                     storage_config=cr,
                 )
@@ -1353,12 +1616,12 @@ class MatchWorker:
                     "s3_url": self._recording_s3_url(session),
                 }
                 self._write_recordings_meta()
-                print(f"[{tag}] Recording started for {pipe.channel} "
+                print(f"[{tag}] Recording started for {channel} "
                       f"(sid={session.sid})")
             except Exception as e:
                 self._recording_meta[lang] = {
                     "language": lang,
-                    "channel": pipe.channel,
+                    "channel": channel,
                     "uid": str(recording_uid),
                     "status": "start_failed",
                     "started_at": started_at,
@@ -1367,8 +1630,18 @@ class MatchWorker:
                 }
                 self._write_recordings_meta()
                 print(f"[{tag}] WARNING: Recording start failed for "
-                      f"{pipe.channel} (non-fatal): {e}")
+                      f"{channel} (non-fatal): {e}")
             recording_uid += 1
+
+        if self._match.mode == "live":
+            original_channel = get_live_source_channel(self._match)
+            if original_channel:
+                start_recording_for_channel("original", original_channel)
+
+        for lang, pipe in self._pipelines.items():
+            if lang == "original":
+                continue
+            start_recording_for_channel(lang, pipe.channel)
 
     def _stop_recordings(self, tag):
         """Stop all active cloud recording sessions (non-fatal)."""

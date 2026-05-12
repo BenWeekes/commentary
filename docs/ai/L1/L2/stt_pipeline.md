@@ -4,12 +4,12 @@
 
 ## Overview
 
-The STT pipeline streams live game audio through Deepgram, corrects player/team names, translates to the viewer's language, and schedules TTS playback at the original commentary timing.
+The STT pipeline streams live game audio through the selected provider, corrects football phrases and player/team names, translates to the viewer's language, and schedules TTS playback at the original commentary timing.
 
 ## Pipeline Stages
 
 ```
-Audio ──▶ ffmpeg ──▶ PCM ──▶ Deepgram ──▶ corrections ──▶ tts.speak(play_at=...)
+Audio ──▶ ffmpeg ──▶ PCM ──▶ STT provider ──▶ corrections ──▶ tts.speak(play_at=...)
           (16kHz mono)       (Nova-3)      (str.replace)   → translate + TTS in worker
 ```
 
@@ -23,7 +23,7 @@ Used by `live_match.py`. One Deepgram connection per viewer session. The `emit_f
 
 ### run_stt_pipeline_multi() (server mode)
 
-Used by `server/match_worker.py`. One Deepgram connection per match, shared across all languages. The `emit_fn` calls an `on_utterance` callback that fans out to all language pipelines.
+Used by `server/match_worker.py`. One STT connection per match, shared across all languages. The `emit_fn` calls an `on_utterance` callback that fans out to all language pipelines.
 
 ```
 _run_stt_core()
@@ -53,27 +53,29 @@ In server mode, `_on_utterance` also feeds the structured match log:
 
 ## play_at Scheduling
 
-The Go publisher delays video by `--video-delay` seconds while the STT pipeline processes audio immediately. This gives the pipeline a head start. Each Deepgram result includes `audio_start` — when the commentator spoke in the original audio:
+The Go publisher delays video by `--video-delay` seconds while the STT pipeline processes audio immediately. This gives the pipeline a head start. Each STT result includes `audio_start` — when the commentator spoke in the original source media timeline.
+
+In live server mode, STT and video use the same source media origin exposed by the SRT/direct publisher:
 
 ```python
-play_at = video_start + audio_start
+play_at = source_media_start_wall + audio_start + video_delay + provider_offset
 ```
 
-In live server mode, the STT schedule is anchored to the wall clock when the first PCM chunk is successfully sent to Deepgram. For live pipe audio:
+`provider_offset` is configured globally or per match via `stt_playback_offsets_ms` to compensate provider word/onset semantics, not network latency. Current latency-marker values are `soniox: 700ms` and `deepgram_nova3: 830ms`.
 
-```python
-play_at = first_pcm_sent_wall + audio_start + video_delay
-```
-
-Publisher "video delay complete" messages are diagnostics; the live language clocks are not retimed after startup because that can create audible drift. The per-language logs include `intended_skew_ms`, which compares the actual scheduled `play_at` against the formula above and should stay near 0ms.
+Publisher "video delay complete" messages are diagnostics; the live language clocks are not retimed after startup because that can create audible drift. The per-language logs include `intended_skew_ms`, which compares the actual scheduled `play_at` against the provider-normalized formula above and should stay near 0ms.
 
 The TTS worker holds the audio until `play_at`, then plays at the exact scheduled time. If translate+TTS takes too long and `play_at` has already passed, the utterance is dropped.
 
 ### Server mode timing
 
-In demo server mode, the worker computes one authoritative `target_start` and gives each language pipeline the same schedule basis. In live server mode, the STT callback passes the already-computed live `play_at` through to each language; `MatchWorker` must not recompute it from `pipe.video_start + audio_start`.
+In demo server mode, the worker computes one authoritative `target_start` and gives each language pipeline the same schedule basis. In live server mode, the STT callback passes the already-computed live `play_at` through to each language; `MatchWorker` applies only the provider offset and must not recompute from `pipe.video_start + audio_start`.
 
-## Deepgram Configuration
+## Provider Configuration
+
+Live mode supports Deepgram Nova-3 and Soniox realtime. `stt_provider` selects the provider per match or per manual start request. `stt_endpoint_delay_ms` controls Soniox endpointing; `max_stt_duration` is enforced on both providers to prevent turns that overrun the video-delay budget.
+
+Deepgram Nova-3 configuration:
 
 ```python
 model="nova-3", language="en", encoding="linear16", sample_rate=16000,
@@ -81,10 +83,12 @@ punctuate="true", smart_format="true", interim_results="true",
 endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 ```
 
-- `endpointing=200`: Deepgram fires speech_final after 200ms silence (faster turns)
+- `endpointing=500`: Deepgram fires `speech_final` after 500ms silence in the current live tuning
 - `utterance_end_ms=1000`: Minimum allowed by Deepgram API
 - `is_final=True` results are processed; interims are monitored for forced splitting
 - `keyterm`: player/team names for recognition boost. For live matches, keyterms are generated dynamically from the Sportradar lineups API and stored under `match_data/{match_id}/keyterms.txt` (full names, surnames, team names, venue, referees). Static `TERMS_LIST` remains a fallback.
+
+Soniox realtime uses `model=stt-rt-v4`, keyterm context from the same roster-derived terms, speaker-aware tokens when available, and client-side turn emission at `stt_endpoint_delay_ms` or `max_stt_duration`.
 
 ## Latency Budget
 
@@ -120,13 +124,13 @@ Forced:   interim(5.0s) → SPLIT emit → is_final(7.6s) → REMAINDER emit (fr
 
 Two approaches:
 
-### Static corrections (legacy)
+### Global football corrections
 
-`apply_corrections()` in `lib/corrections.py` fixes common Deepgram misrecognitions via string replacement. Applied before translation in the live pipeline.
+`GLOBAL_FOOTBALL_CORRECTIONS` in `lib/corrections.py` fixes high-confidence football misrecognitions such as contextual "Freak has been given" -> "Free kick has been given". These corrections are applied before translation for both Deepgram and Soniox.
 
-### Roster-based correction (preferred for new matches)
+### Roster-based correction
 
-The player roster from Sportradar lineups API is included in the GPT translation prompt. GPT fixes name errors during translation — no per-match corrections list needed. See `TRANSLATE_SYSTEM_WITH_ROSTER` in `lib/translator.py`.
+The live path then applies deterministic roster/keyterm name correction in `lib/translator.py` before fan-out. It removes commas inside known full names, fixes wrong first names before known surnames, and applies close capitalized-name matches. The player roster from Sportradar lineups API is also included in the GPT translation prompt (`TRANSLATE_SYSTEM_WITH_ROSTER`) so translations keep football names in context.
 
 ## Language Switching
 

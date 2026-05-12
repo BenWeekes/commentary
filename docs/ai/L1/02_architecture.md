@@ -4,7 +4,7 @@
 
 ## What We're Building
 
-A live commentary translation service for live football matches. The primary commentary source is **STT from the live commentator's audio**, transcribed via Deepgram. SR (Sportradar) AI-generated text is a secondary, lower-priority gap-filler — it plays only when the commentator is silent.
+A live commentary translation service for live football matches. The primary commentary source is **STT from the live commentator's audio**, transcribed via the configured live STT provider. SR (Sportradar) AI-generated text is a secondary, lower-priority gap-filler — it plays only when the commentator is silent.
 
 Both sources are translated and spoken via TTS, synced to delayed video so the viewer hears translated commentary at the exact moment the original was spoken.
 
@@ -34,7 +34,7 @@ matches.yaml
                           └────────────────────────────┘
 ```
 
-**Key design**: one Deepgram STT connection per match, shared across all languages. The `_on_utterance` callback fans each corrected utterance to all language pipelines (translate → TTS → Go publisher → Agora channel).
+**Key design**: one STT connection per match, shared across all languages. Live mode can use Deepgram Nova-3 or Soniox realtime depending on `stt_provider`; the `_on_utterance` callback fans each corrected utterance to all language pipelines (translate → TTS → Go publisher → Agora channel).
 
 ### Server vs dev mode
 
@@ -109,7 +109,7 @@ Source Agora Channel
                             │                     │
                     PCM stdout → Python    Delay buffer (video_delay seconds)
                             │                     │
-                    Deepgram STT → Correct        │
+                    STT provider → Correct        │
                             │                     │
                    _on_utterance fan-out           │
                             │                     │
@@ -127,6 +127,7 @@ Components:
 
 - `server/live_source.py` — resolves `agora`, `srt`, or `srt_direct` and owns any required source-side processes
 - `subscribe_audio.go` (`go-audio-video-publisher/cmd/subscribe_audio/`) — subscribes to the resolved source channel, writes commentary/program PCM to stdout. Python STT reads from this process's stdout via `pcm_stream_from_pipe()`.
+- `lib/stt_pipeline.py` / `lib/soniox_stt_pipeline.py` — live STT provider implementations. Deepgram Nova-3 remains supported; Soniox realtime (`stt-rt-v4`) is the current preferred live-demo path because it produced better football STT on the Mainz/Union evaluation clip.
 - `relay_publish.go` (`go-audio-video-publisher/cmd/relay_publish/`) — subscribes to resolved source video and optional atmosphere, holds frames in a delay buffer for `video_delay` seconds, then publishes to the output channel. Audio output is delayed source atmosphere mixed with translated TTS from stdin when source atmosphere is enabled.
 - One `relay_publish` process per language.
 
@@ -166,14 +167,17 @@ Live auto-managed matches are now handled by `server/scheduler.py`. The schedule
 The Go publisher/relay delays video by `--video-delay` seconds. Current live configs use 14s.
 The STT audio feed starts immediately, giving translations a head start.
 
-For STT utterances:
-  play_at = video_start + audio_start
+For live STT utterances:
+  play_at = source_media_start_wall + audio_start + video_delay + provider_offset
 
-  video_start = wall time when Go publisher finishes the delay and sends first frame
-  audio_start = when the commentator spoke (from Deepgram)
+  source_media_start_wall = live source media origin captured by the SRT/direct publisher
+  audio_start = when the commentator spoke, in provider audio time
+  video_delay = configured delay used by the relay/video path
+  provider_offset = configured per-STT-provider alignment offset, e.g. Soniox 700ms,
+                    Deepgram Nova-3 830ms on the latency marker clip
 
-  Since the audio feed started video_delay seconds before video_start,
-  translations are typically ready ~1-2s before play_at.
+  This keeps translated audio aligned to the corresponding delayed video frame even if
+  SRT source startup and relay startup do not happen exactly video_delay seconds apart.
 
 For SR events:
   play_at = match_time_start + event_offset
@@ -188,7 +192,7 @@ In the current codebase, the SR-event branch above applies to demo/event-file mo
 
 1. Go publisher connects to Agora, starts reading audio from stdin immediately
 2. The worker computes a shared `target_start` for all translated output channels
-3. STT pipeline starts — audio feed begins, Deepgram processes in real-time
+3. STT pipeline starts — audio feed begins, the selected STT provider processes in real-time
 4. Go publisher waits until `target_start` / finishes its delay buffer
 5. After delay, publisher starts sending video and confirms `video delay complete`
 6. Translations from step 3 are already ready → play in sync with video
@@ -207,7 +211,7 @@ In server mode, each language has its own Go publisher/relay, but the MatchWorke
 2. Compute shared `target_start = now + connection_margin + relay_delay`
 3. Store that target in `video_start_ref` for STT scheduling
 4. Start each per-language relay with `--start-at {target_start}`
-5. Start STT immediately so Deepgram, translation, and TTS work during the delay window
+5. Start STT immediately so STT, translation, and TTS work during the delay window
 6. Treat publisher "video delay complete" timestamps as diagnostics only; do not retime language clocks after startup
 
 ## Translation Optimization
@@ -220,7 +224,15 @@ When multiple items are queued in a TTSEngine, a `ThreadPoolExecutor(max_workers
 
 ### OpenAI warmup
 
-The first translation call per process can incur a cold-start penalty. In server mode, `MatchWorker._run_demo()` fires one throwaway "Kick off." translation per language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This absorbs the cold-start before the pipeline is timing-sensitive.
+The first translation call per process can incur a cold-start penalty. In server mode, `MatchWorker` fires one throwaway "Kick off." translation per non-English language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This applies to both file-demo and live/demo-SRT paths so startup cost is not paid by the first real utterance.
+
+### STT turn sizing
+
+Live mode must bound STT turn duration. If a provider emits a turn longer than `video_delay`, the play deadline can already be in the past before translation starts. Deepgram has interim force-splitting in `lib/stt_pipeline.py`; Soniox has client-side force emission in `lib/soniox_stt_pipeline.py` using the same `max_stt_duration` match setting. The current live-demo candidate is Soniox `stt-rt-v4`, `stt_endpoint_delay_ms=1500`, `max_stt_duration=6.5`, and `video_delay=14`.
+
+### Name correction
+
+Live correction has two deterministic layers. First, `GLOBAL_FOOTBALL_CORRECTIONS` fixes high-confidence football commentary STT errors such as contextual "Freak has been given" -> "Free kick has been given"; this is applied for both Deepgram and Soniox. Second, `correct_names_text_code()` fixes only high-confidence proper-name patterns such as comma insertion inside a known full name, wrong first name before a known surname, or a close capitalized name match. The older LLM name-correction helper remains available for offline experiments, but the live path avoids it because tail latency can exceed the available playback budget.
 
 ## Playback Rules
 
@@ -280,7 +292,7 @@ The "Original" toggle plays the source English commentary audio synced to video,
 | `--events-offset` | 0 | Match-time offset for events replay |
 | `--lang` | es | Default translation language (dev mode) |
 | `--atmosphere` | none | Path to atmosphere WAV (16kHz mono) |
-| `endpointing` | 200ms | Deepgram VAD — shorter = faster turn detection |
+| `endpointing` | 500ms | Deepgram VAD — shorter = faster turn detection |
 | `utterance_end_ms` | 1000ms | Deepgram utterance boundary (minimum 1000ms) |
 
 ## Translation Models
@@ -301,7 +313,7 @@ The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4` wit
 
 ElevenLabs is requested with `speed=1.0`, `stability=1.0`, and `similarity_boost=1.0`. The engine does not ask ElevenLabs to speak faster by default; instead it fits generated PCM locally only when needed.
 
-When a translated STT clip is longer than the available gap before the next STT play time, `TTSEngine` runs ffmpeg `atempo` on the PCM to shorten it without changing pitch. The cap is `2.5x`, and a small guard keeps audio from colliding with the next STT item. Language logs record the applied speed as `speed` / `local_speed_factor`, plus `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, and `fit_cpu_ms`.
+When the next STT play time is already known, `TTSEngine` fits the current generated PCM into the available gap before that next STT item, using ffmpeg `atempo` without changing pitch. The fit is capped to `1.5x` speed-up and `0.667x` slow-down; if the next STT play time is not known yet, the engine keeps the generated duration rather than fitting to provider word spans. Language logs record the applied speed as `speed` / `local_speed_factor`, plus `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, and `fit_reason`.
 
 ## Roster-Aware Translation
 

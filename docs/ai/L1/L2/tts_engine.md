@@ -83,14 +83,15 @@ The lookahead saves the full playback duration (typically 3-5s) from the next it
 
 ElevenLabs is called with `speed=1.0`, `stability=1.0`, and `similarity_boost=1.0`. The engine keeps the voice stable and performs dynamic speed changes locally after audio is generated.
 
-When an STT item has a later STT item queued, `_fit_current_audio_to_next_play_at()` compares the generated PCM duration with the available window before the next STT `play_at`, minus a small guard. If the clip needs more than a 5% reduction, it runs ffmpeg `atempo` on the PCM:
+When an STT item has a later STT item queued, `_fit_current_audio_to_next_play_at()` compares the generated PCM duration with the available window before the next STT `play_at`, minus a small guard. If the clip differs by more than 5%, it runs ffmpeg `atempo` on the PCM:
 
 - pitch is preserved by `atempo`
 - factors above `2.0x` are chained as multiple `atempo` filters
-- the maximum local speed factor is `2.5x`
+- the factor is clamped to `0.667x` slow-down through `1.5x` speed-up
 - SR events are not used as the fit deadline; the fit target is the next STT item
+- provider word spans are logged but are not used as hard target durations because they can describe acoustic onset differently from perceived TTS duration
 
-The result metadata includes `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, and `fit_cpu_ms`, which are written to per-language JSONL logs.
+The result metadata includes `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, and `fit_reason`, which are written to per-language JSONL logs.
 
 ## Scheduling
 
@@ -187,7 +188,7 @@ Typical fields sent to `on_telemetry`:
 - `play_at`
 - `pre_translated` — `true` if translation was served from the pre-translation cache
 - `queue_wait_ms` — milliseconds the item spent waiting in the queue before processing started
-- `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms` — local ffmpeg speed-fitting telemetry
+- `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, `fit_reason` — local ffmpeg speed-fitting telemetry
 
 ## Audio Chunk Format
 

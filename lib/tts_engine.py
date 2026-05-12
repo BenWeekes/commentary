@@ -109,7 +109,8 @@ class TTSEngine:
         self._elevenlabs_speed = 1.0
         self._elevenlabs_stability = 1.0
         self._elevenlabs_similarity_boost = 1.0
-        self._max_local_speed = 2.5
+        self._min_local_speed = 1.0 / 1.5
+        self._max_local_speed = 1.50
         self._fit_guard_s = 0.05
         self._late_start_grace_s = 0.05
         # Video-relative timestamp (set by pipeline after publisher starts)
@@ -394,6 +395,7 @@ class TTSEngine:
                         "fit_to_ms": meta.get("fit_to_ms"),
                         "fit_deadline_ms": meta.get("fit_deadline_ms"),
                         "fit_cpu_ms": meta.get("fit_cpu_ms"),
+                        "fit_reason": meta.get("fit_reason"),
                     })
                 except Exception:
                     pass
@@ -514,13 +516,16 @@ class TTSEngine:
     def _atempo_filter(self, factor):
         parts = []
         remaining = factor
+        while remaining < 0.5:
+            parts.append("atempo=0.5")
+            remaining /= 0.5
         while remaining > 2.0:
             parts.append("atempo=2.0")
             remaining /= 2.0
         parts.append(f"atempo={remaining:.6f}")
         return ",".join(parts)
 
-    def _speed_up_pcm(self, pcm_bytes, factor):
+    def _tempo_pcm(self, pcm_bytes, factor):
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
             "-f", "s16le", "-ar", str(SAMPLE_RATE), "-ac", "1", "-i", "pipe:0",
@@ -528,6 +533,27 @@ class TTSEngine:
             "-f", "s16le", "-ar", str(SAMPLE_RATE), "-ac", "1", "pipe:1",
         ]
         return subprocess.check_output(cmd, input=pcm_bytes)
+
+    def _item_fields(self, item):
+        if not isinstance(item, tuple):
+            return item, None, None, None, None
+        if len(item) == 5:
+            return item
+        if len(item) == 4:
+            text, play_at, translate_fn, enqueued_at = item
+            return text, play_at, translate_fn, enqueued_at, None
+        text = item[0] if len(item) > 0 else None
+        play_at = item[1] if len(item) > 1 else None
+        translate_fn = item[2] if len(item) > 2 else None
+        enqueued_at = item[3] if len(item) > 3 else None
+        target_duration_s = item[4] if len(item) > 4 else None
+        return text, play_at, translate_fn, enqueued_at, target_duration_s
+
+    def _fit_current_audio_to_target_duration(self, result):
+        # Provider word spans are not consistently a good natural speech
+        # duration target. Pacing is based on the next scheduled STT gap when
+        # that gap is known; otherwise we keep the generated duration.
+        return
 
     def _fit_current_audio_to_next_play_at(self, result):
         play_at = result.get("play_at")
@@ -548,13 +574,13 @@ class TTSEngine:
 
         current_s = len(pcm_bytes) / (SAMPLE_RATE * 2)
         needed = current_s / available_s
-        if needed <= 1.05:
+        if 0.95 <= needed <= 1.05:
             return
 
-        factor = min(needed, self._max_local_speed)
+        factor = max(self._min_local_speed, min(needed, self._max_local_speed))
         try:
             started = time.monotonic()
-            fitted = self._speed_up_pcm(pcm_bytes, factor)
+            fitted = self._tempo_pcm(pcm_bytes, factor)
             elapsed_ms = (time.monotonic() - started) * 1000
         except Exception as e:
             print(f"  [{self._vts()}] [TTS #{result.get('uid')}] speed-fit failed: {e}")
@@ -567,12 +593,17 @@ class TTSEngine:
         result["fit_to_ms"] = round(fitted_s * 1000)
         result["fit_deadline_ms"] = round(available_s * 1000)
         result["fit_cpu_ms"] = round(elapsed_ms)
-        capped = " capped" if needed > self._max_local_speed else ""
-        print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Speed-fit {current_s:.2f}s → "
+        result["fit_reason"] = "next_play_at"
+        capped = ""
+        if needed > self._max_local_speed:
+            capped = " capped_fast"
+        elif needed < self._min_local_speed:
+            capped = " capped_slow"
+        print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Gap-fit {current_s:.2f}s → "
               f"{fitted_s:.2f}s for {available_s:.2f}s window "
               f"(factor={factor:.2f}x{capped}, atempo={elapsed_ms:.0f}ms)")
 
-    def speak(self, text, interrupt=False, play_at=None, translate_fn=None):
+    def speak(self, text, interrupt=False, play_at=None, translate_fn=None, target_duration_s=None):
         """
         Non-blocking. Queues text for sequential TTS playback.
         text: English text to speak (will be translated just-in-time if translate_fn set)
@@ -623,7 +654,7 @@ class TTSEngine:
                 try:
                     stale_item = self._text_queue.get_nowait()
                     int_discarded += 1
-                    stale_text, stale_play_at, _, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None, None)
+                    stale_text, stale_play_at, _, _, _ = self._item_fields(stale_item)
                     self._skipped_meta.append({
                         "source": "stt", "status": "replaced",
                         "uid": None, "text": stale_text,
@@ -673,12 +704,12 @@ class TTSEngine:
                 while not self._text_queue.empty():
                     try:
                         queued_item = self._text_queue.get_nowait()
-                        _, item_play_at, _, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None, None)
+                        _, item_play_at, _, _, _ = self._item_fields(queued_item)
                         if item_play_at and item_play_at > now:
                             keep.append(queued_item)
                         else:
                             discarded += 1
-                            stale_text, stale_play_at, _, _ = queued_item if isinstance(queued_item, tuple) else (queued_item, None, None, None)
+                            stale_text, stale_play_at, _, _, _ = self._item_fields(queued_item)
                             self._skipped_meta.append({
                                 "source": "stt", "status": "replaced",
                                 "uid": None, "text": stale_text,
@@ -721,7 +752,7 @@ class TTSEngine:
                 if discarded:
                     print(f"  [{self._vts()}] [TTS] Replaced {discarded} stale queued item(s)"
                           f"{f' (kept {len(keep)})' if keep else ''}")
-            self._text_queue.put((text, play_at, translate_fn, time.time()))
+            self._text_queue.put((text, play_at, translate_fn, time.time(), target_duration_s))
             self._pretranslate_queued()
 
     def clear_stt(self):
@@ -761,7 +792,7 @@ class TTSEngine:
             try:
                 stale_item = self._text_queue.get_nowait()
                 stt_cleared += 1
-                stale_text, stale_play_at, _, _ = stale_item if isinstance(stale_item, tuple) else (stale_item, None, None, None)
+                stale_text, stale_play_at, _, _, _ = self._item_fields(stale_item)
                 self._skipped_meta.append({
                     "source": "stt", "status": "suppressed",
                     "uid": None, "text": stale_text,
@@ -798,7 +829,7 @@ class TTSEngine:
             for it in items:
                 if not isinstance(it, tuple):
                     continue
-                text, play_at, translate_fn, _ = it
+                text, play_at, translate_fn, _, _ = self._item_fields(it)
                 if not translate_fn:
                     continue
                 key = (text, play_at)
@@ -929,10 +960,7 @@ class TTSEngine:
     def _process_item(self, item):
         """Translate + fetch TTS for a single queue item. Returns result dict or None on failure.
         Pushes audio to whatever buffer _tts_target_buf points to."""
-        if isinstance(item, tuple):
-            text, play_at, translate_fn, enqueued_at = item
-        else:
-            text, play_at, translate_fn, enqueued_at = item, None, None, None
+        text, play_at, translate_fn, enqueued_at, target_duration_s = self._item_fields(item)
 
         self._utterance_id += 1
         uid = self._utterance_id
@@ -986,6 +1014,7 @@ class TTSEngine:
             "uid": uid, "text": text, "translated": translated, "play_at": play_at,
             "voice_id": voice_id, "tts_time": tts_time, "translate_time": translate_time,
             "pre_translated": pre_xlat_hit, "queue_wait_ms": int(queue_wait * 1000),
+            "target_duration_s": target_duration_s,
         }
 
     def _tts_worker(self):
@@ -1037,7 +1066,7 @@ class TTSEngine:
                         buf_ms = len(self._audio_buf) * 10
                         self._audio_buf.clear()
                     # Emit telemetry for dropped-during-TTS items
-                    item_text, item_play_at, _, _ = item if isinstance(item, tuple) else (item, None, None, None)
+                    item_text, item_play_at, _, _, _ = self._item_fields(item)
                     interrupted_by = "stt_interrupt" if self._interrupt.is_set() else "tts_interrupt"
                     self._skipped_meta.append({
                         "source": "stt", "status": "replaced" if self._interrupt.is_set() else "dropped",
@@ -1084,6 +1113,7 @@ class TTSEngine:
             buf_ms = buf_chunks * 10
             tts_time = result["tts_time"]
             play_at = result["play_at"]
+            self._fit_current_audio_to_target_duration(result)
             self._fit_current_audio_to_next_play_at(result)
             buf_chunks = len(self._audio_buf)
             buf_ms = buf_chunks * 10
@@ -1134,6 +1164,7 @@ class TTSEngine:
                             "fit_to_ms": result.get("fit_to_ms"),
                             "fit_deadline_ms": result.get("fit_deadline_ms"),
                             "fit_cpu_ms": result.get("fit_cpu_ms"),
+                            "fit_reason": result.get("fit_reason"),
                         })
                         continue
             else:
@@ -1161,6 +1192,7 @@ class TTSEngine:
                     "fit_to_ms": result.get("fit_to_ms"),
                     "fit_deadline_ms": result.get("fit_deadline_ms"),
                     "fit_cpu_ms": result.get("fit_cpu_ms"),
+                    "fit_reason": result.get("fit_reason"),
                 })
                 continue
 
@@ -1225,7 +1257,7 @@ class TTSEngine:
                                 self._lookahead_buf.clear()
                             # Emit telemetry for lookahead dropped during TTS
                             if not la_result and next_item:
-                                la_text, la_play_at, _, _ = next_item if isinstance(next_item, tuple) else (next_item, None, None, None)
+                                la_text, la_play_at, _, _, _ = self._item_fields(next_item)
                                 interrupted_by = "stt_interrupt" if self._interrupt.is_set() else "lookahead_interrupt"
                                 self._skipped_meta.append({
                                     "source": "stt", "status": "replaced" if self._interrupt.is_set() else "dropped",
