@@ -66,7 +66,11 @@ commentary/
 │       ├── send_h264_uid73.go     # H.264 video only
 │       └── send_encoded_audio_uid74.go
 ├── tools/
-│   └── repacketize_h264.py        # Offline helper used to inspect / prototype clean Annex B AUs from SRT pulls
+│   ├── repacketize_h264.py        # Offline helper used to inspect / prototype clean Annex B AUs from SRT pulls
+│   ├── run_live_stt_eval.py       # Realtime STT provider/config evaluator against a gold transcript
+│   ├── run_translation_eval.py    # Soniox streaming translation vs GPT full-turn translation evaluator
+│   ├── build_stt_compare_page.py  # Static HTML comparison page builder for gold vs provider turns
+│   └── build_latency_test_clip.sh # Generates the 5s marker MP4 used by latency_test
 └── docs/ai/                       # Progressive disclosure docs
 ```
 
@@ -99,6 +103,15 @@ commentary/
 | `lib/sr_prefetcher.py` | `SRPrefetcher` class — SR prefetch, scheduling, metadata propagation into `TTSEngine` SR telemetry | `lib.constants`, `lib.tts_engine` |
 | `lib/stt_pipeline.py` | Deepgram Nova-3 STT, word timing extraction, forced splitting, live scheduling | `lib.corrections`, `lib.audio` |
 | `lib/soniox_stt_pipeline.py` | Soniox `stt-rt-v4` realtime STT, speaker-aware turn emission, global football corrections, max-duration splitting | `lib.corrections` |
+
+## Module Map — tools/ (evaluation and media helpers)
+
+| Tool | Purpose | Typical output |
+|---|---|---|
+| `tools/run_live_stt_eval.py` | Streams a fixed 16 kHz mono WAV at realtime pace through Deepgram Flux, Deepgram Nova-3, and/or Soniox with keyterms, then scores against a gold transcript. | `summary.md`, `summary.json`, `{provider}/turns.json`, `{provider}/score.json` under the chosen eval directory |
+| `tools/run_translation_eval.py` | Compares Soniox streaming translation against GPT full-turn translation for one target language using the same source turns/keyterms. | `summary.md`, `summary.json`, `aligned_translation_compare.json`, provider turn JSON under the chosen eval directory |
+| `tools/build_stt_compare_page.py` | Builds a static browser page showing gold turns beside realtime STT output and WER/similarity details. | `stt_compare_*.html` |
+| `tools/build_latency_test_clip.sh` | Generates `clips/latency_test/source.mp4`, a 5-minute video with visible and spoken 5-second markers for sync checks. | `clips/latency_test/source.mp4` |
 
 ## Module Map — live_match.py (dev-mode orchestrator)
 

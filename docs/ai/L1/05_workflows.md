@@ -210,6 +210,14 @@ On `status.html`, manual demo-live rows expose an STT provider selector before S
 
 Provider timing is normalized with per-provider offsets before TTS scheduling. The latency marker clip currently uses `soniox: 700ms` and `deepgram_nova3: 830ms`. These offsets compensate provider word/onset semantics only; the shared scheduler still uses the same source media clock and `video_delay` for all providers.
 
+`matches_live.yaml` includes `latency_test`, a short demo-live row for visible/spoken timing markers. Build or rebuild the source clip with:
+
+```bash
+DURATION=300 INTERVAL=5 OUT=clips/latency_test/source.mp4 tools/build_latency_test_clip.sh
+```
+
+Start `latency_test` from `status.html`, then compare Original with `en` or another translated channel. The visible `MARK N` should align with the spoken "Mark N seconds" phrase after the configured provider offset is applied.
+
 Speaker-specific TTS voices can be configured per match with:
 
 ```yaml
@@ -247,6 +255,40 @@ Recent eval learnings:
 - TTS tempo fitting should target the known gap before the next STT item, not raw STT provider word spans. Current bounds are `0.667x` to `1.5x`; if the next STT play time is unknown, keep the generated duration.
 
 For a short live-clock smoke test, run `test_live_pipeline.py` with `--assert-skew-ms 50 --stop-after-utterances N` against a live/demo source. The test fails if live `intended_skew_ms` drifts beyond the threshold.
+
+### Evaluation tooling
+
+Use the offline/realtime eval tools when changing STT provider settings, endpointing, keyterms, or translation strategy. They do not start Agora publishers or cloud recordings; they stream a fixed WAV at realtime pace and write artifacts under `match_data/.../eval/...`.
+
+Realtime STT provider comparison:
+
+```bash
+.venv/bin/python tools/run_live_stt_eval.py \
+  --audio match_data/m05_uni_md33/eval/20260510_190915/source_mono_16000.wav \
+  --gold match_data/m05_uni_md33/eval/20260510_190915/gold_soniox_corrected/turns.json \
+  --keyterms match_data/m05_uni_md33/eval/20260510_190915/soniox_improved/improved_keyterms.txt \
+  --providers flux,nova,soniox \
+  --nova-configs 500:1500:8 \
+  --flux-configs 0.8:2000 \
+  --soniox-endpoints 1000,1500 \
+  --out match_data/m05_uni_md33/eval/20260510_190915/live_stt_eval
+```
+
+Outputs include `summary.md`, `summary.json`, and per-provider `turns.json` / `score.json`. The headline metrics are WER versus the gold transcript, turn fragmentation, boundary timing, and median/p90 STT latency.
+
+Translation strategy comparison:
+
+```bash
+.venv/bin/python tools/run_translation_eval.py \
+  --audio match_data/m05_uni_md33/eval/20260510_190915/source_mono_16000.wav \
+  --turns match_data/m05_uni_md33/eval/20260510_190915/live_stt_eval/soniox_rt_endpoint1500/turns.json \
+  --keyterms match_data/m05_uni_md33/eval/20260510_190915/soniox_improved/improved_keyterms.txt \
+  --lang es \
+  --duration 300 \
+  --out match_data/m05_uni_md33/eval/20260510_190915/translation_eval_es
+```
+
+Outputs include `summary.md`, `summary.json`, `aligned_translation_compare.json`, `soniox_translation_turns.json`, and `gpt_translation_turns.json`. Use it to compare Soniox streaming translation latency/wording with the current GPT full-turn translation before changing the live translation path.
 
 ### Fully standalone browser watch
 
