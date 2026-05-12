@@ -65,6 +65,7 @@ def start_srt_original_publish(
     atmos_audio_stream_index: int = -1,
     app_id: str,
     app_cert: str,
+    max_attempts: int = 0,
 ) -> subprocess.Popen:
     """Start an original viewer publisher from SRT with a small jitter buffer."""
     return _start_srt_publish(
@@ -81,6 +82,7 @@ def start_srt_original_publish(
         video_listen=video_listen,
         audio_stream_index=audio_stream_index,
         atmos_audio_stream_index=atmos_audio_stream_index,
+        max_attempts=max_attempts,
     )
 
 
@@ -99,6 +101,7 @@ def _start_srt_publish(
     video_listen: str = "",
     audio_stream_index: int = -1,
     atmos_audio_stream_index: int = -1,
+    max_attempts: int = 0,
 ) -> subprocess.Popen:
     """Start a long-running SRT publisher process."""
     env = os.environ.copy()
@@ -127,7 +130,7 @@ def _start_srt_publish(
         "--video-mode", video_mode,
         "--source-buffer-seconds", str(source_buffer_seconds),
         "--retry-seconds", str(retry_seconds),
-        "--max-attempts", "0",
+        "--max-attempts", str(max_attempts),
         "--audio-stream-index", str(audio_stream_index),
         "--atmos-audio-stream-index", str(atmos_audio_stream_index),
     ]

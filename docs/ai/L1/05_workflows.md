@@ -202,7 +202,7 @@ http://localhost:8080/viewer_live.html?match=livepipe_e2e01&lang=es
 
 ### Demo artifacts through local SRT
 
-Use this when you need to test live SRT timing with known demo media. `source.type = demo_srt_direct` starts one owned FFmpeg looper for `clips/bmg_fch_demo_5min/source.mp4` plus `clips/bmg_fch_demo_5min/atmosphere.wav`, publishes that as MPEG-TS over local SRT, then runs the normal `srt_direct` live path against it.
+Use this when you need to test live SRT timing with known demo media. `source.type = demo_srt_direct` starts one owned FFmpeg process for the configured demo media, publishes it as MPEG-TS over local SRT, then runs the normal `srt_direct` live path against it. Demo SRT sources default to a single pass (`demo_loop: false`) so cloud recordings do not accidentally contain repeated games.
 
 On `status.html`, manual demo-live rows expose an STT provider selector before Start. Use `Deepgram Nova-3` and `Soniox` runs on the same local SRT demo source when comparing recognition quality; the chosen provider is sent as `stt_provider` in the start request and logged by `MatchWorker`. The current preferred eval-demo setting is Soniox with `stt_endpoint_delay_ms=1500`.
 

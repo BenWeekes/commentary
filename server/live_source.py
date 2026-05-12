@@ -75,8 +75,8 @@ def _run_unique_uid(base_uid: int) -> int:
     return 100000 + ((base_uid * 1000 + int(time.time() * 1000)) % 800000)
 
 
-def _start_demo_srt_loop(source, tag: str) -> tuple[subprocess.Popen, str]:
-    """Start one looped local SRT listener for demo-live testing."""
+def _start_demo_srt_source(source, tag: str) -> tuple[subprocess.Popen, str]:
+    """Start one local SRT listener for demo-live testing."""
     port = int(source.demo_srt_port)
     srt_url = _build_demo_srt_url(port)
     with _DEMO_SRT_LOCK:
@@ -89,19 +89,16 @@ def _start_demo_srt_loop(source, tag: str) -> tuple[subprocess.Popen, str]:
             "ffmpeg",
             "-hide_banner",
             "-loglevel", "info",
-            "-stream_loop", "-1",
             "-re",
-            "-i", source.demo_media_file,
         ]
+        if source.demo_loop:
+            cmd.extend(["-stream_loop", "-1"])
+        cmd.extend(["-i", source.demo_media_file])
         if source.demo_atmosphere_file:
-            cmd.extend([
-                "-stream_loop", "-1",
-                "-re",
-                "-i", source.demo_atmosphere_file,
-                "-map", "0:v:0",
-                "-map", "1:a:0",
-                "-map", "0:a:0",
-            ])
+            if source.demo_loop:
+                cmd.extend(["-stream_loop", "-1"])
+            cmd.extend(["-re", "-i", source.demo_atmosphere_file])
+            cmd.extend(["-map", "0:v:0", "-map", "1:a:0", "-map", "0:a:0"])
             stream_map = "#0:0 video, #0:1 atmosphere, #0:2 commentary"
         else:
             cmd.extend([
@@ -119,7 +116,8 @@ def _start_demo_srt_loop(source, tag: str) -> tuple[subprocess.Popen, str]:
             "-f", "mpegts",
             f"srt://0.0.0.0:{port}?mode=listener&latency=200000",
         ])
-        print(f"[{tag}] Starting demo SRT loop on {srt_url}")
+        mode = "loop" if source.demo_loop else "single pass"
+        print(f"[{tag}] Starting demo SRT {mode} on {srt_url}")
         print(f"[{tag}] Demo stream map: {stream_map}")
         proc = subprocess.Popen(
             cmd,
@@ -244,7 +242,7 @@ def resolve_live_source(
         srt_url = source.url
         publish_uid = source.publish_uid
         if source.type == "demo_srt_direct":
-            demo_srt_proc, srt_url = _start_demo_srt_loop(source, tag)
+            demo_srt_proc, srt_url = _start_demo_srt_source(source, tag)
             publish_uid = _run_unique_uid(source.publish_uid)
 
         print(f"[{tag}] Starting direct SRT original publish → Agora channel={source.original_channel} uid={publish_uid}")
@@ -259,6 +257,7 @@ def resolve_live_source(
             video_listen="127.0.0.1:0",
             audio_stream_index=source.audio_stream_index,
             atmos_audio_stream_index=source.atmosphere_audio_stream_index,
+            max_attempts=0 if source.type != "demo_srt_direct" or source.demo_loop else 1,
             app_id=server_cfg.agora_app_id,
             app_cert=server_cfg.agora_app_cert,
         )

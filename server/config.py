@@ -22,6 +22,7 @@ class LiveSourceConfig:
     demo_media_file: str = ""
     demo_atmosphere_file: str = ""
     demo_srt_port: int = 10080
+    demo_loop: bool = False
 
 
 @dataclass
@@ -123,6 +124,7 @@ def _parse_live_source(raw_match: dict, base_dir: str = "") -> LiveSourceConfig 
             demo_media_file=demo_media_file,
             demo_atmosphere_file=demo_atmosphere_file,
             demo_srt_port=int(source_raw.get("demo_srt_port", 10080)),
+            demo_loop=bool(source_raw.get("demo_loop", False)),
         )
 
     if any(k in raw_match for k in ("source_channel", "video_uid", "atmosphere_uid", "commentary_uid")):

@@ -90,6 +90,8 @@ Per-match fields under `matches:`:
 | `speaker_voice_ids` | map | `{}` | Optional ElevenLabs voice IDs by STT speaker, e.g. `{default: {s0: "...", s1: "..."}}` or per language |
 | `languages` | list | `[es, pt, fr, tr, de]` | Target languages |
 
+For `source.type: demo_srt_direct`, `source.demo_loop` defaults to `false`. Keep recorded demos as single-pass runs; set `demo_loop: true` only for local timing probes that should intentionally repeat.
+
 File paths are resolved relative to the YAML file's directory (not the working directory).
 
 ## Audio Format
