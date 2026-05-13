@@ -32,6 +32,8 @@ speak() ──▶ _text_queue ──▶ _tts_worker coordinator ──▶ _ready
 
 This is intentionally bounded at two in-flight prepare tasks per language to avoid excessive ElevenLabs concurrency. In-flight tasks are not forcibly cancelled on interruption; if they finish stale, their prepared audio is discarded and `discarded_ms` is logged.
 
+For live STT, translation may race the configured primary model against a fast fallback before TTS starts. The prepared result carries `translation_model_used` and `translation_fallback_reason` through to playback telemetry, including dropped/replaced items, so deadline misses can be separated from fallback wins.
+
 The older `_pretranslate_executor` cache remains present for compatibility but the live STT path now relies on full parallel preparation rather than translation-only lookahead.
 
 ### _tts_worker coordinator

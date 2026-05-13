@@ -226,7 +226,7 @@ This does not fix structurally late STT turns where the provider emits the utter
 
 ### OpenAI warmup
 
-The first translation call per process can incur a cold-start penalty. In server mode, `MatchWorker` fires one throwaway "Kick off." translation per non-English language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This applies to both file-demo and live/demo-SRT paths so startup cost is not paid by the first real utterance.
+The first translation call per process can incur a cold-start penalty. In server mode, `MatchWorker` fires one throwaway "Kick off." translation per non-English language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This warms both the configured primary model and the fast fallback model, and applies to file-demo plus live/demo-SRT paths so startup cost is not paid by the first real utterance.
 
 ### STT turn sizing
 
@@ -310,6 +310,10 @@ Two models are benchmarked for translation:
 The live prompt tells the model to translate exactly what was said, avoid adding/removing/rewriting meaning, keep length and structure close to the original, fix roster names, and use natural football terminology in the target language.
 
 The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4` with `reasoning_effort="low"` and accepts `model` and `reasoning_effort` parameters to switch. Server mode defaults to `gpt-5.4` via `server/config.py`, and `matches_live.yaml` also sets `translation_model: "gpt-5.4"`.
+
+Live STT translation uses `translate_text_with_fallback()`: it starts the configured primary translation call and a fast `gpt-4o-mini` fallback in parallel. The primary wins if it finishes inside the grace window; after that, whichever finishes first is used. The losing request is allowed to finish in the background and may still be billed. Per-language JSONL rows record `translation_model_used` and `translation_fallback_reason` so fallback usage can be audited against drops.
+
+Current live-demo evidence from `m05_uni_eval_demo` run `20260513_092754`: fallback racing removed the previous long translation tail and kept queue wait near zero, but it did not eliminate drops. Remaining drops are usually caused by STT turns arriving too close to their scheduled `play_at`, leaving less than the roughly 1.8-2.2s needed for fallback translation plus TTS. This is the best current operating point for 14s video delay: Soniox `1500ms`, bounded two-way prepare per language, local TTS gap fitting, and primary translation with fast fallback.
 
 ## TTS Speed Fitting
 

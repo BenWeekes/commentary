@@ -1,5 +1,7 @@
 import json
 import re
+import time
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from difflib import SequenceMatcher
 
 # ─── Translation ─────────────────────────────────────────────────────────
@@ -23,6 +25,7 @@ LANG_VOICES = {
     "tr": "ImsA1Fn5TNc843fFdz99",
 }
 DEFAULT_VOICE_ID = "ImsA1Fn5TNc843fFdz99"
+_TRANSLATION_RACE_EXECUTOR = ThreadPoolExecutor(max_workers=24, thread_name_prefix="translate-race")
 
 
 def voice_for_lang(lang):
@@ -90,6 +93,59 @@ def translate_text(oai_client, text, lang, model="gpt-5.4",
         kwargs["max_tokens"] = 512
     resp = oai_client.chat.completions.create(**kwargs)
     return resp.choices[0].message.content.strip()
+
+
+def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.4",
+                                 reasoning_effort="low", roster=None,
+                                 fallback_model="gpt-4o-mini",
+                                 primary_grace_s=1.5):
+    """Race the preferred translation model against a fast fallback.
+
+    The preferred model wins if it finishes within primary_grace_s. After that,
+    whichever model returns first is used. The losing request is not cancelled;
+    OpenAI calls are already in flight and may still be billed.
+    """
+    if not fallback_model or fallback_model == model:
+        translated = translate_text(
+            oai_client, text, lang, model=model,
+            reasoning_effort=reasoning_effort, roster=roster)
+        return translated, model, "primary_only"
+
+    started = time.monotonic()
+    primary = _TRANSLATION_RACE_EXECUTOR.submit(
+        translate_text, oai_client, text, lang, model, reasoning_effort, roster)
+    fallback = _TRANSLATION_RACE_EXECUTOR.submit(
+        translate_text, oai_client, text, lang, fallback_model, None, roster)
+
+    def _result_or_error(fut):
+        try:
+            return fut.result(), None
+        except Exception as exc:
+            return None, exc
+
+    done, _pending = wait({primary}, timeout=primary_grace_s)
+    if primary in done:
+        translated, exc = _result_or_error(primary)
+        if exc is None:
+            return translated, model, "primary_fast"
+        fallback_result, fallback_exc = _result_or_error(fallback)
+        if fallback_exc is None:
+            return fallback_result, fallback_model, "fallback_after_primary_error"
+        raise exc
+
+    pending = {primary, fallback}
+    while pending:
+        done, pending = wait(pending, return_when=FIRST_COMPLETED)
+        if fallback in done:
+            translated, exc = _result_or_error(fallback)
+            if exc is None:
+                return translated, fallback_model, f"fallback_after_{primary_grace_s:.1f}s"
+        if primary in done:
+            translated, exc = _result_or_error(primary)
+            if exc is None:
+                return translated, model, f"primary_after_{time.monotonic() - started:.1f}s"
+
+    return primary.result(), model, "primary_fallback_unavailable"
 
 
 NAME_CORRECTION_SYSTEM = """You correct proper names in English football commentary.

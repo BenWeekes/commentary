@@ -69,7 +69,8 @@ from lib.sr_prefetcher import SRPrefetcher
 from lib.soniox_stt_pipeline import run_soniox_stt_pipeline_live
 from lib.stt_pipeline import run_stt_pipeline_multi, run_stt_pipeline_live
 from lib.translator import (
-    correct_names_text_code, translate_text, voice_for_lang, LANG_VOICES,
+    correct_names_text_code, translate_text, translate_text_with_fallback,
+    voice_for_lang, LANG_VOICES,
 )
 from lib.tts_engine import TTSEngine, _ts
 
@@ -479,6 +480,9 @@ class MatchWorker:
                 try:
                     translate_text(self._oai_client, "Kick off.",
                                    lang, model=self._server.translation_model)
+                    translate_text(self._oai_client, "Kick off.",
+                                   lang, model="gpt-4o-mini",
+                                   reasoning_effort=None)
                 except Exception:
                     pass
             t = threading.Thread(target=_warmup, daemon=True)
@@ -1155,11 +1159,18 @@ class MatchWorker:
                     def translate(text):
                         vid = voice_for_lang(target_lang)
                         if target_lang == "en":
-                            return (text, vid)
-                        return (translate_text(
+                            return (text, vid, {
+                                "model_used": "passthrough",
+                                "fallback_reason": "english",
+                            })
+                        translated, model_used, fallback_reason = translate_text_with_fallback(
                             self._oai_client, text, target_lang,
                             model=self._server.translation_model,
-                            roster=self._roster), vid)
+                            roster=self._roster)
+                        return (translated, vid, {
+                            "model_used": model_used,
+                            "fallback_reason": fallback_reason,
+                        })
                     return translate
                 return factory
 
@@ -1369,10 +1380,18 @@ class MatchWorker:
                 def translate(t):
                     vid = self._voice_for_lang_speaker(target_lang, stt_speaker)
                     if target_lang == "en":
-                        return (t, vid)
-                    return (translate_text(
+                        return (t, vid, {
+                            "model_used": "passthrough",
+                            "fallback_reason": "english",
+                        })
+                    translated, model_used, fallback_reason = translate_text_with_fallback(
                         self._oai_client, t, target_lang,
-                        model=self._server.translation_model), vid)
+                        model=self._server.translation_model,
+                        roster=self._roster)
+                    return (translated, vid, {
+                        "model_used": model_used,
+                        "fallback_reason": fallback_reason,
+                    })
                 return translate
 
             if self._match.mode == "live":
@@ -1528,6 +1547,8 @@ class MatchWorker:
                         "provider": stt_schedule_meta.get("provider"),
                         "speaker": stt_schedule_meta.get("speaker"),
                         "trans_ms": round(xlat_time * 1000) if xlat_time else None,
+                        "translation_model_used": data.get("translation_model_used"),
+                        "translation_fallback_reason": data.get("translation_fallback_reason"),
                         "tts_ms": round(tts_time * 1000) if tts_time else None,
                         "status": status,
                         "interrupted_by": interrupted_by,

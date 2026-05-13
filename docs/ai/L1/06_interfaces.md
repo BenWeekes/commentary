@@ -256,6 +256,8 @@ Utterance fields:
 - `occurred_at` / `occurred_at_utc`
 - `occurred_end_at` / `occurred_end_at_utc`
 - `trans_ms`
+- `translation_model_used`
+- `translation_fallback_reason`
 - `tts_ms`
 - `prepare_started_at` / `prepare_started_at_utc`
 - `translate_started_at` / `translate_started_at_utc`

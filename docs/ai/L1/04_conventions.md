@@ -82,7 +82,7 @@ Per-match fields under `matches:`:
 | `atmosphere` | string | no | Path to atmosphere WAV |
 | `video_delay` | float | 7.0 | Video delay in seconds |
 | `events_offset` | int | 0 | Match-time offset for events |
-| `max_stt_duration` | float | 5.0 | Force-split threshold in seconds. Applied by Deepgram interim splitting and Soniox client-side turn splitting. Soniox treats it as a soft threshold and uses a rolling split point: latest safe sentence boundary first, then speaker change, strong pause, or clause boundary. This avoids splitting subword tokens such as `candid` / `ates`. |
+| `max_stt_duration` | float | 5.0 | Force-split threshold in seconds. Applied by Deepgram interim splitting and Soniox client-side turn splitting. Soniox treats it as a soft threshold and uses a rolling split point: latest safe sentence boundary first, then speaker change, strong pause, clause boundary, largest pause, or a clean completed-word boundary. This avoids splitting subword tokens such as `candid` / `ates` while still preventing no-punctuation turns from running far past the delay budget. |
 | `stt_provider` | string | `deepgram_nova3` | Live STT provider: `deepgram_nova3` or `soniox`; Soniox `stt-rt-v4` is the current eval-demo candidate. |
 | `stt_endpoint_delay_ms` | int | 1500 | Soniox realtime endpoint delay for final turn detection |
 | `stt_playback_offset_ms` | int | 0 | Default live STT playback offset in milliseconds, applied after provider timing normalization |
@@ -184,6 +184,7 @@ Additional telemetry fields per utterance:
 
 - `pre_translated` — legacy translation-cache flag; usually `false` in the current parallel prepare path
 - `queue_wait_ms` — milliseconds the item waited before its bounded parallel prepare task started. In the current live path this should usually be near zero; high values indicate the per-language prepare pool is saturated.
+- `translation_model_used` / `translation_fallback_reason` — which translation model produced the text and why. Values show whether the primary model was fast enough, whether the fallback won after the grace window, or whether English passthrough was used.
 - `total_buffered_ms` — total TTS audio duration in milliseconds
 - `speed` / `local_speed_factor` — local ffmpeg `atempo` factor applied to fit the known gap before the next STT item; `1.0` means no local tempo change
 - `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, `fit_reason` — generated duration, fitted duration, available playback window, ffmpeg cost, and reason (`next_play_at` for live gap fit)

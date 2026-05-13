@@ -114,30 +114,40 @@ def _best_split_index(tokens: list[dict], soft_duration: float) -> tuple[int | N
 
     best_sentence = None
     best_speaker = None
-    best_pause = None
+    best_strong_pause = None
+    best_largest_pause = None
+    best_largest_pause_s = -1.0
     best_clause = None
+    best_word = None
 
-    for idx in range(1, len(tokens)):
+    for idx in range(1, len(tokens) + 1):
         prev = tokens[idx - 1]
-        nxt = tokens[idx]
-        if _continues_word(nxt):
+        nxt = tokens[idx] if idx < len(tokens) else None
+        if nxt is not None and _continues_word(nxt):
             continue
 
         prefix = tokens[:idx]
         if turn_duration(prefix) < min(1.0, soft_duration):
             continue
 
+        best_word = idx
+
         if _ends_sentence(prev):
             best_sentence = idx
 
-        prev_speaker = prev.get("speaker")
-        next_speaker = nxt.get("speaker")
-        if prev_speaker and next_speaker and prev_speaker != next_speaker:
-            best_speaker = idx
+        if nxt is not None:
+            prev_speaker = prev.get("speaker")
+            next_speaker = nxt.get("speaker")
+            if prev_speaker and next_speaker and prev_speaker != next_speaker:
+                best_speaker = idx
 
-        gap = _token_gap_s(prev, nxt)
-        if gap is not None and gap >= 0.7:
-            best_pause = idx
+            gap = _token_gap_s(prev, nxt)
+            if gap is not None:
+                if gap >= 0.7:
+                    best_strong_pause = idx
+                if gap > best_largest_pause_s:
+                    best_largest_pause = idx
+                    best_largest_pause_s = gap
 
         if _ends_clause(prev):
             best_clause = idx
@@ -146,10 +156,14 @@ def _best_split_index(tokens: list[dict], soft_duration: float) -> tuple[int | N
         return best_sentence, "sentence"
     if best_speaker is not None:
         return best_speaker, "speaker"
-    if best_pause is not None:
-        return best_pause, "pause"
+    if best_strong_pause is not None:
+        return best_strong_pause, "pause"
     if best_clause is not None:
         return best_clause, "clause"
+    if best_largest_pause is not None:
+        return best_largest_pause, "largest_pause"
+    if best_word is not None:
+        return best_word, "word_boundary"
     return None, ""
 
 
@@ -367,7 +381,7 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
                         emit_turn(emit_tokens)
                     elif duration >= max_stt_duration_hard:
                         print(f"  [{_ts(video_start_ref[0])}] [STT-LIVE SONIOX SPLIT] "
-                              f"hard force-emitting {duration:.1f}s turn")
+                              f"hard force-emitting {duration:.1f}s turn (no safe word boundary)")
                         emit_turn(turn_tokens)
                         turn_tokens = []
                         seen_final.clear()

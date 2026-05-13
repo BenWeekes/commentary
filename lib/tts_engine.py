@@ -249,6 +249,8 @@ class TTSEngine:
                             "play_at": meta.get("play_at"),
                             "pre_translated": meta.get("pre_translated", False),
                             "queue_wait_ms": meta.get("queue_wait_ms", 0),
+                            "translation_model_used": meta.get("translation_model_used"),
+                            "translation_fallback_reason": meta.get("translation_fallback_reason"),
                         })
                     except Exception:
                         pass
@@ -281,6 +283,8 @@ class TTSEngine:
                                     "play_at": play_at,
                                     "pre_translated": meta.get("pre_translated", False),
                                     "queue_wait_ms": meta.get("queue_wait_ms", 0),
+                                    "translation_model_used": meta.get("translation_model_used"),
+                                    "translation_fallback_reason": meta.get("translation_fallback_reason"),
                                 })
                             except Exception:
                                 pass
@@ -311,6 +315,8 @@ class TTSEngine:
                                     "play_at": meta.get("play_at"),
                                     "pre_translated": meta.get("pre_translated", False),
                                     "queue_wait_ms": meta.get("queue_wait_ms", 0),
+                                    "translation_model_used": meta.get("translation_model_used"),
+                                    "translation_fallback_reason": meta.get("translation_fallback_reason"),
                                 })
                             except Exception:
                                 pass
@@ -399,6 +405,8 @@ class TTSEngine:
                         "play_at": meta.get("play_at"),
                         "pre_translated": meta.get("pre_translated", False),
                         "queue_wait_ms": meta.get("queue_wait_ms", 0),
+                        "translation_model_used": meta.get("translation_model_used"),
+                        "translation_fallback_reason": meta.get("translation_fallback_reason"),
                         "local_speed_factor": meta.get("local_speed_factor"),
                         "fit_from_ms": meta.get("fit_from_ms"),
                         "fit_to_ms": meta.get("fit_to_ms"),
@@ -447,6 +455,8 @@ class TTSEngine:
                     "play_at": meta.get("play_at"),
                     "pre_translated": meta.get("pre_translated", False),
                     "queue_wait_ms": meta.get("queue_wait_ms", 0),
+                    "translation_model_used": meta.get("translation_model_used"),
+                    "translation_fallback_reason": meta.get("translation_fallback_reason"),
                 })
             except Exception:
                 pass
@@ -575,6 +585,13 @@ class TTSEngine:
         enqueued_at = item[3] if len(item) > 3 else None
         target_duration_s = item[4] if len(item) > 4 else None
         return text, play_at, translate_fn, enqueued_at, target_duration_s
+
+    def _unpack_translate_result(self, result):
+        if isinstance(result, tuple):
+            if len(result) >= 3:
+                return result[0], result[1], result[2]
+            return result[0], result[1], None
+        return result, self.voice_id, None
 
     def _fit_current_audio_to_target_duration(self, result):
         # Provider word spans are not consistently a good natural speech
@@ -945,10 +962,7 @@ class TTSEngine:
         t0 = time.monotonic()
         try:
             result = translate_fn(text)
-            if isinstance(result, tuple):
-                translated, voice_id = result
-            else:
-                translated, voice_id = result, self.voice_id
+            translated, voice_id, translation_meta = self._unpack_translate_result(result)
         except Exception:
             return  # translation failed — _process_item will do its own call
         translate_time = time.monotonic() - t0
@@ -959,6 +973,7 @@ class TTSEngine:
                 "translated": translated,
                 "voice_id": voice_id,
                 "translate_time": translate_time,
+                "translation_meta": translation_meta,
             }
             # Evict oldest if over limit
             while len(self._pretranslated) > 10:
@@ -1069,6 +1084,7 @@ class TTSEngine:
         # Check pre-translation cache before calling translate_fn
         pre_xlat_hit = False
         voice_id = self.voice_id
+        translation_meta = None
         t_translate = time.monotonic()
         translate_started_at = time.time()
         cache_key = (text, play_at)
@@ -1078,14 +1094,12 @@ class TTSEngine:
             translated = cached["translated"]
             voice_id = cached["voice_id"]
             translate_time = cached["translate_time"]
+            translation_meta = cached.get("translation_meta")
             pre_xlat_hit = True
         elif translate_fn:
             try:
                 result = translate_fn(text)
-                if isinstance(result, tuple):
-                    translated, voice_id = result
-                else:
-                    translated = result
+                translated, voice_id, translation_meta = self._unpack_translate_result(result)
             except Exception:
                 translated = text
             translate_time = time.monotonic() - t_translate
@@ -1115,6 +1129,8 @@ class TTSEngine:
             "pre_translated": pre_xlat_hit, "queue_wait_ms": int(queue_wait * 1000),
             "target_duration_s": target_duration_s,
             "pcm_bytes": pcm_bytes or b"",
+            "translation_model_used": (translation_meta or {}).get("model_used") if isinstance(translation_meta, dict) else None,
+            "translation_fallback_reason": (translation_meta or {}).get("fallback_reason") if isinstance(translation_meta, dict) else None,
             "prepare_started_at": prepare_started_at,
             "translate_started_at": translate_started_at,
             "translate_ended_at": translate_ended_at,
@@ -1181,6 +1197,8 @@ class TTSEngine:
             "interrupted": False, "interrupted_by": interrupted_by,
             "pre_translated": result.get("pre_translated", False),
             "queue_wait_ms": result.get("queue_wait_ms", 0),
+            "translation_model_used": result.get("translation_model_used"),
+            "translation_fallback_reason": result.get("translation_fallback_reason"),
             "local_speed_factor": result.get("local_speed_factor"),
             "fit_from_ms": result.get("fit_from_ms"),
             "fit_to_ms": result.get("fit_to_ms"),
