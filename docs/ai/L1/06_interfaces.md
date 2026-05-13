@@ -15,7 +15,7 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 | `/api/matches/{id}/status` | GET | `{match_id, state, stt_utterance_count, languages, error, started_at}` | Single match status |
 | `/api/matches/{id}/channels` | GET | `{match_id, appid, channels: {lang: {channel, token, uid}}}` | Viewer tokens for all configured languages; `original` is included for live matches and for demo matches only while the original pipeline is running |
 | `/api/matches/{id}/transcript` | GET | `{match_id, transcript: [{text, ts, audio_start}]}` | Recent English STT text (last 50 utterances) |
-| `/api/matches/{id}/detail?run=YYYYMMDD_HHMMSS` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, recordings, ...}` | Match config, keyterms, current log directory, selected-run recording metadata, and persisted match metadata |
+| `/api/matches/{id}/detail?run=YYYYMMDD_HHMMSS` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, recordings, run_summary, ...}` | Match config, keyterms, current log directory, selected-run recording metadata, selected-run outcome summary, and persisted match metadata |
 | `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 10000 lines) |
 | `/api/matches/{id}/refresh-data` | POST | `{status, match_id, keyterm_count?, roster_player_count?, kickoff_utc?}` | Refresh Sportradar fixture data into `match_store` for the next live run |
 | `/api/matches/{id}/start` | POST | match status JSON | Start a demo/manual match. Optional JSON body: `{stt_provider: "deepgram_nova3"|"soniox", stt_endpoint_delay_ms?: 1500}` |
@@ -300,6 +300,10 @@ Utterance fields:
 - `name_correction_status`
 - `play_duration_ms`
 - `discarded_ms` for prepared audio abandoned before playback
+
+### Selected-run summary
+
+`/api/matches/{id}/detail?run=...` derives `run_summary` from the selected run's JSONL files. Per language it includes `fully_played`, `interrupted`, `skipped`, `total_outcomes`, and `fully_played_pct`, plus the underlying STT/SR status counters. `fully_played_pct` is the preferred headline metric for comparing runs because it treats cut-off utterances separately from cleanly skipped/dropped items.
 
 ## Dev-Mode HTTP API (live_match.py)
 

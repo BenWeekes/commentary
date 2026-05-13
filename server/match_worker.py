@@ -113,6 +113,23 @@ class MatchStatus:
     started_at: float | None = None
 
 
+def _telemetry_summary(t: LangTelemetry) -> dict:
+    interrupted = t.stt_interrupted + t.sr_interrupted
+    fully_played = max(0, t.stt_played - t.stt_interrupted) + max(0, t.sr_played - t.sr_interrupted)
+    skipped = (
+        t.stt_dropped + t.stt_replaced + t.stt_suppressed
+        + t.sr_dropped + t.sr_replaced + t.sr_suppressed
+    )
+    total = fully_played + interrupted + skipped
+    return {
+        "fully_played": fully_played,
+        "interrupted": interrupted,
+        "skipped": skipped,
+        "total_outcomes": total,
+        "fully_played_pct": round((fully_played / total) * 100, 1) if total else None,
+    }
+
+
 # ─── Language pipeline state ──────────────────────────────────────────────
 
 class _LangPipeline:
@@ -463,6 +480,7 @@ class MatchWorker:
                     "sr_dropped": pipe.telemetry.sr_dropped,
                     "sr_replaced": pipe.telemetry.sr_replaced,
                     "sr_suppressed": pipe.telemetry.sr_suppressed,
+                    **_telemetry_summary(pipe.telemetry),
                 },
             }
         return self._status

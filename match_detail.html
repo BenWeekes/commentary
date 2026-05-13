@@ -483,8 +483,9 @@
       document.getElementById('header-actions').innerHTML = actHtml;
 
       var stats = [];
-      stats.push('<span class="stat"><span class="stat-label">STT:</span><span class="stat-value">' + (data.stt_utterance_count || 0) + ' utterances</span></span>');
-      var langs = data.languages || {};
+      var runSummary = data.run_summary || {};
+      stats.push('<span class="stat"><span class="stat-label">STT:</span><span class="stat-value">' + (runSummary.stt_utterance_count || data.stt_utterance_count || 0) + ' utterances</span></span>');
+      var langs = (runSummary.languages && Object.keys(runSummary.languages).length) ? runSummary.languages : (data.languages || {});
       Object.keys(langs).forEach(function(lang) {
         var lt = langs[lang].telemetry || {};
         var interrupted = (lt.stt_interrupted || 0) + (lt.sr_interrupted || 0);
@@ -494,7 +495,12 @@
         var skipped = dropped
           + (lt.stt_replaced || 0) + (lt.sr_replaced || 0)
           + (lt.stt_suppressed || 0) + (lt.sr_suppressed || 0);
-        stats.push('<span class="stat"><span class="stat-label">' + lang.toUpperCase() + ':</span><span class="stat-value">' + played + ' played, ' + interrupted + ' interrupted, ' + skipped + ' skipped</span></span>');
+        var fullyPct = lt.fully_played_pct;
+        var fullyLabel = '';
+        if (fullyPct != null) {
+          fullyLabel = ', ' + (typeof fullyPct === 'number' ? fullyPct.toFixed(1) : fullyPct) + '% full';
+        }
+        stats.push('<span class="stat"><span class="stat-label">' + lang.toUpperCase() + ':</span><span class="stat-value">' + played + ' played, ' + interrupted + ' interrupted, ' + skipped + ' skipped' + fullyLabel + '</span></span>');
       });
       document.getElementById('summary-bar').innerHTML = stats.join('');
     }
@@ -505,7 +511,8 @@
       var data = matchData;
       var detail = detailData || {};
       var meta = detail.match_meta || {};
-      var langs = data.languages || {};
+      var runSummary = data.run_summary || {};
+      var langs = (runSummary.languages && Object.keys(runSummary.languages).length) ? runSummary.languages : (data.languages || {});
       var html = '<div class="overview-grid">';
 
       // Match info card
@@ -624,9 +631,11 @@
           var t = l.telemetry || {};
           var sttComplete = Math.max(0, (t.stt_played || 0) - (t.stt_interrupted || 0));
           var srComplete = Math.max(0, (t.sr_played || 0) - (t.sr_interrupted || 0));
+          var fullyPct = t.fully_played_pct;
           html += '<div class="lang-row">';
           html += '<span class="lang-name">' + lang.toUpperCase() + ' - ' + (LANG_NAMES[lang] || lang) + '</span>';
           html += '<span class="lang-stats">';
+          if (fullyPct != null) html += fullyPct + '% full, ';
           html += sttComplete + ' stt-play, ';
           html += srComplete + ' sr-play, ';
           html += (t.stt_interrupted || 0) + ' stt-int, ';

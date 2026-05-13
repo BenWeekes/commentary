@@ -207,6 +207,7 @@ Telemetry counters in `LangTelemetry` follow these rules:
 - `stt_cut_short_count` is allowed when a fresher STT utterance interrupts older STT
 - `sr_cut_short_count` is expected when STT preempts SR
 - separate `stt_interrupted`, `stt_dropped`, `stt_replaced`, and `stt_suppressed` counters expose the STT outcome mix in status responses
+- status responses also expose `fully_played`, `interrupted`, `skipped`, `total_outcomes`, and `fully_played_pct`. Use `fully_played_pct` as the headline quality metric for run-to-run comparison because raw drop counts can move when provider turn segmentation changes.
 
 ## Related Deep Dives
 

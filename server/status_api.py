@@ -26,6 +26,86 @@ def _next_uid():
     return uid
 
 
+def _empty_lang_summary():
+    return {
+        "stt_played": 0,
+        "sr_played": 0,
+        "stt_interrupted": 0,
+        "sr_interrupted": 0,
+        "stt_dropped": 0,
+        "sr_dropped": 0,
+        "stt_replaced": 0,
+        "sr_replaced": 0,
+        "stt_suppressed": 0,
+        "sr_suppressed": 0,
+        "fully_played": 0,
+        "interrupted": 0,
+        "skipped": 0,
+        "total_outcomes": 0,
+        "fully_played_pct": None,
+    }
+
+
+def _finalize_lang_summary(t):
+    t["interrupted"] = t["stt_interrupted"] + t["sr_interrupted"]
+    t["fully_played"] = (
+        max(0, t["stt_played"] - t["stt_interrupted"])
+        + max(0, t["sr_played"] - t["sr_interrupted"])
+    )
+    t["skipped"] = (
+        t["stt_dropped"] + t["sr_dropped"]
+        + t["stt_replaced"] + t["sr_replaced"]
+        + t["stt_suppressed"] + t["sr_suppressed"]
+    )
+    t["total_outcomes"] = t["fully_played"] + t["interrupted"] + t["skipped"]
+    if t["total_outcomes"]:
+        t["fully_played_pct"] = round((t["fully_played"] / t["total_outcomes"]) * 100, 1)
+
+
+def _read_run_summary(run_dir):
+    summary = {"languages": {}, "stt_utterance_count": 0}
+    if not run_dir or not os.path.isdir(run_dir):
+        return summary
+    try:
+        for fname in os.listdir(run_dir):
+            if not fname.endswith(".jsonl") or fname == "stt.jsonl":
+                continue
+            lang = fname[:-6]
+            t = _empty_lang_summary()
+            path = os.path.join(run_dir, fname)
+            with open(path) as f:
+                for line in f:
+                    try:
+                        row = json.loads(line)
+                    except Exception:
+                        continue
+                    if row.get("type") != "utterance":
+                        continue
+                    source = row.get("source")
+                    status = row.get("status")
+                    if source not in ("stt", "sr"):
+                        continue
+                    prefix = "stt" if source == "stt" else "sr"
+                    if status in ("played", "interrupted"):
+                        t[f"{prefix}_played"] += 1
+                        if status == "interrupted":
+                            t[f"{prefix}_interrupted"] += 1
+                    elif status in ("dropped", "replaced", "suppressed"):
+                        t[f"{prefix}_{status}"] += 1
+            _finalize_lang_summary(t)
+            summary["languages"][lang] = {"telemetry": t}
+        stt_path = os.path.join(run_dir, "stt.jsonl")
+        if os.path.isfile(stt_path):
+            with open(stt_path) as f:
+                summary["stt_utterance_count"] = sum(
+                    1 for line in f
+                    if '"type": "utterance"' in line or '"type":"utterance"' in line
+                )
+    except Exception as e:
+        summary["error"] = str(e)
+    return summary
+
+
 class StatusHandler(BaseHTTPRequestHandler):
     """HTTP handler for match status, token generation, and static files."""
 
@@ -388,6 +468,7 @@ class StatusHandler(BaseHTTPRequestHandler):
             recordings_dir = log_dir
             if selected_run:
                 recordings_dir = os.path.join(store._match_dir(match_id), "runs", selected_run)
+            run_summary = _read_run_summary(recordings_dir)
             if recordings_dir:
                 recordings_path = os.path.join(recordings_dir, "recordings.json")
                 if os.path.isfile(recordings_path):
@@ -417,6 +498,7 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "log_dir": log_dir,
                 "log_files": log_files,
                 "selected_run": selected_run,
+                "run_summary": run_summary,
                 "recordings": recordings,
                 "translation_model": self.server_config.translation_model,
                 "video_delay": match_cfg.video_delay if match_cfg else None,
