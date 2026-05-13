@@ -257,6 +257,12 @@ Utterance fields:
 - `occurred_end_at` / `occurred_end_at_utc`
 - `trans_ms`
 - `tts_ms`
+- `prepare_started_at` / `prepare_started_at_utc`
+- `translate_started_at` / `translate_started_at_utc`
+- `translate_ended_at` / `translate_ended_at_utc`
+- `tts_started_at` / `tts_started_at_utc`
+- `tts_ended_at` / `tts_ended_at_utc`
+- `ready_at` / `ready_at_utc`
 - `speed`
 - `local_speed_factor`
 - `intended_skew_ms`
@@ -278,6 +284,7 @@ Utterance fields:
 - `name_correction_ms`
 - `name_correction_status`
 - `play_duration_ms`
+- `discarded_ms` for prepared audio abandoned before playback
 
 ## Dev-Mode HTTP API (live_match.py)
 

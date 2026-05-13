@@ -102,7 +102,7 @@ Example: 5s utterance, 7s delay → 7 - 5 - 1.5 = 0.5s margin (tight)
 Example: 7s utterance, 7s delay → 7 - 7 - 1.5 = -1.5s margin (drops likely)
 ```
 
-The TTS worker uses **lookahead**: while the current utterance plays, the next one is already being translated and TTS'd in parallel. It also locally speed-fits generated PCM with ffmpeg `atempo` when the current clip would overrun the next STT play time. Speed fitting targets the next STT item only, not future SR events.
+Each language TTSEngine uses bounded parallel preparation: up to two STT utterances can be translating and generating TTS while playback remains ordered by `play_at`. It also locally speed-fits generated PCM with ffmpeg `atempo` when the current clip would overrun the next STT play time. Speed fitting targets the next STT item only, not future SR events.
 
 ## Forced Split (Long Utterance Protection)
 

@@ -252,7 +252,7 @@ Recent eval learnings:
 - `stt_endpoint_delay_ms=1500` gives more natural turns than very short endpoints while staying inside the 14s live delay for most turns.
 - Long Soniox turns must still be force-emitted with `max_stt_duration`; otherwise oversized chunks can miss `play_at` before translation starts.
 - Live correction should be deterministic and keyterm-driven. `GLOBAL_FOOTBALL_CORRECTIONS` handles high-confidence football phrases for both Deepgram and Soniox; roster/keyterm name correction then fixes proper names. An LLM correction pass found useful fixes but had high tail latency and could make semantic overcorrections.
-- TTS tempo fitting should target the known gap before the next STT item, not raw STT provider word spans. Current bounds are `0.667x` to `1.5x`; if the next STT play time is unknown, keep the generated duration.
+- TTS tempo fitting should target the known gap before the next STT item, not raw STT provider word spans. Current bounds are `0.769x` to `1.3x`; if the next STT play time is unknown, keep the generated duration.
 
 For a short live-clock smoke test, run `test_live_pipeline.py` with `--assert-skew-ms 50 --stop-after-utterances N` against a live/demo source. The test fails if live `intended_skew_ms` drifts beyond the threshold.
 

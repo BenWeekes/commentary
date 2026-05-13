@@ -1549,6 +1549,19 @@ class MatchWorker:
                         "fit_deadline_ms": data.get("fit_deadline_ms"),
                         "fit_cpu_ms": data.get("fit_cpu_ms"),
                         "fit_reason": data.get("fit_reason"),
+                        "prepare_started_at": data.get("prepare_started_at"),
+                        "prepare_started_at_utc": _utc_hms_ms(data.get("prepare_started_at")),
+                        "translate_started_at": data.get("translate_started_at"),
+                        "translate_started_at_utc": _utc_hms_ms(data.get("translate_started_at")),
+                        "translate_ended_at": data.get("translate_ended_at"),
+                        "translate_ended_at_utc": _utc_hms_ms(data.get("translate_ended_at")),
+                        "tts_started_at": data.get("tts_started_at"),
+                        "tts_started_at_utc": _utc_hms_ms(data.get("tts_started_at")),
+                        "tts_ended_at": data.get("tts_ended_at"),
+                        "tts_ended_at_utc": _utc_hms_ms(data.get("tts_ended_at")),
+                        "ready_at": data.get("ready_at"),
+                        "ready_at_utc": _utc_hms_ms(data.get("ready_at")),
+                        "discarded_ms": data.get("discarded_ms"),
                     }
                     lang_log.write(json.dumps(line) + "\n")
                     lang_log.flush()

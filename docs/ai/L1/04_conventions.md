@@ -182,11 +182,13 @@ Language-log `status` values:
 
 Additional telemetry fields per utterance:
 
-- `pre_translated` — `true` if translation was served from the pre-translation cache, `false` if inline
-- `queue_wait_ms` — milliseconds the item waited in the queue before the TTS worker started processing it
+- `pre_translated` — legacy translation-cache flag; usually `false` in the current parallel prepare path
+- `queue_wait_ms` — milliseconds the item waited before its bounded parallel prepare task started. In the current live path this should usually be near zero; high values indicate the per-language prepare pool is saturated.
 - `total_buffered_ms` — total TTS audio duration in milliseconds
 - `speed` / `local_speed_factor` — local ffmpeg `atempo` factor applied to fit the known gap before the next STT item; `1.0` means no local tempo change
 - `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, `fit_reason` — generated duration, fitted duration, available playback window, ffmpeg cost, and reason (`next_play_at` for live gap fit)
+- `prepare_started_at`, `translate_started_at`, `translate_ended_at`, `tts_started_at`, `tts_ended_at`, `ready_at` — absolute stage timestamps used to debug whether latency lived in queueing, translation, TTS generation, or playback scheduling
+- `discarded_ms` — prepared audio duration abandoned because the item was replaced or suppressed before playback; useful for estimating wasted TTS work after interruptions
 - `stt_playback_offset_ms` — effective provider-specific STT playback offset used for this utterance
 - `intended_skew_ms` — live STT schedule skew versus the provider-normalized source media schedule; provider offsets are logged separately
 - `speaker` — STT speaker label when the provider supplies diarization

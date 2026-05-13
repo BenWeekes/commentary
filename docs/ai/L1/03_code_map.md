@@ -99,7 +99,7 @@ commentary/
 | `lib/translator.py` | `LANG_NAMES`, `LANG_VOICES`, `DEFAULT_VOICE_ID`, `voice_for_lang()`, `TRANSLATE_SYSTEM`, `TRANSLATE_SYSTEM_WITH_ROSTER`, deterministic roster/keyterm name correction, `translate_text()` | standalone (takes `oai_client` param) |
 | `lib/audio.py` | `load_atmosphere()`, `convert_to_pcm()`, `pcm_chunks_realtime()` | standalone (stdlib only) |
 | `lib/events.py` | `load_events_file()` — parses `offset\|PRIORITY\|message` format | standalone |
-| `lib/tts_engine.py` | `_ts()` helper, `TTSEngine` class — TTS worker, pipe writer, lookahead, telemetry metadata slots (`_playback_meta_slot`, `_sr_playback_meta_slot`, `_skipped_meta`), two-phase shutdown (`_closing` + `_stop`) | `lib.constants` |
+| `lib/tts_engine.py` | `_ts()` helper, `TTSEngine` class — bounded parallel translate+TTS preparation, ordered playback coordinator, pipe writer, telemetry metadata slots (`_playback_meta_slot`, `_sr_playback_meta_slot`, `_skipped_meta`), two-phase shutdown (`_closing` + `_stop`) | `lib.constants` |
 | `lib/sr_prefetcher.py` | `SRPrefetcher` class — SR prefetch, scheduling, metadata propagation into `TTSEngine` SR telemetry | `lib.constants`, `lib.tts_engine` |
 | `lib/stt_pipeline.py` | Deepgram Nova-3 STT, word timing extraction, forced splitting, live scheduling | `lib.corrections`, `lib.audio` |
 | `lib/soniox_stt_pipeline.py` | Soniox `stt-rt-v4` realtime STT, speaker-aware turn emission, global football corrections, max-duration splitting | `lib.corrections` |

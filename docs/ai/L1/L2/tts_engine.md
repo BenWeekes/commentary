@@ -9,41 +9,43 @@
 ## Threading Architecture
 
 ```
-speak() ──▶ _text_queue ──▶ _tts_worker thread ──▶ _audio_buf ──▶ _pipe_writer thread ──▶ stdin pipe
-   │              │                │                     │                │
-   │         Queue()           asyncio loop          deque()         10ms timer
-   │              │           (per thread)        (thread-safe)
-   │              │                │
-   │    _pretranslate_executor     │
-   │    (2 threads, translate      │
-   │     queued items ahead)  (during drain)
-   │              │                ├──▶ _lookahead_buf ──▶ next item pre-processed
-   │              │                │     (translate + TTS fetched in parallel)
-   └── interrupt=True clears queue + buffer + lookahead + pretranslation cache
+speak() ──▶ _text_queue ──▶ _tts_worker coordinator ──▶ _ready_heap ──▶ _audio_buf ──▶ _pipe_writer ──▶ stdin pipe
+   │              │                  │                       │              │
+   │         Queue()                 │                    heapq by       deque()
+   │                                 │                    play_at        10ms timer
+   │                                 ▼
+   │                         _prepare_executor
+   │                         (2 threads per language:
+   │                          translate + ElevenLabs TTS
+   │                          into local PCM bytes)
+   └── interrupt=True clears queue + ready heap; in-flight prepare may finish and be discarded
 ```
 
-### Pre-translation executor
+### Parallel prepare executor
 
-A `ThreadPoolExecutor(max_workers=2)` translates queued items in parallel before the TTS worker reaches them. When `speak()` queues a new item, `_pretranslate_queued()` scans the queue and submits untranslated items to the executor. Results are cached in `_pretranslated` (an `OrderedDict` keyed by `(text, play_at)`, capped at 10 entries).
+`_prepare_executor = ThreadPoolExecutor(max_workers=2)` is owned by each `TTSEngine` instance. When STT queues a new item, the coordinator submits translate+TTS work as soon as a prepare slot is available. The task:
 
-When the TTS worker processes an item, it checks `_pretranslated` first. On a cache hit, translation is skipped entirely — the worker only needs to call TTS (~0.8s instead of ~3s total). This reduces effective per-item processing time from ~3s to ~1s for cache-hit items.
+- calls `translate_fn(text)` if needed
+- opens an ElevenLabs WebSocket
+- collects the whole utterance into local PCM bytes
+- returns result metadata plus `pcm_bytes`
 
-Cache is cleared on interrupt. The executor is shut down (non-blocking) during `stop()`.
+This is intentionally bounded at two in-flight prepare tasks per language to avoid excessive ElevenLabs concurrency. In-flight tasks are not forcibly cancelled on interruption; if they finish stale, their prepared audio is discarded and `discarded_ms` is logged.
 
-### _tts_worker thread
+The older `_pretranslate_executor` cache remains present for compatibility but the live STT path now relies on full parallel preparation rather than translation-only lookahead.
 
-- Runs its own `asyncio` event loop (`asyncio.new_event_loop()`)
-- Processes `_text_queue` items with **lookahead**: while the current utterance plays, the next one is translated and TTS'd in parallel
-- For each item:
-  1. Checks `_lookahead_item` — if present, uses pre-processed result (skip to step 5)
-  2. Checks `_pretranslated` cache — if hit, uses cached translation (skip to step 3)
-  3. Calls `translate_fn(text)` if provided (JIT translation, fallback when no cache hit)
-  4. Connects to ElevenLabs WebSocket
-  5. Sends text, receives base64-encoded PCM audio chunks → `_audio_buf`
-  6. If needed, runs local ffmpeg `atempo` speed fitting so this clip fits before the next queued STT play time
-  7. Waits for `play_at` time if scheduled (drops if late)
-  8. Sets `_playback_ready` event when all audio is received (full pre-buffer)
-  9. While pipe writer drains the buffer, grabs next queue item and processes into `_lookahead_buf`
+### _tts_worker coordinator
+
+The `_tts_worker` thread no longer performs translation/TTS itself. It coordinates:
+
+1. submit queued STT items into `_prepare_executor` while fewer than two are in flight
+2. move completed prepare futures into `_ready_heap`, keyed by `play_at`
+3. select the earliest ready item
+4. hold until `play_at`, or drop if it is more than the late-start grace behind
+5. apply local ffmpeg `atempo` gap fitting against the next known STT `play_at`
+6. move local PCM bytes into `_audio_buf`, set `_playback_meta_slot`, and signal `_playback_ready`
+
+Order-of-completion is not order-of-play: a later short utterance may finish TTS first, but it stays in `_ready_heap` until earlier `play_at` items have either played or been dropped.
 
 ### _pipe_writer thread
 
@@ -59,25 +61,19 @@ Cache is cleared on interrupt. The executor is shut down (non-blocking) during `
 The engine uses **full pre-buffering**: the entire utterance is downloaded from ElevenLabs before playback starts. This eliminates underruns from network jitter.
 
 ```
-Without lookahead or pre-translation (serial):
+Old serial worker:
   t0 ── xlat+TTS ── t1 ── wait ── t2 ── playback ── t3 ── xlat+TTS ── t4 ── wait ── t5
                                                       │                               │
                                                       └── next item blocked until here
 
-With lookahead (overlapped):
-  t0 ── xlat+TTS ── t1 ── wait ── t2 ──── playback ──── t3
-                                    │    ↑ next xlat+TTS ↑ │ ── wait ── t4 ── playback ── t5
-                                    │    (in _lookahead_buf)
-                                    └── pipe writer starts draining
-
-With pre-translation (queue items translated ahead of time):
+Parallel prepare, ordered play:
   Queue: [item1, item2, item3]
-  Executor:  xlat(item2) ──┐   xlat(item3) ──┐
-  Worker:  xlat(item1)+TTS ── playback ── TTS(item2) ── playback ── TTS(item3) ── playback
-                                              ↑ cache hit           ↑ cache hit
+  Prep A: xlat+TTS(item1) ── ready heap ── play_at(item1)
+  Prep B: xlat+TTS(item2) ── ready heap ── play_at(item2)
+          xlat+TTS(item3) ── ready heap ── play_at(item3)
 ```
 
-The lookahead saves the full playback duration (typically 3-5s) from the next item's timing budget.
+Parallel prepare removes avoidable queue wait during STT bursts. It does not help if STT itself emits an utterance too late for the configured `video_delay` budget.
 
 ## Speed Fitting
 
@@ -95,7 +91,7 @@ The result metadata includes `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `
 
 ## Scheduling
 
-`speak(text, play_at=timestamp)` schedules playback to start at a specific wall-clock time. The TTS worker fetches audio immediately but holds playback until `play_at`. This is used by the events fallback to sync commentary with delayed video:
+`speak(text, play_at=timestamp)` schedules playback to start at a specific wall-clock time. The prepare executor fetches audio immediately, and the coordinator holds the prepared result until `play_at`. This is used by live STT and by the events fallback to sync commentary with delayed video:
 
 ```python
 play_at = match_time_start + event_offset
@@ -104,7 +100,7 @@ play_at = match_time_start + event_offset
 ### Precision targeting
 
 Utterances must play at exact play_at time or be dropped. The hold uses a two-phase approach for sub-10ms accuracy:
-1. **Coarse sleep**: `time.sleep(wait_s - 0.05)` — sleeps until 50ms before target
+1. **Coarse sleep**: short sleeps until 50ms before target
 2. **Tight spin**: busy-wait `while time.time() < play_at` — hits ±1ms
 
 The pipe writer blocks on `threading.Event.wait()` instead of polling, so it wakes within microseconds of `_playback_ready.set()`. Combined, the total chain from `play_at` to first PCM byte on stdin is <5ms.
@@ -113,16 +109,15 @@ The pipe writer blocks on `threading.Event.wait()` instead of polling, so it wak
 
 1. `speak(text, interrupt=True)` is called
 2. `_interrupt` event is set
-3. `_audio_buf`, `_sr_audio_buf`, and `_lookahead_buf` are cleared (under locks)
-4. `_lookahead_item` is discarded
-5. `_text_queue` is drained
-6. New text is queued
-7. `_tts_worker` checks `_interrupt` before and after TTS — skips if set
-8. `_interrupt` is cleared when the next non-interrupt item starts
+3. `_audio_buf`, `_sr_audio_buf`, and the ready heap are cleared
+4. `_text_queue` is drained
+5. New text is queued
+6. In-flight prepare tasks are allowed to finish; if their generation is stale they are emitted as `replaced` with `discarded_ms`
+7. `_interrupt` is cleared when the next item starts playback
 
 ## State Tracking
 
-- `is_speaking` event: set when TTS worker is processing, cleared when queue empties
+- `is_speaking` event: set when the coordinator has queued, in-flight, ready, or active STT work; cleared when empty
 - `on_idle` callback: called when queue empties (used for external coordination)
 - `_utterance_id`: monotonically increasing counter for log correlation
 
@@ -144,11 +139,12 @@ A single-slot design is safe because `_pipe_writer` captures the slot into a loc
 
 ### Flow
 
-1. `_tts_worker` processes an STT item into audio + result metadata
-2. Before signaling `_playback_ready`, it sets `_playback_meta_slot = result` under `_buf_lock`
-3. `_pipe_writer` captures the slot into `current_meta` under lock at the top of the playback cycle (before checking `n_chunks`), then clears the slot
-4. After playback ends, `_pipe_writer` uses `current_meta` to emit one telemetry record via `on_telemetry`
-5. Dropped/suppressed items are queued into `_skipped_meta` and emitted from `_pipe_writer` so telemetry stays single-threaded from the consumer side
+1. `_prepare_executor` processes an STT item into local PCM bytes + result metadata
+2. `_tts_worker` moves the selected result's PCM chunks into `_audio_buf`
+3. Before signaling `_playback_ready`, it sets `_playback_meta_slot = result` under `_buf_lock`
+4. `_pipe_writer` captures the slot into `current_meta` under lock at the top of the playback cycle (before checking `n_chunks`), then clears the slot
+5. After playback ends, `_pipe_writer` uses `current_meta` to emit one telemetry record via `on_telemetry`
+6. Dropped/suppressed items are queued into `_skipped_meta` and emitted from `_pipe_writer` so telemetry stays single-threaded from the consumer side
 
 ### Status semantics
 
@@ -164,7 +160,7 @@ Items that never played are `dropped`, `replaced`, or `suppressed`, not `interru
 
 `stop()` uses a two-phase approach to prevent final telemetry loss:
 
-1. **Phase 0 (executor)**: Shuts down `_pretranslate_executor` with `wait=False` to stop pending translations.
+1. **Phase 0 (executor)**: Shuts down `_pretranslate_executor` and `_prepare_executor` with `wait=False` to stop pending work.
 2. **Phase 1 (closing)**: Sets `_closing = True`, sets `_interrupt` to wake `_tts_worker`. Joins `_tts_worker_thread` (timeout 2s). The worker finishes any in-flight item, writes the final slot, then exits on empty queue + `_closing`.
 3. **Phase 2 (stopped)**: Sets `_stop`, wakes `_pipe_writer` via `_any_playback_ready`. Joins `_pipe_writer_thread` (timeout 1s). The writer drains any final slot and `_skipped_meta`, then exits.
 
@@ -186,9 +182,11 @@ Typical fields sent to `on_telemetry`:
 - `translate_time`
 - `tts_time`
 - `play_at`
-- `pre_translated` — `true` if translation was served from the pre-translation cache
-- `queue_wait_ms` — milliseconds the item spent waiting in the queue before processing started
+- `pre_translated` — legacy translation-cache flag; usually `false` in the current parallel prepare path
+- `queue_wait_ms` — milliseconds the item spent waiting before a prepare worker started it
 - `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, `fit_reason` — local ffmpeg speed-fitting telemetry
+- `prepare_started_at`, `translate_started_at`, `translate_ended_at`, `tts_started_at`, `tts_ended_at`, `ready_at` — absolute per-stage wall-clock timestamps
+- `discarded_ms` — prepared audio duration abandoned because an item was replaced or suppressed
 
 ## Audio Chunk Format
 

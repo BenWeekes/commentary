@@ -216,11 +216,13 @@ In server mode, each language has its own Go publisher/relay, but the MatchWorke
 
 ## Translation Optimization
 
-Two mechanisms reduce the translate+TTS latency that causes dropped utterances:
+Three mechanisms reduce the translate+TTS latency that causes dropped utterances:
 
-### Pre-translation
+### Parallel preparation
 
-When multiple items are queued in a TTSEngine, a `ThreadPoolExecutor(max_workers=2)` translates queued items in parallel ahead of the TTS worker thread. When the worker reaches an item, it checks the pre-translation cache first — on a hit, only TTS is needed (~0.8s instead of ~3s total). Typical cache hit rate is 100% under load. See [TTSEngine Internals](L2/tts_engine.md) for details.
+When STT emits a burst, each per-language `TTSEngine` starts translate+TTS preparation immediately on a bounded `ThreadPoolExecutor(max_workers=2)`. Prepared audio is kept local to the task, then inserted into a heap keyed by `play_at`. Playback remains serial and ordered, but preparation no longer waits for earlier utterances to finish playback. This removes most avoidable `queue_wait_ms` from clustered STT turns while keeping ElevenLabs concurrency bounded.
+
+This does not fix structurally late STT turns where the provider emits the utterance too close to, or after, its `play_at`; those still require shorter STT turns or a larger `video_delay`.
 
 ### OpenAI warmup
 
@@ -242,7 +244,7 @@ Live correction has two deterministic layers. First, `GLOBAL_FOOTBALL_CORRECTION
 - **SR events**: lower-priority gap-fill. SR may only play when there is sufficient idle space around STT playback.
 - **SR INTERRUPT** (e.g. GOAL): high priority within the SR queue, but does **not** preempt active STT. It waits for STT to finish, then plays in the next gap.
 - **STT can interrupt SR**: if STT audio becomes ready while SR is playing, SR is interrupted immediately and STT takes over.
-- **Queue stays at 0-1**: when a new STT utterance arrives with play_at, any stale queued item is replaced.
+- **Preparation is bounded**: each language prepares at most two STT utterances in parallel; playback remains ordered by `play_at`, and stale items are replaced or dropped rather than allowed to drift.
 - **Invariant**: STT interruption is allowed and counted separately from drops. `sr_cut_short_count` is expected and normal — it means the commentator was active.
 
 ## Atmosphere Audio
