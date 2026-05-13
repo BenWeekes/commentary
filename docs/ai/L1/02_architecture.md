@@ -313,7 +313,7 @@ The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4` wit
 
 ElevenLabs is requested with `speed=1.0`, `stability=1.0`, and `similarity_boost=1.0`. The engine does not ask ElevenLabs to speak faster by default; instead it fits generated PCM locally only when needed.
 
-When the next STT play time is already known, `TTSEngine` fits the current generated PCM into the available gap before that next STT item, using ffmpeg `atempo` without changing pitch. The fit is capped to `1.5x` speed-up and `0.667x` slow-down; if the next STT play time is not known yet, the engine keeps the generated duration rather than fitting to provider word spans. Language logs record the applied speed as `speed` / `local_speed_factor`, plus `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, and `fit_reason`.
+When the next STT play time is already known, `TTSEngine` fits the current generated PCM into the available gap before that next STT item, using ffmpeg `atempo` without changing pitch. The fit is capped to `1.3x` speed-up and `0.769x` slow-down; if the next STT play time is not known yet, the engine keeps the generated duration rather than fitting to provider word spans. Language logs record the applied speed as `speed` / `local_speed_factor`, plus `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, and `fit_reason`.
 
 ## Roster-Aware Translation
 

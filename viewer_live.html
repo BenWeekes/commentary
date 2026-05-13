@@ -666,6 +666,12 @@
 
     function statusClass(s) { return 'status-' + (s || '').replace(/\s+/g, '-'); }
     function sourceClass(s) { return 'source-' + (s || ''); }
+    function speakerLabel(speaker) {
+      if (speaker === 0 || speaker === '0') return 'S0';
+      if (speaker === 1 || speaker === '1') return 'S1';
+      if (speaker === null || speaker === undefined || speaker === '') return '-';
+      return 'S' + logEsc(String(speaker));
+    }
 
     function renderLangPanel(lang, rows) {
       var panel = document.getElementById('logs-panel-' + lang);
@@ -676,7 +682,7 @@
       }
       var html = '<table class="log-table"><thead><tr>'
         + '<th>Played</th><th>Original</th><th>Translated</th><th>Status</th><th>Src</th>'
-        + '<th>Lag</th><th>Trans</th><th>TTS</th><th>Speed</th><th>Dur</th>'
+        + '<th>Spk</th><th>Lag</th><th>Trans</th><th>TTS</th><th>Speed</th><th>Dur</th>'
         + '</tr></thead><tbody>';
       rows.forEach(function(r) {
         var playTime = r.play_started_at || r.play_at;
@@ -686,6 +692,7 @@
           + '<td class="text-cell" title="' + logEsc(r.translated) + '">' + logEsc(truncate(r.translated, 80)) + '</td>'
           + '<td class="' + statusClass(r.status) + '">' + logEsc(r.status) + '</td>'
           + '<td class="' + sourceClass(r.source) + '">' + logEsc(r.source) + '</td>'
+          + '<td class="num">' + speakerLabel(r.speaker) + '</td>'
           + '<td class="num">' + logEsc(fmtMs(r.start_lag_ms)) + '</td>'
           + '<td class="num">' + logEsc(fmtMs(r.trans_ms || r.xlat_ms)) + '</td>'
           + '<td class="num">' + logEsc(fmtMs(r.tts_ms)) + '</td>'

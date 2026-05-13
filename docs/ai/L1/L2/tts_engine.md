@@ -87,7 +87,7 @@ When an STT item has a later STT item queued, `_fit_current_audio_to_next_play_a
 
 - pitch is preserved by `atempo`
 - factors above `2.0x` are chained as multiple `atempo` filters
-- the factor is clamped to `0.667x` slow-down through `1.5x` speed-up
+- the factor is clamped to `0.769x` slow-down through `1.3x` speed-up
 - SR events are not used as the fit deadline; the fit target is the next STT item
 - provider word spans are logged but are not used as hard target durations because they can describe acoustic onset differently from perceived TTS duration
 

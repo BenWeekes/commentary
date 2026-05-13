@@ -80,6 +80,10 @@ def _is_terminal_token(tok: dict) -> bool:
     return tok.get("text") in ("<end>", "<fin>")
 
 
+def _ends_sentence(tok: dict) -> bool:
+    return tok.get("text", "").strip().endswith((".", "?", "!"))
+
+
 def _turn_from_tokens(tokens: list[dict]) -> tuple[str, float, float, object] | None:
     text = _clean_join_token_text(tokens)
     timed = [t for t in tokens if t.get("start_ms") is not None and t.get("end_ms") is not None]
@@ -194,6 +198,7 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
     print("[STT-LIVE] Pipeline: live pipe → Soniox stt-rt-v4 → multi-lang fan-out")
     print(f"[STT-LIVE] Soniox endpoint delay: {endpoint_delay_ms}ms")
     print(f"[STT-LIVE] Soniox max_stt_duration={max_stt_duration}s")
+    max_stt_duration_hard = max_stt_duration + 1.0
 
     with connect(SONIOX_WS_URL, max_size=16 * 1024 * 1024, ping_interval=None) as ws:
         ws.send(json.dumps(config))
@@ -281,9 +286,11 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
                         continue
                     seen_final.add(key)
                     turn_tokens.append(tok)
-                    if turn_duration(turn_tokens) >= max_stt_duration:
+                    duration = turn_duration(turn_tokens)
+                    can_soft_split = bool(turn_tokens and _ends_sentence(turn_tokens[-1]))
+                    if duration >= max_stt_duration and (can_soft_split or duration >= max_stt_duration_hard):
                         print(f"  [{_ts(video_start_ref[0])}] [STT-LIVE SONIOX SPLIT] "
-                              f"force-emitting {turn_duration(turn_tokens):.1f}s turn")
+                              f"force-emitting {duration:.1f}s turn")
                         emit_turn(turn_tokens)
                         turn_tokens = []
                         seen_final.clear()

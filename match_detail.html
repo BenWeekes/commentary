@@ -371,6 +371,13 @@
       return 'source-' + (source || '');
     }
 
+    function speakerLabel(speaker) {
+      if (speaker === 0 || speaker === '0') return 'S0';
+      if (speaker === 1 || speaker === '1') return 'S1';
+      if (speaker === null || speaker === undefined || speaker === '') return '-';
+      return 'S' + esc(String(speaker));
+    }
+
     function fmtNum(v) {
       if (v === null || v === undefined) return '-';
       return String(v);
@@ -714,6 +721,7 @@
       html += th('Translated', 'Translated text sent to TTS');
       html += th('Status', 'played = audio delivered, dropped = too late, replaced = superseded, interrupted = cut short');
       html += th('Src', 'stt = commentator utterance, sr = Sportradar gap-fill event');
+      html += th('Spk', 'STT diarized speaker used for speaker-specific TTS voice selection');
       html += th('Lag', 'Milliseconds late vs scheduled play time (0 = on time)');
       html += th('Skew', 'Schedule skew versus live audio capture + configured video delay');
       html += th('Trans', 'Translation API round-trip time in ms');
@@ -723,7 +731,7 @@
       html += '</tr></thead>';
       html += '<tbody>';
       if (filtered.length === 0) {
-        html += '<tr><td colspan="11" style="text-align:center;color:#555;padding:20px;">No matching rows</td></tr>';
+        html += '<tr><td colspan="12" style="text-align:center;color:#555;padding:20px;">No matching rows</td></tr>';
       }
       filtered.forEach(function(r) {
         var playTime = r.play_started_at || r.play_at;
@@ -733,6 +741,7 @@
         html += '<td class="text-cell" title="' + esc(r.translated) + '">' + esc(truncate(r.translated, 80)) + '</td>';
         html += '<td class="' + statusClass(r.status) + '">' + esc(r.status) + '</td>';
         html += '<td class="' + sourceClass(r.source) + '">' + esc(r.source) + '</td>';
+        html += '<td class="num">' + speakerLabel(r.speaker) + '</td>';
         html += '<td class="num">' + fmtMs(r.start_lag_ms) + '</td>';
         html += '<td class="num">' + fmtMs(r.intended_skew_ms) + '</td>';
         html += '<td class="num">' + fmtMs(r.trans_ms || r.xlat_ms) + '</td>';

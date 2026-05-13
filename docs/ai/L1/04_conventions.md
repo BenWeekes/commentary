@@ -82,7 +82,7 @@ Per-match fields under `matches:`:
 | `atmosphere` | string | no | Path to atmosphere WAV |
 | `video_delay` | float | 7.0 | Video delay in seconds |
 | `events_offset` | int | 0 | Match-time offset for events |
-| `max_stt_duration` | float | 5.0 | Force-split threshold in seconds. Applied by Deepgram interim splitting and Soniox client-side turn splitting. |
+| `max_stt_duration` | float | 5.0 | Force-split threshold in seconds. Applied by Deepgram interim splitting and Soniox client-side turn splitting. Soniox treats it as a soft threshold and allows up to 1s extra when waiting for sentence punctuation, which avoids splitting subword tokens such as `candid` / `ates`. |
 | `stt_provider` | string | `deepgram_nova3` | Live STT provider: `deepgram_nova3` or `soniox`; Soniox `stt-rt-v4` is the current eval-demo candidate. |
 | `stt_endpoint_delay_ms` | int | 1500 | Soniox realtime endpoint delay for final turn detection |
 | `stt_playback_offset_ms` | int | 0 | Default live STT playback offset in milliseconds, applied after provider timing normalization |
@@ -131,7 +131,7 @@ Languages showing "default" use `DEFAULT_VOICE_ID` (`ImsA1Fn5TNc843fFdz99`).
 | `[PIPE]` | Pipe writer thread (audio delivery to Go publisher) |
 | `[STT]` | Deepgram transcription results |
 | `[STT-LIVE SONIOX]` | Soniox realtime final turns, including speaker label when supplied |
-| `[STT-LIVE SONIOX SPLIT]` | Client-side force emission when a Soniox turn reaches `max_stt_duration` |
+| `[STT-LIVE SONIOX SPLIT]` | Client-side force emission when a Soniox turn reaches the soft `max_stt_duration` at sentence punctuation or the hard threshold 1s later |
 | `[SR]` | Sportradar event playback |
 | `[DROP Xs]` | STT utterance dropped — format: `DROPPED {ms}ms — {late}s past play_at (xlat={x}s, tts={t}s, queued_behind={q}s, pre_xlat={hit\|miss})` |
 | `[ATMOS]` | Atmosphere audio loading and toggle |

@@ -109,8 +109,8 @@ class TTSEngine:
         self._elevenlabs_speed = 1.0
         self._elevenlabs_stability = 1.0
         self._elevenlabs_similarity_boost = 1.0
-        self._min_local_speed = 1.0 / 1.5
-        self._max_local_speed = 1.50
+        self._min_local_speed = 1.0 / 1.3
+        self._max_local_speed = 1.30
         self._fit_guard_s = 0.05
         self._late_start_grace_s = 0.05
         # Video-relative timestamp (set by pipeline after publisher starts)
