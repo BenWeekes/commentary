@@ -1441,6 +1441,11 @@ class MatchWorker:
                 self._stt_schedule_meta_by_lang[lang][(lang_play_at, corrected_text)].update(split_meta)
             target_duration_s = self._source_utterance_duration(audio_start, audio_end, word_timings)
             tts_meta = dict(split_meta or {})
+            tts_meta.update({
+                "audio_start": audio_start,
+                "audio_end": audio_end,
+                "speaker": speaker,
+            })
             pipe.tts.speak(
                 corrected_text,
                 play_at=lang_play_at,
@@ -1579,6 +1584,9 @@ class MatchWorker:
                         "original_play_at_utc": _utc_hms_ms(data.get("original_play_at")),
                         "split_chain_gap_ms": data.get("split_chain_gap_ms"),
                         "split_chain_advance_ms": data.get("split_chain_advance_ms"),
+                        "continuity_chain_source_gap_ms": data.get("continuity_chain_source_gap_ms"),
+                        "continuity_chain_gap_ms": data.get("continuity_chain_gap_ms"),
+                        "continuity_chain_advance_ms": data.get("continuity_chain_advance_ms"),
                         "trans_ms": round(xlat_time * 1000) if xlat_time else None,
                         "translation_model_used": data.get("translation_model_used"),
                         "translation_fallback_reason": data.get("translation_fallback_reason"),

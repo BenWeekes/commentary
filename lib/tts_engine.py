@@ -114,6 +114,7 @@ class TTSEngine:
         self._inflight_lock = threading.Lock()
         self._uid_lock = threading.Lock()
         self._last_split_playback = None
+        self._last_stt_playback = None
         # Stats
         self._utterance_id = 0
         self._elevenlabs_speed = 1.0
@@ -393,6 +394,14 @@ class TTSEngine:
                     "play_ended_at": play_ended_at,
                     "interrupted": was_interrupted,
                 }
+            if source == "STT":
+                self._last_stt_playback = {
+                    "audio_start": meta.get("audio_start"),
+                    "audio_end": meta.get("audio_end"),
+                    "speaker": meta.get("speaker"),
+                    "play_ended_at": play_ended_at,
+                    "interrupted": was_interrupted,
+                }
 
             if self.on_telemetry:
                 try:
@@ -424,6 +433,9 @@ class TTSEngine:
                         "original_play_at": meta.get("original_play_at"),
                         "split_chain_gap_ms": meta.get("split_chain_gap_ms"),
                         "split_chain_advance_ms": meta.get("split_chain_advance_ms"),
+                        "continuity_chain_source_gap_ms": meta.get("continuity_chain_source_gap_ms"),
+                        "continuity_chain_gap_ms": meta.get("continuity_chain_gap_ms"),
+                        "continuity_chain_advance_ms": meta.get("continuity_chain_advance_ms"),
                         "local_speed_factor": meta.get("local_speed_factor"),
                         "fit_from_ms": meta.get("fit_from_ms"),
                         "fit_to_ms": meta.get("fit_to_ms"),
@@ -1213,6 +1225,30 @@ class TTSEngine:
             and active.get("split_part_index") == part_index - 1
         )
 
+    def _same_speaker(self, left, right):
+        left_speaker = left.get("speaker")
+        right_speaker = right.get("speaker")
+        return left_speaker is not None and right_speaker is not None and left_speaker == right_speaker
+
+    def _source_gap_s(self, left, right):
+        left_end = left.get("audio_end")
+        right_start = right.get("audio_start")
+        if not isinstance(left_end, (int, float)) or not isinstance(right_start, (int, float)):
+            return None
+        return right_start - left_end
+
+    def _active_continuity_predecessor(self, result):
+        if result.get("split_group_id"):
+            return False
+        with self._buf_lock:
+            active = self._playback_meta_slot
+        if not active or active.get("split_group_id"):
+            return False
+        if not self._same_speaker(active, result):
+            return False
+        source_gap_s = self._source_gap_s(active, result)
+        return source_gap_s is not None and 0 <= source_gap_s <= 0.9
+
     def _apply_split_chain_timing(self, result):
         group_id = result.get("split_group_id")
         part_index = result.get("split_part_index")
@@ -1238,6 +1274,33 @@ class TTSEngine:
             result["_split_chain_applied"] = True
             print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Split-chain advance "
                   f"{result['split_chain_advance_ms']}ms for {group_id} part {part_index}")
+
+    def _apply_continuity_chain_timing(self, result):
+        if result.get("split_group_id") or result.get("_continuity_chain_applied"):
+            return
+        last = self._last_stt_playback or {}
+        if not last or last.get("interrupted") or not last.get("play_ended_at"):
+            return
+        if not self._same_speaker(last, result):
+            return
+        source_gap_s = self._source_gap_s(last, result)
+        if source_gap_s is None or source_gap_s < 0 or source_gap_s > 0.9:
+            return
+        original_play_at = result.get("play_at")
+        chained_play_at = last["play_ended_at"] + 0.10
+        if not original_play_at or chained_play_at >= original_play_at:
+            return
+        advance_ms = round((original_play_at - chained_play_at) * 1000)
+        if advance_ms > 1500:
+            return
+        result["original_play_at"] = original_play_at
+        result["play_at"] = chained_play_at
+        result["continuity_chain_source_gap_ms"] = round(source_gap_s * 1000)
+        result["continuity_chain_gap_ms"] = 100
+        result["continuity_chain_advance_ms"] = advance_ms
+        result["_continuity_chain_applied"] = True
+        print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Continuity-chain advance "
+              f"{advance_ms}ms (source_gap={source_gap_s:.2f}s)")
 
     def _is_stt_audio_active(self):
         if self._playback_ready.is_set():
@@ -1271,6 +1334,9 @@ class TTSEngine:
             "original_play_at": result.get("original_play_at"),
             "split_chain_gap_ms": result.get("split_chain_gap_ms"),
             "split_chain_advance_ms": result.get("split_chain_advance_ms"),
+            "continuity_chain_source_gap_ms": result.get("continuity_chain_source_gap_ms"),
+            "continuity_chain_gap_ms": result.get("continuity_chain_gap_ms"),
+            "continuity_chain_advance_ms": result.get("continuity_chain_advance_ms"),
             "local_speed_factor": result.get("local_speed_factor"),
             "fit_from_ms": result.get("fit_from_ms"),
             "fit_to_ms": result.get("fit_to_ms"),
@@ -1341,6 +1407,7 @@ class TTSEngine:
 
             if result:
                 self._apply_split_chain_timing(result)
+                self._apply_continuity_chain_timing(result)
                 play_at = result.get("play_at")
                 now = time.time()
                 if not result.get("_fit_checked"):
@@ -1355,6 +1422,9 @@ class TTSEngine:
                     if self._active_split_predecessor(result):
                         time.sleep(0.005)
                         continue
+                    if self._active_continuity_predecessor(result):
+                        time.sleep(0.005)
+                        continue
                     if play_at and now >= play_at:
                         self._interrupt.set()
                         deadline = time.monotonic() + 0.5
@@ -1366,6 +1436,7 @@ class TTSEngine:
 
                 now = time.time()
                 self._apply_split_chain_timing(result)
+                self._apply_continuity_chain_timing(result)
                 play_at = result.get("play_at")
                 if play_at and now < play_at:
                     wait_s = play_at - now

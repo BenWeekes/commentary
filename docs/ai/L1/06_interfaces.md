@@ -279,6 +279,9 @@ Utterance fields:
 - `original_play_at_utc`
 - `split_chain_gap_ms`
 - `split_chain_advance_ms`
+- `continuity_chain_source_gap_ms`
+- `continuity_chain_gap_ms`
+- `continuity_chain_advance_ms`
 - `fit_from_ms`
 - `fit_to_ms`
 - `fit_deadline_ms`

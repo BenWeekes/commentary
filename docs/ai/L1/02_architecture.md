@@ -317,6 +317,8 @@ Current live-demo evidence from `m05_uni_eval_demo` run `20260513_092754`: fallb
 
 Forced Soniox split continuations are marked explicitly and may be chained during playback. This only applies to turns split by our local `max_stt_duration` logic, not to ordinary adjacent utterances. The first split part stays anchored to source/video timing; later parts in the same split group can be advanced to follow the previous translated audio with a 30ms gap so artificial sentence splits do not create multi-second silences.
 
+Adjacent normal STT turns can also be pulled closer together by a conservative source-timing rule: same speaker, source gap no more than 900ms, previous item completed normally, and a maximum 1500ms advance. This reduces artificial gaps introduced by endpointing without relying on phrase-specific grammar heuristics.
+
 ## TTS Speed Fitting
 
 ElevenLabs is requested with `speed=1.0`, `stability=1.0`, and `similarity_boost=1.0`. The engine does not ask ElevenLabs to speak faster by default; instead it fits generated PCM locally only when needed.
