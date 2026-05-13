@@ -387,14 +387,16 @@ class TTSEngine:
             if was_interrupted:
                 with lock:
                     buf.clear()
-            if source == "STT" and meta.get("split_group_id") is not None:
-                self._last_split_playback = {
-                    "split_group_id": meta.get("split_group_id"),
-                    "split_part_index": meta.get("split_part_index"),
-                    "play_ended_at": play_ended_at,
-                    "interrupted": was_interrupted,
-                }
             if source == "STT":
+                if meta.get("split_group_id") is not None:
+                    self._last_split_playback = {
+                        "split_group_id": meta.get("split_group_id"),
+                        "split_part_index": meta.get("split_part_index"),
+                        "play_ended_at": play_ended_at,
+                        "interrupted": was_interrupted,
+                    }
+                else:
+                    self._last_split_playback = None
                 self._last_stt_playback = {
                     "audio_start": meta.get("audio_start"),
                     "audio_end": meta.get("audio_end"),
@@ -1267,10 +1269,13 @@ class TTSEngine:
         original_play_at = result.get("play_at")
         chained_play_at = last["play_ended_at"] + 0.03
         if original_play_at and chained_play_at < original_play_at:
+            advance_ms = round((original_play_at - chained_play_at) * 1000)
+            if advance_ms > 1500:
+                return
             result["original_play_at"] = original_play_at
             result["play_at"] = chained_play_at
             result["split_chain_gap_ms"] = 30
-            result["split_chain_advance_ms"] = round((original_play_at - chained_play_at) * 1000)
+            result["split_chain_advance_ms"] = advance_ms
             result["_split_chain_applied"] = True
             print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Split-chain advance "
                   f"{result['split_chain_advance_ms']}ms for {group_id} part {part_index}")

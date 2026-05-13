@@ -91,7 +91,7 @@ When an STT item has a later STT item queued, `_fit_current_audio_to_next_play_a
 
 The result metadata includes `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, and `fit_reason`, which are written to per-language JSONL logs.
 
-For Soniox forced-split continuations, the engine also supports explicit split chaining. It does not infer continuity from grammar. If item N and item N+1 share `split_group_id` and adjacent `split_part_index`, item N+1 can start 30ms after item N ends when that is earlier than the original source-timed `play_at`. The log records `original_play_at`, `split_chain_gap_ms`, and `split_chain_advance_ms`.
+For Soniox forced-split continuations, the engine also supports explicit split chaining. It does not infer continuity from grammar. If item N and item N+1 share `split_group_id` and adjacent `split_part_index`, item N+1 can start 30ms after item N ends when that is earlier than the original source-timed `play_at`. The previous split playback state is cleared by any intervening non-split STT playback, and the timing advance is capped at 1500ms. The log records `original_play_at`, `split_chain_gap_ms`, and `split_chain_advance_ms`.
 
 Normal STT utterances can also use conservative continuity chaining. This only applies when the previous STT playback completed normally, both utterances have the same speaker, the source audio gap is `0-900ms`, and the timing advance would be at most `1500ms`. In that case item N+1 can start 100ms after item N ends. The log records `continuity_chain_source_gap_ms`, `continuity_chain_gap_ms`, and `continuity_chain_advance_ms`.
 

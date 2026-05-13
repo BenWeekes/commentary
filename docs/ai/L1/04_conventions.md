@@ -194,7 +194,7 @@ Additional telemetry fields per utterance:
 - `intended_skew_ms` — live STT schedule skew versus the provider-normalized source media schedule; provider offsets are logged separately
 - `speaker` — STT speaker label when the provider supplies diarization
 - `split_group_id`, `split_part_index`, `split_reason`, `carry_duration_s`, `continues_next`, `continuation_of` — present only for Soniox turns emitted by the local forced-split path. These identify artificial split continuations without guessing from grammar.
-- `original_play_at`, `split_chain_gap_ms`, `split_chain_advance_ms` — present when a forced-split continuation was pulled earlier to play directly after the previous split part.
+- `original_play_at`, `split_chain_gap_ms`, `split_chain_advance_ms` — present when a forced-split continuation was pulled earlier to play directly after the previous split part. Forced-split chaining requires immediate split adjacency and is capped to avoid large timing changes.
 - `continuity_chain_source_gap_ms`, `continuity_chain_gap_ms`, `continuity_chain_advance_ms` — present when a normal same-speaker STT pair with a short source gap was pulled closer together. This is separate from forced-split chaining, never uses grammar heuristics, and is capped to avoid large timing changes.
 - `voice_id` — ElevenLabs voice used for the utterance, useful when speaker-specific voices are configured
 
