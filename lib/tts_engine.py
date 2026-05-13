@@ -113,6 +113,7 @@ class TTSEngine:
         self._inflight_play_ats = set()
         self._inflight_lock = threading.Lock()
         self._uid_lock = threading.Lock()
+        self._last_split_playback = None
         # Stats
         self._utterance_id = 0
         self._elevenlabs_speed = 1.0
@@ -385,6 +386,13 @@ class TTSEngine:
             if was_interrupted:
                 with lock:
                     buf.clear()
+            if source == "STT" and meta.get("split_group_id") is not None:
+                self._last_split_playback = {
+                    "split_group_id": meta.get("split_group_id"),
+                    "split_part_index": meta.get("split_part_index"),
+                    "play_ended_at": play_ended_at,
+                    "interrupted": was_interrupted,
+                }
 
             if self.on_telemetry:
                 try:
@@ -407,6 +415,15 @@ class TTSEngine:
                         "queue_wait_ms": meta.get("queue_wait_ms", 0),
                         "translation_model_used": meta.get("translation_model_used"),
                         "translation_fallback_reason": meta.get("translation_fallback_reason"),
+                        "split_group_id": meta.get("split_group_id"),
+                        "split_part_index": meta.get("split_part_index"),
+                        "split_reason": meta.get("split_reason"),
+                        "carry_duration_s": meta.get("carry_duration_s"),
+                        "continues_next": meta.get("continues_next"),
+                        "continuation_of": meta.get("continuation_of"),
+                        "original_play_at": meta.get("original_play_at"),
+                        "split_chain_gap_ms": meta.get("split_chain_gap_ms"),
+                        "split_chain_advance_ms": meta.get("split_chain_advance_ms"),
                         "local_speed_factor": meta.get("local_speed_factor"),
                         "fit_from_ms": meta.get("fit_from_ms"),
                         "fit_to_ms": meta.get("fit_to_ms"),
@@ -573,18 +590,22 @@ class TTSEngine:
 
     def _item_fields(self, item):
         if not isinstance(item, tuple):
-            return item, None, None, None, None
-        if len(item) == 5:
+            return item, None, None, None, None, None
+        if len(item) == 6:
             return item
+        if len(item) == 5:
+            text, play_at, translate_fn, enqueued_at, target_duration_s = item
+            return text, play_at, translate_fn, enqueued_at, target_duration_s, None
         if len(item) == 4:
             text, play_at, translate_fn, enqueued_at = item
-            return text, play_at, translate_fn, enqueued_at, None
+            return text, play_at, translate_fn, enqueued_at, None, None
         text = item[0] if len(item) > 0 else None
         play_at = item[1] if len(item) > 1 else None
         translate_fn = item[2] if len(item) > 2 else None
         enqueued_at = item[3] if len(item) > 3 else None
         target_duration_s = item[4] if len(item) > 4 else None
-        return text, play_at, translate_fn, enqueued_at, target_duration_s
+        metadata = item[5] if len(item) > 5 else None
+        return text, play_at, translate_fn, enqueued_at, target_duration_s, metadata
 
     def _unpack_translate_result(self, result):
         if isinstance(result, tuple):
@@ -704,7 +725,8 @@ class TTSEngine:
               f"{fitted_s:.2f}s for {available_s:.2f}s window "
               f"(factor={factor:.2f}x{capped}, atempo={elapsed_ms:.0f}ms)")
 
-    def speak(self, text, interrupt=False, play_at=None, translate_fn=None, target_duration_s=None):
+    def speak(self, text, interrupt=False, play_at=None, translate_fn=None,
+              target_duration_s=None, metadata=None):
         """
         Non-blocking. Queues text for sequential TTS playback.
         text: English text to speak (will be translated just-in-time if translate_fn set)
@@ -760,7 +782,7 @@ class TTSEngine:
                 try:
                     stale_item = self._text_queue.get_nowait()
                     int_discarded += 1
-                    stale_text, stale_play_at, _, _, _ = self._item_fields(stale_item)
+                    stale_text, stale_play_at, _, _, _, _ = self._item_fields(stale_item)
                     self._skipped_meta.append({
                         "source": "stt", "status": "replaced",
                         "uid": None, "text": stale_text,
@@ -810,12 +832,12 @@ class TTSEngine:
                 while not self._text_queue.empty():
                     try:
                         queued_item = self._text_queue.get_nowait()
-                        _, item_play_at, _, _, _ = self._item_fields(queued_item)
+                        _, item_play_at, _, _, _, _ = self._item_fields(queued_item)
                         if item_play_at and item_play_at > now:
                             keep.append(queued_item)
                         else:
                             discarded += 1
-                            stale_text, stale_play_at, _, _, _ = self._item_fields(queued_item)
+                            stale_text, stale_play_at, _, _, _, _ = self._item_fields(queued_item)
                             self._skipped_meta.append({
                                 "source": "stt", "status": "replaced",
                                 "uid": None, "text": stale_text,
@@ -858,7 +880,7 @@ class TTSEngine:
                 if discarded:
                     print(f"  [{self._vts()}] [TTS] Replaced {discarded} stale queued item(s)"
                           f"{f' (kept {len(keep)})' if keep else ''}")
-            self._text_queue.put((text, play_at, translate_fn, time.time(), target_duration_s))
+            self._text_queue.put((text, play_at, translate_fn, time.time(), target_duration_s, metadata))
 
     def clear_stt(self):
         """
@@ -902,7 +924,7 @@ class TTSEngine:
             try:
                 stale_item = self._text_queue.get_nowait()
                 stt_cleared += 1
-                stale_text, stale_play_at, _, _, _ = self._item_fields(stale_item)
+                stale_text, stale_play_at, _, _, _, _ = self._item_fields(stale_item)
                 self._skipped_meta.append({
                     "source": "stt", "status": "suppressed",
                     "uid": None, "text": stale_text,
@@ -943,7 +965,7 @@ class TTSEngine:
             for it in items:
                 if not isinstance(it, tuple):
                     continue
-                text, play_at, translate_fn, _, _ = self._item_fields(it)
+                text, play_at, translate_fn, _, _, _ = self._item_fields(it)
                 if not translate_fn:
                     continue
                 key = (text, play_at)
@@ -1072,7 +1094,7 @@ class TTSEngine:
     def _process_item(self, item, lang_version=None):
         """Translate + fetch TTS for a single queue item. Returns result dict or None on failure.
         Pushes audio to whatever buffer _tts_target_buf points to."""
-        text, play_at, translate_fn, enqueued_at, target_duration_s = self._item_fields(item)
+        text, play_at, translate_fn, enqueued_at, target_duration_s, item_meta = self._item_fields(item)
 
         with self._uid_lock:
             self._utterance_id += 1
@@ -1129,6 +1151,7 @@ class TTSEngine:
             "pre_translated": pre_xlat_hit, "queue_wait_ms": int(queue_wait * 1000),
             "target_duration_s": target_duration_s,
             "pcm_bytes": pcm_bytes or b"",
+            **(item_meta or {}),
             "translation_model_used": (translation_meta or {}).get("model_used") if isinstance(translation_meta, dict) else None,
             "translation_fallback_reason": (translation_meta or {}).get("fallback_reason") if isinstance(translation_meta, dict) else None,
             "prepare_started_at": prepare_started_at,
@@ -1141,7 +1164,7 @@ class TTSEngine:
         }
 
     def _submit_prepare(self, item):
-        _, play_at, _, _, _ = self._item_fields(item)
+        _, play_at, _, _, _, _ = self._item_fields(item)
         lang_version = self._lang_version
         with self._inflight_lock:
             self._inflight_play_ats.add(play_at)
@@ -1176,6 +1199,45 @@ class TTSEngine:
         print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Ready for pipe "
               f"({buf_ms}ms buffered)")
 
+    def _active_split_predecessor(self, result):
+        group_id = result.get("split_group_id")
+        part_index = result.get("split_part_index")
+        if not group_id or not isinstance(part_index, int) or part_index <= 0:
+            return False
+        with self._buf_lock:
+            active = self._playback_meta_slot
+        return bool(
+            active
+            and active.get("split_group_id") == group_id
+            and active.get("split_part_index") == part_index - 1
+        )
+
+    def _apply_split_chain_timing(self, result):
+        group_id = result.get("split_group_id")
+        part_index = result.get("split_part_index")
+        if not group_id or not isinstance(part_index, int) or part_index <= 0:
+            return
+        if result.get("_split_chain_applied"):
+            return
+        last = self._last_split_playback or {}
+        if (
+            last.get("split_group_id") != group_id
+            or last.get("split_part_index") != part_index - 1
+            or not last.get("play_ended_at")
+            or last.get("interrupted")
+        ):
+            return
+        original_play_at = result.get("play_at")
+        chained_play_at = last["play_ended_at"] + 0.03
+        if original_play_at and chained_play_at < original_play_at:
+            result["original_play_at"] = original_play_at
+            result["play_at"] = chained_play_at
+            result["split_chain_gap_ms"] = 30
+            result["split_chain_advance_ms"] = round((original_play_at - chained_play_at) * 1000)
+            result["_split_chain_applied"] = True
+            print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Split-chain advance "
+                  f"{result['split_chain_advance_ms']}ms for {group_id} part {part_index}")
+
     def _is_stt_audio_active(self):
         if self._playback_ready.is_set():
             return True
@@ -1199,6 +1261,15 @@ class TTSEngine:
             "queue_wait_ms": result.get("queue_wait_ms", 0),
             "translation_model_used": result.get("translation_model_used"),
             "translation_fallback_reason": result.get("translation_fallback_reason"),
+            "split_group_id": result.get("split_group_id"),
+            "split_part_index": result.get("split_part_index"),
+            "split_reason": result.get("split_reason"),
+            "carry_duration_s": result.get("carry_duration_s"),
+            "continues_next": result.get("continues_next"),
+            "continuation_of": result.get("continuation_of"),
+            "original_play_at": result.get("original_play_at"),
+            "split_chain_gap_ms": result.get("split_chain_gap_ms"),
+            "split_chain_advance_ms": result.get("split_chain_advance_ms"),
             "local_speed_factor": result.get("local_speed_factor"),
             "fit_from_ms": result.get("fit_from_ms"),
             "fit_to_ms": result.get("fit_to_ms"),
@@ -1268,6 +1339,7 @@ class TTSEngine:
                     _, _, result = self._ready_heap[0]
 
             if result:
+                self._apply_split_chain_timing(result)
                 play_at = result.get("play_at")
                 now = time.time()
                 if not result.get("_fit_checked"):
@@ -1280,6 +1352,9 @@ class TTSEngine:
                     self._next_stt_play_at = None
 
                 if self._is_stt_audio_active():
+                    if self._active_split_predecessor(result):
+                        time.sleep(0.005)
+                        continue
                     if play_at and now >= play_at:
                         self._interrupt.set()
                         deadline = time.monotonic() + 0.5
@@ -1290,6 +1365,8 @@ class TTSEngine:
                         continue
 
                 now = time.time()
+                self._apply_split_chain_timing(result)
+                play_at = result.get("play_at")
                 if play_at and now < play_at:
                     wait_s = play_at - now
                     if wait_s > 0.05:

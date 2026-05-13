@@ -319,7 +319,7 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
             except (ConnectionClosed, OSError):
                 return
 
-        def emit_turn(tokens: list[dict]):
+        def emit_turn(tokens: list[dict], split_meta=None):
             turn = _turn_from_tokens(tokens)
             if not turn:
                 return
@@ -342,6 +342,7 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
                 occurred_at=occurred_at,
                 occurred_end_at=occurred_end_at,
                 word_timings=_word_timings(tokens),
+                split_meta=split_meta,
             )
             utterance_count[0] += 1
 
@@ -349,6 +350,14 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
         sender.start()
         turn_tokens: list[dict] = []
         seen_final = set()
+        split_group_id = None
+        split_part_index = 0
+        split_seq = 0
+
+        def reset_split_group():
+            nonlocal split_group_id, split_part_index
+            split_group_id = None
+            split_part_index = 0
 
         try:
             while not stop_event.is_set():
@@ -361,9 +370,20 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
                     if not tok.get("is_final"):
                         continue
                     if _is_terminal_token(tok):
-                        emit_turn(turn_tokens)
+                        meta = None
+                        if split_group_id:
+                            meta = {
+                                "split_group_id": split_group_id,
+                                "split_part_index": split_part_index,
+                                "split_reason": "terminal",
+                                "carry_duration_s": 0.0,
+                                "continues_next": False,
+                                "continuation_of": split_group_id,
+                            }
+                        emit_turn(turn_tokens, split_meta=meta)
                         turn_tokens = []
                         seen_final.clear()
+                        reset_split_group()
                         continue
                     key = (tok.get("start_ms"), tok.get("end_ms"), tok.get("text"), tok.get("speaker"))
                     if key in seen_final:
@@ -375,16 +395,41 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
                     if duration >= max_stt_duration and split_idx is not None:
                         emit_tokens = turn_tokens[:split_idx]
                         turn_tokens = turn_tokens[split_idx:]
+                        if not split_group_id:
+                            split_seq += 1
+                            split_group_id = f"soniox-{int(time.time() * 1000)}-{split_seq}"
+                            split_part_index = 0
+                        carry_duration = turn_duration(turn_tokens)
                         print(f"  [{_ts(video_start_ref[0])}] [STT-LIVE SONIOX SPLIT] "
                               f"rolling {split_reason} split at {turn_duration(emit_tokens):.1f}s; "
-                              f"carry={turn_duration(turn_tokens):.1f}s")
-                        emit_turn(emit_tokens)
+                              f"carry={carry_duration:.1f}s")
+                        emit_turn(emit_tokens, split_meta={
+                            "split_group_id": split_group_id,
+                            "split_part_index": split_part_index,
+                            "split_reason": split_reason,
+                            "carry_duration_s": round(carry_duration, 3),
+                            "continues_next": True,
+                            "continuation_of": None if split_part_index == 0 else split_group_id,
+                        })
+                        split_part_index += 1
                     elif duration >= max_stt_duration_hard:
                         print(f"  [{_ts(video_start_ref[0])}] [STT-LIVE SONIOX SPLIT] "
                               f"hard force-emitting {duration:.1f}s turn (no safe word boundary)")
-                        emit_turn(turn_tokens)
+                        if not split_group_id:
+                            split_seq += 1
+                            split_group_id = f"soniox-{int(time.time() * 1000)}-{split_seq}"
+                            split_part_index = 0
+                        emit_turn(turn_tokens, split_meta={
+                            "split_group_id": split_group_id,
+                            "split_part_index": split_part_index,
+                            "split_reason": "hard",
+                            "carry_duration_s": 0.0,
+                            "continues_next": False,
+                            "continuation_of": None if split_part_index == 0 else split_group_id,
+                        })
                         turn_tokens = []
                         seen_final.clear()
+                        reset_split_group()
 
                 if data.get("finished") and audio_eof_sent.is_set():
                     break

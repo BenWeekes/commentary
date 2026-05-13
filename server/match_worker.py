@@ -842,7 +842,6 @@ class MatchWorker:
                 return
 
             self._status.state = "running"
-            self._start_recordings(tag)
 
             video_wait_results = {}
             def wait_for_video_signals():
@@ -863,6 +862,16 @@ class MatchWorker:
                 args=(live_audio_source,),
                 daemon=True)
             stt_thread.start()
+
+            recording_lead_s = 3.0
+            recording_start_at = target_start - recording_lead_s
+            wait_s = recording_start_at - time.time()
+            if wait_s > 0:
+                print(f"[{tag}] Waiting {wait_s:.1f}s to start recordings "
+                      f"({recording_lead_s:.0f}s before video)")
+                self._stop.wait(wait_s)
+            if not self._stop.is_set():
+                self._start_recordings(tag)
 
             # Wait for relay_publish video delay to complete. The shared
             # target_start remains authoritative; late relays must drop to
@@ -1263,7 +1272,8 @@ class MatchWorker:
 
     def _on_utterance(self, text, audio_start, audio_end, play_at, intended_skew_ms=None,
                       speaker=None, provider=None, schedule_anchor_wall=None,
-                      occurred_at=None, occurred_end_at=None, word_timings=None):
+                      occurred_at=None, occurred_end_at=None, word_timings=None,
+                      split_meta=None):
         """Accept an STT utterance, correct English names once, then fan out."""
         self._stt_utterance_count += 1
         self._recent_transcript.append({
@@ -1295,6 +1305,8 @@ class MatchWorker:
                     line["speaker"] = speaker
                 if word_timings is not None:
                     line["word_timings"] = word_timings
+                if split_meta:
+                    line.update(split_meta)
                 self._stt_log.write(json.dumps(line) + "\n")
                 self._stt_log.flush()
             except Exception:
@@ -1317,6 +1329,7 @@ class MatchWorker:
             occurred_end_at=occurred_end_at,
             provider=provider,
             word_timings=word_timings,
+            split_meta=split_meta,
         )
 
     def _correct_names_for_utterance(self, text):
@@ -1338,7 +1351,8 @@ class MatchWorker:
                           audio_start, audio_end, play_at,
                           intended_skew_ms=None, speaker=None,
                           schedule_anchor_wall=None, occurred_at=None,
-                          occurred_end_at=None, provider=None, word_timings=None):
+                          occurred_end_at=None, provider=None, word_timings=None,
+                          split_meta=None):
         """Fan out one corrected English utterance to all language pipelines."""
         if self._stt_log:
             try:
@@ -1366,6 +1380,8 @@ class MatchWorker:
                     line["speaker"] = speaker
                 if word_timings is not None:
                     line["word_timings"] = word_timings
+                if split_meta:
+                    line.update(split_meta)
                 self._stt_log.write(json.dumps(line) + "\n")
                 self._stt_log.flush()
             except Exception:
@@ -1421,12 +1437,16 @@ class MatchWorker:
                 "name_correction_ms": name_correction_ms,
                 "name_correction_status": name_correction_status,
             }
+            if split_meta:
+                self._stt_schedule_meta_by_lang[lang][(lang_play_at, corrected_text)].update(split_meta)
             target_duration_s = self._source_utterance_duration(audio_start, audio_end, word_timings)
+            tts_meta = dict(split_meta or {})
             pipe.tts.speak(
                 corrected_text,
                 play_at=lang_play_at,
                 translate_fn=make_translate_fn(),
                 target_duration_s=target_duration_s,
+                metadata=tts_meta,
             )
 
     def _source_utterance_duration(self, audio_start, audio_end, word_timings):
@@ -1507,6 +1527,9 @@ class MatchWorker:
                     if play_at is not None:
                         skew_key = (play_at, data.get("text"))
                         stt_schedule_meta = self._stt_schedule_meta_by_lang.get(lang, {}).pop(skew_key, {})
+                        if not stt_schedule_meta and data.get("original_play_at") is not None:
+                            skew_key = (data.get("original_play_at"), data.get("text"))
+                            stt_schedule_meta = self._stt_schedule_meta_by_lang.get(lang, {}).pop(skew_key, {})
                     intended_skew_ms = stt_schedule_meta.get("intended_skew_ms")
                     audio_start = None
                     audio_end = stt_schedule_meta.get("audio_end")
@@ -1546,6 +1569,16 @@ class MatchWorker:
                         "stt_playback_offset_ms": stt_schedule_meta.get("stt_playback_offset_ms"),
                         "provider": stt_schedule_meta.get("provider"),
                         "speaker": stt_schedule_meta.get("speaker"),
+                        "split_group_id": stt_schedule_meta.get("split_group_id") or data.get("split_group_id"),
+                        "split_part_index": stt_schedule_meta.get("split_part_index") if stt_schedule_meta.get("split_part_index") is not None else data.get("split_part_index"),
+                        "split_reason": stt_schedule_meta.get("split_reason") or data.get("split_reason"),
+                        "carry_duration_s": stt_schedule_meta.get("carry_duration_s") if stt_schedule_meta.get("carry_duration_s") is not None else data.get("carry_duration_s"),
+                        "continues_next": stt_schedule_meta.get("continues_next") if stt_schedule_meta.get("continues_next") is not None else data.get("continues_next"),
+                        "continuation_of": stt_schedule_meta.get("continuation_of") or data.get("continuation_of"),
+                        "original_play_at": data.get("original_play_at"),
+                        "original_play_at_utc": _utc_hms_ms(data.get("original_play_at")),
+                        "split_chain_gap_ms": data.get("split_chain_gap_ms"),
+                        "split_chain_advance_ms": data.get("split_chain_advance_ms"),
                         "trans_ms": round(xlat_time * 1000) if xlat_time else None,
                         "translation_model_used": data.get("translation_model_used"),
                         "translation_fallback_reason": data.get("translation_fallback_reason"),

@@ -269,6 +269,16 @@ Utterance fields:
 - `local_speed_factor`
 - `intended_skew_ms`
 - `stt_playback_offset_ms`
+- `split_group_id`
+- `split_part_index`
+- `split_reason`
+- `carry_duration_s`
+- `continues_next`
+- `continuation_of`
+- `original_play_at`
+- `original_play_at_utc`
+- `split_chain_gap_ms`
+- `split_chain_advance_ms`
 - `fit_from_ms`
 - `fit_to_ms`
 - `fit_deadline_ms`

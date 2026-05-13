@@ -90,6 +90,8 @@ endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 
 Soniox realtime uses `model=stt-rt-v4`, keyterm context from the same roster-derived terms, speaker-aware tokens when available, and client-side turn emission at `stt_endpoint_delay_ms` or `max_stt_duration`. The Soniox `max_stt_duration` path uses a rolling safe split point: latest sentence boundary first, then speaker change, strong pause, clause boundary, largest pause, or a clean completed-word boundary. If no safe boundary exists, it waits up to 1s past the soft threshold before hard-emitting. This avoids splitting subword token pairs such as `candid` / `ates` when the completion arrives just after the nominal duration threshold, while still splitting no-punctuation speech at a word boundary before it exhausts the delay budget.
 
+Forced Soniox splits carry `split_group_id`, `split_part_index`, `split_reason`, `carry_duration_s`, `continues_next`, and `continuation_of` through STT and language logs. `TTSEngine` uses only this explicit metadata for continuation chaining: if split part N+1 is ready after part N finishes, it may advance part N+1 to start 30ms after part N instead of waiting for its original source-timed `play_at`. Normal endpointed utterances are not chained by grammar heuristics.
+
 ## Latency Budget
 
 With `--video-delay N` (live config currently uses 14s):

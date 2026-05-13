@@ -315,6 +315,8 @@ Live STT translation uses `translate_text_with_fallback()`: it starts the config
 
 Current live-demo evidence from `m05_uni_eval_demo` run `20260513_092754`: fallback racing removed the previous long translation tail and kept queue wait near zero, but it did not eliminate drops. Remaining drops are usually caused by STT turns arriving too close to their scheduled `play_at`, leaving less than the roughly 1.8-2.2s needed for fallback translation plus TTS. This is the best current operating point for 14s video delay: Soniox `1500ms`, bounded two-way prepare per language, local TTS gap fitting, and primary translation with fast fallback.
 
+Forced Soniox split continuations are marked explicitly and may be chained during playback. This only applies to turns split by our local `max_stt_duration` logic, not to ordinary adjacent utterances. The first split part stays anchored to source/video timing; later parts in the same split group can be advanced to follow the previous translated audio with a 30ms gap so artificial sentence splits do not create multi-second silences.
+
 ## TTS Speed Fitting
 
 ElevenLabs is requested with `speed=1.0`, `stability=1.0`, and `similarity_boost=1.0`. The engine does not ask ElevenLabs to speak faster by default; instead it fits generated PCM locally only when needed.

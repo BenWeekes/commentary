@@ -91,6 +91,8 @@ When an STT item has a later STT item queued, `_fit_current_audio_to_next_play_a
 
 The result metadata includes `local_speed_factor`, `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, and `fit_reason`, which are written to per-language JSONL logs.
 
+For Soniox forced-split continuations, the engine also supports explicit split chaining. It does not infer continuity from grammar. If item N and item N+1 share `split_group_id` and adjacent `split_part_index`, item N+1 can start 30ms after item N ends when that is earlier than the original source-timed `play_at`. The log records `original_play_at`, `split_chain_gap_ms`, and `split_chain_advance_ms`.
+
 ## Scheduling
 
 `speak(text, play_at=timestamp)` schedules playback to start at a specific wall-clock time. The prepare executor fetches audio immediately, and the coordinator holds the prepared result until `play_at`. This is used by live STT and by the events fallback to sync commentary with delayed video:
