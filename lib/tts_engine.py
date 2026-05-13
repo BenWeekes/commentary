@@ -684,20 +684,20 @@ class TTSEngine:
         play_at = result.get("play_at")
         pcm_bytes = result.get("pcm_bytes") or b""
         if not play_at or not pcm_bytes:
-            return
+            return False
 
         deadline = self._next_queued_play_at(play_at)
         if not deadline:
-            return
+            return False
 
         available_s = deadline - play_at - self._fit_guard_s
         if available_s <= 0:
-            return
+            return True
 
         current_s = len(pcm_bytes) / (SAMPLE_RATE * 2)
         needed = current_s / available_s
         if 0.95 <= needed <= 1.05:
-            return
+            return True
 
         factor = max(self._min_local_speed, min(needed, self._max_local_speed))
         try:
@@ -706,7 +706,7 @@ class TTSEngine:
             elapsed_ms = (time.monotonic() - started) * 1000
         except Exception as e:
             print(f"  [{self._vts()}] [TTS #{result.get('uid')}] speed-fit failed: {e}")
-            return
+            return True
 
         fitted_s = len(fitted) / (SAMPLE_RATE * 2)
         result["pcm_bytes"] = fitted
@@ -724,6 +724,7 @@ class TTSEngine:
         print(f"  [{self._vts()}] [TTS #{result.get('uid')}] Gap-fit {current_s:.2f}s → "
               f"{fitted_s:.2f}s for {available_s:.2f}s window "
               f"(factor={factor:.2f}x{capped}, atempo={elapsed_ms:.0f}ms)")
+        return True
 
     def speak(self, text, interrupt=False, play_at=None, translate_fn=None,
               target_duration_s=None, metadata=None):
@@ -1343,8 +1344,7 @@ class TTSEngine:
                 play_at = result.get("play_at")
                 now = time.time()
                 if not result.get("_fit_checked"):
-                    self._fit_result_audio_to_next_play_at(result)
-                    result["_fit_checked"] = True
+                    result["_fit_checked"] = self._fit_result_audio_to_next_play_at(result)
 
                 if play_at and now < play_at:
                     self._next_stt_play_at = play_at
