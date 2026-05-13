@@ -1270,7 +1270,7 @@ class TTSEngine:
         chained_play_at = last["play_ended_at"] + 0.03
         if original_play_at and chained_play_at < original_play_at:
             advance_ms = round((original_play_at - chained_play_at) * 1000)
-            if advance_ms > 1500:
+            if advance_ms > 4000:
                 return
             result["original_play_at"] = original_play_at
             result["play_at"] = chained_play_at
