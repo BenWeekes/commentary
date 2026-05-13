@@ -80,6 +80,18 @@ matches:
       default:
         s0: ""
         s1: ""
+      en:
+        s1: "HfRP3cIhYLmeNHeTvkWK"
+      es:
+        s1: "851ejYcv2BoNPjrkw93G"
+      pt:
+        s1: "bOJEJUvPf8t9H4jeMfOP"
+      fr:
+        s1: "V8kvppYJoYqSL61Tr8Dn"
+      tr:
+        s1: "OP4UedUzNB5e2mktGvdT"
+      de:
+        s1: "IxprfqLvLirqXn7FdoLy"
     languages: [en, es, pt, fr, tr, de]
 
   # Latency probe — looped clip with spoken time markers every 5s.
