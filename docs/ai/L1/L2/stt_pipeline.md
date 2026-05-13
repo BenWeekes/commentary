@@ -88,7 +88,7 @@ endpointing="200", utterance_end_ms="1000", keyterm=TERMS_LIST
 - `is_final=True` results are processed; interims are monitored for forced splitting
 - `keyterm`: player/team names for recognition boost. For live matches, keyterms are generated dynamically from the Sportradar lineups API and stored under `match_data/{match_id}/keyterms.txt` (full names, surnames, team names, venue, referees). Static `TERMS_LIST` remains a fallback.
 
-Soniox realtime uses `model=stt-rt-v4`, keyterm context from the same roster-derived terms, speaker-aware tokens when available, and client-side turn emission at `stt_endpoint_delay_ms` or `max_stt_duration`. The Soniox `max_stt_duration` path uses a soft threshold: if the latest token does not end a sentence, the client waits up to 1s longer before force-emitting. This avoids splitting subword token pairs such as `candid` / `ates` when the completion arrives just after the nominal duration threshold.
+Soniox realtime uses `model=stt-rt-v4`, keyterm context from the same roster-derived terms, speaker-aware tokens when available, and client-side turn emission at `stt_endpoint_delay_ms` or `max_stt_duration`. The Soniox `max_stt_duration` path uses a rolling safe split point: latest sentence boundary first, then speaker change, strong pause, or clause boundary. If no safe boundary exists, it waits up to 1s past the soft threshold before hard-emitting. This avoids splitting subword token pairs such as `candid` / `ates` when the completion arrives just after the nominal duration threshold.
 
 ## Latency Budget
 

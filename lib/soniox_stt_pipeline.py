@@ -84,6 +84,75 @@ def _ends_sentence(tok: dict) -> bool:
     return tok.get("text", "").strip().endswith((".", "?", "!"))
 
 
+def _ends_clause(tok: dict) -> bool:
+    return tok.get("text", "").strip().endswith((",", ";", ":", "—", "-"))
+
+
+def _continues_word(tok: dict) -> bool:
+    text = tok.get("text", "")
+    if not text:
+        return False
+    stripped = text.strip()
+    if not stripped:
+        return False
+    if re.fullmatch(r"[.,;:?!—-]+", stripped):
+        return True
+    return not text[:1].isspace()
+
+
+def _token_gap_s(prev: dict, nxt: dict) -> float | None:
+    prev_end = prev.get("end_ms")
+    next_start = nxt.get("start_ms")
+    if prev_end is None or next_start is None:
+        return None
+    return (next_start - prev_end) / 1000.0
+
+
+def _best_split_index(tokens: list[dict], soft_duration: float) -> tuple[int | None, str]:
+    if len(tokens) < 2:
+        return None, ""
+
+    best_sentence = None
+    best_speaker = None
+    best_pause = None
+    best_clause = None
+
+    for idx in range(1, len(tokens)):
+        prev = tokens[idx - 1]
+        nxt = tokens[idx]
+        if _continues_word(nxt):
+            continue
+
+        prefix = tokens[:idx]
+        if turn_duration(prefix) < min(1.0, soft_duration):
+            continue
+
+        if _ends_sentence(prev):
+            best_sentence = idx
+
+        prev_speaker = prev.get("speaker")
+        next_speaker = nxt.get("speaker")
+        if prev_speaker and next_speaker and prev_speaker != next_speaker:
+            best_speaker = idx
+
+        gap = _token_gap_s(prev, nxt)
+        if gap is not None and gap >= 0.7:
+            best_pause = idx
+
+        if _ends_clause(prev):
+            best_clause = idx
+
+    if best_sentence is not None:
+        return best_sentence, "sentence"
+    if best_speaker is not None:
+        return best_speaker, "speaker"
+    if best_pause is not None:
+        return best_pause, "pause"
+    if best_clause is not None:
+        return best_clause, "clause"
+    return None, ""
+
+
 def _turn_from_tokens(tokens: list[dict]) -> tuple[str, float, float, object] | None:
     text = _clean_join_token_text(tokens)
     timed = [t for t in tokens if t.get("start_ms") is not None and t.get("end_ms") is not None]
@@ -138,6 +207,13 @@ def _utc_ts(ts: float | None) -> str | None:
     if ts is None:
         return None
     return time.strftime("%H:%M:%S", time.gmtime(ts)) + f".{int(ts * 1000) % 1000:03d}Z"
+
+
+def turn_duration(tokens: list[dict]) -> float:
+    timed = [t for t in tokens if t.get("start_ms") is not None and t.get("end_ms") is not None]
+    if not timed:
+        return 0.0
+    return (max(t["end_ms"] for t in timed) - min(t["start_ms"] for t in timed)) / 1000.0
 
 
 def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
@@ -255,12 +331,6 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
             )
             utterance_count[0] += 1
 
-        def turn_duration(tokens: list[dict]) -> float:
-            timed = [t for t in tokens if t.get("start_ms") is not None and t.get("end_ms") is not None]
-            if not timed:
-                return 0.0
-            return (max(t["end_ms"] for t in timed) - min(t["start_ms"] for t in timed)) / 1000.0
-
         sender = threading.Thread(target=send_audio, daemon=True)
         sender.start()
         turn_tokens: list[dict] = []
@@ -287,10 +357,17 @@ def run_soniox_stt_pipeline_live(audio_pipe, on_utterance, stop_event,
                     seen_final.add(key)
                     turn_tokens.append(tok)
                     duration = turn_duration(turn_tokens)
-                    can_soft_split = bool(turn_tokens and _ends_sentence(turn_tokens[-1]))
-                    if duration >= max_stt_duration and (can_soft_split or duration >= max_stt_duration_hard):
+                    split_idx, split_reason = _best_split_index(turn_tokens, max_stt_duration)
+                    if duration >= max_stt_duration and split_idx is not None:
+                        emit_tokens = turn_tokens[:split_idx]
+                        turn_tokens = turn_tokens[split_idx:]
                         print(f"  [{_ts(video_start_ref[0])}] [STT-LIVE SONIOX SPLIT] "
-                              f"force-emitting {duration:.1f}s turn")
+                              f"rolling {split_reason} split at {turn_duration(emit_tokens):.1f}s; "
+                              f"carry={turn_duration(turn_tokens):.1f}s")
+                        emit_turn(emit_tokens)
+                    elif duration >= max_stt_duration_hard:
+                        print(f"  [{_ts(video_start_ref[0])}] [STT-LIVE SONIOX SPLIT] "
+                              f"hard force-emitting {duration:.1f}s turn")
                         emit_turn(turn_tokens)
                         turn_tokens = []
                         seen_final.clear()
