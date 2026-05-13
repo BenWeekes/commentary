@@ -1102,7 +1102,8 @@ class MatchWorker:
             "started_at": datetime.datetime.now().isoformat(timespec="milliseconds"),
             "video_delay": self._match.video_delay,
             "target_start": target_start,
-            "stt_playback_offset_ms": self._match.stt_playback_offset_ms,
+            "stt_provider": self._match.stt_provider,
+            "stt_playback_offset_ms": self._stt_playback_offset_ms(self._match.stt_provider),
             "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
             "source_media_start_wall": self._source_media_start_ref[0],
             "source_media_start_utc": _utc_hms_ms(self._source_media_start_ref[0]),
@@ -1122,7 +1123,8 @@ class MatchWorker:
             "language": lang,
             "voice_id": voice_id,
             "video_start": video_start,
-            "stt_playback_offset_ms": self._match.stt_playback_offset_ms,
+            "stt_provider": self._match.stt_provider,
+            "stt_playback_offset_ms": self._stt_playback_offset_ms(self._match.stt_provider),
             "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
         }
         fh.write(json.dumps(header) + "\n")
