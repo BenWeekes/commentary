@@ -95,6 +95,8 @@ For Soniox forced-split continuations, the engine also supports explicit split c
 
 Normal STT utterances can also use conservative continuity chaining. This only applies when the previous STT playback completed normally, both utterances have the same speaker, the source audio gap is `0-900ms`, and the timing advance would be at most `1500ms`. In that case item N+1 can start 100ms after item N ends. The log records `continuity_chain_source_gap_ms`, `continuity_chain_gap_ms`, and `continuity_chain_advance_ms`.
 
+This continuity chain is intentionally source-timing based, not grammar based. It does not inspect phrases such as "going to be"; the guardrails are speaker identity, source gap, successful previous playback, and maximum advance. If the required advance exceeds `1500ms`, the item remains on its original source-timed schedule. That cap keeps the behavior auditable and avoids collapsing genuinely separate commentary beats.
+
 ## Scheduling
 
 `speak(text, play_at=timestamp)` schedules playback to start at a specific wall-clock time. The prepare executor fetches audio immediately, and the coordinator holds the prepared result until `play_at`. This is used by live STT and by the events fallback to sync commentary with delayed video:

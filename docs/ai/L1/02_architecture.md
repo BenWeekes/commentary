@@ -313,11 +313,19 @@ The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4` wit
 
 Live STT translation uses `translate_text_with_fallback()`: it starts the configured primary translation call and a fast `gpt-4o-mini` fallback in parallel. The primary wins if it finishes inside the grace window; after that, whichever finishes first is used. The losing request is allowed to finish in the background and may still be billed. Per-language JSONL rows record `translation_model_used` and `translation_fallback_reason` so fallback usage can be audited against drops.
 
-Current live-demo evidence from `m05_uni_eval_demo` run `20260513_092754`: fallback racing removed the previous long translation tail and kept queue wait near zero, but it did not eliminate drops. Remaining drops are usually caused by STT turns arriving too close to their scheduled `play_at`, leaving less than the roughly 1.8-2.2s needed for fallback translation plus TTS. This is the best current operating point for 14s video delay: Soniox `1500ms`, bounded two-way prepare per language, local TTS gap fitting, and primary translation with fast fallback.
+Current live-demo evidence from `m05_uni_eval_demo` runs on 2026-05-13:
+
+| Run | Change under test | Played | Dropped | Interrupted |
+|---|---|---:|---:|---:|
+| `20260513_092754` | fallback translation + bounded prepare baseline | 1811 | 97 | 120 |
+| `20260513_182142` | late recheck for TTS gap fitting | 1849 | 86 | 99 |
+| `20260513_190657` | same-speaker continuity chaining | 1918 | 64 | 112 |
+
+The latest run has the best drop rate and highest played count. Interruptions are slightly higher than `20260513_182142`, mainly because more items play in busy regions. Remaining drops are usually caused by STT turns arriving too close to their scheduled `play_at`, leaving less than the roughly 1.8-2.2s needed for fallback translation plus TTS. This is the best current operating point for 14s video delay: Soniox `1500ms`, bounded two-way prepare per language, local TTS gap fitting, same-speaker continuity chaining, and primary translation with fast fallback.
 
 Forced Soniox split continuations are marked explicitly and may be chained during playback. This only applies to turns split by our local `max_stt_duration` logic, not to ordinary adjacent utterances. The first split part stays anchored to source/video timing; later parts in the same split group can be advanced to follow the previous translated audio with a 30ms gap so artificial sentence splits do not create multi-second silences.
 
-Adjacent normal STT turns can also be pulled closer together by a conservative source-timing rule: same speaker, source gap no more than 900ms, previous item completed normally, and a maximum 1500ms advance. This reduces artificial gaps introduced by endpointing without relying on phrase-specific grammar heuristics.
+Adjacent normal STT turns can also be pulled closer together by a conservative source-timing rule: same speaker, source gap no more than 900ms, previous item completed normally, and a maximum 1500ms advance. This reduces artificial gaps introduced by endpointing without relying on phrase-specific grammar heuristics. In `20260513_190657`, this fired 21-28 times per language. The "Amiri ... going to be / Caught every day..." case joined to 100ms in EN and PT; ES/FR/TR did not chain that exact case because the needed advance exceeded the 1500ms cap.
 
 ## TTS Speed Fitting
 
