@@ -154,8 +154,24 @@ def _is_reasoning_model(model):
     return False
 
 
+def _build_user_message(text, previous_source=None, previous_translation=None):
+    if not previous_source and not previous_translation:
+        return text
+    parts = [
+        "Use this previous utterance only as context for pronouns, fragments, and sentence continuations.",
+        "Do not translate the previous utterance again.",
+    ]
+    if previous_source:
+        parts.append(f"Previous English: {previous_source}")
+    if previous_translation:
+        parts.append(f"Previous target translation: {previous_translation}")
+    parts.append(f"Current English to translate: {text}")
+    return "\n".join(parts)
+
+
 def translate_text(oai_client, text, lang, model="gpt-5.5",
-                    reasoning_effort="low", roster=None):
+                    reasoning_effort="low", roster=None,
+                    previous_source=None, previous_translation=None):
     lang_name = LANG_NAMES.get(lang, lang)
     if roster:
         system = TRANSLATE_SYSTEM_WITH_ROSTER.format(
@@ -166,7 +182,9 @@ def translate_text(oai_client, text, lang, model="gpt-5.5",
         model=model,
         messages=[
             {"role": "system", "content": system},
-            {"role": "user", "content": text},
+            {"role": "user", "content": _build_user_message(
+                text, previous_source=previous_source,
+                previous_translation=previous_translation)},
         ],
     )
     if reasoning_effort and _is_reasoning_model(model):
@@ -183,6 +201,8 @@ def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.5",
                                  reasoning_effort="low", roster=None,
                                  fallback_model="gpt-5.4",
                                  fallback_reasoning_effort=None,
+                                 previous_source=None,
+                                 previous_translation=None,
                                  primary_grace_s=1.5,
                                  guard_primary_wait_s=3.0,
                                  return_meta=False):
@@ -194,7 +214,9 @@ def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.5",
     """
     if not fallback_model or fallback_model == model:
         attempt = _translate_attempt(
-            oai_client, text, lang, model, reasoning_effort, roster)
+            oai_client, text, lang, model, reasoning_effort, roster,
+            previous_source=previous_source,
+            previous_translation=previous_translation)
         selected = attempt if attempt.get("guard_ok") else None
         translated = selected.get("output", "") if selected else ""
         reason = "primary_only" if selected else f"guard_rejected_{attempt.get('guard_reason')}"
@@ -210,12 +232,14 @@ def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.5",
 
     started = time.monotonic()
     primary = _TRANSLATION_RACE_EXECUTOR.submit(
-        _translate_attempt, oai_client, text, lang, model, reasoning_effort, roster)
+        _translate_attempt, oai_client, text, lang, model, reasoning_effort, roster,
+        previous_source, previous_translation)
     fallback_effort = fallback_reasoning_effort
     if fallback_effort is None and _is_reasoning_model(fallback_model):
         fallback_effort = "low"
     fallback = _TRANSLATION_RACE_EXECUTOR.submit(
-        _translate_attempt, oai_client, text, lang, fallback_model, fallback_effort, roster)
+        _translate_attempt, oai_client, text, lang, fallback_model, fallback_effort, roster,
+        previous_source, previous_translation)
 
     attempts = {}
 
@@ -306,7 +330,8 @@ def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.5",
     return _finish(None, "primary_fallback_unavailable", "rejected")
 
 
-def _translate_attempt(oai_client, text, lang, model, reasoning_effort, roster):
+def _translate_attempt(oai_client, text, lang, model, reasoning_effort, roster,
+                       previous_source=None, previous_translation=None):
     started_at = time.time()
     started = time.monotonic()
     attempt = {
@@ -317,7 +342,9 @@ def _translate_attempt(oai_client, text, lang, model, reasoning_effort, roster):
     try:
         output = translate_text(
             oai_client, text, lang, model=model,
-            reasoning_effort=reasoning_effort, roster=roster)
+            reasoning_effort=reasoning_effort, roster=roster,
+            previous_source=previous_source,
+            previous_translation=previous_translation)
         ended_at = time.time()
         ok, reason = guard_translation_output(text, output, lang)
         attempt.update({

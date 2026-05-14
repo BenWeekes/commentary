@@ -502,6 +502,7 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "recordings": recordings,
                 "translation_model": self.server_config.translation_model,
                 "translation_fallback_model": self.server_config.translation_fallback_model,
+                "translation_context_enabled": self.server_config.translation_context_enabled,
                 "video_delay": match_cfg.video_delay if match_cfg else None,
                 "runs": runs[:20],
                 "match_meta": match_meta,

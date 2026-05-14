@@ -75,7 +75,9 @@ Use a completed run such as `match_data/m05_uni_eval_demo/runs/20260514_082830`.
 
 ## Phase 3 — Previous-Utterance Context
 
-Add previous English and previous target-language translation as optional context per language.
+Implemented behind `translation_context_enabled`.
+
+Add previous English and previous target-language translation as optional context per language. Context is selected by source audio time rather than translation completion time so parallel preparation cannot feed future utterances into the prompt.
 
 Use behind a config flag because it may improve fragments such as `Work out.` or `Remaining.`, but it can also cause context carry-over and translation drift.
 

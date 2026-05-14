@@ -108,6 +108,8 @@ Each language TTSEngine uses bounded parallel preparation: up to two STT utteran
 
 Live STT translation races the configured primary model against the configured fallback model after a short grace window. The current live eval config uses `gpt-5.5` primary and `gpt-5.4` fallback. The per-language log fields `translation_model_used`, `translation_fallback_reason`, and `translation_attempts` show whether the primary or fallback produced each translation and why guarded outputs were accepted or rejected. The losing call is not force-cancelled, so fallback use can improve deadline success but may increase model-call volume.
 
+When `translation_context_enabled` is true, `MatchWorker` records successful translations in a small per-language source-time history. New STT translations receive the latest earlier same-speaker context where available (`previous_source` and `previous_translation`). This is intended for fragments such as "Work out." and should be evaluated against guard rejections, latency, and context drift.
+
 ## Forced Split (Long Utterance Protection)
 
 Stadium crowd noise prevents Deepgram's VAD from detecting commentary pauses — audio levels only drop from -20 dB (speech) to -37 dB (crowd), well above Deepgram's silence threshold. This causes occasional mega-batches (6-10s) that exhaust the video delay budget.

@@ -352,6 +352,8 @@ class MatchWorker:
         self._recording_sessions: dict[str, RecordingSession] = {}
         self._recording_meta: dict[str, dict] = {}
         self._stt_schedule_meta_by_lang: dict[str, dict[tuple[float, str], dict]] = {}
+        self._translation_context_by_lang: dict[str, collections.deque] = {}
+        self._translation_context_lock = threading.Lock()
 
     def start(self):
         """Spawn background thread to run the match. Safe to call again after stop()."""
@@ -371,6 +373,7 @@ class MatchWorker:
         self._recording_sessions = {}
         self._recording_meta = {}
         self._stt_schedule_meta_by_lang = {}
+        self._translation_context_by_lang = {}
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
@@ -1135,6 +1138,7 @@ class MatchWorker:
             "stt_provider": self._match.stt_provider,
             "stt_playback_offset_ms": self._stt_playback_offset_ms(self._match.stt_provider),
             "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
+            "translation_context_enabled": self._server.translation_context_enabled,
             "source_media_start_wall": self._source_media_start_ref[0],
             "source_media_start_utc": _utc_hms_ms(self._source_media_start_ref[0]),
             "languages": list(self._match.languages),
@@ -1156,6 +1160,7 @@ class MatchWorker:
             "stt_provider": self._match.stt_provider,
             "stt_playback_offset_ms": self._stt_playback_offset_ms(self._match.stt_provider),
             "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
+            "translation_context_enabled": self._server.translation_context_enabled,
         }
         fh.write(json.dumps(header) + "\n")
         fh.flush()
@@ -1412,7 +1417,9 @@ class MatchWorker:
             if lang == "original":
                 continue  # original pipeline plays file audio, not TTS
 
-            def make_translate_fn(target_lang=lang, stt_speaker=speaker):
+            def make_translate_fn(target_lang=lang, stt_speaker=speaker,
+                                  src_audio_start=audio_start,
+                                  src_audio_end=audio_end):
                 def translate(t):
                     vid = self._voice_for_lang_speaker(target_lang, stt_speaker)
                     if target_lang == "en":
@@ -1420,15 +1427,23 @@ class MatchWorker:
                             "model_used": "passthrough",
                             "fallback_reason": "english",
                         })
+                    context = self._translation_context(
+                        target_lang, src_audio_start, stt_speaker)
                     translated, model_used, fallback_reason, translation_meta = translate_text_with_fallback(
                         self._oai_client, t, target_lang,
                         model=self._server.translation_model,
                         fallback_model=self._server.translation_fallback_model,
                         roster=self._roster,
+                        previous_source=context.get("previous_source"),
+                        previous_translation=context.get("previous_translation"),
                         return_meta=True)
+                    self._record_translation_context(
+                        target_lang, src_audio_start, src_audio_end,
+                        stt_speaker, t, translated)
                     return (translated, vid, {
                         "model_used": model_used,
                         "fallback_reason": fallback_reason,
+                        **context,
                         **translation_meta,
                     })
                 return translate
@@ -1476,6 +1491,60 @@ class MatchWorker:
                 target_duration_s=target_duration_s,
                 metadata=tts_meta,
             )
+
+    def _translation_context(self, lang, audio_start, speaker):
+        """Return previous source-time translation context for a language."""
+        if not self._server.translation_context_enabled:
+            return {
+                "translation_context_enabled": False,
+                "translation_context_used": False,
+            }
+        with self._translation_context_lock:
+            history = list(self._translation_context_by_lang.get(lang, ()))
+        candidates = [
+            row for row in history
+            if row.get("audio_start") is not None
+            and audio_start is not None
+            and row.get("audio_start") < audio_start
+            and (speaker is None or row.get("speaker") in (None, speaker))
+        ]
+        if not candidates:
+            return {
+                "translation_context_enabled": True,
+                "translation_context_used": False,
+            }
+        prev = max(candidates, key=lambda row: row.get("audio_start", -1))
+        gap_s = None
+        if prev.get("audio_end") is not None and audio_start is not None:
+            gap_s = round(audio_start - prev["audio_end"], 2)
+        return {
+            "translation_context_enabled": True,
+            "translation_context_used": True,
+            "previous_source": prev.get("source"),
+            "previous_translation": prev.get("translation"),
+            "previous_audio_start": prev.get("audio_start"),
+            "previous_audio_end": prev.get("audio_end"),
+            "previous_speaker": prev.get("speaker"),
+            "previous_gap_s": gap_s,
+        }
+
+    def _record_translation_context(self, lang, audio_start, audio_end, speaker,
+                                    source, translation):
+        if not self._server.translation_context_enabled:
+            return
+        if not translation or not str(translation).strip():
+            return
+        row = {
+            "audio_start": audio_start,
+            "audio_end": audio_end,
+            "speaker": speaker,
+            "source": source,
+            "translation": translation,
+        }
+        with self._translation_context_lock:
+            history = self._translation_context_by_lang.setdefault(
+                lang, collections.deque(maxlen=24))
+            history.append(row)
 
     def _source_utterance_duration(self, audio_start, audio_end, word_timings):
         if word_timings:
@@ -1618,6 +1687,14 @@ class MatchWorker:
                         "translation_selected_model": data.get("translation_selected_model"),
                         "translation_selected_reason": data.get("translation_selected_reason"),
                         "translation_attempts": data.get("translation_attempts"),
+                        "translation_context_enabled": data.get("translation_context_enabled"),
+                        "translation_context_used": data.get("translation_context_used"),
+                        "previous_source": data.get("previous_source"),
+                        "previous_translation": data.get("previous_translation"),
+                        "previous_audio_start": data.get("previous_audio_start"),
+                        "previous_audio_end": data.get("previous_audio_end"),
+                        "previous_speaker": data.get("previous_speaker"),
+                        "previous_gap_s": data.get("previous_gap_s"),
                         "tts_ms": round(tts_time * 1000) if tts_time else None,
                         "status": status,
                         "interrupted_by": interrupted_by,

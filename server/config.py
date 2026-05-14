@@ -74,6 +74,7 @@ class ServerConfig:
     control_port: int = 8080
     translation_model: str = "gpt-5.5"
     translation_fallback_model: str = "gpt-5.4"
+    translation_context_enabled: bool = False
     stt_playback_offset_ms: int = 0
     stt_playback_offsets_ms: dict = field(default_factory=dict)
     matches: list[MatchConfig] = field(default_factory=list)
@@ -273,6 +274,7 @@ def load_config(yaml_path: str) -> ServerConfig:
         control_port=raw.get("control_port", 8080),
         translation_model=raw.get("translation_model", "gpt-5.5"),
         translation_fallback_model=raw.get("translation_fallback_model", "gpt-5.4"),
+        translation_context_enabled=bool(raw.get("translation_context_enabled", False)),
         stt_playback_offset_ms=stt_playback_offset_ms,
         stt_playback_offsets_ms=stt_playback_offsets_ms,
         matches=matches,

@@ -263,6 +263,14 @@ Utterance fields:
 - `translation_selected_model`
 - `translation_selected_reason`
 - `translation_attempts`
+- `translation_context_enabled`
+- `translation_context_used`
+- `previous_source`
+- `previous_translation`
+- `previous_audio_start`
+- `previous_audio_end`
+- `previous_speaker`
+- `previous_gap_s`
 - `tts_ms`
 - `prepare_started_at` / `prepare_started_at_utc`
 - `translate_started_at` / `translate_started_at_utc`

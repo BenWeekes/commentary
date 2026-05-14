@@ -232,6 +232,8 @@ The first translation call per process can incur a cold-start penalty. In server
 
 Translation calls race the configured primary model against the configured fallback model. The selected output is now guarded before TTS: empty output, `__TRANSLATION_FAILED__`, assistant/refusal boilerplate, extreme length expansion on short fragments, and known literal football-idiom failures are rejected. If the fallback is rejected, the engine waits briefly for the primary result; if no guarded translation is available, the utterance is dropped rather than spoken.
 
+When `translation_context_enabled` is true, each live STT translation also receives the previous source-time utterance for that target language: previous English plus previous translated text. The context is for pronouns, fragments, and sentence continuations only; the prompt tells the model not to translate the previous utterance again. Context lookup is based on `audio_start` order rather than translation completion order so parallel prepare cannot accidentally use a future utterance as the previous one.
+
 ### STT turn sizing
 
 Live mode must bound STT turn duration. If a provider emits a turn longer than `video_delay`, the play deadline can already be in the past before translation starts. Deepgram has interim force-splitting in `lib/stt_pipeline.py`; Soniox has client-side force emission in `lib/soniox_stt_pipeline.py` using the same `max_stt_duration` match setting. The current live-demo candidate is Soniox `stt-rt-v4`, `stt_endpoint_delay_ms=1500`, `max_stt_duration=8.5`, and `video_delay=16`.
