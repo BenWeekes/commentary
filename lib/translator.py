@@ -182,6 +182,7 @@ def translate_text(oai_client, text, lang, model="gpt-5.5",
 def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.5",
                                  reasoning_effort="low", roster=None,
                                  fallback_model="gpt-5.4",
+                                 fallback_reasoning_effort=None,
                                  primary_grace_s=1.5,
                                  guard_primary_wait_s=3.0,
                                  return_meta=False):
@@ -210,8 +211,11 @@ def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.5",
     started = time.monotonic()
     primary = _TRANSLATION_RACE_EXECUTOR.submit(
         _translate_attempt, oai_client, text, lang, model, reasoning_effort, roster)
+    fallback_effort = fallback_reasoning_effort
+    if fallback_effort is None and _is_reasoning_model(fallback_model):
+        fallback_effort = "low"
     fallback = _TRANSLATION_RACE_EXECUTOR.submit(
-        _translate_attempt, oai_client, text, lang, fallback_model, None, roster)
+        _translate_attempt, oai_client, text, lang, fallback_model, fallback_effort, roster)
 
     attempts = {}
 
