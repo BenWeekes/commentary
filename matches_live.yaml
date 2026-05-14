@@ -10,7 +10,7 @@
 control_port: 8080
 translation_model: "gpt-5.5"
 translation_fallback_model: "gpt-5.4"
-translation_context_enabled: true
+translation_context_enabled: false
 stt_playback_offset_ms: 0
 stt_playback_offsets_ms:
   soniox: 700
