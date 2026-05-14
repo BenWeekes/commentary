@@ -499,8 +499,7 @@ class MatchWorker:
                     translate_text(self._oai_client, "Kick off.",
                                    lang, model=self._server.translation_model)
                     translate_text(self._oai_client, "Kick off.",
-                                   lang, model="gpt-4o-mini",
-                                   reasoning_effort=None)
+                                   lang, model=self._server.translation_fallback_model)
                 except Exception:
                     pass
             t = threading.Thread(target=_warmup, daemon=True)
@@ -1190,13 +1189,16 @@ class MatchWorker:
                                 "model_used": "passthrough",
                                 "fallback_reason": "english",
                             })
-                        translated, model_used, fallback_reason = translate_text_with_fallback(
+                        translated, model_used, fallback_reason, translation_meta = translate_text_with_fallback(
                             self._oai_client, text, target_lang,
                             model=self._server.translation_model,
-                            roster=self._roster)
+                            fallback_model=self._server.translation_fallback_model,
+                            roster=self._roster,
+                            return_meta=True)
                         return (translated, vid, {
                             "model_used": model_used,
                             "fallback_reason": fallback_reason,
+                            **translation_meta,
                         })
                     return translate
                 return factory
@@ -1418,13 +1420,16 @@ class MatchWorker:
                             "model_used": "passthrough",
                             "fallback_reason": "english",
                         })
-                    translated, model_used, fallback_reason = translate_text_with_fallback(
+                    translated, model_used, fallback_reason, translation_meta = translate_text_with_fallback(
                         self._oai_client, t, target_lang,
                         model=self._server.translation_model,
-                        roster=self._roster)
+                        fallback_model=self._server.translation_fallback_model,
+                        roster=self._roster,
+                        return_meta=True)
                     return (translated, vid, {
                         "model_used": model_used,
                         "fallback_reason": fallback_reason,
+                        **translation_meta,
                     })
                 return translate
 
@@ -1608,6 +1613,11 @@ class MatchWorker:
                         "trans_ms": round(xlat_time * 1000) if xlat_time else None,
                         "translation_model_used": data.get("translation_model_used"),
                         "translation_fallback_reason": data.get("translation_fallback_reason"),
+                        "translation_guard_status": data.get("translation_guard_status"),
+                        "translation_guard_reason": data.get("translation_guard_reason"),
+                        "translation_selected_model": data.get("translation_selected_model"),
+                        "translation_selected_reason": data.get("translation_selected_reason"),
+                        "translation_attempts": data.get("translation_attempts"),
                         "tts_ms": round(tts_time * 1000) if tts_time else None,
                         "status": status,
                         "interrupted_by": interrupted_by,

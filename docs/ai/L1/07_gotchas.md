@@ -121,12 +121,12 @@ Under load, ElevenLabs WebSocket connections can drop silently. The TTSEngine lo
 
 **Workarounds**:
 - Use `reasoning_effort="low"` — much lower blank rate
-- Use `gpt-4o-mini` as a fallback if a reasoning model regresses
+- Use `translation_fallback_model` to switch fallback behavior if a reasoning model regresses
 - Use `max_completion_tokens` (not `max_tokens`) with gpt-5.4-mini — `max_tokens` returns HTTP 400
 
 ## GPT reasoning model parameter differences
 
-`gpt-5.4` / `gpt-5.4-mini` use `max_completion_tokens` instead of `max_tokens` when reasoning is enabled. The `translate_text()` function in `lib/translator.py` handles this: when `reasoning_effort` is set, it uses `max_completion_tokens`; otherwise it uses `max_tokens` with `temperature`.
+`gpt-5.4` / `gpt-5.5` / `gpt-5.4-mini` use `max_completion_tokens` instead of `max_tokens` when reasoning is enabled. The `translate_text()` function in `lib/translator.py` handles this: when `reasoning_effort` is set, it uses `max_completion_tokens`; otherwise it uses `max_tokens` with `temperature`.
 
 ## SRT source is single-caller
 

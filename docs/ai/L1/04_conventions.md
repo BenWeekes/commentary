@@ -66,7 +66,8 @@ Server mode uses `matches.yaml` for configuration. Top-level fields:
 | Field | Type | Default | Purpose |
 |---|---|---|---|
 | `control_port` | int | 8080 | HTTP API port |
-| `translation_model` | string | `gpt-5.4` | GPT model for translation |
+| `translation_model` | string | `gpt-5.5` | Primary GPT model for translation |
+| `translation_fallback_model` | string | `gpt-5.4` | Fallback GPT model raced against the primary |
 | `agora_app_id` | string | from env | Overrides `AGORA_APP_ID` env var |
 | `agora_app_cert` | string | from env | Overrides `AGORA_APP_CERT` env var |
 
@@ -185,6 +186,7 @@ Additional telemetry fields per utterance:
 - `pre_translated` — legacy translation-cache flag; usually `false` in the current parallel prepare path
 - `queue_wait_ms` — milliseconds the item waited before its bounded parallel prepare task started. In the current live path this should usually be near zero; high values indicate the per-language prepare pool is saturated.
 - `translation_model_used` / `translation_fallback_reason` — which translation model produced the text and why. Values show whether the primary model was fast enough, whether the fallback won after the grace window, or whether English passthrough was used.
+- `translation_guard_status`, `translation_guard_reason`, `translation_selected_model`, `translation_selected_reason`, `translation_attempts` — translation race diagnostics. The guard rejects unsafe outputs before TTS; when no safe translation is available, the utterance is dropped instead of spoken.
 - `total_buffered_ms` — total TTS audio duration in milliseconds
 - `speed` / `local_speed_factor` — local ffmpeg `atempo` factor applied to fit the known gap before the next STT item; `1.0` means no local tempo change
 - `fit_from_ms`, `fit_to_ms`, `fit_deadline_ms`, `fit_cpu_ms`, `fit_reason` — generated duration, fitted duration, available playback window, ffmpeg cost, and reason (`next_play_at` for live gap fit)

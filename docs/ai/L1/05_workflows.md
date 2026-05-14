@@ -150,7 +150,7 @@ What it exercises:
 
 1. `subscribe_audio` subscribes to the source commentary UID
 2. The configured live STT provider reads live PCM from the source publisher
-3. GPT translation runs with `gpt-5.4-mini` and `reasoning_effort="low"` by default in this standalone script; pass `--translation-model gpt-5.4` to match the current server live config
+3. GPT translation runs with `gpt-5.4-mini` and `reasoning_effort="low"` by default in this standalone script; pass `--translation-model gpt-5.5` to match the current server live primary config
 4. ElevenLabs TTS generates PCM for one target language; server mode keeps ElevenLabs speed at `1.0` and uses local ffmpeg `atempo` speed fitting when a generated clip must fit before the next STT item
 5. `relay_publish` republishes delayed video + delayed atmosphere + translated TTS into a separate output channel
 
@@ -249,7 +249,7 @@ Recent eval learnings:
 
 - Soniox realtime `stt-rt-v4` was more accurate and faster than Deepgram Nova-3 on the Mainz/Union gold clip.
 - Deepgram Nova-3 provides useful word end times for the latency marker clip, but Soniox remains the preferred eval-demo STT provider for the Mainz/Union football clip.
-- `stt_endpoint_delay_ms=1500` gives more natural turns than very short endpoints while staying inside the 14s live delay for most turns.
+- `stt_endpoint_delay_ms=1500` gives more natural turns than very short endpoints. The current eval candidate pairs it with `max_stt_duration=8.5` and `video_delay=16` to reduce artificial forced splits and give guarded translation more tail-latency budget.
 - Long Soniox turns must still be force-emitted with `max_stt_duration`; otherwise oversized chunks can miss `play_at` before translation starts.
 - Live correction should be deterministic and keyterm-driven. `GLOBAL_FOOTBALL_CORRECTIONS` handles high-confidence football phrases for both Deepgram and Soniox; roster/keyterm name correction then fixes proper names. An LLM correction pass found useful fixes but had high tail latency and could make semantic overcorrections.
 - TTS tempo fitting should target the known gap before the next STT item, not raw STT provider word spans. Current bounds are `0.769x` to `1.3x`; if the next STT play time is unknown, keep the generated duration.

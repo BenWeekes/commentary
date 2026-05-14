@@ -3,6 +3,7 @@ import re
 import time
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from difflib import SequenceMatcher
+from hashlib import sha1
 
 # ─── Translation ─────────────────────────────────────────────────────────
 
@@ -39,21 +40,104 @@ PLAYER ROSTER:
 {roster}
 
 Rules:
-1. Translate EXACTLY what is said — do not add, remove, or rewrite words
-2. Fix misspelled names from the roster, keep all other names unchanged
-3. Use natural football terminology for the target language
-4. Return ONLY the translation, nothing else
-5. Match the length and structure of the original
-6. Use correct grammar — never invent word forms"""
+1. Translate the MEANING faithfully. Render English football idioms naturally in the target language.
+2. Fix misspelled names from the roster, keep all other names unchanged.
+3. Do NOT invent details, actions, players, events, score state, or tactical context that are not stated in the source.
+4. Return ONLY the translation. Never answer the input, explain, apologize, or refuse.
+5. Match the length and fragment structure of the original. If the source is a fragment, keep it as a fragment.
+6. Ordinary short English phrases are safe to translate. Use __TRANSLATION_FAILED__ only for truly impossible or non-language input.
+7. Use correct grammar — never invent word forms.
+
+Additional guidance:
+- English football commentary contains idioms and figurative expressions. Render the intended sporting meaning as natural target-language commentary; do not preserve literal source wording when it sounds unnatural.
+- Short fragments of 1-3 words are typically sentence continuations, not standalone instructions. Translate them as fragments without elaborating.
+- For ambiguous bare verb fragments, use a neutral fragment form rather than adding tense, polarity, subject, or intent."""
 
 TRANSLATE_SYSTEM = """Translate the English football commentary to {lang_name}.
 Rules:
-1. Translate EXACTLY what is said — do not add, remove, or rewrite words
-2. Keep player names, team names, and proper nouns unchanged
-3. Use natural football terminology for the target language
-4. Return ONLY the translation, nothing else
-5. Match the length and structure of the original
-6. Use correct grammar — never invent word forms"""
+1. Translate the MEANING faithfully. Render English football idioms naturally in the target language.
+2. Keep player names, team names, and proper nouns unchanged.
+3. Do NOT invent details, actions, players, events, score state, or tactical context that are not stated in the source.
+4. Return ONLY the translation. Never answer the input, explain, apologize, or refuse.
+5. Match the length and fragment structure of the original. If the source is a fragment, keep it as a fragment.
+6. Ordinary short English phrases are safe to translate. Use __TRANSLATION_FAILED__ only for truly impossible or non-language input.
+7. Use correct grammar — never invent word forms.
+
+Additional guidance:
+- English football commentary contains idioms and figurative expressions. Render the intended sporting meaning as natural target-language commentary; do not preserve literal source wording when it sounds unnatural.
+- Short fragments of 1-3 words are typically sentence continuations, not standalone instructions. Translate them as fragments without elaborating.
+- For ambiguous bare verb fragments, use a neutral fragment form rather than adding tense, polarity, subject, or intent."""
+
+_REFUSAL_PATTERNS = [
+    "i'm sorry", "i am sorry", "i cannot help", "i can't help",
+    "cannot assist", "can't assist", "as an ai",
+    "je suis désolé", "je suis desole", "je ne peux pas", "je ne peux vous",
+    "lo siento", "no puedo ayudar", "no puedo asistir",
+    "desculpe", "não posso ajudar", "nao posso ajudar",
+    "tut mir leid", "ich kann nicht helfen",
+    "üzgünüm", "yardımcı olamam",
+]
+
+# Temporary tripwire for current fallback over-literalising common English
+# football idioms. Do not grow this into a phrase dictionary; remove when
+# Phase 2 selects a fallback with a lower guard-rejection rate.
+_FALLBACK_IDIOM_TRIPWIRE = [
+    (
+        "every day of the week",
+        [
+            "tous les jours de la semaine",
+            "todos los días de la semana",
+            "todos os dias da semana",
+            "jeden tag der woche",
+            "haftanın her günü",
+        ],
+    ),
+]
+
+
+def _translation_preview(text, limit=120):
+    text = (text or "").replace("\n", " ").strip()
+    return text[:limit]
+
+
+def _attempt_public(attempt):
+    public = dict(attempt)
+    output = public.pop("output", "")
+    public["output_preview"] = _translation_preview(output)
+    public["output_sha1"] = sha1(output.encode("utf-8")).hexdigest()[:12] if output else ""
+    return public
+
+
+def guard_translation_output(source, translated, lang):
+    """Return (ok, reason) for a translation candidate."""
+    out = (translated or "").strip()
+    src = (source or "").strip()
+    if not out:
+        return False, "empty"
+    if out == "__TRANSLATION_FAILED__":
+        return False, "sentinel"
+
+    low = out.lower()
+    for pattern in _REFUSAL_PATTERNS:
+        if pattern in low:
+            return False, "assistant_refusal"
+    src_low = src.lower()
+    for source_idiom, literal_outputs in _FALLBACK_IDIOM_TRIPWIRE:
+        if source_idiom in src_low and any(p in low for p in literal_outputs):
+            return False, "literal_idiom"
+
+    # Guard obvious meta-output. Legitimate commentary should not include labels.
+    if low.startswith(("translation:", "traduction:", "output:", "réponse:", "reponse:")):
+        return False, "meta_output"
+
+    src_len = max(1, len(src))
+    ratio = len(out) / src_len
+    if src_len <= 12 and ratio > 3.0:
+        return False, f"short_length_ratio_{ratio:.2f}"
+    if ratio < 0.25 or ratio > 4.0:
+        return False, f"length_ratio_{ratio:.2f}"
+
+    return True, "ok"
 
 
 def _is_reasoning_model(model):
@@ -70,7 +154,7 @@ def _is_reasoning_model(model):
     return False
 
 
-def translate_text(oai_client, text, lang, model="gpt-5.4",
+def translate_text(oai_client, text, lang, model="gpt-5.5",
                     reasoning_effort="low", roster=None):
     lang_name = LANG_NAMES.get(lang, lang)
     if roster:
@@ -95,10 +179,12 @@ def translate_text(oai_client, text, lang, model="gpt-5.4",
     return resp.choices[0].message.content.strip()
 
 
-def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.4",
+def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.5",
                                  reasoning_effort="low", roster=None,
-                                 fallback_model="gpt-4o-mini",
-                                 primary_grace_s=1.5):
+                                 fallback_model="gpt-5.4",
+                                 primary_grace_s=1.5,
+                                 guard_primary_wait_s=3.0,
+                                 return_meta=False):
     """Race the preferred translation model against a fast fallback.
 
     The preferred model wins if it finishes within primary_grace_s. After that,
@@ -106,46 +192,148 @@ def translate_text_with_fallback(oai_client, text, lang, model="gpt-5.4",
     OpenAI calls are already in flight and may still be billed.
     """
     if not fallback_model or fallback_model == model:
-        translated = translate_text(
-            oai_client, text, lang, model=model,
-            reasoning_effort=reasoning_effort, roster=roster)
-        return translated, model, "primary_only"
+        attempt = _translate_attempt(
+            oai_client, text, lang, model, reasoning_effort, roster)
+        selected = attempt if attempt.get("guard_ok") else None
+        translated = selected.get("output", "") if selected else ""
+        reason = "primary_only" if selected else f"guard_rejected_{attempt.get('guard_reason')}"
+        if return_meta:
+            return translated, model, reason, {
+                "selected_model": model if selected else None,
+                "selected_reason": reason,
+                "guard_status": "accepted" if selected else "rejected",
+                "guard_reason": attempt.get("guard_reason"),
+                "attempts": [_attempt_public(attempt)],
+            }
+        return translated, model, reason
 
     started = time.monotonic()
     primary = _TRANSLATION_RACE_EXECUTOR.submit(
-        translate_text, oai_client, text, lang, model, reasoning_effort, roster)
+        _translate_attempt, oai_client, text, lang, model, reasoning_effort, roster)
     fallback = _TRANSLATION_RACE_EXECUTOR.submit(
-        translate_text, oai_client, text, lang, fallback_model, None, roster)
+        _translate_attempt, oai_client, text, lang, fallback_model, None, roster)
 
-    def _result_or_error(fut):
+    attempts = {}
+
+    def _collect(name, fut):
+        if name in attempts:
+            return attempts[name]
         try:
-            return fut.result(), None
+            attempts[name] = fut.result()
         except Exception as exc:
-            return None, exc
+            attempts[name] = {
+                "model": model if name == "primary" else fallback_model,
+                "role": name,
+                "ok": False,
+                "error": f"{type(exc).__name__}: {exc}",
+                "guard_ok": False,
+                "guard_reason": "exception",
+            }
+        attempts[name]["role"] = name
+        return attempts[name]
+
+    def _pending_attempt(name):
+        return {
+            "model": model if name == "primary" else fallback_model,
+            "role": name,
+            "ok": None,
+            "guard_ok": None,
+            "guard_reason": "pending_at_selection",
+        }
+
+    def _finish(selected, fallback_reason, guard_status="accepted"):
+        public_attempts = []
+        for name, fut in (("primary", primary), ("fallback", fallback)):
+            if fut.done():
+                public_attempts.append(_attempt_public(_collect(name, fut)))
+            else:
+                public_attempts.append(_pending_attempt(name))
+        translated = selected.get("output", "") if selected else ""
+        model_used = selected.get("model") if selected else model
+        if return_meta:
+            return translated, model_used, fallback_reason, {
+                "selected_model": selected.get("model") if selected else None,
+                "selected_reason": fallback_reason,
+                "guard_status": guard_status,
+                "guard_reason": selected.get("guard_reason") if selected else fallback_reason,
+                "attempts": public_attempts,
+            }
+        return translated, model_used, fallback_reason
 
     done, _pending = wait({primary}, timeout=primary_grace_s)
     if primary in done:
-        translated, exc = _result_or_error(primary)
-        if exc is None:
-            return translated, model, "primary_fast"
-        fallback_result, fallback_exc = _result_or_error(fallback)
-        if fallback_exc is None:
-            return fallback_result, fallback_model, "fallback_after_primary_error"
-        raise exc
+        attempt = _collect("primary", primary)
+        if attempt.get("guard_ok"):
+            return _finish(attempt, "primary_fast")
+        if fallback.done():
+            fallback_attempt = _collect("fallback", fallback)
+        else:
+            fallback_attempt = _collect("fallback", fallback)
+        if fallback_attempt.get("guard_ok"):
+            return _finish(fallback_attempt, "fallback_after_primary_rejected")
+        return _finish(None, f"guard_rejected_{attempt.get('guard_reason')}", "rejected")
 
     pending = {primary, fallback}
     while pending:
         done, pending = wait(pending, return_when=FIRST_COMPLETED)
         if fallback in done:
-            translated, exc = _result_or_error(fallback)
-            if exc is None:
-                return translated, fallback_model, f"fallback_after_{primary_grace_s:.1f}s"
+            fallback_attempt = _collect("fallback", fallback)
+            if fallback_attempt.get("guard_ok"):
+                return _finish(fallback_attempt, f"fallback_after_{primary_grace_s:.1f}s")
+            # Suspicious fallback output must not reach TTS. Give the primary
+            # a short extra chance before dropping the utterance.
+            wait({primary}, timeout=guard_primary_wait_s)
+            if primary.done():
+                primary_attempt = _collect("primary", primary)
+                if primary_attempt.get("guard_ok"):
+                    elapsed = time.monotonic() - started
+                    return _finish(primary_attempt, f"primary_after_fallback_rejected_{elapsed:.1f}s")
+            return _finish(None, f"guard_rejected_{fallback_attempt.get('guard_reason')}", "rejected")
         if primary in done:
-            translated, exc = _result_or_error(primary)
-            if exc is None:
-                return translated, model, f"primary_after_{time.monotonic() - started:.1f}s"
+            primary_attempt = _collect("primary", primary)
+            if primary_attempt.get("guard_ok"):
+                return _finish(primary_attempt, f"primary_after_{time.monotonic() - started:.1f}s")
+            if fallback.done():
+                fallback_attempt = _collect("fallback", fallback)
+                if fallback_attempt.get("guard_ok"):
+                    return _finish(fallback_attempt, "fallback_after_primary_rejected")
+            return _finish(None, f"guard_rejected_{primary_attempt.get('guard_reason')}", "rejected")
 
-    return primary.result(), model, "primary_fallback_unavailable"
+    return _finish(None, "primary_fallback_unavailable", "rejected")
+
+
+def _translate_attempt(oai_client, text, lang, model, reasoning_effort, roster):
+    started_at = time.time()
+    started = time.monotonic()
+    attempt = {
+        "model": model,
+        "started_at": started_at,
+        "ok": False,
+    }
+    try:
+        output = translate_text(
+            oai_client, text, lang, model=model,
+            reasoning_effort=reasoning_effort, roster=roster)
+        ended_at = time.time()
+        ok, reason = guard_translation_output(text, output, lang)
+        attempt.update({
+            "ok": True,
+            "output": output,
+            "ended_at": ended_at,
+            "latency_ms": round((time.monotonic() - started) * 1000),
+            "guard_ok": ok,
+            "guard_reason": reason,
+        })
+    except Exception as exc:
+        attempt.update({
+            "ok": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "ended_at": time.time(),
+            "latency_ms": round((time.monotonic() - started) * 1000),
+            "guard_ok": False,
+            "guard_reason": "exception",
+        })
+    return attempt
 
 
 NAME_CORRECTION_SYSTEM = """You correct proper names in English football commentary.
@@ -175,7 +363,7 @@ def _extract_json_object(text):
 
 
 def correct_names_text(oai_client, text, roster=None, keyterms=None,
-                       model="gpt-5.4", reasoning_effort="low"):
+                       model="gpt-5.5", reasoning_effort="low"):
     """Correct only roster/keyterm proper names in English STT text."""
     terms = []
     seen = set()

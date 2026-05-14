@@ -61,7 +61,8 @@ The production server uses a YAML config file (`matches.yaml`) instead of CLI ar
 
 ```yaml
 control_port: 8080
-translation_model: "gpt-5.4"
+translation_model: "gpt-5.5"
+translation_fallback_model: "gpt-5.4"
 
 matches:
   - match_id: bmg_fch_demo

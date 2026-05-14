@@ -94,7 +94,7 @@ Forced Soniox splits carry `split_group_id`, `split_part_index`, `split_reason`,
 
 ## Latency Budget
 
-With `--video-delay N` (live config currently uses 14s):
+With `--video-delay N` (production/eval live configs currently use 16s; `latency_test` uses 14s):
 
 ```
 Budget per utterance ≈ N - utterance_duration - ~1.5s (translate + TTS fetch)
@@ -106,7 +106,7 @@ Example: 7s utterance, 7s delay → 7 - 7 - 1.5 = -1.5s margin (drops likely)
 
 Each language TTSEngine uses bounded parallel preparation: up to two STT utterances can be translating and generating TTS while playback remains ordered by `play_at`. It also locally speed-fits generated PCM with ffmpeg `atempo` when the current clip would overrun the next STT play time. Speed fitting targets the next STT item only, not future SR events.
 
-Live STT translation races the configured primary model against a fast fallback after a short grace window. The per-language log fields `translation_model_used` and `translation_fallback_reason` show whether the primary or fallback produced each translation. The losing call is not force-cancelled, so fallback use can improve deadline success but may increase model-call volume.
+Live STT translation races the configured primary model against the configured fallback model after a short grace window. The current live eval config uses `gpt-5.5` primary and `gpt-5.4` fallback. The per-language log fields `translation_model_used`, `translation_fallback_reason`, and `translation_attempts` show whether the primary or fallback produced each translation and why guarded outputs were accepted or rejected. The losing call is not force-cancelled, so fallback use can improve deadline success but may increase model-call volume.
 
 ## Forced Split (Long Utterance Protection)
 

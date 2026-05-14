@@ -426,6 +426,11 @@ class TTSEngine:
                         "queue_wait_ms": meta.get("queue_wait_ms", 0),
                         "translation_model_used": meta.get("translation_model_used"),
                         "translation_fallback_reason": meta.get("translation_fallback_reason"),
+                        "translation_guard_status": meta.get("translation_guard_status"),
+                        "translation_guard_reason": meta.get("translation_guard_reason"),
+                        "translation_attempts": meta.get("translation_attempts"),
+                        "translation_selected_model": meta.get("translation_selected_model"),
+                        "translation_selected_reason": meta.get("translation_selected_reason"),
                         "split_group_id": meta.get("split_group_id"),
                         "split_part_index": meta.get("split_part_index"),
                         "split_reason": meta.get("split_reason"),
@@ -488,6 +493,11 @@ class TTSEngine:
                     "queue_wait_ms": meta.get("queue_wait_ms", 0),
                     "translation_model_used": meta.get("translation_model_used"),
                     "translation_fallback_reason": meta.get("translation_fallback_reason"),
+                    "translation_guard_status": meta.get("translation_guard_status"),
+                    "translation_guard_reason": meta.get("translation_guard_reason"),
+                    "translation_attempts": meta.get("translation_attempts"),
+                    "translation_selected_model": meta.get("translation_selected_model"),
+                    "translation_selected_reason": meta.get("translation_selected_reason"),
                 })
             except Exception:
                 pass
@@ -1150,9 +1160,41 @@ class TTSEngine:
         is_lookahead = self._tts_target_buf is self._lookahead_buf
         tag = "LOOKAHEAD " if is_lookahead else ""
         xlat_tag = "PRE-XLAT hit" if pre_xlat_hit else f"xlat: {translate_time:.2f}s"
+        guard_status = (translation_meta or {}).get("guard_status") if isinstance(translation_meta, dict) else None
+        guard_reason = (translation_meta or {}).get("guard_reason") if isinstance(translation_meta, dict) else None
         print(f"  [{self._vts()}] [TTS #{uid}] {tag}Starting — \"{translated[:50]}\" "
               f"({wc}w, queue: {queued}, {xlat_tag}, voice: {voice_id[:8]}, "
-              f"q_wait: {queue_wait:.2f}s)")
+              f"q_wait: {queue_wait:.2f}s, guard: {guard_status or '-'}"
+              f"{('/' + guard_reason) if guard_reason else ''})")
+
+        base_result = {
+            "uid": uid, "text": text, "translated": translated, "play_at": play_at,
+            "voice_id": voice_id, "translate_time": translate_time,
+            "pre_translated": pre_xlat_hit, "queue_wait_ms": int(queue_wait * 1000),
+            "target_duration_s": target_duration_s,
+            **(item_meta or {}),
+            "translation_model_used": (translation_meta or {}).get("model_used") if isinstance(translation_meta, dict) else None,
+            "translation_fallback_reason": (translation_meta or {}).get("fallback_reason") if isinstance(translation_meta, dict) else None,
+            "translation_guard_status": guard_status,
+            "translation_guard_reason": guard_reason,
+            "translation_attempts": (translation_meta or {}).get("attempts") if isinstance(translation_meta, dict) else None,
+            "translation_selected_model": (translation_meta or {}).get("selected_model") if isinstance(translation_meta, dict) else None,
+            "translation_selected_reason": (translation_meta or {}).get("selected_reason") if isinstance(translation_meta, dict) else None,
+            "prepare_started_at": prepare_started_at,
+            "translate_started_at": translate_started_at,
+            "translate_ended_at": translate_ended_at,
+            "lang_version": lang_version,
+        }
+
+        if not translated.strip():
+            return {
+                **base_result,
+                "tts_time": 0,
+                "pcm_bytes": b"",
+                "tts_started_at": None,
+                "tts_ended_at": None,
+                "ready_at": time.time(),
+            }
 
         t0 = time.monotonic()
         tts_started_at = time.time()
@@ -1161,21 +1203,12 @@ class TTSEngine:
         tts_ended_at = time.time()
 
         return {
-            "uid": uid, "text": text, "translated": translated, "play_at": play_at,
-            "voice_id": voice_id, "tts_time": tts_time, "translate_time": translate_time,
-            "pre_translated": pre_xlat_hit, "queue_wait_ms": int(queue_wait * 1000),
-            "target_duration_s": target_duration_s,
+            **base_result,
+            "tts_time": tts_time,
             "pcm_bytes": pcm_bytes or b"",
-            **(item_meta or {}),
-            "translation_model_used": (translation_meta or {}).get("model_used") if isinstance(translation_meta, dict) else None,
-            "translation_fallback_reason": (translation_meta or {}).get("fallback_reason") if isinstance(translation_meta, dict) else None,
-            "prepare_started_at": prepare_started_at,
-            "translate_started_at": translate_started_at,
-            "translate_ended_at": translate_ended_at,
             "tts_started_at": tts_started_at,
             "tts_ended_at": tts_ended_at,
             "ready_at": time.time(),
-            "lang_version": lang_version,
         }
 
     def _submit_prepare(self, item):
@@ -1330,6 +1363,11 @@ class TTSEngine:
             "queue_wait_ms": result.get("queue_wait_ms", 0),
             "translation_model_used": result.get("translation_model_used"),
             "translation_fallback_reason": result.get("translation_fallback_reason"),
+            "translation_guard_status": result.get("translation_guard_status"),
+            "translation_guard_reason": result.get("translation_guard_reason"),
+            "translation_attempts": result.get("translation_attempts"),
+            "translation_selected_model": result.get("translation_selected_model"),
+            "translation_selected_reason": result.get("translation_selected_reason"),
             "split_group_id": result.get("split_group_id"),
             "split_part_index": result.get("split_part_index"),
             "split_reason": result.get("split_reason"),

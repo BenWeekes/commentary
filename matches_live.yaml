@@ -8,7 +8,8 @@
 # Initial SRT mode has no separate source atmosphere/commentary stems.
 
 control_port: 8080
-translation_model: "gpt-5.4"
+translation_model: "gpt-5.5"
+translation_fallback_model: "gpt-5.4"
 stt_playback_offset_ms: 0
 stt_playback_offsets_ms:
   soniox: 700
@@ -43,8 +44,8 @@ matches:
       audio_stream_index: 2
       atmosphere_audio_stream_index: 1
     video_uid: 73
-    video_delay: 14.0
-    max_stt_duration: 6.5
+    video_delay: 16.0
+    max_stt_duration: 8.5
     # Switch between deepgram_nova3 and soniox for live-demo STT comparisons.
     stt_provider: soniox
     stt_endpoint_delay_ms: 1500
@@ -70,8 +71,8 @@ matches:
       audio_stream_index: 1
       atmosphere_audio_stream_index: -1
     video_uid: 73
-    video_delay: 14.0
-    max_stt_duration: 6.5
+    video_delay: 16.0
+    max_stt_duration: 8.5
     stt_provider: soniox
     stt_endpoint_delay_ms: 1500
     # Optional speaker-specific ElevenLabs voices. Fill these when voice IDs
@@ -136,7 +137,8 @@ matches:
       original_buffer_seconds: 1.0
       retry_seconds: 60
     video_uid: 73
-    video_delay: 14.0
+    video_delay: 16.0
+    max_stt_duration: 8.5
     languages: [es, pt, fr, tr, de]
 
   # May 9, 16:30 UTC — Wolfsburg vs Bayern
@@ -155,7 +157,8 @@ matches:
       original_buffer_seconds: 1.0
       retry_seconds: 60
     video_uid: 73
-    video_delay: 14.0
+    video_delay: 16.0
+    max_stt_duration: 8.5
     languages: [es, pt, fr, tr, de]
 
   # May 10, 17:30 UTC — Mainz vs Union Berlin
@@ -176,5 +179,6 @@ matches:
       audio_stream_index: 2
       atmosphere_audio_stream_index: 1
     video_uid: 73
-    video_delay: 14.0
+    video_delay: 16.0
+    max_stt_duration: 8.5
     languages: [es, pt, fr, tr, de]

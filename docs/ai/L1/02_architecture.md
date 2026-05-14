@@ -164,7 +164,7 @@ Live auto-managed matches are now handled by `server/scheduler.py`. The schedule
 ## Timing Model
 
 ```
-The Go publisher/relay delays video by `--video-delay` seconds. Current live configs use 14s.
+The Go publisher/relay delays video by `--video-delay` seconds. Current production/eval live configs use 16s; `latency_test` remains 14s as a calibration probe.
 The STT audio feed starts immediately, giving translations a head start.
 
 For live STT utterances:
@@ -228,9 +228,13 @@ This does not fix structurally late STT turns where the provider emits the utter
 
 The first translation call per process can incur a cold-start penalty. In server mode, `MatchWorker` fires one throwaway "Kick off." translation per non-English language in parallel threads immediately after creating the OpenAI client, before real utterances arrive. This warms both the configured primary model and the fast fallback model, and applies to file-demo plus live/demo-SRT paths so startup cost is not paid by the first real utterance.
 
+### Translation guard
+
+Translation calls race the configured primary model against the configured fallback model. The selected output is now guarded before TTS: empty output, `__TRANSLATION_FAILED__`, assistant/refusal boilerplate, extreme length expansion on short fragments, and known literal football-idiom failures are rejected. If the fallback is rejected, the engine waits briefly for the primary result; if no guarded translation is available, the utterance is dropped rather than spoken.
+
 ### STT turn sizing
 
-Live mode must bound STT turn duration. If a provider emits a turn longer than `video_delay`, the play deadline can already be in the past before translation starts. Deepgram has interim force-splitting in `lib/stt_pipeline.py`; Soniox has client-side force emission in `lib/soniox_stt_pipeline.py` using the same `max_stt_duration` match setting. The current live-demo candidate is Soniox `stt-rt-v4`, `stt_endpoint_delay_ms=1500`, `max_stt_duration=6.5`, and `video_delay=14`.
+Live mode must bound STT turn duration. If a provider emits a turn longer than `video_delay`, the play deadline can already be in the past before translation starts. Deepgram has interim force-splitting in `lib/stt_pipeline.py`; Soniox has client-side force emission in `lib/soniox_stt_pipeline.py` using the same `max_stt_duration` match setting. The current live-demo candidate is Soniox `stt-rt-v4`, `stt_endpoint_delay_ms=1500`, `max_stt_duration=8.5`, and `video_delay=16`.
 
 ### Name correction
 
@@ -303,15 +307,16 @@ Two models are benchmarked for translation:
 
 | Model | Avg latency | Notes |
 |---|---|---|
-| `gpt-5.4` (reasoning=low) | current live default | Natural football phrasing while preserving meaning |
-| `gpt-4o-mini` (temp=0.0) | older fallback | Fast and reliable fallback |
+| `gpt-5.5` (reasoning=low) | current live primary | Candidate for more natural football phrasing and fragment handling |
+| `gpt-5.4` (reasoning=low) | current live fallback | Previous primary; used as fallback to avoid weaker fast-model output |
+| `gpt-4o-mini` (temp=0.0) | older fallback | Fast, but more likely to hit translation guards on fragments and idioms |
 | `gpt-5.4-mini` (reasoning=low) | benchmarked fallback | Slightly more natural than `gpt-4o-mini`, occasional blank responses |
 
 The live prompt tells the model to translate exactly what was said, avoid adding/removing/rewriting meaning, keep length and structure close to the original, fix roster names, and use natural football terminology in the target language.
 
-The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.4` with `reasoning_effort="low"` and accepts `model` and `reasoning_effort` parameters to switch. Server mode defaults to `gpt-5.4` via `server/config.py`, and `matches_live.yaml` also sets `translation_model: "gpt-5.4"`.
+The `translate_text()` function in `lib/translator.py` defaults to `gpt-5.5` with `reasoning_effort="low"` and accepts `model` and `reasoning_effort` parameters to switch. Server mode reads `translation_model` and `translation_fallback_model` from config. The current live eval config sets `translation_model: "gpt-5.5"` and `translation_fallback_model: "gpt-5.4"`.
 
-Live STT translation uses `translate_text_with_fallback()`: it starts the configured primary translation call and a fast `gpt-4o-mini` fallback in parallel. The primary wins if it finishes inside the grace window; after that, whichever finishes first is used. The losing request is allowed to finish in the background and may still be billed. Per-language JSONL rows record `translation_model_used` and `translation_fallback_reason` so fallback usage can be audited against drops.
+Live STT translation uses `translate_text_with_fallback()`: it starts the configured primary translation call and configured fallback translation call in parallel. The primary wins if it finishes inside the grace window; after that, whichever guarded output finishes first is used. The losing request is allowed to finish in the background and may still be billed. Per-language JSONL rows record `translation_model_used`, `translation_fallback_reason`, and guarded attempt metadata so fallback usage can be audited against drops.
 
 Current live-demo evidence from `m05_uni_eval_demo` runs on 2026-05-13:
 
@@ -321,7 +326,7 @@ Current live-demo evidence from `m05_uni_eval_demo` runs on 2026-05-13:
 | `20260513_182142` | late recheck for TTS gap fitting | 1849 | 86 | 99 |
 | `20260513_190657` | same-speaker continuity chaining | 1918 | 64 | 112 |
 
-The latest run has the best drop rate and highest played count. Interruptions are slightly higher than `20260513_182142`, mainly because more items play in busy regions. Remaining drops are usually caused by STT turns arriving too close to their scheduled `play_at`, leaving less than the roughly 1.8-2.2s needed for fallback translation plus TTS. This is the best current operating point for 14s video delay: Soniox `1500ms`, bounded two-way prepare per language, local TTS gap fitting, same-speaker continuity chaining, and primary translation with fast fallback.
+The latest run has the best drop rate and highest played count. Interruptions are slightly higher than `20260513_182142`, mainly because more items play in busy regions. Remaining drops are usually caused by STT turns arriving too close to their scheduled `play_at`, leaving less than the roughly 1.8-2.2s needed for fallback translation plus TTS. The next candidate operating point is 16s video delay with Soniox `1500ms`, `max_stt_duration=8.5`, bounded two-way prepare per language, local TTS gap fitting, same-speaker continuity chaining, and guarded primary/fallback translation.
 
 Forced Soniox split continuations are marked explicitly and may be chained during playback. This only applies to turns split by our local `max_stt_duration` logic, not to ordinary adjacent utterances. The first split part stays anchored to source/video timing; later parts in the same split group can be advanced to follow the previous translated audio with a 30ms gap so artificial sentence splits do not create multi-second silences.
 

@@ -146,7 +146,7 @@ Optional:
 - `--commentary-uid` (default `75`)
 - `--video-delay`
 - `--start-margin`
-- `--translation-model` (server default `gpt-5.4`; standalone test defaults may differ)
+- `--translation-model` (server config controls primary; standalone test defaults may differ)
 - `--max-stt-duration`
 - `--match-id`
 - `--sport-event-id`
@@ -258,6 +258,11 @@ Utterance fields:
 - `trans_ms`
 - `translation_model_used`
 - `translation_fallback_reason`
+- `translation_guard_status`
+- `translation_guard_reason`
+- `translation_selected_model`
+- `translation_selected_reason`
+- `translation_attempts`
 - `tts_ms`
 - `prepare_started_at` / `prepare_started_at_utc`
 - `translate_started_at` / `translate_started_at_utc`
