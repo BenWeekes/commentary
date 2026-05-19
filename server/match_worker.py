@@ -20,6 +20,13 @@ from lib.corrections import (
     GLOBAL_FOOTBALL_CORRECTIONS, TERMS_LIST, apply_short_utterance_policy,
 )
 from lib.events import load_events_file
+from lib.live_translation_provider import (
+    PIPELINE_STT_TRANSLATE_TTS,
+    PIPELINE_VOICE_TO_VOICE,
+    provider_display_name,
+    validate_pipeline_config,
+)
+from lib.paced_pipe_writer import PacedPipeWriter
 
 # ─── Per-match keyterms loading ──────────────────────────────────────────
 
@@ -75,6 +82,8 @@ from lib.translator import (
     voice_for_lang, LANG_VOICES,
 )
 from lib.tts_engine import TTSEngine, _ts
+from lib.v2v.base import CLASSIC_MODE, V2VHealth, normalize_language_mode
+from lib.v2v.stub import run_v2v_pipeline_live as run_stub_v2v_pipeline_live
 
 from server.cloud_recording import (
     RecordingSession, start_channel_recording, stop_channel_recording,
@@ -100,6 +109,11 @@ class LangTelemetry:
     sr_dropped: int = 0
     sr_replaced: int = 0
     sr_suppressed: int = 0
+    v2v_played: int = 0
+    v2v_interrupted: int = 0
+    v2v_dropped: int = 0
+    v2v_replaced: int = 0
+    v2v_suppressed: int = 0
     avg_translate_ms: float = 0.0
     avg_tts_ms: float = 0.0
     avg_margin_ms: float = 0.0
@@ -118,9 +132,11 @@ class MatchStatus:
 def _telemetry_summary(t: LangTelemetry) -> dict:
     interrupted = t.stt_interrupted + t.sr_interrupted
     fully_played = max(0, t.stt_played - t.stt_interrupted) + max(0, t.sr_played - t.sr_interrupted)
+    fully_played += max(0, t.v2v_played - t.v2v_interrupted)
     skipped = (
         t.stt_dropped + t.stt_replaced + t.stt_suppressed
         + t.sr_dropped + t.sr_replaced + t.sr_suppressed
+        + t.v2v_dropped + t.v2v_replaced + t.v2v_suppressed
     )
     total = fully_played + interrupted + skipped
     return {
@@ -137,12 +153,17 @@ def _telemetry_summary(t: LangTelemetry) -> dict:
 class _LangPipeline:
     """State for one language within a match."""
 
-    def __init__(self, lang, channel, tts, sr_prefetcher, publisher):
+    def __init__(self, lang, channel, tts, sr_prefetcher, publisher,
+                 mode=CLASSIC_MODE, provider="", voice_id=""):
         self.lang = lang
         self.channel = channel
         self.tts = tts
         self.sr_prefetcher = sr_prefetcher
         self.publisher = publisher
+        self.mode = mode
+        self.provider = provider
+        self.voice_id = voice_id
+        self.v2v_health = V2VHealth(provider=provider) if mode != CLASSIC_MODE else None
         self.video_start = None
         self.telemetry = LangTelemetry()
         self.recent_utterances = collections.deque(maxlen=100)
@@ -390,10 +411,36 @@ class MatchWorker:
 
     def configure_stt(self, provider: str | None = None, endpoint_delay_ms: int | None = None):
         """Apply STT runtime options before a worker starts."""
+        self.configure_runtime(stt_provider=provider, stt_endpoint_delay_ms=endpoint_delay_ms)
+
+    def configure_runtime(self, stt_provider: str | None = None,
+                          stt_endpoint_delay_ms: int | None = None,
+                          pipeline_mode: str | None = None,
+                          speech_translation_provider: str | None = None):
+        """Apply runtime options before a worker starts."""
         if self._status.state in ("starting", "running"):
-            raise RuntimeError("cannot change STT provider while match is running")
-        if provider:
-            normalized = provider.strip().lower().replace("-", "_")
+            raise RuntimeError("cannot change runtime provider while match is running")
+        if pipeline_mode is not None or speech_translation_provider is not None:
+            mode, speech_provider = validate_pipeline_config(
+                pipeline_mode if pipeline_mode is not None else self._match.pipeline_mode,
+                speech_translation_provider if speech_translation_provider is not None
+                else self._match.speech_translation_provider,
+            )
+            self._match.pipeline_mode = mode
+            self._match.speech_translation_provider = speech_provider
+            for lang in self._match.languages:
+                cfg = self._match.language_configs.get(lang) if self._match.language_configs else None
+                if not cfg:
+                    continue
+                if mode == PIPELINE_VOICE_TO_VOICE:
+                    lang_mode, lang_provider = normalize_language_mode("v2v", speech_provider)
+                    cfg.mode = lang_mode
+                    cfg.provider = lang_provider
+                else:
+                    cfg.mode = CLASSIC_MODE
+                    cfg.provider = ""
+        if stt_provider:
+            normalized = stt_provider.strip().lower().replace("-", "_")
             aliases = {
                 "deepgram": "deepgram_nova3",
                 "nova3": "deepgram_nova3",
@@ -404,13 +451,44 @@ class MatchWorker:
                 "soniox_realtime": "soniox",
             }
             if normalized not in aliases:
-                raise ValueError(f"unknown stt_provider '{provider}'")
+                raise ValueError(f"unknown stt_provider '{stt_provider}'")
             self._match.stt_provider = aliases[normalized]
-        if endpoint_delay_ms is not None:
-            endpoint_delay_ms = int(endpoint_delay_ms)
-            if endpoint_delay_ms < 100 or endpoint_delay_ms > 5000:
+        if stt_endpoint_delay_ms is not None:
+            stt_endpoint_delay_ms = int(stt_endpoint_delay_ms)
+            if stt_endpoint_delay_ms < 100 or stt_endpoint_delay_ms > 5000:
                 raise ValueError("stt_endpoint_delay_ms must be between 100 and 5000")
-            self._match.stt_endpoint_delay_ms = endpoint_delay_ms
+            self._match.stt_endpoint_delay_ms = stt_endpoint_delay_ms
+
+    def _ensure_supported_pipeline(self):
+        mode, provider = validate_pipeline_config(
+            self._match.pipeline_mode,
+            self._match.speech_translation_provider,
+        )
+        self._match.pipeline_mode = mode
+        self._match.speech_translation_provider = provider
+        if self._match.mode != "live" and self._v2v_languages():
+            raise RuntimeError("per-language v2v modes are supported only for live matches")
+
+    def _language_config(self, lang):
+        return (self._match.language_configs or {}).get(lang)
+
+    def _language_mode(self, lang):
+        cfg = self._language_config(lang)
+        return cfg.mode if cfg else CLASSIC_MODE
+
+    def _language_provider(self, lang):
+        cfg = self._language_config(lang)
+        return cfg.provider if cfg else ""
+
+    def _language_voice(self, lang):
+        cfg = self._language_config(lang)
+        return cfg.voice if cfg and cfg.voice else voice_for_lang(lang)
+
+    def _classic_languages(self):
+        return [lang for lang in self._match.languages if self._language_mode(lang) == CLASSIC_MODE]
+
+    def _v2v_languages(self):
+        return [lang for lang in self._match.languages if self._language_mode(lang) != CLASSIC_MODE]
 
     def _voice_for_lang_speaker(self, lang: str, speaker):
         """Return a speaker-specific voice when configured, otherwise language default."""
@@ -466,14 +544,24 @@ class MatchWorker:
         self._status.languages = {}
         for lang, pipe in self._pipelines.items():
             rec_session = self._recording_sessions.get(lang)
+            health = pipe.v2v_health.as_dict() if pipe.v2v_health else None
             self._status.languages[lang] = {
                 "channel": pipe.channel,
-                "state": "running" if pipe.tts and not self._stop.is_set() else "stopped",
+                "state": (
+                    health.get("state") if health
+                    else "running" if pipe.tts and not self._stop.is_set()
+                    else "stopped"
+                ),
+                "mode": pipe.mode,
+                "provider": pipe.provider,
+                "voice_id": pipe.voice_id,
                 "tts_queue_size": pipe.tts.queue_size() if pipe.tts else 0,
                 "recording_sid": rec_session.sid if rec_session else None,
+                "v2v_health": health,
                 "telemetry": {
                     "stt_played": pipe.telemetry.stt_played,
                     "sr_played": pipe.telemetry.sr_played,
+                    "v2v_played": pipe.telemetry.v2v_played,
                     "sr_cut_short_count": pipe.telemetry.sr_cut_short_count,
                     "stt_cut_short_count": pipe.telemetry.stt_cut_short_count,
                     "drop_count": pipe.telemetry.drop_count,
@@ -485,6 +573,10 @@ class MatchWorker:
                     "sr_dropped": pipe.telemetry.sr_dropped,
                     "sr_replaced": pipe.telemetry.sr_replaced,
                     "sr_suppressed": pipe.telemetry.sr_suppressed,
+                    "v2v_interrupted": pipe.telemetry.v2v_interrupted,
+                    "v2v_dropped": pipe.telemetry.v2v_dropped,
+                    "v2v_replaced": pipe.telemetry.v2v_replaced,
+                    "v2v_suppressed": pipe.telemetry.v2v_suppressed,
                     **_telemetry_summary(pipe.telemetry),
                 },
             }
@@ -492,7 +584,7 @@ class MatchWorker:
 
     def _warm_openai(self, tag):
         """Warm translation calls before live STT starts spending schedule budget."""
-        warmup_langs = [l for l in self._match.languages if l != "en"]
+        warmup_langs = [l for l in self._classic_languages() if l != "en"]
         if not warmup_langs:
             return
         print(f"[{tag}] Warming up OpenAI ({len(warmup_langs)} langs)...")
@@ -516,10 +608,16 @@ class MatchWorker:
 
     def _run(self):
         """Dispatch to demo or live mode."""
-        if self._match.mode == "live":
-            self._run_live()
-        else:
-            self._run_demo()
+        try:
+            self._ensure_supported_pipeline()
+            if self._match.mode == "live":
+                self._run_live()
+            else:
+                self._run_demo()
+        except Exception as e:
+            self._status.state = "error"
+            self._status.error = str(e)
+            print(f"[MATCH {self._match.match_id}] ERROR: {e}")
 
     def _run_demo(self):
         """Demo mode lifecycle: file-backed match with local Go publishers.
@@ -722,16 +820,21 @@ class MatchWorker:
             base_dir = GO_DIR
             env = _go_process_env(self._server.agora_app_cert)
 
+            classic_langs = self._classic_languages()
+            v2v_langs = self._v2v_languages()
             live_audio_source = None
             if resolved.source_type == "srt_direct":
                 if not resolved.local_pcm_addr or not resolved.local_video_addr:
                     raise RuntimeError("srt_direct source missing local PCM/video endpoints")
-                print(f"[{tag}] Connecting STT PCM socket {resolved.local_pcm_addr}")
-                pcm_host, pcm_port = resolved.local_pcm_addr.rsplit(":", 1)
-                live_audio_sock = socket.create_connection((pcm_host, int(pcm_port)), timeout=10.0)
-                live_audio_pipe = live_audio_sock.makefile("rb")
-                live_audio_source = live_audio_pipe
+                if classic_langs:
+                    print(f"[{tag}] Connecting STT PCM socket {resolved.local_pcm_addr}")
+                    pcm_host, pcm_port = resolved.local_pcm_addr.rsplit(":", 1)
+                    live_audio_sock = socket.create_connection((pcm_host, int(pcm_port)), timeout=10.0)
+                    live_audio_pipe = live_audio_sock.makefile("rb")
+                    live_audio_source = live_audio_pipe
             else:
+                if v2v_langs:
+                    raise RuntimeError("per-language v2v currently requires srt_direct/demo_srt_direct PCM fanout")
                 subscribe_cmd = [
                     "go", "run", "./cmd/subscribe_audio",
                     "--app-id", self._server.agora_app_id,
@@ -839,26 +942,30 @@ class MatchWorker:
                         self._on_telemetry(l, data)
                     return cb
 
-                voice_id = voice_for_lang(lang)
-                tts = TTSEngine(
-                    audio_pipe=relay_proc.stdin,
-                    voice_id=voice_id,
-                    api_key=self._server.elevenlabs_api_key,
-                    on_telemetry=make_telemetry_cb(),
-                )
+                mode = self._language_mode(lang)
+                provider = self._language_provider(lang)
+                voice_id = self._language_voice(lang)
+                tts = None
+                if mode == CLASSIC_MODE:
+                    tts = TTSEngine(
+                        audio_pipe=relay_proc.stdin,
+                        voice_id=voice_id,
+                        api_key=self._server.elevenlabs_api_key,
+                        on_telemetry=make_telemetry_cb(),
+                    )
+                    tts.video_start = target_start
+                    tts.start()
 
                 # Shared target_start for all languages
-                tts.video_start = target_start
-                tts.start()
-
                 pipe = _LangPipeline(lang, output_channel, tts, sr_prefetcher=None,
-                                     publisher=relay_proc)
+                                     publisher=relay_proc, mode=mode,
+                                     provider=provider, voice_id=voice_id)
                 pipe.video_start = target_start
                 self._pipelines[lang] = pipe
 
             # Open per-language log files
             for lang, pipe in self._pipelines.items():
-                self._open_lang_log(lang, pipe.tts.voice_id, pipe.video_start)
+                self._open_lang_log(lang, pipe.voice_id, pipe.video_start)
 
             if self._stop.is_set():
                 return
@@ -878,12 +985,28 @@ class MatchWorker:
             video_wait_thread = threading.Thread(target=wait_for_video_signals, daemon=True)
             video_wait_thread.start()
 
-            print(f"[{tag}] Starting STT from live audio source...")
-            stt_thread = threading.Thread(
-                target=self._run_stt_live,
-                args=(live_audio_source,),
-                daemon=True)
-            stt_thread.start()
+            stt_thread = None
+            if classic_langs:
+                print(f"[{tag}] Starting STT from live audio source for {len(classic_langs)} classic languages...")
+                stt_thread = threading.Thread(
+                    target=self._run_stt_live,
+                    args=(live_audio_source,),
+                    daemon=True)
+                stt_thread.start()
+            else:
+                print(f"[{tag}] No classic languages configured; STT session not started")
+
+            v2v_threads = []
+            for lang in v2v_langs:
+                pipe = self._pipelines.get(lang)
+                if not pipe:
+                    continue
+                t = threading.Thread(
+                    target=self._run_v2v_live,
+                    args=(lang, resolved, pipe),
+                    daemon=True)
+                t.start()
+                v2v_threads.append(t)
 
             recording_lead_s = 3.0
             recording_start_at = target_start - recording_lead_s
@@ -918,11 +1041,14 @@ class MatchWorker:
 
             self._video_start_ref[0] = target_start
 
-            # Wait for STT to finish (pipe closes when source audio ends)
-            stt_thread.join()
+            # Wait for audio workers to finish (pipe closes when source audio ends)
+            if stt_thread:
+                stt_thread.join()
+            for t in v2v_threads:
+                t.join(timeout=2.0)
 
-            # Drain TTS queues
-            print(f"[{tag}] STT done — draining TTS queues...")
+            # Drain TTS/v2v queues
+            print(f"[{tag}] Audio workers done — draining output queues...")
             drain_end = time.time() + max(self._match.video_delay, relay_delay)
             while time.time() < drain_end and not self._stop.is_set():
                 time.sleep(0.5)
@@ -978,7 +1104,7 @@ class MatchWorker:
                 self._on_telemetry(l, data)
             return cb
 
-        voice_id = voice_for_lang(lang)
+        voice_id = self._language_voice(lang)
         tts = TTSEngine(
             audio_pipe=pub.stdin,
             voice_id=voice_id,
@@ -1003,7 +1129,10 @@ class MatchWorker:
         )
         sr_pf.start()
 
-        pipe = _LangPipeline(lang, channel, tts, sr_pf, pub)
+        pipe = _LangPipeline(lang, channel, tts, sr_pf, pub,
+                             mode=self._language_mode(lang),
+                             provider=self._language_provider(lang),
+                             voice_id=voice_id)
         pipe.video_start = video_start
         self._pipelines[lang] = pipe
 
@@ -1137,6 +1266,12 @@ class MatchWorker:
             "started_at": datetime.datetime.now().isoformat(timespec="milliseconds"),
             "video_delay": self._match.video_delay,
             "target_start": target_start,
+            "pipeline_mode": self._match.pipeline_mode,
+            "speech_translation_provider": self._match.speech_translation_provider,
+            "pipeline_label": provider_display_name(
+                self._match.pipeline_mode,
+                self._match.speech_translation_provider,
+            ),
             "stt_provider": self._match.stt_provider,
             "stt_playback_offset_ms": self._stt_playback_offset_ms(self._match.stt_provider),
             "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
@@ -1144,6 +1279,10 @@ class MatchWorker:
             "source_media_start_wall": self._source_media_start_ref[0],
             "source_media_start_utc": _utc_hms_ms(self._source_media_start_ref[0]),
             "languages": list(self._match.languages),
+            "language_configs": {
+                lang: cfg.as_dict()
+                for lang, cfg in (self._match.language_configs or {}).items()
+            },
             "keyterms": list(self._keyterms) if self._keyterms else [],
             "roster": roster_list,
         }
@@ -1158,7 +1297,15 @@ class MatchWorker:
             "match_id": self._match.match_id,
             "language": lang,
             "voice_id": voice_id,
+            "language_mode": self._language_mode(lang),
+            "language_provider": self._language_provider(lang),
             "video_start": video_start,
+            "pipeline_mode": self._match.pipeline_mode,
+            "speech_translation_provider": self._match.speech_translation_provider,
+            "pipeline_label": provider_display_name(
+                self._match.pipeline_mode,
+                self._match.speech_translation_provider,
+            ),
             "stt_provider": self._match.stt_provider,
             "stt_playback_offset_ms": self._stt_playback_offset_ms(self._match.stt_provider),
             "stt_playback_offsets_ms": self._match.stt_playback_offsets_ms,
@@ -1278,6 +1425,103 @@ class MatchWorker:
             corrections=GLOBAL_FOOTBALL_CORRECTIONS,
             source_media_start_ref=self._source_media_start_ref,
         )
+
+    def _run_v2v_live(self, lang, resolved, pipe):
+        """Run one per-language voice-to-voice worker.
+
+        Until provider adapters are added, this uses the stub adapter to prove
+        lifecycle, source fanout, logging, and status wiring.
+        """
+        tag = f"MATCH {self._match.match_id} {lang.upper()} V2V"
+        health = pipe.v2v_health
+        if health:
+            health.state = "connecting"
+        audio_sock = None
+        audio_pipe = None
+        output_writer = None
+        try:
+            if not resolved.local_pcm_addr:
+                raise RuntimeError("v2v requires resolved.local_pcm_addr")
+            pcm_host, pcm_port = resolved.local_pcm_addr.rsplit(":", 1)
+            print(f"[{tag}] Connecting PCM socket {resolved.local_pcm_addr} for {pipe.mode}")
+            audio_sock = socket.create_connection((pcm_host, int(pcm_port)), timeout=10.0)
+            audio_pipe = audio_sock.makefile("rb")
+            if health:
+                health.state = "running"
+                health.metadata["mode"] = pipe.mode
+                health.metadata["voice_id"] = pipe.voice_id
+
+            def on_transcript(role, text, start_ms, end_ms):
+                self._on_v2v_transcript(lang, pipe, role, text, start_ms, end_ms)
+
+            output_writer = PacedPipeWriter(
+                pipe.publisher.stdin,
+                stop_event=self._stop,
+                play_at=pipe.video_start,
+                on_telemetry=lambda data: self._on_telemetry(lang, data),
+                source=pipe.mode,
+            )
+            output_writer.start()
+
+            # Provider-specific adapters will be dispatched here. For now the
+            # stub consumes source PCM and emits lifecycle transcript rows.
+            run_stub_v2v_pipeline_live(
+                audio_pipe=audio_pipe,
+                output_audio_writer=output_writer,
+                on_transcript=on_transcript,
+                stop_event=self._stop,
+                target_lang=lang,
+                video_delay=self._match.video_delay,
+                source_media_start_ref=self._source_media_start_ref,
+                voice_id=pipe.voice_id,
+                provider_options={"provider": pipe.provider or pipe.mode},
+            )
+            if health and health.state != "error":
+                health.state = "stopped"
+        except Exception as e:
+            if health:
+                health.state = "error"
+                health.last_error = str(e)
+            print(f"[{tag}] ERROR: {e}")
+        finally:
+            if output_writer:
+                if health:
+                    health.buffered_audio_ms = output_writer.buffered_ms()
+                output_writer.close()
+            if audio_pipe:
+                try:
+                    audio_pipe.close()
+                except Exception:
+                    pass
+            if audio_sock:
+                try:
+                    audio_sock.close()
+                except Exception:
+                    pass
+
+    def _on_v2v_transcript(self, lang, pipe, role, text, start_ms, end_ms):
+        health = pipe.v2v_health
+        if health:
+            health.last_transcript_at = time.time()
+        lang_log = self._lang_logs.get(lang)
+        if not lang_log:
+            return
+        try:
+            line = {
+                "type": "v2v_transcript",
+                "source": pipe.mode,
+                "role": role,
+                "text": text,
+                "audio_start": round(start_ms / 1000.0, 2) if start_ms is not None else None,
+                "audio_end": round(end_ms / 1000.0, 2) if end_ms is not None else None,
+                "provider": pipe.provider,
+                "voice_id": pipe.voice_id,
+                "wall_clock": time.strftime("%H:%M:%S") + f".{int(time.time() * 1000) % 1000:03d}",
+            }
+            lang_log.write(json.dumps(line) + "\n")
+            lang_log.flush()
+        except Exception:
+            pass
 
     def _run_stt(self):
         """Run STT pipeline with fan-out to all languages (demo mode)."""
@@ -1428,6 +1672,8 @@ class MatchWorker:
         for lang, pipe in self._pipelines.items():
             if lang == "original":
                 continue  # original pipeline plays file audio, not TTS
+            if pipe.mode != CLASSIC_MODE or pipe.tts is None:
+                continue
 
             def make_translate_fn(target_lang=lang, stt_speaker=speaker,
                                   src_audio_start=audio_start,
@@ -1611,6 +1857,10 @@ class MatchWorker:
                     if status == "interrupted":
                         pipe.telemetry.sr_interrupted += 1
                         pipe.telemetry.sr_cut_short_count += 1
+                elif source == "v2v" or str(source).startswith("v2v"):
+                    pipe.telemetry.v2v_played += 1
+                    if status == "interrupted":
+                        pipe.telemetry.v2v_interrupted += 1
             elif status in ("dropped", "suppressed", "replaced"):
                 pipe.telemetry.drop_count += 1
                 if source == "stt":
@@ -1627,6 +1877,13 @@ class MatchWorker:
                         pipe.telemetry.sr_replaced += 1
                     elif status == "suppressed":
                         pipe.telemetry.sr_suppressed += 1
+                elif source == "v2v" or str(source).startswith("v2v"):
+                    if status == "dropped":
+                        pipe.telemetry.v2v_dropped += 1
+                    elif status == "replaced":
+                        pipe.telemetry.v2v_replaced += 1
+                    elif status == "suppressed":
+                        pipe.telemetry.v2v_suppressed += 1
 
             pipe.recent_utterances.append(data)
 

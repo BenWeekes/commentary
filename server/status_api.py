@@ -260,10 +260,16 @@ class StatusHandler(BaseHTTPRequestHandler):
                     "worker_state": ws.state if ws else "idle",
                     "stt_utterance_count": ws.stt_utterance_count if ws else 0,
                     "configured_languages": mc.languages,
+                    "configured_language_configs": {
+                        lang: cfg.as_dict()
+                        for lang, cfg in (mc.language_configs or {}).items()
+                    },
                     "error": ws.error if ws else None,
                     "source_type": source_type,
                     "source_label": source_label,
                     "source_detail": source_detail,
+                    "pipeline_mode": mc.pipeline_mode,
+                    "speech_translation_provider": mc.speech_translation_provider,
                     "stt_provider": mc.stt_provider,
                     "stt_endpoint_delay_ms": mc.stt_endpoint_delay_ms,
                 }
@@ -297,6 +303,12 @@ class StatusHandler(BaseHTTPRequestHandler):
                     "stt_utterance_count": s.stt_utterance_count,
                     "languages": s.languages,
                     "configured_languages": mc.languages if mc else [],
+                    "configured_language_configs": (
+                        {lang: cfg.as_dict() for lang, cfg in (mc.language_configs or {}).items()}
+                        if mc else {}
+                    ),
+                    "pipeline_mode": mc.pipeline_mode if mc else "",
+                    "speech_translation_provider": mc.speech_translation_provider if mc else "",
                     "stt_provider": mc.stt_provider if mc else "",
                     "stt_endpoint_delay_ms": mc.stt_endpoint_delay_ms if mc else None,
                     "error": s.error,
@@ -322,6 +334,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "state": s.state,
                 "stt_utterance_count": s.stt_utterance_count,
                 "languages": s.languages,
+                "pipeline_mode": worker._match.pipeline_mode,
+                "speech_translation_provider": worker._match.speech_translation_provider,
                 "stt_provider": worker._match.stt_provider,
                 "stt_endpoint_delay_ms": worker._match.stt_endpoint_delay_ms,
                 "error": s.error,
@@ -490,6 +504,10 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "stt_utterance_count": s.stt_utterance_count,
                 "languages": s.languages,
                 "configured_languages": match_cfg.languages if match_cfg else [],
+                "configured_language_configs": (
+                    {lang: cfg.as_dict() for lang, cfg in (match_cfg.language_configs or {}).items()}
+                    if match_cfg else {}
+                ),
                 "error": s.error,
                 "started_at": s.started_at,
                 "keyterms": keyterms,
@@ -503,6 +521,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "translation_model": self.server_config.translation_model,
                 "translation_fallback_model": self.server_config.translation_fallback_model,
                 "translation_context_enabled": self.server_config.translation_context_enabled,
+                "pipeline_mode": match_cfg.pipeline_mode if match_cfg else "",
+                "speech_translation_provider": match_cfg.speech_translation_provider if match_cfg else "",
                 "video_delay": match_cfg.video_delay if match_cfg else None,
                 "runs": runs[:20],
                 "match_meta": match_meta,
@@ -679,6 +699,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                         match_id,
                         stt_provider=data.get("stt_provider"),
                         stt_endpoint_delay_ms=data.get("stt_endpoint_delay_ms"),
+                        pipeline_mode=data.get("pipeline_mode"),
+                        speech_translation_provider=data.get("speech_translation_provider"),
                     )
                 else:
                     self.orchestrator.stop_match(match_id)
@@ -696,6 +718,8 @@ class StatusHandler(BaseHTTPRequestHandler):
                 "state": s.state,
                 "stt_utterance_count": s.stt_utterance_count,
                 "languages": s.languages,
+                "pipeline_mode": worker._match.pipeline_mode,
+                "speech_translation_provider": worker._match.speech_translation_provider,
                 "stt_provider": worker._match.stt_provider,
                 "stt_endpoint_delay_ms": worker._match.stt_endpoint_delay_ms,
                 "error": s.error,

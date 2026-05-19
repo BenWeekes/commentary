@@ -3,6 +3,39 @@ from dataclasses import dataclass, field
 
 import yaml
 
+from lib.live_translation_provider import (
+    PIPELINE_STT_TRANSLATE_TTS,
+    PIPELINE_VOICE_TO_VOICE,
+    validate_pipeline_config,
+)
+from lib.v2v.base import CLASSIC_MODE, normalize_language_mode
+
+
+@dataclass
+class LanguageConfig:
+    lang: str
+    mode: str = CLASSIC_MODE
+    provider: str = ""
+    voice: str = ""
+    options: dict = field(default_factory=dict)
+
+    @property
+    def is_v2v(self) -> bool:
+        return self.mode.startswith("v2v_")
+
+    def as_dict(self) -> dict:
+        data = {
+            "lang": self.lang,
+            "mode": self.mode,
+        }
+        if self.provider:
+            data["provider"] = self.provider
+        if self.voice:
+            data["voice"] = self.voice
+        if self.options:
+            data["options"] = self.options
+        return data
+
 
 @dataclass
 class LiveSourceConfig:
@@ -52,8 +85,11 @@ class MatchConfig:
     stt_endpoint_delay_ms: int = 1500
     stt_playback_offset_ms: int = 0
     stt_playback_offsets_ms: dict = field(default_factory=dict)
+    pipeline_mode: str = PIPELINE_STT_TRANSLATE_TTS
+    speech_translation_provider: str = ""
     speaker_voice_ids: dict = field(default_factory=dict)
     languages: list[str] = field(default_factory=lambda: ["es", "pt", "fr", "tr", "de"])
+    language_configs: dict[str, LanguageConfig] = field(default_factory=dict)
     prestart_seconds: float = 30.0
 
     # Management
@@ -141,6 +177,49 @@ def _parse_live_source(raw_match: dict, base_dir: str = "") -> LiveSourceConfig 
     return None
 
 
+def _parse_language_configs(raw_languages, pipeline_mode: str, provider: str) -> tuple[list[str], dict[str, LanguageConfig]]:
+    """Parse legacy language strings or v2v-aware language objects."""
+    raw_languages = raw_languages or ["es", "pt", "fr", "tr", "de"]
+    languages = []
+    configs = {}
+    default_mode = CLASSIC_MODE
+    default_provider = ""
+    if pipeline_mode == PIPELINE_VOICE_TO_VOICE:
+        default_provider = provider
+        default_mode, default_provider = normalize_language_mode("v2v", default_provider)
+
+    for item in raw_languages:
+        if isinstance(item, str):
+            lang = item
+            mode, mode_provider = normalize_language_mode(default_mode, default_provider)
+            voice = ""
+            options = {}
+        elif isinstance(item, dict):
+            lang = str(item.get("lang") or item.get("language") or "").strip()
+            if not lang:
+                raise ValueError(f"language entry missing lang: {item}")
+            raw_mode = item.get("mode", default_mode)
+            raw_provider = item.get("provider", default_provider)
+            mode, mode_provider = normalize_language_mode(raw_mode, raw_provider)
+            voice = str(item.get("voice") or item.get("voice_id") or "").strip()
+            reserved = {"lang", "language", "mode", "provider", "voice", "voice_id"}
+            options = {k: v for k, v in item.items() if k not in reserved}
+        else:
+            raise ValueError(f"invalid language entry: {item!r}")
+
+        if lang in configs:
+            raise ValueError(f"duplicate language '{lang}'")
+        languages.append(lang)
+        configs[lang] = LanguageConfig(
+            lang=lang,
+            mode=mode,
+            provider=mode_provider,
+            voice=voice,
+            options=options,
+        )
+    return languages, configs
+
+
 def get_live_source(match_cfg: MatchConfig) -> LiveSourceConfig | None:
     """Return the effective live source config for a match."""
     if match_cfg.mode != "live":
@@ -190,6 +269,15 @@ def load_config(yaml_path: str) -> ServerConfig:
     for m in raw.get("matches", []):
         mode = m.get("mode", "demo")
         live_source = _parse_live_source(m, base_dir)
+        pipeline_mode, speech_translation_provider = validate_pipeline_config(
+            m.get("pipeline_mode", PIPELINE_STT_TRANSLATE_TTS),
+            m.get("speech_translation_provider", ""),
+        )
+        languages, language_configs = _parse_language_configs(
+            m.get("languages", ["es", "pt", "fr", "tr", "de"]),
+            pipeline_mode,
+            speech_translation_provider,
+        )
 
         # Resolve file paths only for demo mode
         audio = ""
@@ -235,8 +323,11 @@ def load_config(yaml_path: str) -> ServerConfig:
             stt_endpoint_delay_ms=int(m.get("stt_endpoint_delay_ms", 1500)),
             stt_playback_offset_ms=int(m.get("stt_playback_offset_ms", stt_playback_offset_ms)),
             stt_playback_offsets_ms=m.get("stt_playback_offsets_ms", stt_playback_offsets_ms) or {},
+            pipeline_mode=pipeline_mode,
+            speech_translation_provider=speech_translation_provider,
             speaker_voice_ids=m.get("speaker_voice_ids", {}) or {},
-            languages=m.get("languages", ["es", "pt", "fr", "tr", "de"]),
+            languages=languages,
+            language_configs=language_configs,
             prestart_seconds=m.get("prestart_seconds", 30.0),
             display_name=m.get("display_name", ""),
             enabled=m.get("enabled", True),
@@ -378,6 +469,13 @@ def validate_config(cfg: ServerConfig, dry_run=False):
                 errors.append(f"{prefix}: invalid live source type '{source.type}'")
         if not m.languages:
             errors.append(f"{prefix}: no languages configured")
+        for lang, lc in (m.language_configs or {}).items():
+            if lc.mode != CLASSIC_MODE and not lc.provider:
+                errors.append(f"{prefix}: language '{lang}' has v2v mode without provider")
+        try:
+            validate_pipeline_config(m.pipeline_mode, m.speech_translation_provider)
+        except ValueError as e:
+            errors.append(f"{prefix}: {e}")
 
     if errors:
         raise ValueError("Config validation failed:\n  " + "\n  ".join(errors))
