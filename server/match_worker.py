@@ -16,7 +16,9 @@ import openai
 
 from lib.audio import load_atmosphere, convert_to_pcm
 from lib.constants import ELEVENLABS_MODEL, VIDEO_DELAY_S
-from lib.corrections import GLOBAL_FOOTBALL_CORRECTIONS, TERMS_LIST
+from lib.corrections import (
+    GLOBAL_FOOTBALL_CORRECTIONS, TERMS_LIST, apply_short_utterance_policy,
+)
 from lib.events import load_events_file
 
 # ─── Per-match keyterms loading ──────────────────────────────────────────
@@ -1338,6 +1340,13 @@ class MatchWorker:
                 pass
 
         corrected_text, corrections, correction_ms = self._correct_names_for_utterance(text)
+        policy_text, short_policy_meta = apply_short_utterance_policy(
+            corrected_text, audio_start=audio_start, audio_end=audio_end)
+        if policy_text != corrected_text:
+            print(f"[MATCH {self._match.match_id}] Short-policy normalized: "
+                  f"\"{corrected_text}\" -> \"{policy_text}\" "
+                  f"({short_policy_meta.get('short_policy_reason')})")
+            corrected_text = policy_text
         self._fanout_utterance(
             raw_text=text,
             corrected_text=corrected_text,
@@ -1355,6 +1364,7 @@ class MatchWorker:
             provider=provider,
             word_timings=word_timings,
             split_meta=split_meta,
+            short_policy_meta=short_policy_meta,
         )
 
     def _correct_names_for_utterance(self, text):
@@ -1377,7 +1387,7 @@ class MatchWorker:
                           intended_skew_ms=None, speaker=None,
                           schedule_anchor_wall=None, occurred_at=None,
                           occurred_end_at=None, provider=None, word_timings=None,
-                          split_meta=None):
+                          split_meta=None, short_policy_meta=None):
         """Fan out one corrected English utterance to all language pipelines."""
         if self._stt_log:
             try:
@@ -1407,6 +1417,8 @@ class MatchWorker:
                     line["word_timings"] = word_timings
                 if split_meta:
                     line.update(split_meta)
+                if short_policy_meta:
+                    line.update(short_policy_meta)
                 self._stt_log.write(json.dumps(line) + "\n")
                 self._stt_log.flush()
             except Exception:
@@ -1474,6 +1486,9 @@ class MatchWorker:
                 "name_corrections": name_corrections,
                 "name_correction_ms": name_correction_ms,
                 "name_correction_status": name_correction_status,
+                "short_policy": (short_policy_meta or {}).get("short_policy"),
+                "short_policy_reason": (short_policy_meta or {}).get("short_policy_reason"),
+                "normalized_source": (short_policy_meta or {}).get("normalized_source"),
             }
             if split_meta:
                 self._stt_schedule_meta_by_lang[lang][(lang_play_at, corrected_text)].update(split_meta)
@@ -1704,6 +1719,9 @@ class MatchWorker:
                         "word_timings": stt_schedule_meta.get("word_timings"),
                         "name_corrections": stt_schedule_meta.get("name_corrections"),
                         "name_correction_ms": stt_schedule_meta.get("name_correction_ms"),
+                        "short_policy": stt_schedule_meta.get("short_policy"),
+                        "short_policy_reason": stt_schedule_meta.get("short_policy_reason"),
+                        "normalized_source": stt_schedule_meta.get("normalized_source"),
                         "voice_id": data.get("voice_id"),
                         "play_duration_ms": data.get("actual_play_duration_ms", 0),
                         "total_buffered_ms": data.get("total_buffered_ms", 0),

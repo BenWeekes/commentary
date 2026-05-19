@@ -50,7 +50,7 @@ matches:
     # Switch between deepgram_nova3 and soniox for live-demo STT comparisons.
     stt_provider: soniox
     stt_endpoint_delay_ms: 1500
-    languages: [es, pt, fr, tr, de]
+    languages: [en, es, pt, fr, tr, de]
 
   # Demo — loops the reviewed Mainz vs Union evaluation section through local
   # SRT so Deepgram Nova-3 and Soniox can be compared against the gold transcript.
@@ -122,6 +122,56 @@ matches:
     stt_endpoint_delay_ms: 1500
     languages: [en, es]
 
+  # May 16, 13:30 UTC — St. Pauli vs Wolfsburg
+  - match_id: stp_wob_md34
+    display_name: "St. Pauli vs Wolfsburg (MD34)"
+    mode: live
+    enabled: true
+    sport_event_id: "sr:sport_event:61515292"
+    kickoff_utc: "2026-05-16T13:30:00Z"
+    prestart_seconds: 1800
+    auto_manage: true
+    source:
+      type: srt_direct
+      url: "srt://185.188.55.51:33999?streamid=-JTQoXEO6jM-jQmDD7QZLOiCWCUIJA5"
+      original_channel: stp_wob_md34-original
+      publish_uid: 73
+      original_buffer_seconds: 1.0
+      retry_seconds: 60
+      audio_stream_index: 2
+      atmosphere_audio_stream_index: 1
+    video_uid: 73
+    video_delay: 16.0
+    max_stt_duration: 8.5
+    stt_provider: soniox
+    stt_endpoint_delay_ms: 1500
+    languages: [en, es, pt, fr, tr, de]
+
+  # May 16, 13:30 UTC — Eintracht Frankfurt vs Stuttgart
+  - match_id: sge_vfb_md34
+    display_name: "Frankfurt vs Stuttgart (MD34)"
+    mode: live
+    enabled: true
+    sport_event_id: "sr:sport_event:61515278"
+    kickoff_utc: "2026-05-16T13:30:00Z"
+    prestart_seconds: 1800
+    auto_manage: true
+    source:
+      type: srt_direct
+      url: "srt://185.188.55.51:33909?streamid=Agora_test_DEBL_02"
+      original_channel: sge_vfb_md34-original
+      publish_uid: 73
+      original_buffer_seconds: 1.0
+      retry_seconds: 60
+      audio_stream_index: 2
+      atmosphere_audio_stream_index: 1
+    video_uid: 73
+    video_delay: 16.0
+    max_stt_duration: 8.5
+    stt_provider: soniox
+    stt_endpoint_delay_ms: 1500
+    languages: [en, es, pt, fr, tr, de]
+
   # May 8, 18:30 UTC — Dortmund vs Frankfurt
   - match_id: bvb_sge_md33
     display_name: "Dortmund vs Frankfurt (MD33)"
@@ -140,7 +190,7 @@ matches:
     video_uid: 73
     video_delay: 16.0
     max_stt_duration: 8.5
-    languages: [es, pt, fr, tr, de]
+    languages: [en, es, pt, fr, tr, de]
 
   # May 9, 16:30 UTC — Wolfsburg vs Bayern
   - match_id: wob_bmu_md33
@@ -160,7 +210,7 @@ matches:
     video_uid: 73
     video_delay: 16.0
     max_stt_duration: 8.5
-    languages: [es, pt, fr, tr, de]
+    languages: [en, es, pt, fr, tr, de]
 
   # May 10, 17:30 UTC — Mainz vs Union Berlin
   - match_id: m05_uni_md33
@@ -182,4 +232,4 @@ matches:
     video_uid: 73
     video_delay: 16.0
     max_stt_duration: 8.5
-    languages: [es, pt, fr, tr, de]
+    languages: [en, es, pt, fr, tr, de]

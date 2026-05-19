@@ -50,15 +50,17 @@ def _parse_kickoff(iso: str) -> float | None:
 
 # ── Refresh cadence rules ────────────────────────────────────────────
 
-def _compute_intervals(ttk: float | None) -> tuple[float, float]:
+def _compute_intervals(ttk: float | None, prestart_seconds: float = 0.0) -> tuple[float, float]:
     """Return (check_interval, refresh_interval) based on time-to-kickoff.
 
     ttk: seconds until kickoff, or None if unknown.
     """
     if ttk is None:
         return (60.0, 300.0)       # unknown kickoff: check 60s, refresh 5min
-    if ttk > 5 * 60:
+    if ttk > max(5 * 60, prestart_seconds):
         return (60.0, 3600.0)      # known kickoff: no lineup refresh until final 5min
+    if ttk > 5 * 60:
+        return (60.0, 60.0)        # prestart window: refresh keyterms before worker startup
     if ttk > 0:
         return (5.0, 60.0)         # final 5min: check 5s, refresh 1min
     return (5.0, 60.0)             # in-game window: check 5s, refresh 1min
@@ -182,11 +184,18 @@ class Scheduler:
         if ms.kickoff_ts:
             ttk = ms.kickoff_ts - now
 
+        prestart_seconds = min(
+            self._AUTO_START_BEFORE_S,
+            max(0.0, ms.match_cfg.prestart_seconds),
+        )
+
         # Update intervals based on proximity to kickoff
-        ms.check_interval, ms.refresh_interval = _compute_intervals(ttk)
+        ms.check_interval, ms.refresh_interval = _compute_intervals(ttk, prestart_seconds)
 
         outside_after_window = ttk is not None and ttk < -self._AUTO_STOP_AFTER_S
-        inside_refresh_window = ttk is None or (-self._AUTO_STOP_AFTER_S <= ttk <= 5 * 60)
+        inside_refresh_window = ttk is None or (
+            -self._AUTO_STOP_AFTER_S <= ttk <= max(5 * 60, prestart_seconds)
+        )
 
         # Check if we need to refresh SR data
         needs_refresh = False
@@ -263,14 +272,13 @@ class Scheduler:
             ms.state = "finished"
             return
 
-        prestart_seconds = min(
-            self._AUTO_START_BEFORE_S,
-            max(0.0, ms.match_cfg.prestart_seconds),
-        )
-
         if ttk > prestart_seconds:
             ms.state = "upcoming"
             return
+
+        # The live worker loads keyterms once at startup. Refresh immediately
+        # before auto-start so lineups published near kickoff are included.
+        self._do_refresh(ms, now)
 
         has_keyterms = self._match_store.read_keyterms(mid) is not None
         ms.state = "starting"

@@ -136,3 +136,65 @@ def apply_corrections(text, corrections=None):
     for wrong, right in (corrections if corrections is not None else CORRECTIONS):
         text = text.replace(wrong, right)
     return text
+
+
+_SHORT_ACK_NORMALIZATIONS = {
+    # In football co-commentary this is commonly agreement/confirmation, not
+    # "the match is over". Keep the normalized source short so translations
+    # remain a brief interjection.
+    "that's it": ("That's right.", "ambiguous_acknowledgement"),
+    "that is it": ("That's right.", "ambiguous_acknowledgement"),
+}
+
+
+def _canonical_short_text(text):
+    return " ".join(
+        text.strip()
+        .strip("\"'“”‘’")
+        .rstrip(".!?")
+        .lower()
+        .split()
+    )
+
+
+def apply_short_utterance_policy(text, audio_start=None, audio_end=None,
+                                 near_final_whistle=False):
+    """Normalize only high-confidence ambiguous short commentary turns.
+
+    The policy deliberately avoids suppressing bare names and short football
+    callouts. It returns (new_text, metadata) so logs can show exactly what
+    happened.
+    """
+    original = (text or "").strip()
+    meta = {
+        "short_policy": "none",
+        "short_policy_reason": "",
+        "normalized_source": None,
+    }
+    if not original:
+        return text, meta
+
+    words = [w for w in original.replace("—", " ").split() if w]
+    duration_s = None
+    if isinstance(audio_start, (int, float)) and isinstance(audio_end, (int, float)):
+        duration_s = audio_end - audio_start
+    is_short = len(words) <= 3 or (duration_s is not None and duration_s <= 1.0)
+    if not is_short:
+        return text, meta
+
+    canonical = _canonical_short_text(original)
+    normalized = _SHORT_ACK_NORMALIZATIONS.get(canonical)
+    if normalized and not near_final_whistle:
+        new_text, reason = normalized
+        meta.update({
+            "short_policy": "normalized",
+            "short_policy_reason": reason,
+            "normalized_source": new_text,
+        })
+        return new_text, meta
+
+    meta.update({
+        "short_policy": "kept",
+        "short_policy_reason": "short_callout_or_backchannel",
+    })
+    return text, meta

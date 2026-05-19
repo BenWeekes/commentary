@@ -335,6 +335,7 @@ The viewer shows "Original (EN)" first in the language dropdown. Default selecti
 - leaves demo matches and `auto_manage: false` matches under manual control
 
 This scheduler refresh path updates per-match disk data only. If you use the `Refresh Data` button while a match is already running, the refresh is blocked and applies on the next start.
+For auto-managed live matches, the scheduler refreshes during the configured prestart window and refreshes once immediately before auto-start, because live workers load lineup-derived keyterms only at startup.
 
 ## Dev Mode (live_match.py)
 
