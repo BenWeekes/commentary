@@ -21,7 +21,6 @@ from lib.corrections import (
 )
 from lib.events import load_events_file
 from lib.live_translation_provider import (
-    PIPELINE_STT_TRANSLATE_TTS,
     PIPELINE_VOICE_TO_VOICE,
     provider_display_name,
     validate_pipeline_config,
@@ -83,6 +82,7 @@ from lib.translator import (
 )
 from lib.tts_engine import TTSEngine, _ts
 from lib.v2v.base import CLASSIC_MODE, V2VHealth, normalize_language_mode
+from lib.v2v.gemini_live import run_v2v_pipeline_live as run_gemini_v2v_pipeline_live
 from lib.v2v.stub import run_v2v_pipeline_live as run_stub_v2v_pipeline_live
 
 from server.cloud_recording import (
@@ -1045,7 +1045,7 @@ class MatchWorker:
             if stt_thread:
                 stt_thread.join()
             for t in v2v_threads:
-                t.join(timeout=2.0)
+                t.join()
 
             # Drain TTS/v2v queues
             print(f"[{tag}] Audio workers done — draining output queues...")
@@ -1463,9 +1463,15 @@ class MatchWorker:
             )
             output_writer.start()
 
-            # Provider-specific adapters will be dispatched here. For now the
-            # stub consumes source PCM and emits lifecycle transcript rows.
-            run_stub_v2v_pipeline_live(
+            provider_key = (pipe.provider or "").strip().lower()
+            if provider_key == "gemini":
+                adapter = run_gemini_v2v_pipeline_live
+            elif provider_key == "stub":
+                adapter = run_stub_v2v_pipeline_live
+            else:
+                raise RuntimeError(f"v2v provider adapter not installed: {provider_key or pipe.mode}")
+
+            adapter(
                 audio_pipe=audio_pipe,
                 output_audio_writer=output_writer,
                 on_transcript=on_transcript,
@@ -1474,7 +1480,10 @@ class MatchWorker:
                 video_delay=self._match.video_delay,
                 source_media_start_ref=self._source_media_start_ref,
                 voice_id=pipe.voice_id,
-                provider_options={"provider": pipe.provider or pipe.mode},
+                provider_options={
+                    "provider": pipe.provider or pipe.mode,
+                    **((self._language_config(lang).options if self._language_config(lang) else {}) or {}),
+                },
             )
             if health and health.state != "error":
                 health.state = "stopped"
@@ -1487,6 +1496,16 @@ class MatchWorker:
             if output_writer:
                 if health:
                     health.buffered_audio_ms = output_writer.buffered_ms()
+                    stats = output_writer.stats
+                    if stats.first_audio_at and pipe.video_start:
+                        health.first_audio_latency_ms = round((stats.first_audio_at - pipe.video_start) * 1000)
+                    health.metadata.update({
+                        "v2v_first_audio_at": stats.first_audio_at,
+                        "v2v_first_write_at": stats.first_write_at,
+                        "v2v_total_audio_ms": stats.chunks_written * 10,
+                        "v2v_buffered_at_play_start_ms": stats.buffered_chunks_at_play_start * 10,
+                        "v2v_underruns": stats.underruns,
+                    })
                 output_writer.close()
             if audio_pipe:
                 try:
@@ -1982,6 +2001,14 @@ class MatchWorker:
                         "voice_id": data.get("voice_id"),
                         "play_duration_ms": data.get("actual_play_duration_ms", 0),
                         "total_buffered_ms": data.get("total_buffered_ms", 0),
+                        "v2v_first_audio_at": data.get("v2v_first_audio_at"),
+                        "v2v_first_audio_at_utc": _utc_hms_ms(data.get("v2v_first_audio_at")),
+                        "v2v_first_write_at": data.get("v2v_first_write_at"),
+                        "v2v_first_write_at_utc": _utc_hms_ms(data.get("v2v_first_write_at")),
+                        "v2v_first_audio_ms": data.get("v2v_first_audio_ms"),
+                        "v2v_buffered_at_play_start_ms": data.get("v2v_buffered_at_play_start_ms"),
+                        "v2v_total_audio_ms": data.get("v2v_total_audio_ms"),
+                        "v2v_underruns": data.get("v2v_underruns"),
                         "pre_translated": data.get("pre_translated", False),
                         "queue_wait_ms": data.get("queue_wait_ms", 0),
                         "speed": speed,

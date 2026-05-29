@@ -47,7 +47,12 @@ commentary/
 │   ├── tts_engine.py              # TTSEngine class + _ts() helper (~648 lines)
 │   ├── sr_prefetcher.py           # SRPrefetcher class (~327 lines)
 │   ├── stt_pipeline.py            # Deepgram live/offline STT helpers
-│   └── soniox_stt_pipeline.py     # Soniox realtime live STT helper
+│   ├── soniox_stt_pipeline.py     # Soniox realtime live STT helper
+│   ├── paced_pipe_writer.py       # Realtime PCM pacing + V2V audio telemetry
+│   └── v2v/                       # Research speech-to-speech provider adapters
+│       ├── base.py                # V2V mode/provider normalization and health structs
+│       ├── stub.py                # Lifecycle-only adapter for plumbing tests
+│       └── gemini_live.py         # Gemini Live V2V research adapter
 ├── data/
 │   ├── events/                    # Match event files (offset|priority|text)
 │   ├── audio/                     # Commentary audio samples
@@ -103,6 +108,10 @@ commentary/
 | `lib/sr_prefetcher.py` | `SRPrefetcher` class — SR prefetch, scheduling, metadata propagation into `TTSEngine` SR telemetry | `lib.constants`, `lib.tts_engine` |
 | `lib/stt_pipeline.py` | Deepgram Nova-3 STT, word timing extraction, forced splitting, live scheduling | `lib.corrections`, `lib.audio` |
 | `lib/soniox_stt_pipeline.py` | Soniox `stt-rt-v4` realtime STT, speaker-aware turn emission, global football corrections, max-duration splitting | `lib.corrections` |
+| `lib/paced_pipe_writer.py` | Buffers bursty provider PCM and writes 16 kHz mono S16LE into relay publishers at realtime cadence; records V2V first-audio, buffered-at-play-start, total audio, and underrun telemetry. | `lib.constants` |
+| `lib/v2v/base.py` | V2V provider normalization, language code helpers, and health/transcript dataclasses. | standalone |
+| `lib/v2v/stub.py` | Lifecycle-only V2V adapter for testing orchestration without a provider. | `lib.audio` |
+| `lib/v2v/gemini_live.py` | Research Gemini Live V2V adapter: sends live PCM over Gemini Live WebSocket, logs input/output transcripts, decodes returned inline PCM, and writes audio through `PacedPipeWriter`. | `websockets`, `lib.audio`, `lib.v2v.base` |
 
 ## Module Map — tools/ (evaluation and media helpers)
 
@@ -112,6 +121,8 @@ commentary/
 | `tools/run_translation_eval.py` | Compares Soniox streaming translation against GPT full-turn translation for one target language using the same source turns/keyterms. | `summary.md`, `summary.json`, `aligned_translation_compare.json`, provider turn JSON under the chosen eval directory |
 | `tools/build_stt_compare_page.py` | Builds a static browser page showing gold turns beside realtime STT output and WER/similarity details. | `stt_compare_*.html` |
 | `tools/build_latency_test_clip.sh` | Generates `clips/latency_test/source.mp4`, a 5-minute video with visible and spoken 5-second markers for sync checks. | `clips/latency_test/source.mp4` |
+| `tools/test_gemini_live_setup.py` | Opens Gemini Live WebSocket and verifies `setupComplete` without starting Agora publishers. | console pass/fail |
+| `tools/build_provider_eval_summary.py` | Summarizes one run directory for provider comparisons across classic and V2V research paths. | `provider_eval_summary.json`, `provider_eval_summary.md` |
 
 ## Module Map — live_match.py (dev-mode orchestrator)
 

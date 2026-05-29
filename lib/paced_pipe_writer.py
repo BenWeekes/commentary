@@ -26,6 +26,7 @@ class PacedPipeWriterStats:
     chunks_written: int = 0
     bytes_written: int = 0
     underruns: int = 0
+    buffered_chunks_at_play_start: int = 0
     first_audio_at: float | None = None
     first_write_at: float | None = None
     last_write_at: float | None = None
@@ -103,6 +104,9 @@ class PacedPipeWriter:
                     break
                 self._ready.wait(timeout=min(remaining, 0.05))
 
+        with self._lock:
+            self.stats.buffered_chunks_at_play_start = len(self._buf)
+
         next_tick = time.monotonic()
         while not self.stop_event.is_set():
             with self._lock:
@@ -153,11 +157,14 @@ class PacedPipeWriter:
                 "total_buffered_ms": self.stats.chunks_written * 10,
                 "interrupted": False,
                 "interrupted_by": "",
+                "v2v_first_audio_at": self.stats.first_audio_at,
+                "v2v_first_write_at": self.stats.first_write_at,
                 "v2v_first_audio_ms": (
                     round((self.stats.first_audio_at - self.play_at) * 1000)
                     if self.play_at is not None and self.stats.first_audio_at is not None
                     else None
                 ),
+                "v2v_buffered_at_play_start_ms": self.stats.buffered_chunks_at_play_start * 10,
                 "v2v_total_audio_ms": self.stats.chunks_written * 10,
                 "v2v_underruns": self.stats.underruns,
                 "error": self.stats.last_error,

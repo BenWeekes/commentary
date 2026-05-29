@@ -18,7 +18,7 @@ Served by `StatusHandler` in `server/status_api.py` on port 8080 (configurable v
 | `/api/matches/{id}/detail?run=YYYYMMDD_HHMMSS` | GET | `{match_id, display_name, mode, enabled, auto_manage, kickoff_utc, state, keyterms, keyterms_source, log_dir, log_files, runs, match_meta, recordings, run_summary, ...}` | Match config, keyterms, current log directory, selected-run recording metadata, selected-run outcome summary, and persisted match metadata |
 | `/api/matches/{id}/logs/{stt\|lang}?tail=N` | GET | `{match_id, log_key, total_lines, rows: [...]}` | Tail structured JSONL logs (max 10000 lines) |
 | `/api/matches/{id}/refresh-data` | POST | `{status, match_id, keyterm_count?, roster_player_count?, kickoff_utc?}` | Refresh Sportradar fixture data into `match_store` for the next live run |
-| `/api/matches/{id}/start` | POST | match status JSON | Start a demo/manual match. Optional JSON body: `{stt_provider: "deepgram_nova3"|"soniox", stt_endpoint_delay_ms?: 1500}` |
+| `/api/matches/{id}/start` | POST | match status JSON | Start a demo/manual match. Optional JSON body for production path: `{pipeline_mode: "stt_translate_tts", stt_provider: "deepgram_nova3"|"soniox", stt_endpoint_delay_ms?: 1500}`. Research V2V runs may use `{pipeline_mode: "voice_to_voice", speech_translation_provider: "gemini"}` on demo-live sources. |
 | `/api/matches/{id}/stop` | POST | match status JSON | Stop a match |
 | `/api/token` | POST | `{token, channel, uid, appid}` | Single viewer token (body: `{match_id, lang}`) |
 

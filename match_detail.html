@@ -524,6 +524,12 @@
       html += '<div class="lang-row"><span class="lang-name">Match ID</span><span class="lang-stats">' + esc(data.match_id) + '</span></div>';
       html += '<div class="lang-row"><span class="lang-name">Mode</span><span class="lang-stats">' + esc(detail.mode || '-') + '</span></div>';
       html += '<div class="lang-row"><span class="lang-name">State</span><span class="lang-stats">' + esc(data.state || 'idle') + '</span></div>';
+      if (detail.pipeline_mode) {
+        var pipelineText = detail.pipeline_mode === 'voice_to_voice'
+          ? 'Voice-to-voice' + (detail.speech_translation_provider ? ' (' + detail.speech_translation_provider + ')' : '')
+          : 'STT + translation + TTS';
+        html += '<div class="lang-row"><span class="lang-name">Pipeline</span><span class="lang-stats">' + esc(pipelineText) + '</span></div>';
+      }
       html += '<div class="lang-row"><span class="lang-name">STT Utterances</span><span class="lang-stats">' + (data.stt_utterance_count || 0) + '</span></div>';
       if (detail.translation_model) {
         html += '<div class="lang-row"><span class="lang-name">Translation Model</span><span class="lang-stats">' + esc(detail.translation_model) + '</span></div>';

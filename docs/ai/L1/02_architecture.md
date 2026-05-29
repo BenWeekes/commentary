@@ -12,6 +12,7 @@ Current implementation note:
 
 - **Demo mode** has both STT and SR gap-fill today.
 - **Live mode** currently uses STT only. Sportradar in live mode is used for fixture metadata refresh (kickoff, roster, keyterms), not for real-time commentary injection yet.
+- Live/demo-live provider experiments are selected at run start with `pipeline_mode`. The production path is `stt_translate_tts` with Soniox realtime STT, guarded LLM translation, and ElevenLabs TTS. `voice_to_voice` is a research path for direct speech-translation providers and is not the production default.
 
 ## Server Mode
 
@@ -35,6 +36,19 @@ matches.yaml
 ```
 
 **Key design**: one STT connection per match, shared across all languages. Live mode can use Deepgram Nova-3 or Soniox realtime depending on `stt_provider`; the `_on_utterance` callback fans each corrected utterance to all language pipelines (translate → TTS → Go publisher → Agora channel).
+
+### Provider Experiment Modes
+
+Each match config has:
+
+| Field | Purpose |
+|---|---|
+| `pipeline_mode` | `stt_translate_tts` for the current pipeline, or `voice_to_voice` for direct speech-translation providers |
+| `speech_translation_provider` | Provider key for `voice_to_voice` experiments (`openai`, `gemini`, `xai`) |
+
+The selected mode/provider is written into `stt.jsonl` and each language JSONL header. `tools/build_provider_eval_summary.py` summarizes played/drop/interruption rates and latency fields for apples-to-apples provider comparison across one run at a time.
+
+Production should stay on `pipeline_mode: stt_translate_tts` and `stt_provider: soniox` unless a provider experiment has explicitly been accepted. The Gemini Live V2V adapter is wired for research runs on demo-live SRT sources. It streams source PCM to Gemini Live and publishes returned PCM through the same per-language relay path, but the May 19 eval showed provider-specific quality and stability gaps: EN/FR/DE completed cleanly, PT/TR had some underruns, and ES had substantial underruns. Treat Gemini V2V recordings as research artifacts, not customer-ready output.
 
 ### Server vs dev mode
 

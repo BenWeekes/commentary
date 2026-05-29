@@ -204,7 +204,9 @@ http://localhost:8080/viewer_live.html?match=livepipe_e2e01&lang=es
 
 Use this when you need to test live SRT timing with known demo media. `source.type = demo_srt_direct` starts one owned FFmpeg process for the configured demo media, publishes it as MPEG-TS over local SRT, then runs the normal `srt_direct` live path against it. Demo SRT sources default to a single pass (`demo_loop: false`) so cloud recordings do not accidentally contain repeated games.
 
-On `status.html`, manual demo-live rows expose an STT provider selector before Start. Use `Deepgram Nova-3` and `Soniox` runs on the same local SRT demo source when comparing recognition quality; the chosen provider is sent as `stt_provider` in the start request and logged by `MatchWorker`. The current preferred eval-demo setting is Soniox with `stt_endpoint_delay_ms=1500`.
+On `status.html`, manual demo-live rows expose pipeline and provider selectors before Start. Use `pipeline_mode=stt_translate_tts` for the production path: live commentary PCM -> Soniox/Deepgram STT -> deterministic correction -> guarded LLM translation -> ElevenLabs TTS -> per-language relay. Soniox is the current production/default STT provider, with `stt_endpoint_delay_ms=1500`.
+
+`pipeline_mode=voice_to_voice` is research-only. It bypasses the shared STT/LLM/TTS pipeline and gives one direct speech-translation provider session per language. The only live adapter currently wired is `speech_translation_provider=gemini`; `openai` and `xai` remain reserved provider keys and will fail fast until adapters are added. Gemini V2V is useful for latency/quality experiments, but do not use it for production customer runs without a fresh acceptance test.
 
 `matches_live.yaml` also includes `m05_uni_eval_demo`, which loops the reviewed Mainz vs Union evaluation section through the same live path on local SRT port `10081`. The generated source file is `clips/m05_uni_eval_25min/source.mp4` and is intentionally ignored by git as a derived media artifact. This row has one program/commentary audio track and no separate atmosphere track, so `audio_stream_index: 1` and `atmosphere_audio_stream_index: -1`. Include `en` in the language list when generating shareable eval recordings; that channel speaks the corrected English STT via TTS and is useful for ear-checking sync against Original.
 
@@ -253,6 +255,7 @@ Recent eval learnings:
 - Long Soniox turns must still be force-emitted with `max_stt_duration`; otherwise oversized chunks can miss `play_at` before translation starts.
 - Live correction should be deterministic and keyterm-driven. `GLOBAL_FOOTBALL_CORRECTIONS` handles high-confidence football phrases for both Deepgram and Soniox; roster/keyterm name correction then fixes proper names. An LLM correction pass found useful fixes but had high tail latency and could make semantic overcorrections.
 - TTS tempo fitting should target the known gap before the next STT item, not raw STT provider word spans. Current bounds are `0.769x` to `1.3x`; if the next STT play time is unknown, keep the generated duration.
+- Gemini V2V can run at much lower configured video delay in demo-live research runs because provider audio usually arrives before playout. In the May 19 all-language test with `video_delay=2`, EN/FR/DE had zero V2V underruns, PT/TR had limited underruns, and ES had substantial underruns and shorter audio output. That makes Gemini V2V promising for research but not yet as robust as the Soniox production path.
 
 For a short live-clock smoke test, run `test_live_pipeline.py` with `--assert-skew-ms 50 --stop-after-utterances N` against a live/demo source. The test fails if live `intended_skew_ms` drifts beyond the threshold.
 
@@ -289,6 +292,37 @@ Translation strategy comparison:
 ```
 
 Outputs include `summary.md`, `summary.json`, `aligned_translation_compare.json`, `soniox_translation_turns.json`, and `gpt_translation_turns.json`. Use it to compare Soniox streaming translation latency/wording with the current GPT full-turn translation before changing the live translation path.
+
+Provider run summary:
+
+```bash
+.venv/bin/python tools/build_provider_eval_summary.py \
+  --match m05_uni_eval_demo \
+  --run 20260514_154918
+```
+
+Outputs `provider_eval_summary.json` and `provider_eval_summary.md` in the run directory. This is the run-level comparison artifact for live/demo-live provider experiments. It reports fully-played percentage, drops, interruptions, translation/TTS latency, queue timing, playback start lag, and ready-vs-play deadline misses. Future voice-to-voice adapters should write provider transcript/translation/audio-latency fields into the same JSONL rows so the summary can add WER or text-similarity scores without changing the workflow.
+
+Gemini Live V2V research checks:
+
+```bash
+GEMINI_API_KEY=... .venv/bin/python tools/test_gemini_live_setup.py
+```
+
+This opens the raw Gemini Live WebSocket, sends a setup message, and waits for
+`setupComplete`. It does not stream match audio or publish to Agora. Use this
+before starting a full demo-live V2V run.
+
+For a V2V run, start a demo-live match with:
+
+```json
+{
+  "pipeline_mode": "voice_to_voice",
+  "speech_translation_provider": "gemini"
+}
+```
+
+Keep these runs isolated from production match IDs/channels where possible. V2V language logs contain `v2v_transcript` rows plus one final `utterance` telemetry row with `v2v_first_audio_ms`, `v2v_buffered_at_play_start_ms`, `v2v_total_audio_ms`, and `v2v_underruns`. A low median transcript latency is not enough for acceptance; check the recording and underrun counts per language.
 
 ### Fully standalone browser watch
 
