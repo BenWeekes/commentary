@@ -26,6 +26,7 @@
 | [07_gotchas](L1/07_gotchas.md) | Server port conflicts, YAML paths, MP4 offset, zombies, TTS short phrases, go.mod replace | Maintain |
 | [08_security](L1/08_security.md) | API keys, tokens, CORS, network exposure, server security gaps | Maintain |
 | [09_deployment](L1/09_deployment.md) | Ubuntu server deployment: systemd, nginx, TLS, firewall, logs | Use & Maintain |
+| [10_experiments](L1/10_experiments.md) | Side experiments index: V2V provider comparison (Gemini/Soniox v5), BWE/ABR feasibility — what we tried, headline results, where artefacts live | Use & Maintain |
 
 ## L2 — Deep Dives
 

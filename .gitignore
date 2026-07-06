@@ -2,6 +2,9 @@
 .env
 matches_live.yaml
 
+# Side-experiment artefacts — indexed in docs/ai/L1/10_experiments.md, kept local
+experiments/
+
 # Python
 __pycache__/
 *.pyc

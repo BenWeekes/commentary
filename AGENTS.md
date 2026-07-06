@@ -6,7 +6,7 @@ This repository uses progressive disclosure documentation. Docs live under
 ## How to Load
 
 1. Read [docs/ai/L0_repo_card.md](docs/ai/L0_repo_card.md) to identify the repo.
-2. Load ALL 8 files in `docs/ai/L1/`. They are small — load all upfront.
+2. Load ALL 10 files in `docs/ai/L1/`. They are small — load all upfront.
 3. Follow L2 deep-dive links only when L1 isn't detailed enough.
 
 ## Git Conventions
