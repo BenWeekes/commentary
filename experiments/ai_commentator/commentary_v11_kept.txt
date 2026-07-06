@@ -1,0 +1,62 @@
+# v11: single gpt-5.4 + playerist + rich context (control)
+# 59 accepted; subs []
+
+[   2.20s] Kohr stands over the free kick decision.
+[   7.15s] Khedira protests as Kemlein stays down.
+[   9.90s] Exner waves players away as Kemlein receives treatment.
+[  15.40s] Nebel goes to ground as play breaks up.
+[  18.70s] Eta voices her frustration from the touchline.
+[  23.65s] Jae-sung waits to come on for Mainz.
+[  29.70s] Amiri sizes it up from a dangerous position.
+[  35.20s] Kawasaki takes on instructions at the bench.
+[  40.15s] Amiri waits over it with a frustrated look.
+[  45.65s] Klaus sets himself behind the wall.
+[  50.60s] Amiri pauses again over the free kick.
+[  56.10s] Amiri stands poised over the dead ball.
+[  61.05s] Klaus scrambles across his line at the near post.
+[  64.90s] Doekhi sends it long into open space.
+[  69.85s] Klaus rolls it short across his box.
+[  74.80s] Posch carries it calmly across the back line.
+[  80.30s] Amiri circles away after the set piece.
+[  85.25s] da Costa receives it again on the right.
+[  90.75s] Veratschnig carries it forward from the right.
+[  96.25s] Posch slows it down across the halfway line.
+[ 101.75s] Posch clips it square from halfway.
+[ 106.70s] da Costa carries it on down the right.
+[ 110.55s] Zentner drives it long from the back.
+[ 116.60s] Veratschnig rolls it square along the right.
+[ 121.55s] Posch settles it again across the back.
+[ 126.50s] Posch carries it forward through the middle.
+[ 133.10s] Trimmel gets back across with Sano chasing.
+[ 138.05s] Mwene slows it down outside the box.
+[ 140.80s] Amiri shifts inside at the edge of the box.
+[ 146.85s] Caci checks back up near the left corner.
+[ 152.35s] da Costa works it inside on the right.
+[ 157.85s] Becker carries it on down the left.
+[ 160.60s] Becker squares up his man on the left.
+[ 166.10s] Khedira carries it out through the middle.
+[ 172.15s] Burcu tries to skip away down the flank.
+[ 175.45s] Veratschnig keeps it moving up the right.
+[ 180.40s] Caci stays down on the far side.
+[ 183.15s] Exner brings play back with Caci still down.
+[ 188.65s] Veratschnig goes into the book here.
+[ 193.60s] Burke has the booking as play settles.
+[ 198.55s] Burke waits for the restart here.
+[ 203.50s] Sieb and Weiper wait to come on.
+[ 208.45s] Weiper gets his applause before coming on.
+[ 213.40s] Becker stretches for it right in front of Klaus.
+[ 219.45s] Becker takes a breather as play pauses.
+[ 224.40s] Sieb comes on as Becker heads off.
+[ 229.90s] Weiper gets a handshake as he heads on.
+[ 235.40s] Sieb jogs on for his Mainz farewell.
+[ 240.35s] Weiper gathers himself in the box here.
+[ 245.30s] Amiri stands over it from the right.
+[ 250.25s] Amiri raises a hand over the free kick.
+[ 257.40s] Amiri hangs it up toward the back post.
+[ 262.90s] Weiper gets back up and joins the press.
+[ 268.40s] Becker takes a word as he cools off.
+[ 275.55s] Klaus rolls it short across his box.
+[ 280.50s] Köhn waits over the throw on the left.
+[ 286.00s] Köhn catches his breath during the stoppage.
+[ 290.95s] Juranovic gets the throw moving down the right.
+[ 294.80s] Juranovic strolls up the line for Union.

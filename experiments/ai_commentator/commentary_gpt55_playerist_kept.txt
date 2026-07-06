@@ -1,0 +1,64 @@
+# gpt-5.5 playerist variant
+# 60 accepted of 66 calls
+# Subs: [{'off': 'Becker', 'on': 'Sieb', 'at_s': 245.3}, {'off': 'Tietz', 'on': 'Weiper', 'at_s': 250.8}, {'off': 'Trimmel', 'on': 'Juranovic', 'at_s': 260.7}]
+
+[   2.20s] Burke appealing as the referee gives the free-kick.
+[   8.25s] Jae-sung checks on the player still down.
+[  11.00s] Kemlein still down, and the referee wants space.
+[  14.30s] Tietz cushions it, Jae-sung moving onto the loose ball.
+[  20.35s] Eta still asking questions from the touchline.
+[  25.30s] Jae-sung gathers himself as play resets.
+[  30.25s] Jae-sung stands over it, bodies packed in front.
+[  35.75s] Sano taking instructions from Henriksen on the touchline.
+[  41.25s] Amiri waiting, Becker in front of him.
+[  46.20s] Klaus keeping his concentration as bodies gather.
+[  51.15s] Amiri still waiting, the defensive line squeezing out.
+[  56.65s] Amiri sizing up the delivery.
+[  61.05s] Kohr trying to recycle the second ball.
+[  66.00s] Burke chasing the out ball into space.
+[  70.95s] Klaus watching on as the back line spreads.
+[  76.45s] Posch slowing it down, looking for the angle.
+[  79.75s] Amiri carrying it, Sano offering close support.
+[  84.70s] Burke stepping across to close that lane.
+[  89.65s] Potulski moving it across from the back.
+[  94.60s] Caci sizing up the pass from deep.
+[  99.55s] da Costa waits for it on the right.
+[ 105.05s] Caci carries it forward, space opening ahead.
+[ 110.00s] Zentner easing forward, looking for the longer option.
+[ 115.50s] Veratschnig clips it forward down the touchline.
+[ 118.25s] Zentner taking his time over the restart.
+[ 123.20s] Doekhi steps onto it, under pressure.
+[ 128.15s] Sano carries through the middle, under light pressure.
+[ 133.65s] Trimmel carries away, Jae-sung closing him down.
+[ 136.40s] Mwene driving out from the back.
+[ 139.15s] Jae-sung probing, looking for the opening.
+[ 144.10s] Jae-sung sizes up the cross from the left.
+[ 150.15s] Mwene advances again, looking for room to cross.
+[ 155.65s] Amiri works it wide, trying to open the angle.
+[ 161.70s] Klaus comes out strongly to claim the cross.
+[ 167.20s] Khedira carries out, trying to beat the press.
+[ 172.70s] Kohn battling through, Sano steps across him.
+[ 177.65s] Amiri cushions it, under pressure by the touchline.
+[ 183.15s] Kemlein protests, but the referee has decided.
+[ 188.10s] Veratschnig goes into the book for that challenge.
+[ 193.60s] Nsoki watches on after the booking.
+[ 198.55s] Burke takes a moment, listening for instructions.
+[ 203.50s] Mainz change: Tietz makes way for Weiper.
+[ 208.45s] Sieb applauds the reception on the touchline.
+[ 213.40s] Becker attacks it, Klaus right on top of him.
+[ 219.45s] Becker takes a breather after that chance.
+[ 224.40s] Sieb waits by the technical area.
+[ 229.90s] Becker gets the handshake as he comes across.
+[ 235.40s] Sieb jogs into the front line.
+[ 240.35s] Weiper knows that was a real opening.
+[ 245.30s] Mainz make the change: Sieb on for Becker.
+[ 250.80s] Mainz 05 change: Weiper replaces Tietz.
+[ 255.75s] Amiri begins his run-up from the right.
+[ 260.70s] Union change: Juranovic replaces Trimmel.
+[ 265.10s] Becker back among the substitutes after his shift.
+[ 271.70s] Becker shares a word along the touchline.
+[ 276.65s] Klaus plays short, and Ansah steps onto it.
+[ 282.70s] Mwene readies the throw down the near side.
+[ 286.00s] Kohn takes a moment after that stoppage.
+[ 290.95s] Juranovic gets the throw-in sorted near side.
+[ 295.90s] Juranovic looks up, waiting for options ahead.

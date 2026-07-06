@@ -1,0 +1,371 @@
+{
+  "summary": {
+    "judge_sample_n": 45,
+    "judge_hallucination_rate": 0.311,
+    "judge_subject_present_rate": 0.956,
+    "judge_human_likeness_mean": 3.33,
+    "soniox_turn_coverage": 0.971
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "No specific event claimed; a Mainz player could plausibly be Kohr on the left side, though the wording is fairly plain.",
+      "_text": "Kohr looks on from the left flank.",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee appears to be managing a tense moment, and a Union player plausibly could be Becker nearby; line sounds natural.",
+      "_text": "Becker looks on as Exner tries to calm the situation.",
+      "_t": 7.15
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Only one player and ball are visible, with no opponent or penalty-box markings to support a battle in the box; the player could plausibly be Tietz.",
+      "_text": "Tietz battles for possession in the box.",
+      "_t": 13.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A woman, presumably Exner, is visible on the sideline making a hand gesture; line is plausible but plain.",
+      "_text": "Exner gestures to the players.",
+      "_t": 18.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Jae-sung/Lee appears visible, but he is looking down and not visibly smiling or turning; phrasing is somewhat unnatural.",
+      "_text": "Jae-sung turns and smiles from the midfield.",
+      "_t": 25.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Goalkeeper is visibly standing in front of the goal with players set up for a restart; wording is clear but fairly plain.",
+      "_text": "Zentner stands in his goal, preparing for the restart.",
+      "_t": 30.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Sano appears near the bench with staff who seem to be gesturing or instructing; line is plausible though fairly plain.",
+      "_text": "Sano walks towards the bench, receiving instructions.",
+      "_t": 36.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "No clear Becker identifier; foreground player is blurred with back turned, and the phrasing is caption-like.",
+      "_text": "Becker looks on from the foreground.",
+      "_t": 41.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Free-kick setup is clearly visible with a red player by the ball; Amiri is plausible though not identifiable from the frame.",
+      "_text": "Amiri stands over the free kick.",
+      "_t": 51.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player on the right appears to be delivering a set piece toward the crowded goal area; wording is clear but generic.",
+      "_text": "Amiri strikes the ball towards the goal.",
+      "_t": 58.3
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A goalkeeper/player in his own box is visible, but the ball being collected is not clearly visible in the frame.",
+      "_text": "Klaus collects the ball in his own box.",
+      "_t": 63.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Ball is visibly out near the defensive third with the box and goalkeeper in view, so the distribution is plausible; phrasing is natural.",
+      "_text": "Klaus distributes the ball out from his box.",
+      "_t": 70.95
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red midfielder is plausibly visible, but a forward pass by Amiri from the center circle is not clearly shown; the ball is away to the right.",
+      "_text": "Amiri passes the ball forward from the center circle.",
+      "_t": 76.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red player is visible with the ball on the right side; 'receives' is plausible though generic commentary.",
+      "_text": "Mwene receives the ball on the right side of the pitch.",
+      "_t": 93.5
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "No player is visibly down in midfield, though players in that area are present; phrasing is natural.",
+      "_text": "Mwene goes down in the midfield.",
+      "_t": 102.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red-shirted player is visibly carrying the ball along the right touchline, matching a run down the right wing; phrasing is natural.",
+      "_text": "Mwene continues his run down the right wing.",
+      "_t": 106.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper is visible with the ball at his feet, plausibly preparing a distribution from his area; phrasing is natural.",
+      "_text": "Klaus prepares to distribute the ball from his own box.",
+      "_t": 110.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Zentner is visibly near the ball in goalkeeper kit, plausibly setting up a goal kick; line is clear but fairly plain.",
+      "_text": "Zentner approaches the ball, preparing for the goal kick.",
+      "_t": 119.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red-shirted player is visibly dribbling forward with the ball near the attacking third; Amiri is plausible and the phrasing is natural.",
+      "_text": "Amiri carries the ball forward into the final third.",
+      "_t": 128.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red player is visibly moving with the ball, plausibly Mwene, though the exact attacking-third location is not fully clear.",
+      "_text": "Mwene controls the ball in the attacking third.",
+      "_t": 135.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly near the edge of the box with the ball arriving, so the action is plausible and the phrasing is natural.",
+      "_text": "Mwene receives the ball on the edge of the box.",
+      "_t": 143.55
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visible on the flank, but the ball is not visibly being played into the box in this frame.",
+      "_text": "Mwene plays the ball into the box.",
+      "_t": 155.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper in yellow is visibly in the box appearing to claim the ball; phrasing is natural enough.",
+      "_text": "Klaus collects the ball from the air in his box.",
+      "_t": 162.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Two players are contesting a ball near the sideline; names are plausible and the phrasing is natural.",
+      "_text": "Sano challenges Ansah for the ball near the touchline.",
+      "_t": 171.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player in red is visibly advancing with the ball near midfield into the opponent's half; naming Mwene is plausible and the phrasing is natural.",
+      "_text": "Mwene carries the ball forward into the attacking half.",
+      "_t": 177.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee is visibly gesturing with an outstretched arm, so the line matches the frame and sounds fairly natural.",
+      "_text": "Exner gestures for the players to continue.",
+      "_t": 183.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visibly showing a yellow card to a red-shirted player who is turning away; wording is somewhat stiff but plausible.",
+      "_text": "Veratschnig turns away, receiving the yellow card from Exner.",
+      "_t": 188.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Player is visible looking to the side; line is plausible though a bit plain.",
+      "_text": "Burke turns his head, observing the field of play.",
+      "_t": 194.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A substitution board is visibly being raised near the touchline, with officials and players present; wording is stiff and caption-like.",
+      "_text": "Exner observes the substitution board being raised by the fourth official.",
+      "_t": 200.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player plausibly Sieb is visible applauding near the touchline; the line is natural and fits the frame.",
+      "_text": "Sieb applauds the crowd, acknowledging their support.",
+      "_t": 207.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player is visibly leaping for the ball near the goal, though the identity as Becker is not clear.",
+      "_text": "Becker leaps for the ball near the goal.",
+      "_t": 212.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player is visible, but he is not lifting his shirt or revealing any message.",
+      "_text": "Becker lifts his shirt, revealing a message to the crowd.",
+      "_t": 218.35
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Players are visible, but no clear pat on the back is shown in this frame.",
+      "_text": "Sieb receives a pat on the back from a teammate.",
+      "_t": 224.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Becker is clearly visible at the sideline interacting with staff, plausibly Henriksen, and the line sounds natural.",
+      "_text": "Becker shakes hands with Henriksen as he leaves the field.",
+      "_t": 232.1
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Player is visible and looking to the side, but the crowd behind the goal is not shown and cannot be confirmed.",
+      "_text": "Becker turns his head, observing the crowd behind the goal.",
+      "_t": 238.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Static observation fits the set-piece frame, though Exner is not identifiable and the phrasing is bland.",
+      "_text": "Exner stands near the penalty spot, observing the players.",
+      "_t": 244.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "Ball and a Mainz player are visible, but Becker is not identifiable and no corner flag is shown; phrasing is stiff.",
+      "_text": "Becker observes the ball near the corner flag.",
+      "_t": 250.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Set-piece/corner situation is visible with a taker near the right side and players packed in the box; simple but natural line.",
+      "_text": "Amiri takes the corner kick.",
+      "_t": 256.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red-shirted player is visibly bent over with hands near the turf, plausibly getting back up; the wording is natural.",
+      "_text": "Nebel rises from the ground, regaining his footing.",
+      "_t": 261.8
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Becker is visible by the bench, but walking away or observing the field is not clearly shown.",
+      "_text": "Becker walks away from the bench, observing the field of play.",
+      "_t": 267.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player may be visible, but the ball is near the defensive third/box rather than midfield, and Amiri is not clearly identifiable.",
+      "_text": "Amiri receives the ball in the midfield.",
+      "_t": 276.1
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "No player is visibly sitting on the ground or in a challenge; Kohn is referenced in the on-screen graphic and may be on the field.",
+      "_text": "Kohn sits on the ground after a challenge.",
+      "_t": 281.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Close-up of a Union player plausibly Kohn looking around; composure is subjective but not an obvious event claim.",
+      "_text": "Kohn looks around the field, regaining his composure.",
+      "_t": 287.1
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Juranovic/#18 is visible near the touchline, but the ball and corner flag are not clearly visible; phrasing is stiff.",
+      "_text": "Juranovic observes the ball near the corner flag.",
+      "_t": 293.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Union player is visibly holding the ball as if ready for a throw-in; identifying him as Juranovic is plausible, and the line sounds natural.",
+      "_text": "Juranovic prepares to throw the ball back into play.",
+      "_t": 298.65
+    }
+  ]
+}

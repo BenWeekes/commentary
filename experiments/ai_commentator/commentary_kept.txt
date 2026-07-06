@@ -1,0 +1,494 @@
+# AI commentary (worldcupvoice-style, gpt-5.4-mini)
+# Source: slice_5min.mp4 of m05_uni_eval_25min, offset 300s
+# 490 accepted of 542 bursts
+
+[   2.20s] Play stopped near the box, and Union are appealing.
+[   2.75s] Union appealing for a call, Mainz holding shape here.
+[   3.30s] Union players appealing, and Mainz are holding their line.
+[   3.85s] Union’s got arms up, Mainz players frozen, and the referee’s letting it breathe.
+[   4.40s] Union Berlin appealing around the box, Mainz holding firm.
+[   4.95s] Union still protesting as the referee holds firm.
+[   5.50s] Referee halts it again, Union protesting as Mainz reset.
+[   6.05s] Referee halts it again, Union still protesting.
+[   6.60s] Referee stepping in, Union still protesting, and Mainz reset around the loose ball.
+[   7.15s] Referee calming things down, Union still protesting.
+[   7.70s] Referee calming the protests, and both sides reset.
+[   8.80s] Referee still managing the stoppage, Union and Mainz waiting.
+[   9.35s] Referee’s got play stopped again, players gathering around.
+[  10.45s] Referee still managing the stoppage, players clustered and one Union man down.
+[  11.00s] Referee pauses play again, players gathering around the injured Union man.
+[  11.55s] Referee over the ball, players down and waiting.
+[  12.10s] Referee still has it dead, players gathering around the downed man.
+[  12.65s] Play still halted, referee over a downed Union player.
+[  13.20s] Tietz and the Union man go shoulder-to-shoulder, and the ball spills loose!
+[  13.75s] Tietz brings it down under pressure, Mainz still probing!
+[  14.30s] Tietz brings it down under pressure, Mainz trying to build.
+[  15.40s] Union break it up in midfield, and the loose ball spills into traffic!
+[  15.95s] Loose ball, and a heavy collision—players down in the middle!
+[  16.50s] Play’s broken up again, and bodies are down in the box!
+[  17.05s] Play’s still stopped here, with both men down in the box.
+[  17.60s] Union still down in a heap, and Mainz are waiting on the restart.
+[  18.15s] Play still halted, referee organizing the restart.
+[  18.70s] Players down after that collision, and the referee’s stepping in now.
+[  20.35s] Play’s paused here, coach barking instructions on the touchline.
+[  20.90s] Play still paused, with the official organizing things here.
+[  23.10s] Mainz reset with Lee Jae-sung over the ball, Union holding their shape.
+[  23.65s] Mainz reset in midfield, Lee and a teammate strolling into shape.
+[  24.20s] Mainz reorganize in midfield, Lee Jae-sung drifting back to reset.
+[  24.75s] Mainz regrouping in red, with Lee Jae-sung and a teammate resetting.
+[  25.30s] Mainz reorganizing in midfield, with Lee and a teammate resetting.
+[  25.85s] Mainz and Union just resetting shape here, Lee Jae-sung in frame.
+[  26.40s] Mainz strolls forward to reset, Lee Jae-sung glancing upfield.
+[  26.95s] Mainz reset with Lee Jae-sung drifting back into shape.
+[  27.50s] Lee Jae-sung glances over and signals for the next move.
+[  28.05s] Mainz’s #7 Lee Jae-sung glances over, calmly resetting the shape.
+[  28.60s] Lee Jae-sung strolls into shape for Mainz.
+[  29.70s] Mainz over the free kick, bodies crowding the box!
+[  30.25s] Mainz over the restart, bodies flooding into the box!
+[  30.80s] Union and Mainz set for the restart, bodies packed in the box.
+[  31.35s] Mainz and Union reorganize over this dead-ball setup.
+[  31.90s] Mainz and Union reset outside the box, bodies packed and waiting.
+[  32.45s] Mainz and Union still jostling over this free kick, bodies packed at the edge of the box.
+[  33.00s] Mainz and Union reorganize at the edge of the box, waiting for the next delivery.
+[  33.55s] Union’s line holds, Mainz still crowding the edge of the box.
+[  34.10s] Union’s back line holds the edge of the box, Mainz waiting on the restart.
+[  34.65s] Mainz still probing, but Union’s line holds firm.
+[  35.20s] Mainz’s bench barking instructions as the set piece resets.
+[  35.75s] Mainz and Union still paused, coaches barking instructions.
+[  36.30s] Mainz’s bench is animated, instructions flying.
+[  36.85s] Mainz’s bench barking instructions, tension rising on the touchline.
+[  37.40s] Mainz’s bench is animated, coaches barking instructions.
+[  37.95s] Mainz’s bench barking instructions as the next phase builds.
+[  39.05s] Mainz’s sideline is barking instructions as the clock ticks.
+[  39.60s] Mainz’s captain-like presence on the sideline, then a red-shirted player resets.
+[  40.15s] Mainz captain Amiri stands hands-on-hips, catching his breath.
+[  40.70s] Mainz’s captain stands waiting, hands on hips, as play resets.
+[  41.25s] Zentner stands set, Mainz regrouping under Union pressure.
+[  41.80s] Mainz and Union reset, both sides organizing for the next phase.
+[  42.35s] Mainz regrouping here, red shirts set for the restart.
+[  42.90s] Mainz regrouping here, Amiri staring down the restart.
+[  43.45s] Mainz regrouping here, Amiri and Becker locked in.
+[  44.00s] Mainz and Union pause in a tense reset, with Zentner set behind the line.
+[  44.55s] Zentner set on his line, Mainz bracing for the next Union delivery.
+[  45.10s] Zentner set on his line, Union crowding the box.
+[  46.75s] Klaus stands tall behind the line, Mainz bodies drifting across his box.
+[  47.30s] Klaus set, eyes locked, as Mainz hover in the box.
+[  47.85s] Klaus stays composed on his line, Union organizing under pressure.
+[  48.40s] Union over the free kick, bodies packed in the Mainz box.
+[  50.60s] Mainz over the dead ball, bodies packed in the box.
+[  51.70s] Mainz over the free kick now, bodies massed in the box.
+[  53.90s] Mainz over the set piece again, two men over the ball.
+[  54.45s] Amiri over the free kick, Union packed tight in the box.
+[  55.00s] Amiri stands over it, Mainz set to whip this one in.
+[  55.55s] Amiri over the free kick, Mainz loading the box.
+[  56.10s] Amiri over the set piece, Mainz lining up the delivery.
+[  56.65s] Mainz’s number 10 stands over it, the crowd holding its breath.
+[  57.20s] Amiri stands over it again, Mainz shaping the box.
+[  57.75s] Amiri over it again, Mainz poised to whip this one in.
+[  58.30s] Amiri whips it in now, bodies attacking the box!
+[  58.85s] Amiri whips it in, Union’s line holds firm in the six!
+[  59.40s] Whipped in from the right, and the keeper comes through traffic!
+[  59.95s] Loose ball in the six, and Klaus clutches it under pressure!
+[  60.50s] Mainz’s delivery flashes through the six-yard box, and Union scramble clear!
+[  61.05s] Union scrambling it clear under heavy Mainz pressure!
+[  61.60s] Klaus claims it, and Union can finally breathe.
+[  62.15s] Klaus gathers and Union can breathe for a moment.
+[  62.70s] Klaus gathers and Union can finally breathe.
+[  63.25s] Klaus gathers and Union break out, red shirts streaming forward.
+[  63.80s] Union finally hack it clear, and Mainz are resetting.
+[  64.35s] Union hack it clear, and Mainz are forced to reset.
+[  64.90s] Union clear and spring it out, with Mainz retreating.
+[  65.45s] Union break out through midfield, and the counter is on!
+[  66.00s] Union carry it across midfield, red shirts sprinting into space.
+[  66.55s] Union spring the break, red shirts racing into Mainz territory.
+[  67.10s] Mainz and Union locked in a midfield chase, red shirts retreating!
+[  67.65s] Union’s back line turns it into a footrace, and the keeper comes out to sweep.
+[  68.20s] Klaus sweeps it up, and Union settle again under pressure.
+[  68.75s] Klaus comes out and calmly sweeps it away.
+[  69.30s] Klaus rolls it short to the left, Union calmly resetting.
+[  69.85s] Union settle it at the back, recycling under no pressure.
+[  70.40s] Mainz recycle it at the back, probing for the next opening.
+[  70.95s] Klaus hovers outside his box as Union reset under Mainz pressure.
+[  71.50s] Mainz recycle it calmly in their own half, with Union set behind the ball.
+[  72.05s] Mainz hold their shape as the loose ball drifts across midfield.
+[  72.60s] Mainz and Union both hold shape, waiting on the next ball.
+[  73.15s] Mainz hold their shape, Union probing in midfield.
+[  73.70s] Mainz and Union still probing in midfield, no real opening yet.
+[  74.25s] Union work it down the right touchline, Mainz sliding across.
+[  74.80s] Union work it wide right, probing down the touchline.
+[  75.35s] Union work it wide right, probing forward under pressure.
+[  75.90s] Union work it wide right, probing for the next opening.
+[  76.45s] Union work it patiently across the back line.
+[  77.00s] Union calmly recycle it on the right, Mainz set in front.
+[  77.55s] Amiri drives down the left, Mainz looking to build.
+[  78.10s] Amiri drives down the left and keeps Mainz moving forward.
+[  79.20s] Amiri slows it down on the left, Mainz resetting.
+[  79.75s] Union still probing on the right, red shirts circling patiently.
+[  80.30s] Union keep it moving on the right, Amiri closing fast.
+[  80.85s] Union settle on the right touchline, probing again.
+[  81.40s] Amiri carries it along the left touchline, Mainz still probing.
+[  81.95s] Mainz probe forward on the right, Amiri and company spreading it wide.
+[  82.50s] Mainz work it across midfield, Union set their line.
+[  83.05s] Union work it across midfield, Mainz set in shape.
+[  83.60s] Union work it wide right, shaping the next attack.
+[  84.15s] Union work it wide right, Mainz holding their shape.
+[  84.70s] Union loft it forward from midfield, Mainz stepping up to challenge.
+[  85.25s] Union lofts it rightward, Mainz backpedaling to reset.
+[  85.80s] Union keep it moving on the right, Mainz holding their shape.
+[  86.35s] Union Berlin settle it on the right flank, Mainz holding their shape.
+[  86.90s] Mainz recycle it on the right, probing for an opening.
+[  87.45s] Mainz calmly circulate it on the right side, Union holding their line.
+[  88.00s] Mainz probe forward on the right, Union’s block stays compact.
+[  88.55s] Mainz probe patiently on the right, Union set in their block.
+[  89.10s] Union Berlin recycle it calmly on the right side of midfield.
+[  89.65s] Mainz work it across midfield, Union dropping into shape.
+[  90.20s] Mainz and Union trade it in midfield, still probing for space.
+[  90.75s] Mainz work it left-to-right across midfield, Union sliding across.
+[  91.30s] Mainz work it down the left, shaping a forward pass.
+[  91.85s] Mainz drive forward on the right, carrying into Union’s half.
+[  92.40s] Mainz carry it down the right, looking for a lane.
+[  92.95s] Mainz carry it forward on the right, Union backing off.
+[  93.50s] Union Berlin settle on the ball in midfield, Mainz holding their shape.
+[  94.05s] Union Berlin calmly recycle possession on the right side.
+[  94.60s] Union settle on the ball, probing from the right side.
+[  95.15s] Union settling it down through midfield, probing from the right.
+[  95.70s] Mainz probing wide left, Union holding their shape.
+[  96.25s] Mainz probe patiently on the left, Union’s block set.
+[  96.80s] Mainz probing patiently, Amiri waiting on the right flank.
+[  97.35s] Mainz work it down the left touchline, Union sliding across.
+[  98.45s] Mainz work it patiently on the left, Union packed in behind.
+[  99.00s] Mainz work it wide right, shaping the next cross.
+[  99.55s] Mainz recycle it right side, probing for a lane.
+[ 100.10s] Mainz recycle it on the right, Union’s block stays compact.
+[ 100.65s] Mainz recycle it on the right, looking for the next opening.
+[ 101.20s] Mainz carry it up the right, Union’s block shifting across.
+[ 101.75s] Mainz circulate it on the right, looking for a lane.
+[ 102.30s] Union step in and break it up, then clear the loose ball.
+[ 102.85s] Mainz try to thread it inside, Union step in and snuff it out.
+[ 103.40s] Mainz under pressure in midfield, Union closing the space fast.
+[ 103.95s] Union win it back and spring the outlet to the right.
+[ 104.50s] Mainz work it wide right, shaping the next cross.
+[ 105.05s] Mainz work it down the right touchline, probing for a cross.
+[ 105.60s] Mainz drive it down the right flank, probing Union’s shape.
+[ 106.15s] Mainz drive down the right flank, Union sliding over.
+[ 106.70s] Mainz drive it down the right touchline, Union sliding across.
+[ 107.25s] Mainz recycle it right, Union’s line resetting quickly.
+[ 107.80s] Mainz recycle it across the back line, probing Union’s shape.
+[ 108.35s] Union settling on the ball at the back, Mainz holding shape.
+[ 108.90s] Union recycle it calmly at the back, shaping from the right side.
+[ 109.45s] Zentner settles it at the back, Mainz resetting from deep.
+[ 110.00s] Klaus drives Union out from the back, calmly under no pressure.
+[ 110.55s] Zentner settles it and drives a long clearance upfield.
+[ 111.10s] Zentner steps out and smothers the loose ball.
+[ 111.65s] Klaus races out and sweeps it clear under pressure!
+[ 112.20s] Union driving down the right, Mainz scrambling back!
+[ 112.75s] Union pressing down the right, number 22 on the ball.
+[ 113.30s] Becker races onto it down the right, Union pushing forward!
+[ 113.85s] Caci cushions it on the touchline, Mainz probing down the right.
+[ 114.40s] Burke cushions it wide, Union probing down the right.
+[ 114.95s] Mainz’s #22 cushions it near the touchline, Union closing fast!
+[ 115.50s] Burke cushions it wide under pressure, Mainz closing fast.
+[ 116.05s] Union’s number 22 cushions it wide, and Mainz close him down.
+[ 116.60s] Burke’s cross skids through the box, and Mainz scramble to clear!
+[ 117.15s] Ball skids loose down the right touchline, both sides scrambling!
+[ 117.70s] Klaus gathers and settles it for Union.
+[ 118.25s] Zentner over the ball, Mainz calmly resetting from the back.
+[ 118.80s] Zentner settles it at the back, Mainz resetting.
+[ 119.35s] Zentner settles it, and Mainz slow the tempo.
+[ 120.45s] Klaus rolls it short, Union calmly resetting from the back.
+[ 121.55s] Union work it calmly across the back under Mainz pressure.
+[ 122.65s] Union probing down the left, Mainz holding their shape.
+[ 123.20s] Union work it wide right, probing down the touchline.
+[ 123.75s] Union work it down the right touchline, Mainz shuffling across.
+[ 124.30s] Union probing down the right, Mainz closing ranks.
+[ 124.85s] Union probing down the right, Mainz sliding across to close it down.
+[ 125.40s] Union nudging it down the right, Mainz sliding across.
+[ 125.95s] Union carry it forward on the right, Mainz sliding across.
+[ 126.50s] Mainz break through the middle, Union backing off.
+[ 127.05s] Mainz driving forward through the middle, Union retreating in a hurry.
+[ 127.60s] Mainz driving forward through the middle, Union backpedaling fast.
+[ 128.15s] Mainz driving forward centrally, Union retreating in numbers.
+[ 128.70s] Mainz driving centrally, Union backpedaling and narrowing the lane.
+[ 129.25s] Mainz pounce in midfield and drive forward through the center!
+[ 129.80s] Mainz win it back and look to spring forward through midfield.
+[ 130.35s] Mainz spring forward through midfield, Union scrambling back.
+[ 130.90s] Mainz surge forward again, red shirts flooding the middle.
+[ 131.45s] Mainz surging down the right, Union scrambling back!
+[ 132.00s] Becker surges forward, Union scrambling back!
+[ 132.55s] Mainz break forward again, Becker carrying into Union’s half!
+[ 133.10s] Union break right with Trimmel driving forward under pressure.
+[ 133.65s] Union carrying through midfield, Mainz closing fast.
+[ 134.20s] Union Berlin keep it moving down the right, Mainz retreating in red and white.
+[ 134.75s] Burke drives at the back line, Mainz closing fast.
+[ 135.30s] Mainz work it wide right, probing Union’s back line.
+[ 135.85s] Mwene settles it on the left, Mainz probing patiently.
+[ 136.40s] Mwene drives forward on the left, Union backing off!
+[ 136.95s] Mwene drives on the left, Union backpedaling!
+[ 137.50s] Mainz probing from the left edge, Union set in a tight block.
+[ 138.05s] Mainz probing left, but Union’s back line holds firm.
+[ 138.60s] Mainz patient at the edge of the box, Union holding firm.
+[ 139.15s] Mainz probing at the edge of the box, Union packed in deep.
+[ 139.70s] Mainz recycle it at the edge, probing for an opening.
+[ 140.25s] Mainz slide it centrally, shaping for a shot!
+[ 140.80s] Mainz work it centrally, crowded out at the top of the box!
+[ 141.35s] Mainz work it centrally, but Union swarm the edge of the box.
+[ 141.90s] Mainz crowded at the D, Union’s block standing tall.
+[ 142.45s] Mainz work it across the top, trying to unlock Union’s packed box.
+[ 143.00s] Mainz work it left and swing the ball back across the top.
+[ 143.55s] Mwene drives it left and Mainz keep probing from the flank!
+[ 144.10s] Mainz swing it wide left, and the cross is coming in!
+[ 144.65s] Mainz keep it wide, probing from the left.
+[ 145.20s] Mainz probe from the left, shaping a cross into the box!
+[ 145.75s] Mainz recycle it wide left, probing for a crossing lane.
+[ 146.30s] Mainz recycle it on the left edge, probing Union’s block.
+[ 146.85s] Mainz recycle it on the left, probing for the next opening.
+[ 147.40s] Mainz recycle it at the top of the box, still probing.
+[ 147.95s] Mainz recycle it back out left, still probing.
+[ 148.50s] Mainz reset on the left, and the cross is still loading.
+[ 149.05s] Mainz work it back on the left, setting up the next delivery.
+[ 149.60s] Mainz work it down the left touchline, lining up another delivery.
+[ 150.15s] Mainz work it down the left touchline, looking for the cross.
+[ 150.70s] Mainz work it down the left, shaping the next cross.
+[ 151.25s] Mainz work it down the left touchline, still probing Union’s block.
+[ 151.80s] Mainz keep working the left flank, patient and probing.
+[ 152.35s] Mainz keep probing down the right, shaping the next cross.
+[ 152.90s] Mainz probe again on the right, still shaping the cross.
+[ 153.45s] Mainz still probing on the right, patiently sizing up the box.
+[ 154.00s] Mainz still patient on the right, probing Union’s block.
+[ 154.55s] Mainz switch it inside, recycling just outside the box.
+[ 155.10s] Mainz recycle it at the top of the box, probing for an opening.
+[ 155.65s] Mainz recycle it wide left, still probing Union’s block.
+[ 156.20s] Sano settles it centrally, Mainz resetting just outside the box.
+[ 156.75s] Amiri over the ball, Mainz resetting just outside the box.
+[ 157.30s] Amiri and Becker combine on the edge, Mainz probing for the opening.
+[ 157.85s] Becker drives at the defense, Mainz surging forward!
+[ 158.40s] Becker drives at the defender, Mainz building through the middle.
+[ 158.95s] Becker drives at the defender, Mainz probing from the right.
+[ 159.50s] Becker squares up his man on the right, Mainz probing!
+[ 160.05s] Becker drives at the defender, with Tietz arriving centrally!
+[ 160.60s] Becker slips it wide, and Mainz set up on the left edge.
+[ 161.15s] Union probing down the right, Mainz packed in and holding shape.
+[ 161.70s] Union Berlin crowding the box, Mainz scrambling to hold shape!
+[ 162.25s] Union survive the low cross, and Klaus gathers under pressure.
+[ 162.80s] Klaus smothers the cross, Union calm it down.
+[ 163.35s] Union scramble it clear under heavy Mainz pressure!
+[ 163.90s] Mainz recycle it high, Union’s line holds firm in the box.
+[ 164.45s] Union’s keeper sweeps it up and quickly rolls play out!
+[ 165.00s] Union calmly recycle it at the edge of the box, Mainz retreating in two banks.
+[ 165.55s] Union trying to break out, but Mainz have them pinned back.
+[ 166.10s] Union Berlin carrying it out of their own third, Mainz retreating.
+[ 166.65s] Union trying to break out, but Mainz are stepping in and slowing it down.
+[ 167.20s] Union break forward through the middle, driving at the Mainz line!
+[ 167.75s] Union carry it forward through the middle, Mainz closing fast.
+[ 168.30s] Union carrying it through midfield, Mainz closing fast.
+[ 168.85s] Union springing forward through midfield, Mainz scrambling back!
+[ 169.95s] Union drive through midfield, Mainz scrambling back in numbers!
+[ 170.50s] Union driving down the right, Mainz scrambling back in numbers!
+[ 171.05s] Burke drives wide right, Mwene steps in hard!
+[ 171.60s] Burke surges down the right, and Mainz are scrambling back!
+[ 172.15s] Burke drives at the byline, Mainz scrambling to contain!
+[ 172.70s] Union battling down the flank, Becker swarmed by two red shirts!
+[ 173.25s] Union’s 22 drives at the edge, Mainz swarming him!
+[ 173.80s] Burke pinned wide, but Mainz swarm and force him back!
+[ 174.35s] Veratschnig drives down the right, Union closing fast!
+[ 174.90s] Union still working that right side, Mainz closing ranks.
+[ 175.45s] Union keep it alive near halfway, Mainz regrouping in shape.
+[ 176.00s] Union working it wide right, Mainz set in shape.
+[ 176.55s] Union work it wide right, probing for an opening.
+[ 177.10s] Union probing on the right, Mainz holding their shape.
+[ 178.20s] Union probing down the right, Mainz stepping in and forcing the return pass.
+[ 178.75s] Union loft it forward and Mainz step up to contest!
+[ 179.30s] Union loft it forward, Mainz stepping up to challenge.
+[ 179.85s] Union loft it forward, and Mainz’s line steps up.
+[ 180.40s] Mainz’s attack stalls, and Union step out to reset.
+[ 180.95s] Union’s ball pops loose and Mainz step in to slow the break.
+[ 181.50s] Union slow it down, Mainz regrouping after the loose ball.
+[ 182.05s] Union have it stopped up top, and Mainz are appealing.
+[ 182.60s] Referee halts play, and Mainz are left appealing.
+[ 183.15s] Referee halts play, and both sides peel away for the restart.
+[ 183.70s] Whistle’s gone, and the referee halts play with arms out.
+[ 184.25s] Referee waves play on, and Union keep moving.
+[ 184.80s] Referee halts it, and Union’s player goes down.
+[ 185.35s] Referee signals the restart, and Union get set to move it.
+[ 185.90s] Yellow for Mainz, and Union get the restart.
+[ 187.00s] Yellow for Union’s number 22, and Mainz reset.
+[ 188.10s] Yellow for Union’s #22, and Mainz are set for the restart.
+[ 188.65s] Yellow shown to Union’s number 22, and Mainz get the restart.
+[ 189.20s] Yellow shown to Mainz’s #22, and the referee steps in.
+[ 189.75s] Referee strolls it back, Mainz and Union reset.
+[ 190.30s] Referee points for the restart, Mainz set to play on.
+[ 191.40s] Referee halts play and shows the booking.
+[ 191.95s] Referee books the action and points Mainz’s way.
+[ 192.50s] Referee halts play and signals the restart for Mainz.
+[ 193.05s] Referee halts it, and Mainz are set for the restart.
+[ 193.60s] Referee signals the restart, and Union reset quickly.
+[ 195.25s] Union’s attacker holds his run, scanning for the next ball.
+[ 195.80s] Union Berlin settle after the stoppage, Burke looking over the Mainz shape.
+[ 196.35s] Union settling after the stoppage, Burke scans upfield.
+[ 196.90s] Union’s attacker stands over it, gathering himself for the next move.
+[ 197.45s] Union’s attacker slows it down, listening for the next move.
+[ 198.00s] Union’s attacker pauses, hand to his head, waiting for the next ball.
+[ 199.10s] Burke pauses, hand to head, as Union reset.
+[ 199.65s] Union still organizing on the touchline, waiting for the next restart.
+[ 200.20s] Union’s bench and touchline staff are up, waiting on the restart.
+[ 200.75s] Union’s bench rises, the fourth official holding the board.
+[ 201.30s] Substitution board up at the touchline, Union ready to make a change.
+[ 201.85s] Substitution board up at the sideline, Union ready to change.
+[ 202.40s] Substitution board up at the sideline, Union readying fresh legs.
+[ 202.95s] Union’s bench is up with the board, readying the change.
+[ 203.50s] Union’s bench signals the change, number 11 and 44 waiting at the sideline.
+[ 204.05s] Union’s change is up at the touchline, board held high.
+[ 205.15s] Union’s change is set at the sideline, board held high.
+[ 205.70s] Union’s change is being finalized at the touchline.
+[ 206.25s] Union’s change is up at the sideline, fresh legs coming on.
+[ 208.45s] Union’s Burke waits on the touchline, applauding the change.
+[ 209.00s] Union’s number 11 waits on the touchline, clapping through the stoppage.
+[ 209.55s] Union’s Burke applauds the move, waiting for the restart.
+[ 210.10s] Union player in red pauses, hands together, waiting for the restart.
+[ 210.65s] Union Berlin pause the tempo, hands together and waiting for the restart.
+[ 211.20s] Burke’s delivery arcs in, hanging toward the box!
+[ 211.75s] Burke’s cross hangs up, and Ilic attacks it at the back post!
+[ 212.30s] Burke hangs it up, and the striker flies in!
+[ 212.85s] Burke hangs one in, and the red shirts attack the back post!
+[ 213.40s] Burke’s cross hangs up, and the red shirts attack the far post!
+[ 213.95s] Burke’s cross skims through, and the keeper scrambles at the back post!
+[ 214.50s] Zentner sprawls low to smother it on the line!
+[ 215.05s] Zentner sprawls, and Mainz scramble it away!
+[ 215.60s] Burke’s shot is blocked at the near post, and Mainz scramble clear!
+[ 216.15s] Becker can’t turn it in, and Mainz stay alive!
+[ 217.25s] Mainz reset after the scramble, and Becker’s back on the move.
+[ 217.80s] Becker drives on, Mainz probing again down the left!
+[ 218.35s] Mainz reset after the scramble, and the red shirts hold their shape.
+[ 218.90s] Mainz regrouping here, red shirts resetting after the stoppage.
+[ 219.45s] Mainz regrouping here, red shirts catching their breath at the hour mark.
+[ 220.00s] Mainz’s attacker pauses, shirt up, as play resets.
+[ 220.55s] Zentner strides upfield, Mainz resetting for the next wave.
+[ 221.65s] Mainz player walks back into position, crowd buzzing at Mewa.
+[ 222.75s] Becker strolling back into position, Mainz and Union resetting.
+[ 223.30s] Mainz stand over the restart, Becker waiting in the box.
+[ 223.85s] Mainz and Union regrouping in a tight midfield reset.
+[ 224.40s] Mainz’s bench stirs as the red shirts gather for the restart.
+[ 224.95s] Mainz’s bench stirs as Sieb comes on, red shirts resetting.
+[ 225.50s] Mainz’s bench and staff reorganize on the touchline.
+[ 226.05s] Sieb’s on at the touchline, Mainz getting set to restart.
+[ 226.60s] Mainz bodies gather on the touchline, readying the next move.
+[ 227.70s] Mainz and Union trade quick embraces and reset for the next phase.
+[ 228.25s] Mainz’s red shirts celebrate at the touchline, sub coming on.
+[ 228.80s] Mainz still regrouping at the touchline, bodies shifting for the restart.
+[ 229.35s] Substitution chaos at the touchline, Mainz resetting for the restart.
+[ 229.90s] Mainz’s number 13 comes on, and the red shirts reset.
+[ 230.45s] Becker gets the touchline congratulations as Mainz reset.
+[ 231.00s] Becker gets the touchline embrace, Mainz resetting at 1-1.
+[ 231.55s] Becker gets the touchline pat, Mainz resetting for the next phase.
+[ 232.10s] Becker gets the touchline hug, Mainz still organizing the change.
+[ 232.65s] Becker waits on the touchline, Mainz reshuffling for the restart.
+[ 233.20s] Becker’s getting the sideline embrace as Mainz reset.
+[ 233.75s] Becker and Mainz still in the touchline huddle, resetting for the restart.
+[ 234.30s] Mainz’s number 23, Becker, jogs back into shape.
+[ 235.40s] Mainz’s red-shirted winger jogs back into shape, game still level.
+[ 235.95s] Burke jogging back into shape, Union resetting at midfield.
+[ 236.50s] Burke jogging back into shape, Union resetting after the break.
+[ 237.05s] Burke jogs back into shape after the stoppage.
+[ 237.60s] Union’s red shirts are jogging back into shape, holding the line.
+[ 238.15s] Mainz still on the front foot, players streaming back into shape.
+[ 238.70s] Mainz and Union both jogging back into shape after the break.
+[ 239.25s] Mainz and Union still locked at one apiece, players resetting in the box.
+[ 239.80s] Union’s red shirts regroup in the box, Mainz holding firm.
+[ 240.35s] Mainz’s red shirts are regrouping, frustration showing after that chance.
+[ 240.90s] Mainz’s red shirts are regrouping at the back post.
+[ 241.45s] Union organizing at the back, Doekhi marshaling the line.
+[ 242.00s] Mainz and Union settling in, red shirts regrouping at the edge.
+[ 242.55s] Mainz over the dead ball, bodies set in the box.
+[ 243.65s] Mainz over the dead ball now, bodies crowding the Union box.
+[ 244.20s] Mainz over the ball on the right, bodies packed in the box.
+[ 244.75s] Mainz set for the free kick, Sieb on for Becker.
+[ 245.30s] Sieb on for Becker, Mainz resetting for the set piece.
+[ 245.85s] Sieb on, Becker off, and Mainz reset for the set piece.
+[ 246.40s] Mainz over the dead ball again, bodies packed in the Union box.
+[ 246.95s] Mainz still over the dead ball, the box packed and waiting.
+[ 247.50s] Mainz still over the set piece, waiting to deliver.
+[ 248.05s] Mainz still over the dead ball, everyone set in the box.
+[ 248.60s] Mainz still over the dead ball, bodies crowding the Union box.
+[ 249.15s] Mainz readying the delivery, bodies jammed in the Union box.
+[ 249.70s] Amiri over the dead ball for Mainz, arm up and ready.
+[ 250.25s] Amiri stands over it, arm raised, Mainz ready to whip it in.
+[ 250.80s] Mainz set to swing it in again, Amiri over the dead ball.
+[ 251.35s] Mainz’s number 10 stands over it, arm raised, ready to deliver.
+[ 251.90s] Amiri stands over it again, arm raised, waiting to whip in.
+[ 253.00s] Amiri over the set piece, Mainz lining up the delivery.
+[ 253.55s] Amiri’s delivery coming in now, Mainz packed at the far post!
+[ 254.10s] Amiri over it again, Mainz crowding the box for the delivery.
+[ 254.65s] Amiri over the free kick again, Mainz loading the box.
+[ 255.20s] Amiri over the dead ball, Mainz loading the box.
+[ 255.75s] Mainz’s delivery is coming in from the right!
+[ 256.30s] Amiri whips it in again, Mainz attacking the crowd at the far post!
+[ 256.85s] Amiri’s cross is in, and the box erupts!
+[ 257.40s] Amiri whips it in again, bodies flying at the near post!
+[ 257.95s] Mainz’s header chance hangs in the six, Union scrambling!
+[ 258.50s] Chaos in the six-yard box, and Union just about hack it clear!
+[ 259.05s] Mainz’s header is contested in the six-yard box, and it spills loose!
+[ 259.60s] Loose in the six-yard box—Mainz and Union scrambling everywhere!
+[ 260.15s] Mainz still pounding the box, and Union hack it clear!
+[ 260.70s] Juranovic on, Trimmel off, and Union reset at the back.
+[ 261.25s] Union have cleared the danger, and Mainz are left regrouping.
+[ 261.80s] Union still hacking it clear, Mainz bodies crashing in!
+[ 262.35s] Union still pressing in the box, Mainz scrambling to reset!
+[ 262.90s] Union Berlin driving forward, Juranovic on the move!
+[ 263.45s] Union Berlin surging forward, Juranovic’s introduction still in the mix.
+[ 264.55s] Union Berlin breaking forward with Juranovic driving on!
+[ 265.10s] Juranovic jogging through the midfield, Union settling after the change.
+[ 265.65s] Juranovic hustling past the Mainz bench after the change.
+[ 266.20s] Becker on the touchline, Union resetting with Juranovic coming on.
+[ 266.75s] Mainz and Union regrouping on the bench side, bodies resetting.
+[ 267.85s] Mainz and Union are regrouping on the bench, Becker up and ready.
+[ 268.40s] Mainz bench regrouping, Becker standing by.
+[ 268.95s] Mainz bench regrouping, Becker standing by with the score level.
+[ 269.50s] Union’s bench is up on its feet, players resetting at the touchline.
+[ 270.60s] Mainz and Union still paused on the bench side, bodies settling.
+[ 271.70s] No live action visible, just the Union bench resetting.
+[ 272.25s] Becker rises from the Mainz bench, ready to re-enter.
+[ 272.80s] Becker up at the touchline, Mainz resetting for the next push.
+[ 273.35s] Becker up from the bench, Mainz regrouping at the touchline.
+[ 273.90s] Becker stands at the bench, Mainz still regrouping.
+[ 274.45s] Becker back at the bench, Mainz regrouping at 1-1.
+[ 275.55s] Mainz building from the back, Union’s line set and compact.
+[ 276.10s] Union’s keeper and back line under pressure, Mainz closing fast!
+[ 276.65s] Mainz probing at the edge of the box, Union holding firm.
+[ 277.20s] Union calmly work it left under Mainz pressure.
+[ 277.75s] Union calmly work it left, probing for the opening.
+[ 278.30s] Union calmly working it down the left, Mainz set in a compact block.
+[ 278.85s] Union working it down the left, probing at the edge of the box!
+[ 279.40s] Union work it down the left, and Mainz step in to challenge.
+[ 279.95s] Union shield it near the left touchline, pressure and a hard challenge!
+[ 280.50s] Union pinning Mainz deep, and the ball’s worked out left.
+[ 281.05s] Mainz win the throw-in on the left, bodies resetting.
+[ 281.60s] Union Berlin set to throw in from the left, Mainz packed in tightly.
+[ 282.15s] Mainz ready the throw on the left, Union set in a tight block.
+[ 282.70s] Mainz ready the throw-in on the left, Union set in their box.
+[ 283.25s] Union with the throw-in on the left, looking to restart quickly.
+[ 283.80s] Union Berlin with the throw-in on the left, still probing.
+[ 284.35s] Union restart from the left touchline, Mainz set in a compact block.
+[ 284.90s] Mainz work the throw short on the left, Union holding their line.
+[ 285.45s] Mainz poised over the throw on the left, Union locked in.
+[ 286.00s] Union Berlin over the throw on the left, Mainz set in a compact block.
+[ 286.55s] Union still on the front foot, working it down the left.
+[ 287.10s] Union over the ball on the left, Mainz holding their shape.
+[ 287.65s] Union’s Burke, composed and scanning, as Mainz reset.
+[ 288.20s] Union Berlin ready the throw on the right, quick restart coming.
+[ 288.75s] Union’s #18 hurries to the touchline, ball in hand for the throw.
+[ 289.30s] Union over the throw on the right, number 18 ready to deliver.
+[ 289.85s] Union’s number 18 over the throw on the right, setting up.
+[ 290.40s] Juranovic over the throw on the right, Union setting up.
+[ 290.95s] Union’s Juranovic over the throw, looking for a quick restart.
+[ 291.50s] Union’s #18 takes the throw on the right, quick restart for Berlin.
+[ 292.05s] Juranovic over the throw on the right, Mainz set in their shape.
+[ 292.60s] Juranović over the throw on the right, Mainz set in their box.
+[ 293.15s] Juranovic waits on the touchline, Union poised for the throw.
+[ 294.25s] Juranovic stands over the restart on the right, Union probing.
+[ 294.80s] Juranovic stands over the restart on the right, Mainz set deep.
+[ 295.35s] Juranovic waiting on the touchline, Union ready to restart.
+[ 297.00s] Union over the ball on the right, Mainz packed in tight.
+[ 297.55s] Klaus over the dead ball, Union ready to launch.
+[ 298.10s] Klaus holds it up, Union resetting under pressure.
+[ 298.65s] Klaus over the restart, Union still probing.
+[ 299.20s] Klaus holds the ball, Union still waiting to restart.

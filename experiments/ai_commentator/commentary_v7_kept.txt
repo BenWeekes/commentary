@@ -1,0 +1,60 @@
+# v7 hybrid — gpt-5.4-mini + gemini-2.5-flash
+# 55 accepted
+# Subs: []
+# Decisions: {'disagree_use_safe': 50, 'both_agree_specific': 56, 'one_speaks_use_safe': 3, 'both_no_call': 1}
+
+[   2.20s] disagree_use_safe      Union player down near the box
+[   4.95s] disagree_use_safe      Mainz players and referee in discussion
+[  10.45s] disagree_use_safe      Kemlein on the turf
+[  17.05s] both_agree_specific    Potulski checks on the downed Union Berlin player.
+[  20.35s] one_speaks_use_safe    The manager for the visitors on the touchline.
+[  25.85s] both_agree_specific    Jae-sung looks to the referee, perhaps for a call.
+[  31.90s] both_agree_specific    Mainz and the Iron Ones set for a free-kick delivery
+[  37.95s] both_agree_specific    Kawasaki comes off the pitch for the 05ers.
+[  44.00s] both_agree_specific    Klaus alert in goal for Union.
+[  48.95s] both_agree_specific    The visitors line up for the free-kick.
+[  55.00s] both_agree_specific    Amiri stands over the dead ball for Mainz.
+[  60.50s] disagree_use_safe      Burcu and Ilic in the box.
+[  65.45s] both_agree_specific    Union break forward through midfield, red shirts chasing.
+[  70.95s] disagree_use_safe      Klaus in his penalty area
+[  75.35s] both_agree_specific    Mainz switch it right, Caci waiting wide.
+[  80.30s] both_agree_specific    Mainz 05 midfielder Sano on the ball, looking for a pass.
+[  88.55s] disagree_use_safe      Burke on the right touchline
+[ 102.30s] disagree_use_safe      Union midfielder on the turf
+[ 106.70s] both_agree_specific    The 05ers' number 4, Posch, runs it into the visitors' half.
+[ 113.30s] both_agree_specific    Mainz number 22 controls it by the touchline.
+[ 118.80s] both_agree_specific    Zentner stands over the ball inside his box.
+[ 124.30s] both_agree_specific    Union's number 13, Khedira, on the ball in midfield.
+[ 134.75s] disagree_use_safe      Trimmel near midfield
+[ 139.70s] both_agree_specific    Mainz number 20 Tietz takes a shot on goal.
+[ 143.55s] both_agree_specific    Klaus makes a save from the shot by the Karnevalsverein.
+[ 147.95s] disagree_use_safe      Burke near the left edge
+[ 152.35s] disagree_use_safe      Mainz 05 on the right flank
+[ 157.30s] both_agree_specific    Becker on the ball near the box for the 05ers.
+[ 163.90s] disagree_use_safe      Klaus in the six-yard box
+[ 168.30s] both_agree_specific    Union's Doekhi with the ball in the midfield.
+[ 177.65s] disagree_use_safe      Burcu on the left flank.
+[ 182.60s] disagree_use_safe      Referee near midfield
+[ 186.45s] both_agree_specific    Referee shows a yellow card to Mainz's Veratschnig.
+[ 193.05s] disagree_use_safe      Referee with the card
+[ 197.45s] disagree_use_safe      Burke near midfield
+[ 201.30s] disagree_use_safe      Union bench by the sideline
+[ 206.25s] disagree_use_safe      Mainz players on the sideline.
+[ 211.20s] disagree_use_safe      Mwene under the dropping ball
+[ 215.60s] both_agree_specific    Becker celebrates after scoring past Klaus and Trimmel.
+[ 221.10s] disagree_use_safe      Becker in Mainz red
+[ 225.50s] both_agree_specific    Sieb waits by the touchline for Mainz 05.
+[ 231.00s] both_agree_specific    Becker hugs the 05ers' manager Bo Henriksen.
+[ 235.95s] disagree_use_safe      Amiri jogging in midfield
+[ 240.35s] disagree_use_safe      Nebel in the box
+[ 244.75s] both_agree_specific    Sieb and Becker are on for Mainz.
+[ 250.25s] both_agree_specific    Weiper on the ball, ready to take a corner for the 05ers.
+[ 256.85s] both_agree_specific    Weiper's corner kick is headed away by a Union defender.
+[ 262.90s] disagree_use_safe      Juranovic and Trimmel nearby
+[ 267.30s] one_speaks_use_safe    Becker on the Mainz bench.
+[ 272.25s] both_agree_specific    Becker stands by the Mainz 05 bench, bottle in hand.
+[ 278.30s] disagree_use_safe      Union near the left edge of the box
+[ 283.80s] disagree_use_safe      Caci on the left touchline.
+[ 288.20s] disagree_use_safe      Burcu on the right touchline
+[ 292.60s] both_agree_specific    Juranovic takes the throw-in for the Iron Ones.
+[ 298.65s] disagree_use_safe      Klaus with the ball

@@ -1,0 +1,451 @@
+{
+  "summary": {
+    "judge_sample_n": 55,
+    "judge_hallucination_rate": 0.2,
+    "judge_subject_present_rate": 0.964,
+    "judge_human_likeness_mean": 3.33,
+    "soniox_turn_coverage": 1.0
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Only one player appears down with others standing nearby, not a cluster on the ground; phrasing is caption-like.",
+      "_text": "A cluster of players on the ground in the middle third.",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player appears down on the pitch with others standing or pausing nearby; phrasing is natural enough.",
+      "_text": "Players pause around the downed man.",
+      "_t": 9.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player is visibly moving toward/playing a loose ball, though no opponent is shown to confirm a challenge; phrasing is plausible but generic.",
+      "_text": "Tietz challenges for the loose ball.",
+      "_t": 13.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "An official is visible on the touchline gesturing, so a sideline call is plausible; wording is clear but generic.",
+      "_text": "The assistant referee makes a call on the sideline.",
+      "_t": 18.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are clearly visible, and 'reset after the stoppage' is plausible without claiming a specific unseen major event.",
+      "_text": "Mainz reset after the stoppage.",
+      "_t": 24.75
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "Frame only shows a close-up of one player, not players around the box or a restart setup.",
+      "_text": "Players set around the box for restart.",
+      "_t": 29.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Sano is visible near the touchline and a Mainz staff member is clearly gesturing; the line sounds natural.",
+      "_text": "Sano listens as Henriksen gestures on the touchline.",
+      "_t": 35.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Amiri is plausibly visible, but no ball or restart setup is visible in the frame.",
+      "_text": "Amiri stands over the restart.",
+      "_t": 41.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Several players are visible near the goal net, consistent with resetting around the six-yard box; phrasing is passable but generic.",
+      "_text": "Players reset around the six-yard box.",
+      "_t": 45.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Visible Mainz free-kick situation with many players packed near the box; wording is a bit clipped but plausible.",
+      "_text": "Mainz set pieces crowd the box.",
+      "_t": 50.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player, likely Amiri wearing 18, is standing over a stationary ball for a set piece; phrasing is natural.",
+      "_text": "Amiri waits over a dead-ball setup.",
+      "_t": 56.65
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "No identifiable Klaus is visible and no clear player is controlling the box; phrasing is passable but vague.",
+      "_text": "Klaus controls the box under pressure.",
+      "_t": 61.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "General field-state comment; play appears around midfield, though phrasing is plain.",
+      "_text": "The ball is in the middle third of the pitch.",
+      "_t": 66.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union players are visible around midfield and the line describes a plausible tactical shape, though fairly plain.",
+      "_text": "Union hold shape in midfield.",
+      "_t": 74.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is visibly on the ball, plausibly in midfield; the line is accurate but fairly generic.",
+      "_text": "Mainz keep possession in midfield.",
+      "_t": 78.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Players are visibly spread around the centre circle; phrasing is natural and plausible.",
+      "_text": "Players reset around the centre circle.",
+      "_t": 83.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible in open play near midfield; the line is plausible though a bit terse.",
+      "_text": "Mainz probe in open play.",
+      "_t": 91.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visibly in possession in Union's half, and the wording is natural without claiming a specific unseen event.",
+      "_text": "Mainz keep probing in Union territory.",
+      "_t": 97.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Ball is visible in the middle third near Mainz players, so Nebel could plausibly be involved; wording is clear but plain.",
+      "_text": "Nebel is on the ball in the middle third.",
+      "_t": 102.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Union players are visible around midfield and appear to be in possession; phrasing is a bit awkward but plausible.",
+      "_text": "Union build from the back on halfway.",
+      "_t": 109.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is near the touchline with the ball, so the description fits; wording is concise but a bit caption-like.",
+      "_text": "Veratschnig over the ball near the touchline.",
+      "_t": 114.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper is visible with the ball at his feet, plausibly preparing to kick long; line is natural enough.",
+      "_text": "Zentner prepares a long distribution.",
+      "_t": 119.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Home team players are visible advancing around midfield/into the opponent half; the line is plausible but generic.",
+      "_text": "The home side moves the ball into attacking territory.",
+      "_t": 125.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Ball and active play are visible; attacking-third location is plausible but the line is generic and caption-like.",
+      "_text": "The ball is in the attacking third.",
+      "_t": 132.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible in possession and moving forward; the on-screen graphic also references Mainz attacking zones. The phrasing is natural commentary.",
+      "_text": "Mainz advance through the left channel.",
+      "_t": 136.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visibly attacking around the penalty area; wording is plausible but fairly plain.",
+      "_text": "Mainz press around the penalty area.",
+      "_t": 141.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visibly in possession/attacking around the penalty area; phrasing is natural broadcast style.",
+      "_text": "Mainz work the ball around the box.",
+      "_t": 146.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are in possession/shape around Union's defensive third near the box; phrasing is natural enough.",
+      "_text": "Mainz probe near the Union box.",
+      "_t": 152.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red-shirted player is visibly advancing with the ball on the right side; the line is natural and plausible.",
+      "_text": "Becker carries it forward on the right.",
+      "_t": 158.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union players are visible and the line describes a plausible reset of play without claiming a specific obvious event.",
+      "_text": "Union reset after the loose ball.",
+      "_t": 163.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Home team in red appears to be moving the ball forward near the attacking third; line is plausible but generic.",
+      "_text": "The home side advances into the attacking third.",
+      "_t": 168.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Ball is visible near a player on the wing/flank; phrasing is natural enough for commentary.",
+      "_text": "The ball stays tight on the flank.",
+      "_t": 173.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible around midfield with the ball in that area; the line is plausible and natural, though not especially vivid.",
+      "_text": "Mainz recycle possession in midfield.",
+      "_t": 179.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee appears to be stopping or managing play; location near centre circle is not clearly visible but plausible.",
+      "_text": "Play pauses around the centre circle.",
+      "_t": 183.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visible making a hand signal; set piece inference is plausible though generic.",
+      "_text": "The referee makes a clear signal for a set piece.",
+      "_t": 190.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player is visible, but no ball or restart setup is shown to verify he is standing over it.",
+      "_text": "Burke stands over the restart.",
+      "_t": 196.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "The substitution board is clearly being held up on the sideline; phrasing is accurate but fairly plain.",
+      "_text": "The fourth official displays the substitution board on the sideline.",
+      "_t": 201.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is visible, but an actual substitution is not clearly shown in the frame.",
+      "_text": "Mainz pause for the substitution.",
+      "_t": 209.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union player is visible in the goalmouth near the six-yard area, with a loose, chaotic-looking moment by the keeper.",
+      "_text": "Union scramble inside the six-yard box.",
+      "_t": 215.6
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Player in Mainz kit is visible, but an attacking move/reset is not evident from the frame.",
+      "_text": "Becker resets after the attacking move.",
+      "_t": 218.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Mainz players are visible near the touchline, but the phrasing is awkward and not very broadcaster-like.",
+      "_text": "Mainz pause around the sideline.",
+      "_t": 223.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Substitution board and touchline activity are visible, though the wording is fairly generic.",
+      "_text": "A substitution is taking place near the touchline.",
+      "_t": 228.25
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Sideline activity is visible, but an actual substitution is not clearly shown; phrasing sounds generic.",
+      "_text": "Substitution continues near the sideline.",
+      "_t": 233.75
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz player is visible near the goal area, but a tactical reset or possession state is not evident from this close-up.",
+      "_text": "Mainz reset near the penalty area.",
+      "_t": 238.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visibly organized for a set-piece restart; phrasing is natural broadcast style.",
+      "_text": "Mainz shape up for the restart.",
+      "_t": 243.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players in red are visibly set up for a dead-ball restart near the box; wording is natural though generic.",
+      "_text": "Mainz prepare the set-piece restart.",
+      "_t": 248.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Players are visibly arranged for a wide set piece with the ball on the flank; Mainz players are present and the line sounds natural.",
+      "_text": "Mainz set up for a wide free kick.",
+      "_t": 254.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Union players are visible and the scene looks like a restart/reset after a pause; wording is plausible but fairly plain.",
+      "_text": "Union reset after the stoppage.",
+      "_t": 261.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Substitution graphic and players by the bench make the sideline change plausible, though the wording is generic.",
+      "_text": "The substitution is complete near the sideline.",
+      "_t": 265.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz substitutes and staff are visible on the bench; the line is plausible and not claiming a clear unseen event, though it is fairly bland.",
+      "_text": "Mainz bench settles during the stoppage.",
+      "_t": 270.6
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visible at the bench, but there is no on-field buildup or left-side play shown.",
+      "_text": "Mainz build from deep on the left.",
+      "_t": 275.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Black-clad Union players are visible near the ball in a defensive area; the line is plausible but fairly generic.",
+      "_text": "Union Berlin are in possession deep in their own half.",
+      "_t": 282.15
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Away player is visible, but no sideline restart or throw-in is shown in this close-up.",
+      "_text": "The away side looks to restart play from the sideline.",
+      "_t": 288.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Union player is visible by the touchline and appears set for a throw-in; line is plausible but fairly generic.",
+      "_text": "Union reset for the throw-in.",
+      "_t": 294.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player is visibly holding the ball, consistent with a restart; name cannot be verified but subject is plausibly present.",
+      "_text": "Klaus holds the ball for the restart.",
+      "_t": 298.65
+    }
+  ]
+}

@@ -1,0 +1,5059 @@
+[
+  {
+    "type": "utterance",
+    "audio_start": 302.88,
+    "audio_end": 308.76,
+    "wall_clock": "15:54:28.207",
+    "play_at": 1778774076.7413232,
+    "play_at_utc": "15:54:36.741Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774060.7413232,
+    "occurred_at_utc": "15:54:20.741Z",
+    "occurred_end_at": 1778774066.621323,
+    "occurred_end_at_utc": "15:54:26.621Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Free kick has been given in favour of the home side, but complaints from the Union players.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Freak",
+        "start": 302.88,
+        "end": 303.06,
+        "speaker": "2",
+        "confidence": 0.774
+      },
+      {
+        "word": "it",
+        "start": 303.12,
+        "end": 303.18,
+        "speaker": "2",
+        "confidence": 0.854
+      },
+      {
+        "word": "has",
+        "start": 303.36,
+        "end": 303.42,
+        "speaker": "2",
+        "confidence": 0.992
+      },
+      {
+        "word": "been",
+        "start": 303.48,
+        "end": 303.54,
+        "speaker": "2",
+        "confidence": 0.994
+      },
+      {
+        "word": "given",
+        "start": 303.72,
+        "end": 303.96,
+        "speaker": "2",
+        "confidence": 0.904
+      },
+      {
+        "word": "in",
+        "start": 304.26,
+        "end": 304.32,
+        "speaker": "2",
+        "confidence": 0.991
+      },
+      {
+        "word": "favour",
+        "start": 304.38,
+        "end": 304.56,
+        "speaker": "2",
+        "confidence": 0.899
+      },
+      {
+        "word": "of",
+        "start": 304.56,
+        "end": 304.62,
+        "speaker": "2",
+        "confidence": 0.985
+      },
+      {
+        "word": "the",
+        "start": 304.68,
+        "end": 304.74,
+        "speaker": "2",
+        "confidence": 0.976
+      },
+      {
+        "word": "home",
+        "start": 304.92,
+        "end": 304.98,
+        "speaker": "2",
+        "confidence": 0.91
+      },
+      {
+        "word": "side,",
+        "start": 305.28,
+        "end": 305.52,
+        "speaker": "2",
+        "confidence": 0.946
+      },
+      {
+        "word": "but",
+        "start": 305.58,
+        "end": 305.64,
+        "speaker": "2",
+        "confidence": 0.996
+      },
+      {
+        "word": "complaints",
+        "start": 305.88,
+        "end": 306.3,
+        "speaker": "2",
+        "confidence": 0.865
+      },
+      {
+        "word": "from",
+        "start": 307.56,
+        "end": 307.62,
+        "speaker": "2",
+        "confidence": 0.995
+      },
+      {
+        "word": "the",
+        "start": 307.68,
+        "end": 307.74,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "Union",
+        "start": 308.04,
+        "end": 308.1,
+        "speaker": "2",
+        "confidence": 0.998
+      },
+      {
+        "word": "players.",
+        "start": 308.52,
+        "end": 308.76,
+        "speaker": "2",
+        "confidence": 0.903
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 309.36,
+    "audio_end": 311.52,
+    "wall_clock": "15:54:31.054",
+    "play_at": 1778774083.221323,
+    "play_at_utc": "15:54:43.221Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774067.221323,
+    "occurred_at_utc": "15:54:27.221Z",
+    "occurred_end_at": 1778774069.381323,
+    "occurred_end_at_utc": "15:54:29.381Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Khedira, leading that particular charge.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Khedira,",
+        "start": 309.36,
+        "end": 309.96,
+        "speaker": "1",
+        "confidence": 0.826
+      },
+      {
+        "word": "leading",
+        "start": 310.32,
+        "end": 310.5,
+        "speaker": "1",
+        "confidence": 0.977
+      },
+      {
+        "word": "that",
+        "start": 310.56,
+        "end": 310.62,
+        "speaker": "1",
+        "confidence": 0.995
+      },
+      {
+        "word": "particular",
+        "start": 310.74,
+        "end": 310.8,
+        "speaker": "1",
+        "confidence": 0.989
+      },
+      {
+        "word": "charge.",
+        "start": 311.4,
+        "end": 311.52,
+        "speaker": "1",
+        "confidence": 0.97
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 312.06,
+    "audio_end": 313.56,
+    "wall_clock": "15:54:33.029",
+    "play_at": 1778774085.921323,
+    "play_at_utc": "15:54:45.921Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774069.921323,
+    "occurred_at_utc": "15:54:29.921Z",
+    "occurred_end_at": 1778774071.421323,
+    "occurred_end_at_utc": "15:54:31.421Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "At first side, I'm with the referee.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "At",
+        "start": 312.06,
+        "end": 312.12,
+        "speaker": "2",
+        "confidence": 0.996
+      },
+      {
+        "word": "first",
+        "start": 312.18,
+        "end": 312.24,
+        "speaker": "2",
+        "confidence": 0.993
+      },
+      {
+        "word": "side,",
+        "start": 312.54,
+        "end": 312.72,
+        "speaker": "2",
+        "confidence": 0.931
+      },
+      {
+        "word": "I'm",
+        "start": 312.78,
+        "end": 312.96,
+        "speaker": "2",
+        "confidence": 0.996
+      },
+      {
+        "word": "with",
+        "start": 312.96,
+        "end": 313.02,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "the",
+        "start": 313.14,
+        "end": 313.2,
+        "speaker": "2",
+        "confidence": 0.998
+      },
+      {
+        "word": "referee.",
+        "start": 313.32,
+        "end": 313.56,
+        "speaker": "2",
+        "confidence": 0.998
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 315.6,
+    "audio_end": 316.8,
+    "wall_clock": "15:54:36.290",
+    "play_at": 1778774089.461323,
+    "play_at_utc": "15:54:49.461Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774073.461323,
+    "occurred_at_utc": "15:54:33.461Z",
+    "occurred_end_at": 1778774074.661323,
+    "occurred_end_at_utc": "15:54:34.661Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "I'd like to see a different angle.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "I'd",
+        "start": 315.6,
+        "end": 315.72,
+        "speaker": "2",
+        "confidence": 0.884
+      },
+      {
+        "word": "like",
+        "start": 315.78,
+        "end": 315.9,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "to",
+        "start": 315.9,
+        "end": 315.96,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "see",
+        "start": 315.96,
+        "end": 316.08,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "a",
+        "start": 316.14,
+        "end": 316.2,
+        "speaker": "2",
+        "confidence": 0.997
+      },
+      {
+        "word": "different",
+        "start": 316.26,
+        "end": 316.32,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "angle.",
+        "start": 316.56,
+        "end": 316.8,
+        "speaker": "2",
+        "confidence": 0.999
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 317.7,
+    "audio_end": 323.04,
+    "wall_clock": "15:54:42.604",
+    "play_at": 1778774091.5613232,
+    "play_at_utc": "15:54:51.561Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774075.5613232,
+    "occurred_at_utc": "15:54:35.561Z",
+    "occurred_end_at": 1778774080.901323,
+    "occurred_end_at_utc": "15:54:40.901Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "I think it's a race to the ball, and Lee gets there just ahead of.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "I",
+        "start": 317.7,
+        "end": 317.76,
+        "speaker": "2",
+        "confidence": 0.714
+      },
+      {
+        "word": "think",
+        "start": 317.82,
+        "end": 317.94,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "it's",
+        "start": 318.0,
+        "end": 318.12,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "a",
+        "start": 318.24,
+        "end": 318.3,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "race",
+        "start": 318.42,
+        "end": 318.6,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "to",
+        "start": 318.6,
+        "end": 318.66,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 318.72,
+        "end": 318.78,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "ball,",
+        "start": 318.9,
+        "end": 319.2,
+        "speaker": "2",
+        "confidence": 0.992
+      },
+      {
+        "word": "and",
+        "start": 319.26,
+        "end": 319.32,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "Lee",
+        "start": 320.16,
+        "end": 320.22,
+        "speaker": "2",
+        "confidence": 0.988
+      },
+      {
+        "word": "gets",
+        "start": 320.4,
+        "end": 320.58,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "there",
+        "start": 320.76,
+        "end": 320.82,
+        "speaker": "2",
+        "confidence": 0.918
+      },
+      {
+        "word": "just",
+        "start": 321.0,
+        "end": 321.06,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "ahead",
+        "start": 321.18,
+        "end": 321.36,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "of.",
+        "start": 321.42,
+        "end": 323.04,
+        "speaker": "2",
+        "confidence": 0.41
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 323.46,
+    "audio_end": 325.32,
+    "wall_clock": "15:54:44.850",
+    "play_at": 1778774097.3213232,
+    "play_at_utc": "15:54:57.321Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774081.3213232,
+    "occurred_at_utc": "15:54:41.321Z",
+    "occurred_end_at": 1778774083.181323,
+    "occurred_end_at_utc": "15:54:43.181Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Jeong.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Jeong.",
+        "start": 323.46,
+        "end": 325.32,
+        "speaker": "2",
+        "confidence": 0.893
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 325.68,
+    "audio_end": 327.72,
+    "wall_clock": "15:54:47.382",
+    "play_at": 1778774099.5413232,
+    "play_at_utc": "15:54:59.541Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774083.5413232,
+    "occurred_at_utc": "15:54:43.541Z",
+    "occurred_end_at": 1778774085.5813231,
+    "occurred_end_at_utc": "15:54:45.581Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And therefore, free kick.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 325.68,
+        "end": 325.74,
+        "speaker": "2",
+        "confidence": 0.73
+      },
+      {
+        "word": "therefore,",
+        "start": 325.86,
+        "end": 326.16,
+        "speaker": "2",
+        "confidence": 0.777
+      },
+      {
+        "word": "Freak.",
+        "start": 327.66,
+        "end": 327.72,
+        "speaker": "2",
+        "confidence": 0.68
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 328.56,
+    "audio_end": 329.16,
+    "wall_clock": "15:54:48.701",
+    "play_at": 1778774102.421323,
+    "play_at_utc": "15:55:02.421Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774086.421323,
+    "occurred_at_utc": "15:54:46.421Z",
+    "occurred_end_at": 1778774087.0213232,
+    "occurred_end_at_utc": "15:54:47.021Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Awarded to Mainz.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Awarded",
+        "start": 328.56,
+        "end": 328.74,
+        "speaker": "2",
+        "confidence": 0.667
+      },
+      {
+        "word": "to",
+        "start": 328.8,
+        "end": 328.86,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "Mainz.",
+        "start": 328.98,
+        "end": 329.16,
+        "speaker": "2",
+        "confidence": 0.966
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 330.18,
+    "audio_end": 330.84,
+    "wall_clock": "15:54:50.336",
+    "play_at": 1778774104.0413232,
+    "play_at_utc": "15:55:04.041Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774088.0413232,
+    "occurred_at_utc": "15:54:48.041Z",
+    "occurred_end_at": 1778774088.701323,
+    "occurred_end_at_utc": "15:54:48.701Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Correct decision.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Correct",
+        "start": 330.18,
+        "end": 330.42,
+        "speaker": "2",
+        "confidence": 0.289
+      },
+      {
+        "word": "decision.",
+        "start": 330.48,
+        "end": 330.84,
+        "speaker": "2",
+        "confidence": 0.997
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 333.12,
+    "audio_end": 335.04,
+    "wall_clock": "15:54:54.754",
+    "play_at": 1778774106.981323,
+    "play_at_utc": "15:55:06.981Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774090.981323,
+    "occurred_at_utc": "15:54:50.981Z",
+    "occurred_end_at": 1778774092.901323,
+    "occurred_end_at_utc": "15:54:52.901Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "So Korean players together.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "So",
+        "start": 333.12,
+        "end": 333.18,
+        "speaker": "1",
+        "confidence": 0.721
+      },
+      {
+        "word": "Korean",
+        "start": 333.48,
+        "end": 333.78,
+        "speaker": "1",
+        "confidence": 0.968
+      },
+      {
+        "word": "players",
+        "start": 333.9,
+        "end": 333.96,
+        "speaker": "1",
+        "confidence": 0.865
+      },
+      {
+        "word": "together.",
+        "start": 334.62,
+        "end": 335.04,
+        "speaker": "1",
+        "confidence": 0.835
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 335.7,
+    "audio_end": 336.6,
+    "wall_clock": "15:54:56.084",
+    "play_at": 1778774109.5613232,
+    "play_at_utc": "15:55:09.561Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774093.5613232,
+    "occurred_at_utc": "15:54:53.561Z",
+    "occurred_end_at": 1778774094.461323,
+    "occurred_end_at_utc": "15:54:54.461Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And each other very well.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 335.7,
+        "end": 335.76,
+        "speaker": "2",
+        "confidence": 0.214
+      },
+      {
+        "word": "each",
+        "start": 335.82,
+        "end": 335.88,
+        "speaker": "2",
+        "confidence": 0.885
+      },
+      {
+        "word": "other",
+        "start": 335.94,
+        "end": 336.0,
+        "speaker": "2",
+        "confidence": 0.992
+      },
+      {
+        "word": "very",
+        "start": 336.18,
+        "end": 336.3,
+        "speaker": "2",
+        "confidence": 0.997
+      },
+      {
+        "word": "well.",
+        "start": 336.42,
+        "end": 336.6,
+        "speaker": "2",
+        "confidence": 0.934
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 341.88,
+    "audio_end": 349.2,
+    "wall_clock": "15:55:08.807",
+    "play_at": 1778774115.7413232,
+    "play_at_utc": "15:55:15.741Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774099.7413232,
+    "occurred_at_utc": "15:54:59.741Z",
+    "occurred_end_at": 1778774107.0613232,
+    "occurred_end_at_utc": "15:55:07.061Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Sota, Kawasaki, tries to come on for Mainz with 13 minutes of normal time. Remaining.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Sota,",
+        "start": 341.88,
+        "end": 342.18,
+        "speaker": "1",
+        "confidence": 0.703
+      },
+      {
+        "word": "Kawasaki,",
+        "start": 342.9,
+        "end": 343.32,
+        "speaker": "1",
+        "confidence": 0.798
+      },
+      {
+        "word": "tries",
+        "start": 344.4,
+        "end": 344.64,
+        "speaker": "1",
+        "confidence": 0.179
+      },
+      {
+        "word": "to",
+        "start": 344.7,
+        "end": 344.76,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "come",
+        "start": 344.94,
+        "end": 345.0,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "on",
+        "start": 345.12,
+        "end": 345.18,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "for",
+        "start": 345.42,
+        "end": 345.48,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "Mainz",
+        "start": 345.9,
+        "end": 346.14,
+        "speaker": "1",
+        "confidence": 0.591
+      },
+      {
+        "word": "with",
+        "start": 346.5,
+        "end": 346.56,
+        "speaker": "1",
+        "confidence": 0.986
+      },
+      {
+        "word": "13",
+        "start": 346.74,
+        "end": 346.92,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "minutes",
+        "start": 347.04,
+        "end": 347.28,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "of",
+        "start": 347.28,
+        "end": 347.34,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "normal",
+        "start": 347.52,
+        "end": 347.76,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "time.",
+        "start": 348.0,
+        "end": 348.72,
+        "speaker": "1",
+        "confidence": 0.798
+      },
+      {
+        "word": "Remaining.",
+        "start": 348.9,
+        "end": 349.2,
+        "speaker": "1",
+        "confidence": 0.91
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 350.04,
+    "audio_end": 351.12,
+    "wall_clock": "15:55:10.714",
+    "play_at": 1778774123.901323,
+    "play_at_utc": "15:55:23.901Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774107.901323,
+    "occurred_at_utc": "15:55:07.901Z",
+    "occurred_end_at": 1778774108.981323,
+    "occurred_end_at_utc": "15:55:08.981Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Here at the Mewa Arena.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Here",
+        "start": 350.04,
+        "end": 350.22,
+        "speaker": "2",
+        "confidence": 0.636
+      },
+      {
+        "word": "at",
+        "start": 350.28,
+        "end": 350.34,
+        "speaker": "2",
+        "confidence": 0.976
+      },
+      {
+        "word": "the",
+        "start": 350.34,
+        "end": 350.4,
+        "speaker": "2",
+        "confidence": 0.995
+      },
+      {
+        "word": "Mewa",
+        "start": 350.46,
+        "end": 350.7,
+        "speaker": "2",
+        "confidence": 0.202
+      },
+      {
+        "word": "Arena.",
+        "start": 350.88,
+        "end": 351.12,
+        "speaker": "2",
+        "confidence": 0.989
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 352.26,
+    "audio_end": 353.7,
+    "wall_clock": "15:55:14.885",
+    "play_at": 1778774126.121323,
+    "play_at_utc": "15:55:26.121Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774110.121323,
+    "occurred_at_utc": "15:55:10.121Z",
+    "occurred_end_at": 1778774111.5613232,
+    "occurred_end_at_utc": "15:55:11.561Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And Nadiem Amiri",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 352.26,
+        "end": 352.32,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Nadiem",
+        "start": 352.98,
+        "end": 353.28,
+        "speaker": "1",
+        "confidence": 0.955
+      },
+      {
+        "word": "Amiri",
+        "start": 353.28,
+        "end": 353.7,
+        "speaker": "1",
+        "confidence": 0.802
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 356.88,
+    "audio_end": 361.68,
+    "wall_clock": "15:55:21.291",
+    "play_at": 1778774130.7413232,
+    "play_at_utc": "15:55:30.741Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774114.7413232,
+    "occurred_at_utc": "15:55:14.741Z",
+    "occurred_end_at": 1778774119.5413232,
+    "occurred_end_at_utc": "15:55:19.541Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "it's Amiri at the creative controls but that is going to be.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "it's",
+        "start": 356.88,
+        "end": 357.0,
+        "speaker": "1",
+        "confidence": 0.577
+      },
+      {
+        "word": "Amiri",
+        "start": 357.06,
+        "end": 357.42,
+        "speaker": "1",
+        "confidence": 0.994
+      },
+      {
+        "word": "at",
+        "start": 357.72,
+        "end": 357.78,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "the",
+        "start": 358.02,
+        "end": 358.08,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "creative",
+        "start": 358.32,
+        "end": 358.68,
+        "speaker": "1",
+        "confidence": 0.754
+      },
+      {
+        "word": "controls",
+        "start": 358.98,
+        "end": 359.4,
+        "speaker": "1",
+        "confidence": 0.656
+      },
+      {
+        "word": "but",
+        "start": 359.58,
+        "end": 359.64,
+        "speaker": "1",
+        "confidence": 0.944
+      },
+      {
+        "word": "that",
+        "start": 359.76,
+        "end": 359.82,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "is",
+        "start": 360.0,
+        "end": 360.06,
+        "speaker": "1",
+        "confidence": 0.929
+      },
+      {
+        "word": "going",
+        "start": 361.62,
+        "end": 361.68,
+        "speaker": "1",
+        "confidence": 0.503
+      },
+      {
+        "word": "to",
+        "start": 361.68,
+        "end": 361.68,
+        "speaker": "1",
+        "confidence": 0.993
+      },
+      {
+        "word": "be.",
+        "start": 361.68,
+        "end": 361.68,
+        "speaker": "1",
+        "confidence": 0.726
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 362.22,
+    "audio_end": 365.88,
+    "wall_clock": "15:55:25.439",
+    "play_at": 1778774136.0813231,
+    "play_at_utc": "15:55:36.081Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774120.0813231,
+    "occurred_at_utc": "15:55:20.081Z",
+    "occurred_end_at": 1778774123.7413232,
+    "occurred_end_at_utc": "15:55:23.741Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Caught every day of the week by Karl Klaus. See what he's trying here.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Caught",
+        "start": 362.22,
+        "end": 362.34,
+        "speaker": "1",
+        "confidence": 0.774
+      },
+      {
+        "word": "every",
+        "start": 362.46,
+        "end": 362.64,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "day",
+        "start": 362.76,
+        "end": 362.82,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "of",
+        "start": 362.94,
+        "end": 363.0,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "the",
+        "start": 363.0,
+        "end": 363.06,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "week",
+        "start": 363.12,
+        "end": 363.36,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "by",
+        "start": 363.54,
+        "end": 363.6,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Karl",
+        "start": 364.2,
+        "end": 364.26,
+        "speaker": "1",
+        "confidence": 0.825
+      },
+      {
+        "word": "Klaus.",
+        "start": 364.44,
+        "end": 364.74,
+        "speaker": "1",
+        "confidence": 0.916
+      },
+      {
+        "word": "See",
+        "start": 364.98,
+        "end": 365.04,
+        "speaker": "1",
+        "confidence": 0.967
+      },
+      {
+        "word": "what",
+        "start": 365.1,
+        "end": 365.22,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "he's",
+        "start": 365.28,
+        "end": 365.4,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "trying",
+        "start": 365.4,
+        "end": 365.64,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "here.",
+        "start": 365.76,
+        "end": 365.88,
+        "speaker": "1",
+        "confidence": 0.904
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 366.78,
+    "audio_end": 368.4,
+    "wall_clock": "15:55:27.946",
+    "play_at": 1778774140.641323,
+    "play_at_utc": "15:55:40.641Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774124.641323,
+    "occurred_at_utc": "15:55:24.641Z",
+    "occurred_end_at": 1778774126.2613232,
+    "occurred_end_at_utc": "15:55:26.261Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "But.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "But.",
+        "start": 366.78,
+        "end": 368.4,
+        "speaker": "2",
+        "confidence": 0.85
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 369.3,
+    "audio_end": 371.76,
+    "wall_clock": "15:55:31.256",
+    "play_at": 1778774143.161323,
+    "play_at_utc": "15:55:43.161Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774127.161323,
+    "occurred_at_utc": "15:55:27.161Z",
+    "occurred_end_at": 1778774129.621323,
+    "occurred_end_at_utc": "15:55:29.621Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Trying to close in.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Trying",
+        "start": 369.3,
+        "end": 369.48,
+        "speaker": "2",
+        "confidence": 0.533
+      },
+      {
+        "word": "to",
+        "start": 369.48,
+        "end": 369.54,
+        "speaker": "2",
+        "confidence": 0.997
+      },
+      {
+        "word": "close",
+        "start": 369.78,
+        "end": 369.96,
+        "speaker": "2",
+        "confidence": 0.99
+      },
+      {
+        "word": "in.",
+        "start": 370.14,
+        "end": 371.76,
+        "speaker": "2",
+        "confidence": 0.984
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 375.66,
+    "audio_end": 377.4,
+    "wall_clock": "15:55:37.171",
+    "play_at": 1778774149.5213232,
+    "play_at_utc": "15:55:49.521Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774133.5213232,
+    "occurred_at_utc": "15:55:33.521Z",
+    "occurred_end_at": 1778774135.2613232,
+    "occurred_end_at_utc": "15:55:35.261Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "What's the word about Derrick Kohn?",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "What's",
+        "start": 375.66,
+        "end": 375.84,
+        "speaker": "1",
+        "confidence": 0.682
+      },
+      {
+        "word": "the",
+        "start": 375.84,
+        "end": 375.9,
+        "speaker": "1",
+        "confidence": 0.976
+      },
+      {
+        "word": "word",
+        "start": 375.96,
+        "end": 376.02,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "about",
+        "start": 376.2,
+        "end": 376.26,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "Derrick",
+        "start": 376.68,
+        "end": 376.98,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "Kohn?",
+        "start": 377.16,
+        "end": 377.4,
+        "speaker": "1",
+        "confidence": 0.899
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 378.24,
+    "audio_end": 381.6,
+    "wall_clock": "15:55:41.932",
+    "play_at": 1778774152.1013231,
+    "play_at_utc": "15:55:52.101Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774136.1013231,
+    "occurred_at_utc": "15:55:36.101Z",
+    "occurred_end_at": 1778774139.461323,
+    "occurred_end_at_utc": "15:55:39.461Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And that Christian name of his and the spelling of it.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 378.24,
+        "end": 378.3,
+        "speaker": "1",
+        "confidence": 0.749
+      },
+      {
+        "word": "that",
+        "start": 378.42,
+        "end": 378.48,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "Christian",
+        "start": 379.32,
+        "end": 379.38,
+        "speaker": "1",
+        "confidence": 0.989
+      },
+      {
+        "word": "name",
+        "start": 379.8,
+        "end": 379.86,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "of",
+        "start": 379.92,
+        "end": 379.98,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "his",
+        "start": 380.16,
+        "end": 380.22,
+        "speaker": "1",
+        "confidence": 0.622
+      },
+      {
+        "word": "and",
+        "start": 380.52,
+        "end": 380.58,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "the",
+        "start": 380.64,
+        "end": 380.7,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "spelling",
+        "start": 380.88,
+        "end": 381.12,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "of",
+        "start": 381.12,
+        "end": 381.18,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "it.",
+        "start": 381.3,
+        "end": 381.6,
+        "speaker": "1",
+        "confidence": 0.951
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 382.98,
+    "audio_end": 385.2,
+    "wall_clock": "15:55:44.717",
+    "play_at": 1778774156.8413231,
+    "play_at_utc": "15:55:56.841Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774140.8413231,
+    "occurred_at_utc": "15:55:40.841Z",
+    "occurred_end_at": 1778774143.0613232,
+    "occurred_end_at_utc": "15:55:43.061Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "All stems from a detective.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "All",
+        "start": 382.98,
+        "end": 383.04,
+        "speaker": "1",
+        "confidence": 0.688
+      },
+      {
+        "word": "stems",
+        "start": 383.22,
+        "end": 383.4,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "from",
+        "start": 383.52,
+        "end": 383.58,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "a",
+        "start": 385.14,
+        "end": 385.2,
+        "speaker": "1",
+        "confidence": 0.901
+      },
+      {
+        "word": "detective.",
+        "start": 385.2,
+        "end": 385.2,
+        "speaker": "1",
+        "confidence": 0.53
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 385.98,
+    "audio_end": 394.08,
+    "wall_clock": "15:55:53.613",
+    "play_at": 1778774159.8413231,
+    "play_at_utc": "15:55:59.841Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774143.8413231,
+    "occurred_at_utc": "15:55:43.841Z",
+    "occurred_end_at": 1778774151.941323,
+    "occurred_end_at_utc": "15:55:51.941Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Series. On German TV, many moons ago, which actually I remember watching when I first came to this country as a student.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Series.",
+        "start": 385.98,
+        "end": 386.4,
+        "speaker": "1",
+        "confidence": 0.32
+      },
+      {
+        "word": "On",
+        "start": 386.7,
+        "end": 386.76,
+        "speaker": "1",
+        "confidence": 0.989
+      },
+      {
+        "word": "German",
+        "start": 387.0,
+        "end": 387.06,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "TV,",
+        "start": 387.6,
+        "end": 388.44,
+        "speaker": "1",
+        "confidence": 0.649
+      },
+      {
+        "word": "many",
+        "start": 388.68,
+        "end": 388.74,
+        "speaker": "1",
+        "confidence": 0.823
+      },
+      {
+        "word": "moons",
+        "start": 388.98,
+        "end": 389.16,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "ago,",
+        "start": 389.22,
+        "end": 389.4,
+        "speaker": "1",
+        "confidence": 0.835
+      },
+      {
+        "word": "which",
+        "start": 389.52,
+        "end": 389.58,
+        "speaker": "1",
+        "confidence": 0.542
+      },
+      {
+        "word": "actually",
+        "start": 389.64,
+        "end": 389.88,
+        "speaker": "1",
+        "confidence": 0.924
+      },
+      {
+        "word": "I",
+        "start": 390.0,
+        "end": 390.06,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "remember",
+        "start": 390.12,
+        "end": 390.24,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "watching",
+        "start": 390.42,
+        "end": 390.72,
+        "speaker": "1",
+        "confidence": 0.993
+      },
+      {
+        "word": "when",
+        "start": 390.96,
+        "end": 391.02,
+        "speaker": "1",
+        "confidence": 0.893
+      },
+      {
+        "word": "I",
+        "start": 391.92,
+        "end": 391.98,
+        "speaker": "1",
+        "confidence": 0.992
+      },
+      {
+        "word": "first",
+        "start": 392.04,
+        "end": 392.1,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "came",
+        "start": 392.22,
+        "end": 392.34,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "to",
+        "start": 392.34,
+        "end": 392.4,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "this",
+        "start": 392.52,
+        "end": 392.58,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "country",
+        "start": 392.7,
+        "end": 392.88,
+        "speaker": "1",
+        "confidence": 0.963
+      },
+      {
+        "word": "as",
+        "start": 393.12,
+        "end": 393.18,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "a",
+        "start": 393.24,
+        "end": 393.3,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "student.",
+        "start": 393.48,
+        "end": 394.08,
+        "speaker": "1",
+        "confidence": 0.904
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 394.5,
+    "audio_end": 396.72,
+    "wall_clock": "15:55:56.213",
+    "play_at": 1778774168.361323,
+    "play_at_utc": "15:56:08.361Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774152.361323,
+    "occurred_at_utc": "15:55:52.361Z",
+    "occurred_end_at": 1778774154.5813231,
+    "occurred_end_at_utc": "15:55:54.581Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Yes, it's a very popular or well-known.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Yes,",
+        "start": 394.5,
+        "end": 394.68,
+        "speaker": "2",
+        "confidence": 0.479
+      },
+      {
+        "word": "it's",
+        "start": 394.8,
+        "end": 394.92,
+        "speaker": "2",
+        "confidence": 0.748
+      },
+      {
+        "word": "a",
+        "start": 394.98,
+        "end": 395.04,
+        "speaker": "2",
+        "confidence": 0.754
+      },
+      {
+        "word": "very",
+        "start": 395.04,
+        "end": 395.16,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "popular",
+        "start": 395.34,
+        "end": 395.4,
+        "speaker": "2",
+        "confidence": 0.998
+      },
+      {
+        "word": "or",
+        "start": 396.06,
+        "end": 396.12,
+        "speaker": "2",
+        "confidence": 0.99
+      },
+      {
+        "word": "well-known.",
+        "start": 396.3,
+        "end": 396.72,
+        "speaker": "2",
+        "confidence": 0.99
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 397.26,
+    "audio_end": 397.44,
+    "wall_clock": "15:55:56.926",
+    "play_at": 1778774171.121323,
+    "play_at_utc": "15:56:11.121Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774155.121323,
+    "occurred_at_utc": "15:55:55.121Z",
+    "occurred_end_at": 1778774155.3013232,
+    "occurred_end_at_utc": "15:55:55.301Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Derrick.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Derrick.",
+        "start": 397.26,
+        "end": 397.44,
+        "speaker": "1",
+        "confidence": 0.978
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 397.86,
+    "audio_end": 398.4,
+    "wall_clock": "15:55:57.917",
+    "play_at": 1778774171.721323,
+    "play_at_utc": "15:56:11.721Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774155.721323,
+    "occurred_at_utc": "15:55:55.721Z",
+    "occurred_end_at": 1778774156.2613232,
+    "occurred_end_at_utc": "15:55:56.261Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Derrick, yes.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Derrick,",
+        "start": 397.86,
+        "end": 398.16,
+        "speaker": "2",
+        "confidence": 0.996
+      },
+      {
+        "word": "yes.",
+        "start": 398.34,
+        "end": 398.4,
+        "speaker": "2",
+        "confidence": 1
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 398.76,
+    "audio_end": 405.6,
+    "wall_clock": "15:56:05.008",
+    "play_at": 1778774172.621323,
+    "play_at_utc": "15:56:12.621Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774156.621323,
+    "occurred_at_utc": "15:55:56.621Z",
+    "occurred_end_at": 1778774163.461323,
+    "occurred_end_at_utc": "15:56:03.461Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "I remember, obviously, that's my name as well. I remember being asked if I had something to do with the detective series with a name like that.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "I",
+        "start": 398.76,
+        "end": 398.82,
+        "speaker": "1",
+        "confidence": 0.977
+      },
+      {
+        "word": "remember,",
+        "start": 398.88,
+        "end": 399.78,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "obviously,",
+        "start": 399.84,
+        "end": 400.2,
+        "speaker": "1",
+        "confidence": 0.905
+      },
+      {
+        "word": "that's",
+        "start": 400.5,
+        "end": 400.62,
+        "speaker": "1",
+        "confidence": 0.952
+      },
+      {
+        "word": "my",
+        "start": 400.68,
+        "end": 400.74,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "name",
+        "start": 400.8,
+        "end": 400.86,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "as",
+        "start": 400.92,
+        "end": 400.98,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "well.",
+        "start": 401.1,
+        "end": 401.28,
+        "speaker": "1",
+        "confidence": 0.881
+      },
+      {
+        "word": "I",
+        "start": 401.34,
+        "end": 401.4,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "remember",
+        "start": 401.4,
+        "end": 401.58,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "being",
+        "start": 401.7,
+        "end": 401.76,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "asked",
+        "start": 401.88,
+        "end": 402.18,
+        "speaker": "1",
+        "confidence": 0.995
+      },
+      {
+        "word": "if",
+        "start": 402.3,
+        "end": 402.36,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "I",
+        "start": 402.78,
+        "end": 402.84,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "had",
+        "start": 402.9,
+        "end": 402.96,
+        "speaker": "1",
+        "confidence": 0.994
+      },
+      {
+        "word": "something",
+        "start": 403.02,
+        "end": 403.2,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "to",
+        "start": 403.2,
+        "end": 403.26,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "do",
+        "start": 403.32,
+        "end": 403.38,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "with",
+        "start": 403.44,
+        "end": 403.5,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 403.74,
+        "end": 403.8,
+        "speaker": "1",
+        "confidence": 0.967
+      },
+      {
+        "word": "detective",
+        "start": 403.92,
+        "end": 404.28,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "series",
+        "start": 404.46,
+        "end": 404.52,
+        "speaker": "1",
+        "confidence": 0.562
+      },
+      {
+        "word": "with",
+        "start": 404.82,
+        "end": 404.88,
+        "speaker": "1",
+        "confidence": 0.926
+      },
+      {
+        "word": "a",
+        "start": 404.94,
+        "end": 405.0,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "name",
+        "start": 405.06,
+        "end": 405.12,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "like",
+        "start": 405.24,
+        "end": 405.36,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "that.",
+        "start": 405.36,
+        "end": 405.6,
+        "speaker": "1",
+        "confidence": 1
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 406.62,
+    "audio_end": 408.72,
+    "wall_clock": "15:56:08.186",
+    "play_at": 1778774180.481323,
+    "play_at_utc": "15:56:20.481Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774164.481323,
+    "occurred_at_utc": "15:56:04.481Z",
+    "occurred_end_at": 1778774166.5813231,
+    "occurred_end_at_utc": "15:56:06.581Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Got asked about that quite a few times back in the day.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Got",
+        "start": 406.62,
+        "end": 406.68,
+        "speaker": "1",
+        "confidence": 0.903
+      },
+      {
+        "word": "asked",
+        "start": 406.8,
+        "end": 406.98,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "about",
+        "start": 406.98,
+        "end": 407.04,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "that",
+        "start": 407.1,
+        "end": 407.16,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "quite",
+        "start": 407.28,
+        "end": 407.4,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "a",
+        "start": 407.4,
+        "end": 407.46,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "few",
+        "start": 407.52,
+        "end": 407.64,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "times",
+        "start": 407.82,
+        "end": 408.0,
+        "speaker": "1",
+        "confidence": 0.568
+      },
+      {
+        "word": "back",
+        "start": 408.3,
+        "end": 408.36,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "in",
+        "start": 408.42,
+        "end": 408.48,
+        "speaker": "1",
+        "confidence": 0.881
+      },
+      {
+        "word": "the",
+        "start": 408.48,
+        "end": 408.54,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "day.",
+        "start": 408.66,
+        "end": 408.72,
+        "speaker": "1",
+        "confidence": 0.994
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 408.9,
+    "audio_end": 409.2,
+    "wall_clock": "15:56:08.751",
+    "play_at": 1778774182.7613232,
+    "play_at_utc": "15:56:22.761Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774166.7613232,
+    "occurred_at_utc": "15:56:06.761Z",
+    "occurred_end_at": 1778774167.0613232,
+    "occurred_end_at_utc": "15:56:07.061Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Yeah.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Yeah.",
+        "start": 408.9,
+        "end": 409.2,
+        "speaker": "2",
+        "confidence": 0.825
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 409.5,
+    "audio_end": 412.56,
+    "wall_clock": "15:56:12.097",
+    "play_at": 1778774183.361323,
+    "play_at_utc": "15:56:23.361Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774167.361323,
+    "occurred_at_utc": "15:56:07.361Z",
+    "occurred_end_at": 1778774170.421323,
+    "occurred_end_at_utc": "15:56:10.421Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "But apparently his parents were big fans of Derrick.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "But",
+        "start": 409.5,
+        "end": 409.56,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "apparently",
+        "start": 409.62,
+        "end": 409.86,
+        "speaker": "1",
+        "confidence": 0.835
+      },
+      {
+        "word": "his",
+        "start": 409.92,
+        "end": 409.98,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "parents",
+        "start": 410.1,
+        "end": 410.34,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "were",
+        "start": 410.46,
+        "end": 410.52,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "big",
+        "start": 410.7,
+        "end": 410.76,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "fans",
+        "start": 410.88,
+        "end": 411.12,
+        "speaker": "1",
+        "confidence": 0.904
+      },
+      {
+        "word": "of",
+        "start": 411.96,
+        "end": 412.02,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Derrick.",
+        "start": 412.32,
+        "end": 412.56,
+        "speaker": "1",
+        "confidence": 0.991
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 413.04,
+    "audio_end": 413.16,
+    "wall_clock": "15:56:12.723",
+    "play_at": 1778774186.901323,
+    "play_at_utc": "15:56:26.901Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774170.901323,
+    "occurred_at_utc": "15:56:10.901Z",
+    "occurred_end_at": 1778774171.0213232,
+    "occurred_end_at_utc": "15:56:11.021Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Yes.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Yes.",
+        "start": 413.04,
+        "end": 413.16,
+        "speaker": "2",
+        "confidence": 1
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 413.76,
+    "audio_end": 420.84,
+    "wall_clock": "15:56:21.799",
+    "play_at": 1778774187.621323,
+    "play_at_utc": "15:56:27.621Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774171.621323,
+    "occurred_at_utc": "15:56:11.621Z",
+    "occurred_end_at": 1778774178.701323,
+    "occurred_end_at_utc": "15:56:18.701Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Well, there's absolutely no resemblance between Derrick Kohn and Derrick. But, uh,",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Well,",
+        "start": 413.76,
+        "end": 413.94,
+        "speaker": "2",
+        "confidence": 0.834
+      },
+      {
+        "word": "there's",
+        "start": 414.54,
+        "end": 414.72,
+        "speaker": "2",
+        "confidence": 0.996
+      },
+      {
+        "word": "absolutely",
+        "start": 414.9,
+        "end": 415.56,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "no",
+        "start": 415.86,
+        "end": 415.92,
+        "speaker": "2",
+        "confidence": 0.878
+      },
+      {
+        "word": "resemblance",
+        "start": 416.7,
+        "end": 417.36,
+        "speaker": "2",
+        "confidence": 0.859
+      },
+      {
+        "word": "between",
+        "start": 418.26,
+        "end": 418.32,
+        "speaker": "2",
+        "confidence": 0.996
+      },
+      {
+        "word": "Derrick",
+        "start": 418.62,
+        "end": 418.86,
+        "speaker": "2",
+        "confidence": 0.998
+      },
+      {
+        "word": "Kohn",
+        "start": 418.92,
+        "end": 419.16,
+        "speaker": "2",
+        "confidence": 0.996
+      },
+      {
+        "word": "and",
+        "start": 419.22,
+        "end": 419.28,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "Derrick.",
+        "start": 419.4,
+        "end": 419.76,
+        "speaker": "2",
+        "confidence": 0.499
+      },
+      {
+        "word": "But,",
+        "start": 420.24,
+        "end": 420.6,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "uh,",
+        "start": 420.72,
+        "end": 420.84,
+        "speaker": "2",
+        "confidence": 0.986
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 422.82,
+    "audio_end": 424.92,
+    "wall_clock": "15:56:24.414",
+    "play_at": 1778774196.681323,
+    "play_at_utc": "15:56:36.681Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774180.681323,
+    "occurred_at_utc": "15:56:20.681Z",
+    "occurred_end_at": 1778774182.7813232,
+    "occurred_end_at_utc": "15:56:22.781Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "I didn't know that, and it's quite amusing.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "I",
+        "start": 422.82,
+        "end": 422.88,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "didn't",
+        "start": 422.94,
+        "end": 423.18,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "know",
+        "start": 423.18,
+        "end": 423.36,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "that,",
+        "start": 423.42,
+        "end": 423.84,
+        "speaker": "2",
+        "confidence": 0.777
+      },
+      {
+        "word": "and",
+        "start": 423.9,
+        "end": 423.96,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "it's",
+        "start": 424.08,
+        "end": 424.26,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "quite",
+        "start": 424.26,
+        "end": 424.44,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "amusing.",
+        "start": 424.62,
+        "end": 424.92,
+        "speaker": "2",
+        "confidence": 1
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 425.28,
+    "audio_end": 425.52,
+    "wall_clock": "15:56:26.605",
+    "play_at": 1778774199.141323,
+    "play_at_utc": "15:56:39.141Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774183.141323,
+    "occurred_at_utc": "15:56:23.141Z",
+    "occurred_end_at": 1778774183.381323,
+    "occurred_end_at_utc": "15:56:23.381Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Yeah.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Yeah.",
+        "start": 425.28,
+        "end": 425.52,
+        "speaker": "1",
+        "confidence": 0.903
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 430.74,
+    "audio_end": 438.9,
+    "wall_clock": "15:56:39.033",
+    "play_at": 1778774204.6013231,
+    "play_at_utc": "15:56:44.601Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774188.6013231,
+    "occurred_at_utc": "15:56:28.601Z",
+    "occurred_end_at": 1778774196.7613232,
+    "occurred_end_at_utc": "15:56:36.761Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "You know, Mainz have been using the right-hand side quite a bit, but they've elected to attack from the left here.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "You",
+        "start": 430.74,
+        "end": 430.8,
+        "speaker": "1",
+        "confidence": 0.476
+      },
+      {
+        "word": "know,",
+        "start": 430.86,
+        "end": 430.98,
+        "speaker": "1",
+        "confidence": 0.847
+      },
+      {
+        "word": "Mainz",
+        "start": 431.16,
+        "end": 431.4,
+        "speaker": "1",
+        "confidence": 0.797
+      },
+      {
+        "word": "have",
+        "start": 432.42,
+        "end": 432.48,
+        "speaker": "1",
+        "confidence": 0.71
+      },
+      {
+        "word": "been",
+        "start": 432.6,
+        "end": 432.66,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "using",
+        "start": 432.72,
+        "end": 432.9,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "theright-hand",
+        "start": 433.14,
+        "end": 433.92,
+        "speaker": "1",
+        "confidence": 0.986
+      },
+      {
+        "word": "side",
+        "start": 434.1,
+        "end": 434.16,
+        "speaker": "1",
+        "confidence": 0.768
+      },
+      {
+        "word": "quite",
+        "start": 435.0,
+        "end": 435.12,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "a",
+        "start": 435.12,
+        "end": 435.18,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "bit,",
+        "start": 435.3,
+        "end": 435.48,
+        "speaker": "1",
+        "confidence": 0.963
+      },
+      {
+        "word": "but",
+        "start": 435.54,
+        "end": 435.6,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "they've",
+        "start": 435.78,
+        "end": 436.02,
+        "speaker": "1",
+        "confidence": 0.915
+      },
+      {
+        "word": "elected",
+        "start": 436.92,
+        "end": 437.22,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "to",
+        "start": 437.4,
+        "end": 437.46,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "attack",
+        "start": 437.58,
+        "end": 437.82,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "from",
+        "start": 437.88,
+        "end": 437.94,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 438.06,
+        "end": 438.12,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "left",
+        "start": 438.36,
+        "end": 438.42,
+        "speaker": "1",
+        "confidence": 0.438
+      },
+      {
+        "word": "here.",
+        "start": 438.72,
+        "end": 438.9,
+        "speaker": "1",
+        "confidence": 0.531
+      }
+    ],
+    "split_group_id": "soniox-1778774199033-2",
+    "split_part_index": 0,
+    "split_reason": "sentence",
+    "carry_duration_s": 0.36,
+    "continues_next": true,
+    "continuation_of": null
+  },
+  {
+    "type": "utterance",
+    "audio_start": 438.96,
+    "audio_end": 439.32,
+    "wall_clock": "15:56:39.035",
+    "play_at": 1778774212.8213232,
+    "play_at_utc": "15:56:52.821Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774196.8213232,
+    "occurred_at_utc": "15:56:36.821Z",
+    "occurred_end_at": 1778774197.181323,
+    "occurred_end_at_utc": "15:56:37.181Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Mwene.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Mwene.",
+        "start": 438.96,
+        "end": 439.32,
+        "speaker": "1",
+        "confidence": 0.656
+      }
+    ],
+    "split_group_id": "soniox-1778774199033-2",
+    "split_part_index": 1,
+    "split_reason": "terminal",
+    "carry_duration_s": 0.0,
+    "continues_next": false,
+    "continuation_of": "soniox-1778774199033-2"
+  },
+  {
+    "type": "utterance",
+    "audio_start": 440.46,
+    "audio_end": 445.32,
+    "wall_clock": "15:56:44.923",
+    "play_at": 1778774214.3213232,
+    "play_at_utc": "15:56:54.321Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774198.3213232,
+    "occurred_at_utc": "15:56:38.321Z",
+    "occurred_end_at": 1778774203.181323,
+    "occurred_end_at_utc": "15:56:43.181Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And Becker with the flick. Look at all the defenders back. Crowd of defenders for Union.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 440.46,
+        "end": 440.52,
+        "speaker": "1",
+        "confidence": 0.816
+      },
+      {
+        "word": "Becker",
+        "start": 441.12,
+        "end": 441.36,
+        "speaker": "1",
+        "confidence": 0.832
+      },
+      {
+        "word": "with",
+        "start": 441.48,
+        "end": 441.54,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "the",
+        "start": 441.6,
+        "end": 441.66,
+        "speaker": "1",
+        "confidence": 0.591
+      },
+      {
+        "word": "flick.",
+        "start": 441.72,
+        "end": 442.08,
+        "speaker": "1",
+        "confidence": 0.849
+      },
+      {
+        "word": "Look",
+        "start": 442.14,
+        "end": 442.26,
+        "speaker": "1",
+        "confidence": 0.99
+      },
+      {
+        "word": "at",
+        "start": 442.32,
+        "end": 442.38,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "all",
+        "start": 442.44,
+        "end": 442.5,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 442.56,
+        "end": 442.62,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "defenders",
+        "start": 442.68,
+        "end": 443.04,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "back.",
+        "start": 443.16,
+        "end": 443.58,
+        "speaker": "1",
+        "confidence": 0.88
+      },
+      {
+        "word": "Crowd",
+        "start": 443.76,
+        "end": 443.94,
+        "speaker": "1",
+        "confidence": 0.995
+      },
+      {
+        "word": "of",
+        "start": 444.0,
+        "end": 444.06,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "defenders",
+        "start": 444.18,
+        "end": 444.54,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "for",
+        "start": 444.72,
+        "end": 444.78,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Union.",
+        "start": 445.02,
+        "end": 445.32,
+        "speaker": "1",
+        "confidence": 0.993
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 446.94,
+    "audio_end": 447.96,
+    "wall_clock": "15:56:47.807",
+    "play_at": 1778774220.8013232,
+    "play_at_utc": "15:57:00.801Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774204.8013232,
+    "occurred_at_utc": "15:56:44.801Z",
+    "occurred_end_at": 1778774205.8213232,
+    "occurred_end_at_utc": "15:56:45.821Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "There it breaks down.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "There",
+        "start": 446.94,
+        "end": 447.0,
+        "speaker": "1",
+        "confidence": 0.302
+      },
+      {
+        "word": "it",
+        "start": 447.12,
+        "end": 447.18,
+        "speaker": "1",
+        "confidence": 0.919
+      },
+      {
+        "word": "breaks",
+        "start": 447.24,
+        "end": 447.42,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "down.",
+        "start": 447.54,
+        "end": 447.96,
+        "speaker": "1",
+        "confidence": 0.993
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 449.28,
+    "audio_end": 452.88,
+    "wall_clock": "15:56:52.279",
+    "play_at": 1778774223.141323,
+    "play_at_utc": "15:57:03.141Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774207.141323,
+    "occurred_at_utc": "15:56:47.141Z",
+    "occurred_end_at": 1778774210.7413232,
+    "occurred_end_at_utc": "15:56:50.741Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "It's Jae-sung Lee and Amiri on the scene.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "It's",
+        "start": 449.28,
+        "end": 449.4,
+        "speaker": "1",
+        "confidence": 0.307
+      },
+      {
+        "word": "Jae-sung",
+        "start": 449.46,
+        "end": 449.82,
+        "speaker": "1",
+        "confidence": 0.995
+      },
+      {
+        "word": "Lee",
+        "start": 449.94,
+        "end": 450.0,
+        "speaker": "1",
+        "confidence": 0.815
+      },
+      {
+        "word": "and",
+        "start": 450.36,
+        "end": 450.42,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Amiri",
+        "start": 451.74,
+        "end": 452.16,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "on",
+        "start": 452.34,
+        "end": 452.4,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "the",
+        "start": 452.46,
+        "end": 452.52,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "scene.",
+        "start": 452.7,
+        "end": 452.88,
+        "speaker": "1",
+        "confidence": 0.915
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 455.1,
+    "audio_end": 457.92,
+    "wall_clock": "15:56:57.399",
+    "play_at": 1778774228.961323,
+    "play_at_utc": "15:57:08.961Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774212.961323,
+    "occurred_at_utc": "15:56:52.961Z",
+    "occurred_end_at": 1778774215.7813232,
+    "occurred_end_at_utc": "15:56:55.781Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Kaishu Sano for Sheraldo Becker.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Kaishu",
+        "start": 455.1,
+        "end": 455.46,
+        "speaker": "1",
+        "confidence": 0.664
+      },
+      {
+        "word": "Sano",
+        "start": 455.64,
+        "end": 455.88,
+        "speaker": "1",
+        "confidence": 0.94
+      },
+      {
+        "word": "for",
+        "start": 456.12,
+        "end": 456.18,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Sheraldo",
+        "start": 457.26,
+        "end": 457.62,
+        "speaker": "1",
+        "confidence": 0.547
+      },
+      {
+        "word": "Becker.",
+        "start": 457.74,
+        "end": 457.92,
+        "speaker": "1",
+        "confidence": 0.952
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 460.44,
+    "audio_end": 464.76,
+    "wall_clock": "15:57:04.350",
+    "play_at": 1778774234.3013232,
+    "play_at_utc": "15:57:14.301Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774218.3013232,
+    "occurred_at_utc": "15:56:58.301Z",
+    "occurred_end_at": 1778774222.621323,
+    "occurred_end_at_utc": "15:57:02.621Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "In by Becker. Again, not worrisome for Klaus.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "In",
+        "start": 460.44,
+        "end": 460.5,
+        "speaker": "1",
+        "confidence": 0.561
+      },
+      {
+        "word": "by",
+        "start": 460.62,
+        "end": 460.68,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "Becker.",
+        "start": 460.8,
+        "end": 461.1,
+        "speaker": "1",
+        "confidence": 0.469
+      },
+      {
+        "word": "Again,",
+        "start": 461.4,
+        "end": 461.64,
+        "speaker": "1",
+        "confidence": 0.926
+      },
+      {
+        "word": "not",
+        "start": 463.02,
+        "end": 463.08,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "worrisome",
+        "start": 463.26,
+        "end": 463.74,
+        "speaker": "1",
+        "confidence": 0.995
+      },
+      {
+        "word": "for",
+        "start": 463.98,
+        "end": 464.04,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Klaus.",
+        "start": 464.58,
+        "end": 464.76,
+        "speaker": "1",
+        "confidence": 0.994
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 466.26,
+    "audio_end": 470.88,
+    "wall_clock": "15:57:10.372",
+    "play_at": 1778774240.121323,
+    "play_at_utc": "15:57:20.121Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774224.121323,
+    "occurred_at_utc": "15:57:04.121Z",
+    "occurred_end_at": 1778774228.7413232,
+    "occurred_end_at_utc": "15:57:08.741Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And Aljoscha Kemlein, and here is the aforementioned Derrick Kohn.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 466.26,
+        "end": 466.32,
+        "speaker": "1",
+        "confidence": 0.936
+      },
+      {
+        "word": "Aljoscha",
+        "start": 466.5,
+        "end": 466.92,
+        "speaker": "1",
+        "confidence": 0.426
+      },
+      {
+        "word": "Kemlein,",
+        "start": 467.04,
+        "end": 467.58,
+        "speaker": "1",
+        "confidence": 0.468
+      },
+      {
+        "word": "and",
+        "start": 467.82,
+        "end": 467.88,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "here",
+        "start": 468.0,
+        "end": 468.12,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "is",
+        "start": 468.18,
+        "end": 468.24,
+        "speaker": "1",
+        "confidence": 0.982
+      },
+      {
+        "word": "the",
+        "start": 468.3,
+        "end": 468.36,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "aforementioned",
+        "start": 468.6,
+        "end": 469.26,
+        "speaker": "1",
+        "confidence": 0.975
+      },
+      {
+        "word": "Derrick",
+        "start": 470.16,
+        "end": 470.4,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "Kohn.",
+        "start": 470.7,
+        "end": 470.88,
+        "speaker": "1",
+        "confidence": 0.929
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 473.46,
+    "audio_end": 475.2,
+    "wall_clock": "15:57:16.355",
+    "play_at": 1778774247.3213232,
+    "play_at_utc": "15:57:27.321Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774231.3213232,
+    "occurred_at_utc": "15:57:11.321Z",
+    "occurred_end_at": 1778774233.0613232,
+    "occurred_end_at_utc": "15:57:13.061Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Take it away by Veratschnig.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Take",
+        "start": 473.46,
+        "end": 473.58,
+        "speaker": "1",
+        "confidence": 0.732
+      },
+      {
+        "word": "it",
+        "start": 473.58,
+        "end": 473.64,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "away",
+        "start": 473.7,
+        "end": 473.82,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "by",
+        "start": 474.0,
+        "end": 474.06,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Veratschnig.",
+        "start": 474.66,
+        "end": 475.2,
+        "speaker": "1",
+        "confidence": 0.618
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 478.38,
+    "audio_end": 479.28,
+    "wall_clock": "15:57:18.938",
+    "play_at": 1778774252.2413232,
+    "play_at_utc": "15:57:32.241Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774236.2413232,
+    "occurred_at_utc": "15:57:16.241Z",
+    "occurred_end_at": 1778774237.141323,
+    "occurred_end_at_utc": "15:57:17.141Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "It's Amiri's pass.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "It's",
+        "start": 478.38,
+        "end": 478.5,
+        "speaker": "1",
+        "confidence": 0.864
+      },
+      {
+        "word": "Amiri's",
+        "start": 478.56,
+        "end": 478.98,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "pass.",
+        "start": 479.16,
+        "end": 479.28,
+        "speaker": "1",
+        "confidence": 0.998
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 480.06,
+    "audio_end": 486.84,
+    "wall_clock": "15:57:26.487",
+    "play_at": 1778774253.921323,
+    "play_at_utc": "15:57:33.921Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774237.921323,
+    "occurred_at_utc": "15:57:17.921Z",
+    "occurred_end_at": 1778774244.701323,
+    "occurred_end_at_utc": "15:57:24.701Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Veratschnig continued his counter and Dr. Florian Exner sides.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Veratschnig",
+        "start": 480.06,
+        "end": 480.6,
+        "speaker": "1",
+        "confidence": 0.59
+      },
+      {
+        "word": "continued",
+        "start": 481.08,
+        "end": 481.38,
+        "speaker": "1",
+        "confidence": 0.743
+      },
+      {
+        "word": "his",
+        "start": 481.62,
+        "end": 481.68,
+        "speaker": "1",
+        "confidence": 0.989
+      },
+      {
+        "word": "counter",
+        "start": 481.92,
+        "end": 482.22,
+        "speaker": "1",
+        "confidence": 0.974
+      },
+      {
+        "word": "and",
+        "start": 483.24,
+        "end": 483.3,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "Dr.",
+        "start": 483.54,
+        "end": 483.6,
+        "speaker": "1",
+        "confidence": 0.625
+      },
+      {
+        "word": "Florian",
+        "start": 484.2,
+        "end": 484.56,
+        "speaker": "1",
+        "confidence": 0.583
+      },
+      {
+        "word": "Exner",
+        "start": 484.86,
+        "end": 485.22,
+        "speaker": "1",
+        "confidence": 0.982
+      },
+      {
+        "word": "sides.",
+        "start": 486.78,
+        "end": 486.84,
+        "speaker": "1",
+        "confidence": 0.534
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 487.44,
+    "audio_end": 489.24,
+    "wall_clock": "15:57:28.775",
+    "play_at": 1778774261.3013232,
+    "play_at_utc": "15:57:41.301Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774245.3013232,
+    "occurred_at_utc": "15:57:25.301Z",
+    "occurred_end_at": 1778774247.1013231,
+    "occurred_end_at_utc": "15:57:27.101Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "At the yellow.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "At",
+        "start": 487.44,
+        "end": 487.5,
+        "speaker": "1",
+        "confidence": 0.691
+      },
+      {
+        "word": "the",
+        "start": 487.62,
+        "end": 487.68,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "yellow.",
+        "start": 489.18,
+        "end": 489.24,
+        "speaker": "1",
+        "confidence": 0.361
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 489.72,
+    "audio_end": 491.64,
+    "wall_clock": "15:57:31.286",
+    "play_at": 1778774263.5813231,
+    "play_at_utc": "15:57:43.581Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774247.5813231,
+    "occurred_at_utc": "15:57:27.581Z",
+    "occurred_end_at": 1778774249.5013232,
+    "occurred_end_at_utc": "15:57:29.501Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Card. Should be handed out here.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Card.",
+        "start": 489.72,
+        "end": 489.96,
+        "speaker": "1",
+        "confidence": 0.958
+      },
+      {
+        "word": "Should",
+        "start": 490.38,
+        "end": 490.56,
+        "speaker": "1",
+        "confidence": 0.777
+      },
+      {
+        "word": "be",
+        "start": 490.62,
+        "end": 490.68,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "handed",
+        "start": 490.86,
+        "end": 491.16,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "out",
+        "start": 491.22,
+        "end": 491.28,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "here.",
+        "start": 491.52,
+        "end": 491.64,
+        "speaker": "1",
+        "confidence": 0.974
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 493.2,
+    "audio_end": 493.68,
+    "wall_clock": "15:57:33.256",
+    "play_at": 1778774267.0613232,
+    "play_at_utc": "15:57:47.061Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774251.0613232,
+    "occurred_at_utc": "15:57:31.061Z",
+    "occurred_end_at": 1778774251.5413232,
+    "occurred_end_at_utc": "15:57:31.541Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "For Kohn.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "For",
+        "start": 493.2,
+        "end": 493.26,
+        "speaker": "1",
+        "confidence": 0.788
+      },
+      {
+        "word": "Kohn.",
+        "start": 493.5,
+        "end": 493.68,
+        "speaker": "1",
+        "confidence": 0.919
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 499.74,
+    "audio_end": 504.24,
+    "wall_clock": "15:57:43.851",
+    "play_at": 1778774273.6013231,
+    "play_at_utc": "15:57:53.601Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774257.6013231,
+    "occurred_at_utc": "15:57:37.601Z",
+    "occurred_end_at": 1778774262.1013231,
+    "occurred_end_at_utc": "15:57:42.101Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Meanwhile, changes of for Mainz. Armindo Sieb.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Meanwhile,",
+        "start": 499.74,
+        "end": 500.1,
+        "speaker": "1",
+        "confidence": 0.903
+      },
+      {
+        "word": "changes",
+        "start": 500.64,
+        "end": 501.0,
+        "speaker": "1",
+        "confidence": 0.986
+      },
+      {
+        "word": "of",
+        "start": 501.24,
+        "end": 501.3,
+        "speaker": "1",
+        "confidence": 0.753
+      },
+      {
+        "word": "for",
+        "start": 502.32,
+        "end": 502.38,
+        "speaker": "1",
+        "confidence": 0.964
+      },
+      {
+        "word": "Mainz.",
+        "start": 502.92,
+        "end": 503.16,
+        "speaker": "1",
+        "confidence": 0.89
+      },
+      {
+        "word": "Armindo",
+        "start": 503.52,
+        "end": 504.0,
+        "speaker": "1",
+        "confidence": 0.93
+      },
+      {
+        "word": "Sieb.",
+        "start": 504.18,
+        "end": 504.24,
+        "speaker": "1",
+        "confidence": 0.99
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 505.68,
+    "audio_end": 506.16,
+    "wall_clock": "15:57:45.772",
+    "play_at": 1778774279.5413232,
+    "play_at_utc": "15:57:59.541Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774263.5413232,
+    "occurred_at_utc": "15:57:43.541Z",
+    "occurred_end_at": 1778774264.0213232,
+    "occurred_end_at_utc": "15:57:44.021Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Be coming on.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Be",
+        "start": 505.68,
+        "end": 505.74,
+        "speaker": "1",
+        "confidence": 0.471
+      },
+      {
+        "word": "coming",
+        "start": 505.8,
+        "end": 505.98,
+        "speaker": "1",
+        "confidence": 0.994
+      },
+      {
+        "word": "on.",
+        "start": 506.1,
+        "end": 506.16,
+        "speaker": "1",
+        "confidence": 0.999
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 507.06,
+    "audio_end": 514.86,
+    "wall_clock": "15:58:01.972",
+    "play_at": 1778774280.921323,
+    "play_at_utc": "15:58:00.921Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774264.921323,
+    "occurred_at_utc": "15:57:44.921Z",
+    "occurred_end_at": 1778774272.721323,
+    "occurred_end_at_utc": "15:57:52.721Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "There's a formal farewell to him prior to the match because he will be leaving. It's been a two-year loan from Bayern.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "There's",
+        "start": 507.06,
+        "end": 507.18,
+        "speaker": "1",
+        "confidence": 0.413
+      },
+      {
+        "word": "a",
+        "start": 507.18,
+        "end": 507.24,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "formal",
+        "start": 507.3,
+        "end": 507.54,
+        "speaker": "1",
+        "confidence": 0.938
+      },
+      {
+        "word": "farewell",
+        "start": 508.2,
+        "end": 508.5,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "to",
+        "start": 508.68,
+        "end": 508.74,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "him",
+        "start": 508.8,
+        "end": 508.86,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "prior",
+        "start": 509.4,
+        "end": 509.58,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "to",
+        "start": 509.58,
+        "end": 509.64,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 509.82,
+        "end": 509.88,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "match",
+        "start": 510.12,
+        "end": 510.18,
+        "speaker": "1",
+        "confidence": 0.817
+      },
+      {
+        "word": "because",
+        "start": 510.36,
+        "end": 510.6,
+        "speaker": "1",
+        "confidence": 0.705
+      },
+      {
+        "word": "he",
+        "start": 510.6,
+        "end": 510.66,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "will",
+        "start": 510.72,
+        "end": 510.78,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "be",
+        "start": 510.96,
+        "end": 511.02,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "leaving.",
+        "start": 511.32,
+        "end": 511.62,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "It's",
+        "start": 511.74,
+        "end": 511.86,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "been",
+        "start": 511.92,
+        "end": 511.98,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "a",
+        "start": 512.1,
+        "end": 512.16,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "two-year",
+        "start": 512.22,
+        "end": 512.52,
+        "speaker": "1",
+        "confidence": 0.98
+      },
+      {
+        "word": "loan",
+        "start": 512.64,
+        "end": 512.82,
+        "speaker": "1",
+        "confidence": 0.639
+      },
+      {
+        "word": "from",
+        "start": 513.84,
+        "end": 513.9,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Bayern.",
+        "start": 514.5,
+        "end": 514.86,
+        "speaker": "1",
+        "confidence": 0.651
+      }
+    ],
+    "split_group_id": "soniox-1778774281971-3",
+    "split_part_index": 0,
+    "split_reason": "sentence",
+    "carry_duration_s": 1.62,
+    "continues_next": true,
+    "continuation_of": null
+  },
+  {
+    "type": "utterance",
+    "audio_start": 514.98,
+    "audio_end": 519.9,
+    "wall_clock": "15:58:04.454",
+    "play_at": 1778774288.8413231,
+    "play_at_utc": "15:58:08.841Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774272.8413231,
+    "occurred_at_utc": "15:57:52.841Z",
+    "occurred_end_at": 1778774277.7613232,
+    "occurred_end_at_utc": "15:57:57.761Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And Becker the goal-scorer and not any old goal either, scoring against",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 514.98,
+        "end": 515.04,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "Becker",
+        "start": 515.16,
+        "end": 515.52,
+        "speaker": "1",
+        "confidence": 0.617
+      },
+      {
+        "word": "the",
+        "start": 516.54,
+        "end": 516.6,
+        "speaker": "1",
+        "confidence": 0.944
+      },
+      {
+        "word": "goal-scorer",
+        "start": 516.66,
+        "end": 517.26,
+        "speaker": "1",
+        "confidence": 0.684
+      },
+      {
+        "word": "and",
+        "start": 517.5,
+        "end": 517.56,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "not",
+        "start": 517.92,
+        "end": 517.98,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "any",
+        "start": 518.16,
+        "end": 518.22,
+        "speaker": "1",
+        "confidence": 0.989
+      },
+      {
+        "word": "old",
+        "start": 518.52,
+        "end": 518.58,
+        "speaker": "1",
+        "confidence": 0.983
+      },
+      {
+        "word": "goal",
+        "start": 518.7,
+        "end": 518.88,
+        "speaker": "1",
+        "confidence": 0.909
+      },
+      {
+        "word": "either,",
+        "start": 518.94,
+        "end": 519.24,
+        "speaker": "1",
+        "confidence": 0.413
+      },
+      {
+        "word": "scoring",
+        "start": 519.54,
+        "end": 519.72,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "against",
+        "start": 519.84,
+        "end": 519.9,
+        "speaker": "1",
+        "confidence": 1
+      }
+    ],
+    "split_group_id": "soniox-1778774281971-3",
+    "split_part_index": 1,
+    "split_reason": "pause",
+    "carry_duration_s": 2.34,
+    "continues_next": true,
+    "continuation_of": "soniox-1778774281971-3"
+  },
+  {
+    "type": "utterance",
+    "audio_start": 521.16,
+    "audio_end": 523.92,
+    "wall_clock": "15:58:04.456",
+    "play_at": 1778774295.0213232,
+    "play_at_utc": "15:58:15.021Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774279.0213232,
+    "occurred_at_utc": "15:57:59.021Z",
+    "occurred_end_at": 1778774281.7813232,
+    "occurred_end_at_utc": "15:58:01.781Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "his former club that he served so well.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "his",
+        "start": 521.16,
+        "end": 521.22,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "former",
+        "start": 521.52,
+        "end": 521.58,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "club",
+        "start": 521.88,
+        "end": 521.94,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "that",
+        "start": 522.18,
+        "end": 522.24,
+        "speaker": "1",
+        "confidence": 0.995
+      },
+      {
+        "word": "he",
+        "start": 522.3,
+        "end": 522.36,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "served",
+        "start": 522.6,
+        "end": 522.66,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "so",
+        "start": 523.14,
+        "end": 523.2,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "well.",
+        "start": 523.44,
+        "end": 523.92,
+        "speaker": "1",
+        "confidence": 0.952
+      }
+    ],
+    "split_group_id": "soniox-1778774281971-3",
+    "split_part_index": 2,
+    "split_reason": "terminal",
+    "carry_duration_s": 0.0,
+    "continues_next": false,
+    "continuation_of": "soniox-1778774281971-3"
+  },
+  {
+    "type": "utterance",
+    "audio_start": 525.78,
+    "audio_end": 530.88,
+    "wall_clock": "15:58:10.481",
+    "play_at": 1778774299.641323,
+    "play_at_utc": "15:58:19.641Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774283.641323,
+    "occurred_at_utc": "15:58:03.641Z",
+    "occurred_end_at": 1778774288.7413232,
+    "occurred_end_at_utc": "15:58:08.741Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Also, departing Tietz has gone off.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Also,",
+        "start": 525.78,
+        "end": 526.02,
+        "speaker": "1",
+        "confidence": 0.392
+      },
+      {
+        "word": "departing",
+        "start": 526.8,
+        "end": 527.1,
+        "speaker": "1",
+        "confidence": 0.877
+      },
+      {
+        "word": "Tietz",
+        "start": 527.76,
+        "end": 528.06,
+        "speaker": "1",
+        "confidence": 0.455
+      },
+      {
+        "word": "has",
+        "start": 529.14,
+        "end": 529.2,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "gone",
+        "start": 529.38,
+        "end": 529.56,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "off.",
+        "start": 529.68,
+        "end": 530.88,
+        "speaker": "1",
+        "confidence": 0.999
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 531.48,
+    "audio_end": 536.88,
+    "wall_clock": "15:58:17.890",
+    "play_at": 1778774305.3413231,
+    "play_at_utc": "15:58:25.341Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774289.3413231,
+    "occurred_at_utc": "15:58:09.341Z",
+    "occurred_end_at": 1778774294.7413232,
+    "occurred_end_at_utc": "15:58:14.741Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "And it's not just Armindo Sieb on the pitch. It's also Nelson Weiper",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "And",
+        "start": 531.48,
+        "end": 531.54,
+        "speaker": "1",
+        "confidence": 0.832
+      },
+      {
+        "word": "it's",
+        "start": 531.6,
+        "end": 531.72,
+        "speaker": "1",
+        "confidence": 0.995
+      },
+      {
+        "word": "not",
+        "start": 531.78,
+        "end": 531.84,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "just",
+        "start": 531.84,
+        "end": 531.9,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Armindo",
+        "start": 532.32,
+        "end": 532.74,
+        "speaker": "1",
+        "confidence": 0.998
+      },
+      {
+        "word": "Sieb",
+        "start": 532.8,
+        "end": 532.98,
+        "speaker": "1",
+        "confidence": 0.475
+      },
+      {
+        "word": "on",
+        "start": 533.52,
+        "end": 533.58,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 533.64,
+        "end": 533.7,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "pitch.",
+        "start": 533.88,
+        "end": 534.18,
+        "speaker": "1",
+        "confidence": 0.716
+      },
+      {
+        "word": "It's",
+        "start": 534.42,
+        "end": 534.54,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "also",
+        "start": 534.66,
+        "end": 534.72,
+        "speaker": "1",
+        "confidence": 0.915
+      },
+      {
+        "word": "Nelson",
+        "start": 535.98,
+        "end": 536.28,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "Weiper",
+        "start": 536.52,
+        "end": 536.88,
+        "speaker": "1",
+        "confidence": 0.617
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 541.74,
+    "audio_end": 547.08,
+    "wall_clock": "15:58:31.108",
+    "play_at": 1778774315.6013231,
+    "play_at_utc": "15:58:35.601Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774299.6013231,
+    "occurred_at_utc": "15:58:19.601Z",
+    "occurred_end_at": 1778774304.941323,
+    "occurred_end_at_utc": "15:58:24.941Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "tall striker hasn't had things go his way too much in this campaign.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "tall",
+        "start": 541.74,
+        "end": 541.92,
+        "speaker": "1",
+        "confidence": 0.828
+      },
+      {
+        "word": "striker",
+        "start": 542.04,
+        "end": 542.46,
+        "speaker": "1",
+        "confidence": 0.674
+      },
+      {
+        "word": "hasn't",
+        "start": 543.24,
+        "end": 543.42,
+        "speaker": "1",
+        "confidence": 0.979
+      },
+      {
+        "word": "had",
+        "start": 543.48,
+        "end": 543.54,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "things",
+        "start": 543.6,
+        "end": 543.78,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "go",
+        "start": 544.02,
+        "end": 544.08,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "his",
+        "start": 544.26,
+        "end": 544.32,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "way",
+        "start": 544.44,
+        "end": 544.62,
+        "speaker": "1",
+        "confidence": 0.997
+      },
+      {
+        "word": "too",
+        "start": 544.74,
+        "end": 544.92,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "much",
+        "start": 545.04,
+        "end": 545.1,
+        "speaker": "1",
+        "confidence": 0.5
+      },
+      {
+        "word": "in",
+        "start": 546.06,
+        "end": 546.12,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "this",
+        "start": 546.24,
+        "end": 546.3,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "campaign.",
+        "start": 546.54,
+        "end": 547.08,
+        "speaker": "1",
+        "confidence": 0.995
+      }
+    ],
+    "split_group_id": "soniox-1778774311108-4",
+    "split_part_index": 0,
+    "split_reason": "sentence",
+    "carry_duration_s": 3.06,
+    "continues_next": true,
+    "continuation_of": null
+  },
+  {
+    "type": "utterance",
+    "audio_start": 547.2,
+    "audio_end": 550.32,
+    "wall_clock": "15:58:31.109",
+    "play_at": 1778774321.0613232,
+    "play_at_utc": "15:58:41.061Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774305.0613232,
+    "occurred_at_utc": "15:58:25.061Z",
+    "occurred_end_at": 1778774308.181323,
+    "occurred_end_at_utc": "15:58:28.181Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "He's been on the outside looking in, but we know what a threat he can be.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "He's",
+        "start": 547.2,
+        "end": 547.32,
+        "speaker": "1",
+        "confidence": 0.458
+      },
+      {
+        "word": "been",
+        "start": 547.38,
+        "end": 547.44,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "on",
+        "start": 547.5,
+        "end": 547.56,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 547.56,
+        "end": 547.62,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "outside",
+        "start": 547.8,
+        "end": 548.04,
+        "speaker": "1",
+        "confidence": 0.99
+      },
+      {
+        "word": "looking",
+        "start": 548.16,
+        "end": 548.4,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "in,",
+        "start": 548.46,
+        "end": 548.7,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "but",
+        "start": 548.76,
+        "end": 548.82,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "we",
+        "start": 548.88,
+        "end": 548.94,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "know",
+        "start": 548.94,
+        "end": 549.12,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "what",
+        "start": 549.18,
+        "end": 549.36,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "a",
+        "start": 549.42,
+        "end": 549.48,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "threat",
+        "start": 549.54,
+        "end": 549.78,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "he",
+        "start": 549.84,
+        "end": 549.9,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "can",
+        "start": 549.96,
+        "end": 550.02,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "be.",
+        "start": 550.2,
+        "end": 550.32,
+        "speaker": "1",
+        "confidence": 0.679
+      }
+    ],
+    "split_group_id": "soniox-1778774311108-4",
+    "split_part_index": 1,
+    "split_reason": "terminal",
+    "carry_duration_s": 0.0,
+    "continues_next": false,
+    "continuation_of": "soniox-1778774311108-4"
+  },
+  {
+    "type": "utterance",
+    "audio_start": 551.88,
+    "audio_end": 554.64,
+    "wall_clock": "15:58:34.101",
+    "play_at": 1778774325.7413232,
+    "play_at_utc": "15:58:45.741Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774309.7413232,
+    "occurred_at_utc": "15:58:29.741Z",
+    "occurred_end_at": 1778774312.5013232,
+    "occurred_end_at_utc": "15:58:32.501Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Has been for Germany's under-21s.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Has",
+        "start": 551.88,
+        "end": 551.94,
+        "speaker": "1",
+        "confidence": 0.943
+      },
+      {
+        "word": "been",
+        "start": 552.06,
+        "end": 552.12,
+        "speaker": "1",
+        "confidence": 0.996
+      },
+      {
+        "word": "for",
+        "start": 552.24,
+        "end": 552.3,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Germany's",
+        "start": 553.32,
+        "end": 553.74,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "under-21s.",
+        "start": 553.8,
+        "end": 554.64,
+        "speaker": "1",
+        "confidence": 0.673
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 556.08,
+    "audio_end": 559.08,
+    "wall_clock": "15:58:38.568",
+    "play_at": 1778774329.941323,
+    "play_at_utc": "15:58:49.941Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774313.941323,
+    "occurred_at_utc": "15:58:33.941Z",
+    "occurred_end_at": 1778774316.941323,
+    "occurred_end_at_utc": "15:58:36.941Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Amiri sending it in and the header there from Posch.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Amiri",
+        "start": 556.08,
+        "end": 556.68,
+        "speaker": "1",
+        "confidence": 0.792
+      },
+      {
+        "word": "sending",
+        "start": 557.22,
+        "end": 557.46,
+        "speaker": "1",
+        "confidence": 0.989
+      },
+      {
+        "word": "it",
+        "start": 557.58,
+        "end": 557.64,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "in",
+        "start": 557.7,
+        "end": 557.76,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "and",
+        "start": 557.94,
+        "end": 558.0,
+        "speaker": "1",
+        "confidence": 0.676
+      },
+      {
+        "word": "the",
+        "start": 558.06,
+        "end": 558.12,
+        "speaker": "1",
+        "confidence": 0.972
+      },
+      {
+        "word": "header",
+        "start": 558.18,
+        "end": 558.42,
+        "speaker": "1",
+        "confidence": 0.986
+      },
+      {
+        "word": "there",
+        "start": 558.48,
+        "end": 558.54,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "from",
+        "start": 558.72,
+        "end": 558.78,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "Posch.",
+        "start": 558.96,
+        "end": 559.08,
+        "speaker": "1",
+        "confidence": 0.981
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 561.06,
+    "audio_end": 561.84,
+    "wall_clock": "15:58:41.398",
+    "play_at": 1778774334.921323,
+    "play_at_utc": "15:58:54.921Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774318.921323,
+    "occurred_at_utc": "15:58:38.921Z",
+    "occurred_end_at": 1778774319.701323,
+    "occurred_end_at_utc": "15:58:39.701Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Wide of the target.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Wide",
+        "start": 561.06,
+        "end": 561.24,
+        "speaker": "1",
+        "confidence": 0.991
+      },
+      {
+        "word": "of",
+        "start": 561.3,
+        "end": 561.36,
+        "speaker": "1",
+        "confidence": 0.94
+      },
+      {
+        "word": "the",
+        "start": 561.42,
+        "end": 561.48,
+        "speaker": "1",
+        "confidence": 0.986
+      },
+      {
+        "word": "target.",
+        "start": 561.54,
+        "end": 561.84,
+        "speaker": "1",
+        "confidence": 0.952
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 564.9,
+    "audio_end": 567.72,
+    "wall_clock": "15:58:47.217",
+    "play_at": 1778774338.7613232,
+    "play_at_utc": "15:58:58.761Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774322.7613232,
+    "occurred_at_utc": "15:58:42.761Z",
+    "occurred_end_at": 1778774325.5813231,
+    "occurred_end_at_utc": "15:58:45.581Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Juranovic on for Trimmel.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "Juranovic",
+        "start": 564.9,
+        "end": 565.44,
+        "speaker": "1",
+        "confidence": 0.725
+      },
+      {
+        "word": "on",
+        "start": 566.7,
+        "end": 566.76,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "for",
+        "start": 567.0,
+        "end": 567.06,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "Trimmel.",
+        "start": 567.54,
+        "end": 567.72,
+        "speaker": "1",
+        "confidence": 0.989
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 568.38,
+    "audio_end": 572.76,
+    "wall_clock": "15:58:52.295",
+    "play_at": 1778774342.2413232,
+    "play_at_utc": "15:59:02.241Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774326.2413232,
+    "occurred_at_utc": "15:58:46.241Z",
+    "occurred_end_at": 1778774330.621323,
+    "occurred_end_at_utc": "15:58:50.621Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "That's the Union change at this pretty late stage of the game, Moritz.",
+    "speaker": 0,
+    "word_timings": [
+      {
+        "word": "That's",
+        "start": 568.38,
+        "end": 568.56,
+        "speaker": "1",
+        "confidence": 0.609
+      },
+      {
+        "word": "the",
+        "start": 568.68,
+        "end": 568.74,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "Union",
+        "start": 568.98,
+        "end": 569.04,
+        "speaker": "1",
+        "confidence": 0.992
+      },
+      {
+        "word": "change",
+        "start": 570.0,
+        "end": 570.18,
+        "speaker": "1",
+        "confidence": 0.99
+      },
+      {
+        "word": "at",
+        "start": 570.3,
+        "end": 570.36,
+        "speaker": "1",
+        "confidence": 0.985
+      },
+      {
+        "word": "this",
+        "start": 570.54,
+        "end": 570.6,
+        "speaker": "1",
+        "confidence": 0.922
+      },
+      {
+        "word": "pretty",
+        "start": 571.2,
+        "end": 571.38,
+        "speaker": "1",
+        "confidence": 0.991
+      },
+      {
+        "word": "late",
+        "start": 571.56,
+        "end": 571.62,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "stage",
+        "start": 571.86,
+        "end": 572.04,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "of",
+        "start": 572.04,
+        "end": 572.1,
+        "speaker": "1",
+        "confidence": 0.999
+      },
+      {
+        "word": "the",
+        "start": 572.16,
+        "end": 572.22,
+        "speaker": "1",
+        "confidence": 1
+      },
+      {
+        "word": "game,",
+        "start": 572.34,
+        "end": 572.58,
+        "speaker": "1",
+        "confidence": 0.731
+      },
+      {
+        "word": "Moritz.",
+        "start": 572.64,
+        "end": 572.76,
+        "speaker": "1",
+        "confidence": 0.817
+      }
+    ]
+  },
+  {
+    "type": "utterance",
+    "audio_start": 575.46,
+    "audio_end": 582.72,
+    "wall_clock": "15:59:07.635",
+    "play_at": 1778774349.3213232,
+    "play_at_utc": "15:59:09.321Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774333.3213232,
+    "occurred_at_utc": "15:58:53.321Z",
+    "occurred_end_at": 1778774340.5813231,
+    "occurred_end_at_utc": "15:59:00.581Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Yeah, and, uh, again, just before seeing a good delivery from Amiri, Posch, he stands in the air well.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Yeah,",
+        "start": 575.46,
+        "end": 575.64,
+        "speaker": "2",
+        "confidence": 0.984
+      },
+      {
+        "word": "and,",
+        "start": 575.7,
+        "end": 575.88,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "uh,",
+        "start": 575.94,
+        "end": 576.06,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "again,",
+        "start": 576.3,
+        "end": 576.54,
+        "speaker": "2",
+        "confidence": 0.963
+      },
+      {
+        "word": "just",
+        "start": 576.72,
+        "end": 576.78,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "before",
+        "start": 577.08,
+        "end": 577.14,
+        "speaker": "2",
+        "confidence": 0.905
+      },
+      {
+        "word": "seeing",
+        "start": 577.74,
+        "end": 577.92,
+        "speaker": "2",
+        "confidence": 0.88
+      },
+      {
+        "word": "a",
+        "start": 577.92,
+        "end": 577.98,
+        "speaker": "2",
+        "confidence": 0.997
+      },
+      {
+        "word": "good",
+        "start": 577.98,
+        "end": 578.1,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "delivery",
+        "start": 578.16,
+        "end": 578.52,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "from",
+        "start": 578.58,
+        "end": 578.64,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "Amiri,",
+        "start": 578.94,
+        "end": 579.36,
+        "speaker": "2",
+        "confidence": 0.599
+      },
+      {
+        "word": "Posch,",
+        "start": 580.44,
+        "end": 580.62,
+        "speaker": "2",
+        "confidence": 0.529
+      },
+      {
+        "word": "he",
+        "start": 580.74,
+        "end": 580.8,
+        "speaker": "2",
+        "confidence": 0.984
+      },
+      {
+        "word": "stands",
+        "start": 580.92,
+        "end": 581.1,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "in",
+        "start": 581.22,
+        "end": 581.28,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "the",
+        "start": 581.28,
+        "end": 581.34,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "air",
+        "start": 581.52,
+        "end": 581.58,
+        "speaker": "2",
+        "confidence": 0.981
+      },
+      {
+        "word": "well.",
+        "start": 581.82,
+        "end": 582.72,
+        "speaker": "2",
+        "confidence": 0.717
+      }
+    ],
+    "split_group_id": "soniox-1778774347635-5",
+    "split_part_index": 0,
+    "split_reason": "sentence",
+    "carry_duration_s": 1.2,
+    "continues_next": true,
+    "continuation_of": null
+  },
+  {
+    "type": "utterance",
+    "audio_start": 582.78,
+    "audio_end": 586.44,
+    "wall_clock": "15:59:07.639",
+    "play_at": 1778774356.641323,
+    "play_at_utc": "15:59:16.641Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774340.641323,
+    "occurred_at_utc": "15:59:00.641Z",
+    "occurred_end_at": 1778774344.3013232,
+    "occurred_end_at_utc": "15:59:04.301Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "I'm a little surprised he couldn't get his head on target.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "I'm",
+        "start": 582.78,
+        "end": 582.96,
+        "speaker": "2",
+        "confidence": 0.992
+      },
+      {
+        "word": "a",
+        "start": 582.96,
+        "end": 583.02,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "little",
+        "start": 583.08,
+        "end": 583.2,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "surprised",
+        "start": 583.2,
+        "end": 583.56,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "he",
+        "start": 583.68,
+        "end": 583.74,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "couldn't",
+        "start": 583.8,
+        "end": 584.1,
+        "speaker": "2",
+        "confidence": 0.835
+      },
+      {
+        "word": "get",
+        "start": 585.24,
+        "end": 585.3,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "his",
+        "start": 585.42,
+        "end": 585.48,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "head",
+        "start": 585.66,
+        "end": 585.72,
+        "speaker": "2",
+        "confidence": 0.962
+      },
+      {
+        "word": "on",
+        "start": 585.9,
+        "end": 585.96,
+        "speaker": "2",
+        "confidence": 0.997
+      },
+      {
+        "word": "target.",
+        "start": 586.2,
+        "end": 586.44,
+        "speaker": "2",
+        "confidence": 0.947
+      }
+    ],
+    "split_group_id": "soniox-1778774347635-5",
+    "split_part_index": 1,
+    "split_reason": "terminal",
+    "carry_duration_s": 0.0,
+    "continues_next": false,
+    "continuation_of": "soniox-1778774347635-5"
+  },
+  {
+    "type": "utterance",
+    "audio_start": 589.38,
+    "audio_end": 598.92,
+    "wall_clock": "15:59:18.528",
+    "play_at": 1778774363.2413232,
+    "play_at_utc": "15:59:23.241Z",
+    "schedule_anchor_wall": 1778773757.861323,
+    "schedule_anchor_utc": "15:49:17.861Z",
+    "occurred_at": 1778774347.2413232,
+    "occurred_at_utc": "15:59:07.241Z",
+    "occurred_end_at": 1778774356.7813232,
+    "occurred_end_at_utc": "15:59:16.781Z",
+    "provider": "soniox",
+    "stt_playback_offset_ms": 700,
+    "text": "Kohn, we've just seen he hasn't got great momentum or much momentum or flow at the moment.",
+    "speaker": 1,
+    "word_timings": [
+      {
+        "word": "Kohn,",
+        "start": 589.38,
+        "end": 589.56,
+        "speaker": "2",
+        "confidence": 0.589
+      },
+      {
+        "word": "we've",
+        "start": 589.62,
+        "end": 589.86,
+        "speaker": "2",
+        "confidence": 0.999
+      },
+      {
+        "word": "just",
+        "start": 589.86,
+        "end": 589.92,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "seen",
+        "start": 590.04,
+        "end": 590.28,
+        "speaker": "2",
+        "confidence": 0.711
+      },
+      {
+        "word": "he",
+        "start": 591.72,
+        "end": 591.78,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "hasn't",
+        "start": 591.9,
+        "end": 592.14,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "got",
+        "start": 592.2,
+        "end": 592.26,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "great",
+        "start": 592.44,
+        "end": 592.74,
+        "speaker": "2",
+        "confidence": 0.931
+      },
+      {
+        "word": "momentum",
+        "start": 593.52,
+        "end": 593.94,
+        "speaker": "2",
+        "confidence": 0.994
+      },
+      {
+        "word": "or",
+        "start": 594.06,
+        "end": 594.12,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "much",
+        "start": 594.24,
+        "end": 594.3,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "momentum",
+        "start": 594.54,
+        "end": 595.02,
+        "speaker": "2",
+        "confidence": 0.622
+      },
+      {
+        "word": "or",
+        "start": 595.74,
+        "end": 595.8,
+        "speaker": "2",
+        "confidence": 0.998
+      },
+      {
+        "word": "flow",
+        "start": 595.98,
+        "end": 596.28,
+        "speaker": "2",
+        "confidence": 0.967
+      },
+      {
+        "word": "at",
+        "start": 596.82,
+        "end": 596.88,
+        "speaker": "2",
+        "confidence": 0.998
+      },
+      {
+        "word": "the",
+        "start": 596.94,
+        "end": 597.0,
+        "speaker": "2",
+        "confidence": 1
+      },
+      {
+        "word": "moment.",
+        "start": 597.24,
+        "end": 598.92,
+        "speaker": "2",
+        "confidence": 0.924
+      }
+    ],
+    "split_group_id": "soniox-1778774358528-6",
+    "split_part_index": 0,
+    "split_reason": "sentence",
+    "carry_duration_s": 0.0,
+    "continues_next": true,
+    "continuation_of": null
+  }
+]

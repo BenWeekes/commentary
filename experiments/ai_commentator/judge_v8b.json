@@ -1,0 +1,379 @@
+{
+  "summary": {
+    "judge_sample_n": 46,
+    "judge_hallucination_rate": 0.196,
+    "judge_subject_present_rate": 0.957,
+    "judge_human_likeness_mean": 3.59,
+    "soniox_turn_coverage": 1.0
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Players are gathered around the referee near a downed player in midfield, consistent with protesting a foul; phrasing is natural.",
+      "_text": "Union players crowd the referee after a midfield foul.",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Stoppage and players from both teams near the referee are visible; phrasing is natural if a bit generic.",
+      "_text": "A stoppage in play as players from both sides gather around the referee.",
+      "_t": 8.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player is down with the referee and others stopped nearby, consistent with a foul stoppage; phrasing is natural.",
+      "_text": "Loose ball and a foul stoppage near midfield.",
+      "_t": 15.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A female coach is visibly on the touchline looking focused; the line is natural though identity/team role cannot be confirmed from frame alone.",
+      "_text": "Marie-Louise Eta, the Iron Ones' head coach, looks on intently from the touchlin",
+      "_t": 21.45
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visible, but not clearly number 7, and jogging/stoppage are not evident from the frame.",
+      "_text": "Mainz\u2019s number 7 jogs away, glancing back after the stoppage.",
+      "_t": 28.6
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz player and staff are visible with instructions, but a substitution/coming off is not clearly shown in the frame.",
+      "_text": "A Mainz 05 player is coming off, with the coaching staff giving instructions.",
+      "_t": 35.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player with captain's armband is visible and appears waiting; line is natural and plausible.",
+      "_text": "Mainz captain Amiri stands poised, waiting for the restart.",
+      "_t": 42.35
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Only a goalkeeper close-up is visible; no clear free-kick setup near the box, though the red-and-white team context is plausible.",
+      "_text": "Free-kick setup for the red-and-whites near the box.",
+      "_t": 48.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Frame shows a free-kick/set-piece setup with Union defenders crowded in the box; Amiri identity is plausible though not visually confirmed.",
+      "_text": "Amiri stands over a dangerous set-piece, Union packed in the box.",
+      "_t": 53.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visibly packed in the penalty area, consistent with a set-piece situation; phrasing is natural.",
+      "_text": "The 05ers crowd the area for a set-piece delivery.",
+      "_t": 60.5
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible, but play appears around midfield rather than clearly in the attacking third.",
+      "_text": "Mainz 05 are in possession in the attacking third, pushing forward.",
+      "_t": 66.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union players are visible around halfway and the ball appears in that area; the cautious-possession phrasing is plausible and natural.",
+      "_text": "Union Berlin settle into cautious possession near halfway.",
+      "_t": 73.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz player number 10, likely Amiri with captain's armband, is visibly in possession near the right flank; line sounds natural.",
+      "_text": "The 05ers' captain Amiri has possession on the right flank.",
+      "_t": 78.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union Berlin players are visible in shape around midfield; line is plausible and natural.",
+      "_text": "Die Eisernen hold shape as the ball is worked across midfield.",
+      "_t": 84.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible in possession around midfield/attacking half; phrasing is natural and plausible.",
+      "_text": "Mainz circulate possession just inside the attacking half.",
+      "_t": 92.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz in red have possession near the left touchline; phrasing is natural.",
+      "_text": "Mainz work the ball near the left touchline.",
+      "_t": 98.45
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Home players are visible, but the ball appears near the near touchline rather than with a midfielder in the centre.",
+      "_text": "The home side's midfielder has possession in the centre of the pitch.",
+      "_t": 103.95
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz goalkeeper is visible with the ball, but a goal kick is not clearly shown from the frame.",
+      "_text": "Mainz's goalkeeper is taking a goal kick.",
+      "_t": 110.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz #22 is visible on the right controlling the ball with an opponent nearby; phrasing is natural.",
+      "_text": "Mainz 05\u2019s number 22 cushions the ball under pressure on the right.",
+      "_t": 115.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Dark-shirted Union players are visible in possession near their own half; the line is plausible and natural.",
+      "_text": "Union circulate possession deep, just inside their own half.",
+      "_t": 122.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Red-shirted Mainz players are visible in midfield with the ball, so the forward break is plausible; phrasing is natural broadcast style.",
+      "_text": "The 05ers drive forward through midfield, red shirts breaking at pace.",
+      "_t": 128.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Red-and-white player is visibly carrying the ball near the penalty area; wording is plausible but fairly plain.",
+      "_text": "The red-and-whites' midfielder has the ball just outside the box.",
+      "_t": 135.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Red Mainz players are clustered around the edge of the penalty area and working through the middle; phrasing is natural.",
+      "_text": "Mainz\u2019s red shirts crowd the edge of the box, probing centrally.",
+      "_t": 141.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Red team are in possession wide on the left near the penalty area; phrasing is natural.",
+      "_text": "The reds work it wide left near the area.",
+      "_t": 147.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz are visibly in possession on the right outside Union's box; 'slows play' is plausible but mildly interpretive.",
+      "_text": "Mainz 05\u2019s right-sided attacker slows play outside Union\u2019s box.",
+      "_t": 154.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Black-clad visiting side appears to have possession near the defensive third/box; wording is plain but natural.",
+      "_text": "The visitors have the ball near their own box.",
+      "_t": 166.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A dark-kit visiting player is visibly advancing with the ball near the flank under pressure; the phrasing is natural.",
+      "_text": "The visitors carry the ball along the right flank.",
+      "_t": 172.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red Mainz player appears down and the referee is visible making a play-on style gesture; wording is natural.",
+      "_text": "A Mainz player is on the ground, but the referee signals to continue.",
+      "_t": 184.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visible holding a card; stoppage is plausible, though midfield location isn't clear from frame.",
+      "_text": "Referee halts play near midfield, card in hand.",
+      "_t": 192.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Close-up of a Union Berlin player with his hand at his hair; line is accurate but caption-like.",
+      "_text": "A Union Berlin player is shown in a close-up, adjusting his hair.",
+      "_t": 198.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution board is visibly raised by the touchline with Mainz players present; line is natural though straightforward.",
+      "_text": "Substitution board up near the touchline for Mainz 05.",
+      "_t": 204.6
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player is visible, but the ball is near his foot rather than a high ball drifting over.",
+      "_text": "The red-and-whites\u2019 forward watches the high ball drift over.",
+      "_t": 211.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "Frame shows a generic player silhouette kicking a ball, not Becker jogging near a visible goalmouth or after an attack.",
+      "_text": "Becker jogs away near the goalmouth after the attack.",
+      "_t": 217.25
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible near the touchline, but the frame does not clearly show a substitution or identify Sieb replacing Becker.",
+      "_text": "Sieb comes on for Mainz, replacing Becker.",
+      "_t": 223.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Substitution board and Mainz player visible; '05ers' refers to Mainz, though phrasing is generic.",
+      "_text": "A substitution is being made for the 05ers.",
+      "_t": 229.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is visible jogging on the pitch; 'near midfield' and shape are plausible but not clearly established from the close-up.",
+      "_text": "Mainz 05 player moving back into shape near midfield.",
+      "_t": 235.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is plausibly visible and the vague reaction/end-of-play description is not contradicted, though the wording is bland.",
+      "_text": "The home side's midfielder Sano reacting to the end of a play.",
+      "_t": 241.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visibly set up for a dead-ball delivery from the right side, with attackers gathered in the box; phrasing is natural.",
+      "_text": "The hosts prepare a set piece on the right flank.",
+      "_t": 248.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Free-kick setup is visible with a wall, referee nearby, and Mainz players preparing to take it.",
+      "_text": "The referee is giving instructions to the wall, as die Nullf\u00fcnfer prepare a free",
+      "_t": 255.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Substitution graphic for Union Berlin is visible; red Union players are on screen, though wording is somewhat generic.",
+      "_text": "Union Berlin substitution underway near midfield.",
+      "_t": 263.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Mainz bench players are visible and appear to be interacting, though the specific identification as Becker is not clear; phrasing is caption-like.",
+      "_text": "Mainz player Becker on the bench, talking to other players.",
+      "_t": 268.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Becker is clearly visible by the Mainz 05 bench; stoppage is plausible though the line is fairly caption-like.",
+      "_text": "Becker near the 05ers' bench during a stoppage.",
+      "_t": 274.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Visiting side in black appears to have the ball near the left touchline in the attacking third; wording is accurate but fairly plain.",
+      "_text": "Visitors have the ball by the left sideline in the final third.",
+      "_t": 279.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "On-screen graphic confirms Kohn's yellow card; Union players and touchline area are visible, though phrasing is slightly caption-like.",
+      "_text": "Union Berlin player Kohn receives a booking near the touchline.",
+      "_t": 284.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Dark-clad visiting player is at the sideline with the ball, consistent with preparing a throw-in; phrasing is natural enough.",
+      "_text": "Visitors preparing a throw-in near the right sideline.",
+      "_t": 290.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A black-clad player is visible and walking, though identity and 'play resets' aren't fully verifiable; phrasing is passable.",
+      "_text": "Juranovic in black, moving upfield as play resets.",
+      "_t": 295.9
+    }
+  ]
+}

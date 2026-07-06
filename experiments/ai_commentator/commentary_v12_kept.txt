@@ -1,0 +1,48 @@
+# v12: single gemini-2.5-flash + playerist + rich context (fills matrix)
+# 45 accepted; subs []
+
+[   2.20s] Kohr looks on from the left flank.
+[   7.15s] Becker looks on as Exner tries to calm the situation.
+[  13.20s] Tietz battles for possession in the box.
+[  18.70s] Exner gestures to the players.
+[  25.85s] Jae-sung turns and smiles from the midfield.
+[  30.80s] Zentner stands in his goal, preparing for the restart.
+[  36.85s] Sano walks towards the bench, receiving instructions.
+[  41.80s] Becker looks on from the foreground.
+[  51.15s] Amiri stands over the free kick.
+[  58.30s] Amiri strikes the ball towards the goal.
+[  63.80s] Klaus collects the ball in his own box.
+[  70.95s] Klaus distributes the ball out from his box.
+[  76.45s] Amiri passes the ball forward from the center circle.
+[  93.50s] Mwene receives the ball on the right side of the pitch.
+[ 102.30s] Mwene goes down in the midfield.
+[ 106.70s] Mwene continues his run down the right wing.
+[ 110.00s] Klaus prepares to distribute the ball from his own box.
+[ 119.35s] Zentner approaches the ball, preparing for the goal kick.
+[ 128.70s] Amiri carries the ball forward into the final third.
+[ 135.30s] Mwene controls the ball in the attacking third.
+[ 143.55s] Mwene receives the ball on the edge of the box.
+[ 155.65s] Mwene plays the ball into the box.
+[ 162.25s] Klaus collects the ball from the air in his box.
+[ 171.05s] Sano challenges Ansah for the ball near the touchline.
+[ 177.10s] Mwene carries the ball forward into the attacking half.
+[ 183.15s] Exner gestures for the players to continue.
+[ 188.10s] Veratschnig turns away, receiving the yellow card from Exner.
+[ 194.15s] Burke turns his head, observing the field of play.
+[ 200.20s] Exner observes the substitution board being raised by the fourth official.
+[ 207.90s] Sieb applauds the crowd, acknowledging their support.
+[ 212.85s] Becker leaps for the ball near the goal.
+[ 218.35s] Becker lifts his shirt, revealing a message to the crowd.
+[ 224.40s] Sieb receives a pat on the back from a teammate.
+[ 232.10s] Becker shakes hands with Henriksen as he leaves the field.
+[ 238.15s] Becker turns his head, observing the crowd behind the goal.
+[ 244.20s] Exner stands near the penalty spot, observing the players.
+[ 250.80s] Becker observes the ball near the corner flag.
+[ 256.85s] Amiri takes the corner kick.
+[ 261.80s] Nebel rises from the ground, regaining his footing.
+[ 267.85s] Becker walks away from the bench, observing the field of play.
+[ 276.10s] Amiri receives the ball in the midfield.
+[ 281.05s] Kohn sits on the ground after a challenge.
+[ 287.10s] Kohn looks around the field, regaining his composure.
+[ 293.15s] Juranovic observes the ball near the corner flag.
+[ 298.65s] Juranovic prepares to throw the ball back into play.

@@ -1,0 +1,323 @@
+{
+  "summary": {
+    "judge_sample_n": 39,
+    "judge_hallucination_rate": 0.103,
+    "judge_subject_present_rate": 0.949,
+    "judge_human_likeness_mean": 2.9,
+    "soniox_turn_coverage": 0.882
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visible near a player down and surrounding players; line is accurate but fairly plain.",
+      "_text": "The referee is close to the incident.",
+      "_t": 3.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A referee-like figure is visibly standing near a player down/incident, but the wording is stiff and unnatural.",
+      "_text": "Mr Exner stands near the incident.",
+      "_t": 9.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Generic replay cue; frame shows match action and nothing contradicts it, though no clear replay graphic is visible.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 14.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Two Mainz players are visibly standing on the pitch; names and midfield location are plausible but not fully verifiable from the frame.",
+      "_text": "Jae-sung and Veratschnig stand near midfield.",
+      "_t": 25.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player could plausibly be Jae-sung in the wide shot; it describes positioning rather than a clear event, though the phrasing is fairly plain.",
+      "_text": "Jae-sung holds his position in midfield.",
+      "_t": 30.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "Two Mainz players are close, but Amiri/Becker are not clearly identifiable in the frame; line is plain and caption-like.",
+      "_text": "Amiri stands close to Becker.",
+      "_t": 42.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Goalkeeper is visibly standing in front of the net near the goalmouth; phrasing is simple but plausible.",
+      "_text": "Klaus stands at his goalmouth.",
+      "_t": 46.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A set-piece is visible near the penalty area with a Mainz player by the ball; the line is natural and plausible.",
+      "_text": "Amiri stands over the ball near the box.",
+      "_t": 51.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Players and the ball appear to be in/near the goalmouth, though the phrasing is flat and player identity isn't visually confirmable.",
+      "_text": "Klaus is near the ball in the goalmouth.",
+      "_t": 61.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Midfield is clearly visible and play/ball appears near that area; wording is accurate but plain.",
+      "_text": "The ball sits near midfield.",
+      "_t": 66.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Possession in the defensive half is plausible from the frame, and Union are plausibly among the visible players; phrasing is natural but generic.",
+      "_text": "Union hold possession inside their own half.",
+      "_t": 70.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player in red #10 is controlling the ball right by the touchline; Amiri is plausibly visible and the phrasing is natural.",
+      "_text": "Amiri controls it near the touchline.",
+      "_t": 78.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visible around midfield and the line describes general possession, which is plausible from the frame.",
+      "_text": "Mainz hold possession around midfield.",
+      "_t": 83.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visible in red with the ball near midfield; the line is plausible but fairly plain.",
+      "_text": "Mainz 05 keep the ball around midfield.",
+      "_t": 88.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players in red are visible with the ball near the halfway line; wording is accurate but fairly plain.",
+      "_text": "The 05ers keep possession near midfield.",
+      "_t": 92.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Union player in dark kit appears crouched/down near midfield; line is concise and natural.",
+      "_text": "Union player down near midfield.",
+      "_t": 103.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A dark-shirted player appears to be in possession in his own half; 'Klaus' is plausible though not identifiable from the frame.",
+      "_text": "Klaus controls it inside his own half.",
+      "_t": 109.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz number 22 is clearly visible near the sideline; the line is accurate but plain.",
+      "_text": "Mainz number 22 is near the touchline.",
+      "_t": 114.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Goalkeeper is visible standing near the ball in his defensive area; wording is plausible though a bit generic.",
+      "_text": "Klaus holds his position at the goalmouth.",
+      "_t": 119.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union players are visible and the ball appears in their defensive half; the line is natural though fairly generic.",
+      "_text": "Union keep possession inside their own half.",
+      "_t": 124.3
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz player is visible, but the ball/possession is not clearly shown; phrasing is serviceable but generic.",
+      "_text": "The 05ers hold possession near midfield",
+      "_t": 133.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible attacking with the ball just outside the penalty area; line is natural and accurate.",
+      "_text": "Mainz keep possession just outside the box.",
+      "_t": 140.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visibly positioned around the penalty area; phrasing is acceptable but a bit plain.",
+      "_text": "Mainz 05 stand at the edge of the box.",
+      "_t": 145.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Ball is visible near the near left touchline; simple but natural enough.",
+      "_text": "The ball sits near the left touchline.",
+      "_t": 150.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz 05 players in red are visibly positioned around the attacking third; phrasing is understandable but a bit stiff.",
+      "_text": "The 05ers stand in the attacking third.",
+      "_t": 155.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Becker (#23) is visible in possession near the sideline area; phrasing is clear but fairly plain.",
+      "_text": "Becker has possession near the touchline.",
+      "_t": 160.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Union number 39 is visible near the ball, but 'stands' is static and caption-like for an active challenge.",
+      "_text": "Union number 39 stands near the ball.",
+      "_t": 173.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is clearly visible near players; line is factual but bland.",
+      "_text": "The referee is near the incident.",
+      "_t": 185.9
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "Official is visible, but no Mainz number 22 is visible near him.",
+      "_text": "The official stands near Mainz number 22.",
+      "_t": 190.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Frame only shows a player standing; no incident or referee decision is visible, and the phrasing is terse/unnatural.",
+      "_text": "NO REPLAY: no call.",
+      "_t": 196.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Generic replay setup line; no specific event claimed, and it refers broadly to the visible play.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 212.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Becker appears visible near the sideline; the line is accurate but plain and caption-like.",
+      "_text": "Becker stands by the touchline.",
+      "_t": 231.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A Mainz player is clearly visible; the line is just a fragment identifying him, with no event claim.",
+      "_text": "Becker in the Mainz shirt.",
+      "_t": 237.6
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Weiper appears visible, but the frame is a close-up and does not show the penalty area, so the location claim is unsupported.",
+      "_text": "Weiper is in the penalty area.",
+      "_t": 242.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Generic comment about officiating/replay; no specific visible event claimed. Field/player visible, phrasing is terse but plausible.",
+      "_text": "No replay: no call.",
+      "_t": 249.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A red player is visibly near the stationary ball for a set piece, plausibly Amiri; wording is plain and caption-like.",
+      "_text": "Amiri is standing near the ball.",
+      "_t": 253.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Substitution graphic clearly shows Juranovic on and Trimmel off; wording is terse and unnatural with 'No replay:'.",
+      "_text": "No replay: Juranovic on, Trimmel off.",
+      "_t": 264.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A Mainz player is visibly standing by the bench, but the phrasing is awkward and caption-like.",
+      "_text": "No replay: Becker stands by the Mainz bench.",
+      "_t": 270.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "The ball appears to be near the sideline with players nearby; 'Union' is plausible though not clearly identifiable. The phrasing is simple but natural enough.",
+      "_text": "Union have the ball along the touchline.",
+      "_t": 300.85
+    }
+  ]
+}

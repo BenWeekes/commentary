@@ -1,0 +1,67 @@
+# AI commentary v5 — sub memory + trigram dedup + frame carry-over + dynamic gate
+# 63 accepted of 112 calls
+# Subs tracked: [{'off': 'Tietz', 'on': 'Weiper', 'at_s': 249.2}, {'off': 'Trimmel', 'on': 'Juranovic', 'at_s': 261.8}]
+
+[   2.20s] Play stopped; a Union man’s down.
+[   5.50s] Free-kick, and tempers are flaring.
+[   9.90s] Play stopped again; referee sorting it out.
+[  14.85s] Tietz challenged, and the whistle’s gone.
+[  19.80s] Eta barking instructions from the touchline.
+[  26.40s] Lee Jae-sung, still probing for Mainz.
+[  31.35s] Free-kick coming, bodies packed in.
+[  35.75s] Still no restart; the benches are fuming.
+[  40.70s] Amiri, hands on hips, waiting for the restart.
+[  44.55s] Klaus set, but nothing yet.
+[  48.95s] Amiri over the free-kick, dangerous.
+[  53.90s] Amiri over it again, bodies queued.
+[  58.85s] Amiri whips it in—crowded six-yard box!
+[  61.60s] Klaus gathers; Union survive the scramble.
+[  66.55s] No threat yet, just a midfield reset.
+[  76.45s] No urgency, just a patient reset.
+[  81.40s] Amiri over the ball again, probing.
+[  87.45s] Mainz probing, but Union hold their shape.
+[  92.40s] No urgency; the 05ers recycle it.
+[  97.90s] Caci, but the lane’s closed.
+[ 103.40s] Burcu under pressure, and Mainz 05 win it back.
+[ 109.45s] Klaus calmly starts the Union reset.
+[ 114.40s] Veratschnig over the dead ball.
+[ 118.80s] Zentner over the goal kick.
+[ 127.60s] Amiri driving at the Iron Ones.
+[ 130.35s] Mainz building through the middle.
+[ 134.75s] Burcu driving at Kohr.
+[ 136.95s] Mwene surging on the left.
+[ 141.35s] Amiri crowded out at the D.
+[ 146.30s] Nebel probing on the edge.
+[ 151.25s] Mainz working it down the left.
+[ 154.00s] Caci sizing up the cross.
+[ 158.40s] Amiri and Becker probing, Union holding shape.
+[ 163.35s] Klaus claims it; pressure relieved.
+[ 170.50s] Burke driving down the right.
+[ 172.70s] Burcu crowded out near the touchline.
+[ 179.30s] Long ball, and a loose one.
+[ 184.25s] Referee halts it; free-kick coming.
+[ 188.65s] Veratschnig booked; Mainz down to ten.
+[ 191.40s] Yellow for the visitors.
+[ 195.80s] Burke, hands on hips, catching his breath.
+[ 198.55s] Burcu, listening for the whistle.
+[ 202.95s] Double change for Union: Ilic and Burcu off.
+[ 208.45s] Klaus applauds as the board goes up.
+[ 213.40s] Becker denied at the back post!
+[ 216.15s] Klaus claws it away; Mainz still pressing.
+[ 221.10s] Becker, back on his feet.
+[ 225.50s] Sieb on, the farewell man returns.
+[ 230.45s] Becker makes way; Sieb gets the nod.
+[ 235.40s] Sano jogging back into shape.
+[ 239.80s] Nebel over the dead ball.
+[ 244.20s] Mainz free kick, bodies piling in.
+[ 249.15s] Weiper on, Tietz off.
+[ 254.10s] Amiri over it, dangerous delivery coming.
+[ 259.60s] Chaos in the six-yard box!
+[ 261.80s] Juranovic on, Trimmel off.
+[ 266.20s] Juranovic already on; Becker to the bench.
+[ 272.80s] Becker back on the bench.
+[ 277.20s] Klaus hurries it left, under pressure.
+[ 282.15s] Köhn over the ball for the throw.
+[ 288.20s] Juranovic to take the throw.
+[ 292.60s] Juranovic over the throw again.
+[ 297.55s] Klaus over the restart.

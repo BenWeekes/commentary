@@ -1,0 +1,53 @@
+# AI commentary GPT-5.5 — same v5 pipeline
+# 49 accepted of 198 calls
+# Subs: [{'off': 'Tietz', 'on': 'Weiper', 'at_s': 201.3}, {'off': 'Trimmel', 'on': 'Juranovic', 'at_s': 264.6}]
+
+[   2.20s] One of the visitors stays down.
+[   4.95s] Referee trying to calm this down.
+[   8.25s] Kemlein wants more from the referee.
+[  13.20s] Tietz involved as the replay rolls.
+[  18.15s] Eta still asking the question.
+[  23.65s] Lee waits for the restart.
+[  29.70s] Free kick, right on the edge.
+[  34.65s] Sano taking instructions from Henriksen.
+[  39.05s] Amiri focused as the restart waits.
+[  44.00s] Klaus waits, eyes fixed.
+[  48.40s] Plenty to aim at in the middle.
+[  54.45s] Amiri, from a very inviting angle.
+[  59.40s] Klaus comes, and punches clear.
+[  63.80s] Cleared long, pressure released.
+[  78.10s] Amiri carries, looking for the angle.
+[  92.40s] Caci driving on down the right.
+[ 102.30s] Sliding challenge breaks that move up.
+[ 110.55s] Zentner goes long.
+[ 118.25s] Klaus lets it run across him.
+[ 130.90s] Mainz break, plenty streaming forward.
+[ 135.85s] Heavy traffic down that right side.
+[ 138.60s] The 05ers probing, but no gap yet.
+[ 143.55s] Mwene, with time to measure.
+[ 147.95s] Just kept in on the near side.
+[ 155.65s] Caci tries to slip it inside.
+[ 160.60s] Becker, squaring up Trimmel.
+[ 165.00s] Klaus rolls it out, danger gone.
+[ 170.50s] Burcu, under pressure on the flank.
+[ 175.45s] Veratschnig carries it over halfway.
+[ 179.85s] One down after that challenge.
+[ 182.60s] Referee says free kick, no more.
+[ 187.55s] Veratschnig goes into the book.
+[ 196.90s] Burke just gathering himself again.
+[ 201.30s] Weiper on for Tietz for Mainz.
+[ 207.90s] Sieb gets a warm hand from the crowd.
+[ 213.40s] Becker at the back post—Klaus in the way!
+[ 218.35s] Becker still wondering how that stayed out.
+[ 229.90s] Becker gets his handshake on the touchline.
+[ 234.85s] Becker back into the fray.
+[ 240.35s] Weiper already making himself a nuisance.
+[ 245.30s] Sieb on, Becker’s evening is done.
+[ 250.25s] Amiri with the signal, bodies waiting.
+[ 255.75s] Amiri begins the delivery.
+[ 260.15s] Still alive for da Costa.
+[ 264.55s] Juranovic on for Trimmel for Union.
+[ 276.65s] A nervy moment in the build-up.
+[ 282.15s] Kohn's yellow confirmed on the graphic.
+[ 288.20s] Juranovic to take from the touchline.
+[ 295.35s] Juranovic, back after an injury-hit season.

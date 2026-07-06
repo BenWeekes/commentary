@@ -1,0 +1,168 @@
+{
+  "samples": [
+    {
+      "idx": 25,
+      "video_time_s": 14.3,
+      "gpt55_ms": 4256,
+      "gpt55_out": "REPLAY: yes",
+      "pro_ms": 33788,
+      "pro_out": "MOTION: replay\n\nREPLAY: yes"
+    },
+    {
+      "idx": 51,
+      "video_time_s": 28.6,
+      "gpt55_ms": 9285,
+      "gpt55_out": "MOTION: low\n\nREPLAY: no\nJae-sung in a Mainz shirt.",
+      "pro_ms": 24865,
+      "pro_out": ""
+    },
+    {
+      "idx": 77,
+      "video_time_s": 42.900000000000006,
+      "gpt55_ms": 8027,
+      "gpt55_out": "MOTION: low\n\nREPLAY: no\nBecker beside a Mainz teammate.",
+      "pro_ms": 38486,
+      "pro_out": ""
+    },
+    {
+      "idx": 103,
+      "video_time_s": 57.2,
+      "gpt55_ms": 4875,
+      "gpt55_out": "REPLAY: no\nAmiri over the ball in attacking third.",
+      "pro_ms": 37727,
+      "pro_out": ""
+    },
+    {
+      "idx": 129,
+      "video_time_s": 71.5,
+      "gpt55_ms": 4423,
+      "gpt55_out": "MOTION: normal\n\nREPLAY: no\nThe ball near the left touchline.",
+      "pro_ms": 24269,
+      "pro_out": ""
+    },
+    {
+      "idx": 155,
+      "video_time_s": 85.80000000000001,
+      "gpt55_ms": 2642,
+      "gpt55_out": "MOTION: normal\n\nREPLAY: no\nMainz in possession near midfield.",
+      "pro_ms": 23811,
+      "pro_out": ""
+    },
+    {
+      "idx": 181,
+      "video_time_s": 100.10000000000001,
+      "gpt55_ms": 4322,
+      "gpt55_out": "MOTION: normal\n\nREPLAY: no\nMainz in possession near halfway.",
+      "pro_ms": 25514,
+      "pro_out": ""
+    },
+    {
+      "idx": 207,
+      "video_time_s": 114.4,
+      "gpt55_ms": 8242,
+      "gpt55_out": "MOTION: low\n\nREPLAY: no\nMainz number 22 near the touchline.",
+      "pro_ms": 24066,
+      "pro_out": ""
+    },
+    {
+      "idx": 233,
+      "video_time_s": 128.70000000000002,
+      "gpt55_ms": 3464,
+      "gpt55_out": "REPLAY: no\nMOTION: normal\n\nMainz in possession near midfield.",
+      "pro_ms": 23721,
+      "pro_out": ""
+    },
+    {
+      "idx": 259,
+      "video_time_s": 143.0,
+      "gpt55_ms": 6643,
+      "gpt55_out": "REPLAY: no\nMOTION: normal\n\nMainz at the left edge of the box.",
+      "pro_ms": 25294,
+      "pro_out": ""
+    },
+    {
+      "idx": 285,
+      "video_time_s": 157.3,
+      "gpt55_ms": 4242,
+      "gpt55_out": "MOTION: normal\n\nREPLAY: no\nBecker in possession near the touchline.",
+      "pro_ms": 23960,
+      "pro_out": ""
+    },
+    {
+      "idx": 311,
+      "video_time_s": 171.60000000000002,
+      "gpt55_ms": 8907,
+      "gpt55_out": "REPLAY: no\nMOTION: normal\n\nUnion player near the ball by touchline.",
+      "pro_ms": 32877,
+      "pro_out": ""
+    },
+    {
+      "idx": 337,
+      "video_time_s": 185.9,
+      "gpt55_ms": 7615,
+      "gpt55_out": "REPLAY: no\nMOTION: normal\n\nThe referee shows a yellow card.",
+      "pro_ms": 57393,
+      "pro_out": ""
+    },
+    {
+      "idx": 363,
+      "video_time_s": 200.20000000000002,
+      "gpt55_ms": 10234,
+      "gpt55_out": "REPLAY: no\nSub board up: Juranovic on, Ilic off.",
+      "pro_ms": 28196,
+      "pro_out": ""
+    },
+    {
+      "idx": 389,
+      "video_time_s": 214.50000000000003,
+      "gpt55_ms": 6843,
+      "gpt55_out": "REPLAY: no\nMOTION: normal\n\nKlaus on the goalmouth turf.",
+      "pro_ms": 24199,
+      "pro_out": ""
+    },
+    {
+      "idx": 415,
+      "video_time_s": 228.8,
+      "gpt55_ms": 8248,
+      "gpt55_out": "MOTION: normal\n\nREPLAY: no\nSub board: Weiper on, Becker off.",
+      "pro_ms": 26171,
+      "pro_out": ""
+    },
+    {
+      "idx": 441,
+      "video_time_s": 243.10000000000002,
+      "gpt55_ms": 7038,
+      "gpt55_out": "MOTION: low\n\nREPLAY: no\nAmiri over the ball on the right.",
+      "pro_ms": 25168,
+      "pro_out": ""
+    },
+    {
+      "idx": 467,
+      "video_time_s": 257.40000000000003,
+      "gpt55_ms": 4060,
+      "gpt55_out": "MOTION: normal\n\nREPLAY: no\nMainz shirts in the penalty area.",
+      "pro_ms": 25587,
+      "pro_out": ""
+    },
+    {
+      "idx": 493,
+      "video_time_s": 271.70000000000005,
+      "gpt55_ms": 8986,
+      "gpt55_out": "MOTION: low\n\nMainz substitutes on the bench.",
+      "pro_ms": 30514,
+      "pro_out": ""
+    },
+    {
+      "idx": 519,
+      "video_time_s": 286.0,
+      "gpt55_ms": 7721,
+      "gpt55_out": "MOTION: low\n\nREPLAY: no\nK\u00f6hn in close-up.",
+      "pro_ms": 50850,
+      "pro_out": ""
+    }
+  ],
+  "totals": {
+    "gpt-5.5": 130073,
+    "gpt-5.5-pro": 606456
+  }
+}

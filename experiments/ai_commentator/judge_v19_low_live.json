@@ -1,0 +1,307 @@
+{
+  "summary": {
+    "judge_sample_n": 37,
+    "judge_hallucination_rate": 0.135,
+    "judge_subject_present_rate": 0.946,
+    "judge_human_likeness_mean": 2.86,
+    "soniox_turn_coverage": 0.794
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Union players are visible and the line is a plausible general tactical observation, though the frame looks like a stoppage rather than clear active deep defending.",
+      "_text": "Union are defending deep.",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visibly near a stoppage/incident; line is plausible but fairly generic.",
+      "_text": "Exner is close to the incident.",
+      "_t": 7.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visibly standing over/near a player down, fitting an incident; phrasing is clear but generic.",
+      "_text": "The referee stands near the incident.",
+      "_t": 12.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Generic broadcast line about a replay; no specific event claimed, and the frame could plausibly be part of coverage.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 18.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Mainz number 7 is clearly visible; 'near midfield' is plausible but not evident, and the wording is flat.",
+      "_text": "Mainz 05 number 7 stands near midfield.",
+      "_t": 23.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Mainz player is visible, but midfield location is not clearly verifiable from the close-up; phrasing is plain.",
+      "_text": "The 05ers are near midfield.",
+      "_t": 28.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Red-shirted players are visible, but midfield location is not evident from this close-up and the phrasing is bland.",
+      "_text": "The reds are close to midfield.",
+      "_t": 41.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A general tactical observation; the tight frame doesn't prove it, but no obvious event is falsely claimed and Union are plausibly involved.",
+      "_text": "Union sit deep in their own half.",
+      "_t": 46.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Frame shows Mainz in red set up for a free kick near the edge of the box; phrasing is natural enough.",
+      "_text": "Mainz line up over a free kick at the box edge.",
+      "_t": 51.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Ball is visibly near the midfield area; line is accurate but very plain and caption-like.",
+      "_text": "The ball sits in midfield.",
+      "_t": 65.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A goalkeeper/player is visibly in the penalty area, so the location claim is plausible, but the phrasing is plain and caption-like.",
+      "_text": "Klaus is in his penalty area.",
+      "_t": 69.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "General field-state comment; ball appears around the middle third, but wording is plain and caption-like.",
+      "_text": "The ball is in midfield.",
+      "_t": 74.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visible with the ball near the touchline; line is accurate but fairly plain.",
+      "_text": "Mainz over the ball on the touchline.",
+      "_t": 81.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Ball is visible near the center circle/midfield; line is accurate but plain.",
+      "_text": "The ball remains at midfield.",
+      "_t": 90.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visible around midfield and possession looks plausible; line is natural but fairly plain.",
+      "_text": "Mainz 05 keep possession near midfield.",
+      "_t": 94.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "General field-state comment; ball and players are around the middle third, though wording is plain.",
+      "_text": "The ball stays near midfield.",
+      "_t": 104.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Ball is visible on the right side, though not especially close to the touchline; phrasing sounds caption-like.",
+      "_text": "The ball lies near the right touchline.",
+      "_t": 108.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "General replay intro fits a broadcast shot; no specific event claimed, and the field action is visible.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 116.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz player in red is visibly on the ball around midfield; line is accurate but fairly generic.",
+      "_text": "Mainz keep possession in midfield.",
+      "_t": 134.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz in red appear to have the ball near the edge of the penalty area; wording is accurate but slightly caption-like.",
+      "_text": "Mainz 05 hold possession near the box edge.",
+      "_t": 139.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Ball is visible near the left flank/touchline area; simple but plausible commentary.",
+      "_text": "The ball is on the left touchline.",
+      "_t": 144.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Red-and-white team is visibly positioned around the opponent's box, plausibly in the attacking third; wording is clear but generic.",
+      "_text": "The red-and-whites are in the attacking third.",
+      "_t": 152.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Mainz players are visible with one standing over the ball; phrasing is a bit clipped and unnatural.",
+      "_text": "The 05ers over the ball near the touchline.",
+      "_t": 157.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union players are visibly defending deep around their penalty area; phrasing is natural but brief.",
+      "_text": "Union sit deep in the box.",
+      "_t": 165.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visible around midfield and the possession claim is plausible from the frame, though the line is fairly plain.",
+      "_text": "Mainz keep possession in midfield.",
+      "_t": 169.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visibly holding up a yellow card around midfield; line is accurate but plain.",
+      "_text": "The referee shows a yellow card near midfield.",
+      "_t": 187.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution is visibly occurring with players and board at touchline; Weiper #44 appears present, and the line sounds natural.",
+      "_text": "Weiper comes on, Tietz goes off.",
+      "_t": 201.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz substitution is visibly occurring at the touchline, with Mainz players and officials present; the wording is brief but natural.",
+      "_text": "Sieb on, Becker off for Mainz.",
+      "_t": 206.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Generic replay cue fits the broadcast-style frame and doesn\u2019t claim a specific on-field event.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 211.75
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "Player and pitch position are not visible; line is a flat positional caption.",
+      "_text": "Sieb stands in the attacking third.",
+      "_t": 220.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player likely Sieb is visible by the sideline, and the line is simple but natural.",
+      "_text": "Sieb is near the touchline.",
+      "_t": 225.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution board and sideline activity make a change plausible, though the specific players are not identifiable.",
+      "_text": "Sieb comes on, Becker goes off.",
+      "_t": 229.9
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "No touchline is visible and the visible player appears to be a Mainz player, not plausibly Becker.",
+      "_text": "Becker stands by the touchline.",
+      "_t": 234.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A Mainz player is visible, but the tight shot with netting doesn't support 'near midfield' and sounds caption-like.",
+      "_text": "Mainz player stands near midfield.",
+      "_t": 239.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Bench scene visible with Mainz players; two named players could plausibly be present, but phrasing is flat and caption-like.",
+      "_text": "Becker sits on the bench beside Sieb.",
+      "_t": 268.95
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz players are visible near the sideline, but no throw-in is clearly being taken in this frame.",
+      "_text": "Mainz 05 take the throw-in on the touchline.",
+      "_t": 285.45
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Player is plausibly Juranovic, but the touchline is not visible, so the location claim isn't supported.",
+      "_text": "Juranovic stands near the touchline.",
+      "_t": 295.35
+    }
+  ]
+}

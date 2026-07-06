@@ -1,0 +1,114 @@
+# v9: playerist vision + strict arbiter + agreement-required + frame verifier
+# 55 accepted; choices {'B_safe': 27, 'A_safe': 50, 'NO_CALL': 21, 'A_specific': 6, 'B_specific': 3}
+# agreement_fails=8 verifier_no_call=2 downgrades=25
+
+[   2.20s] q=4 B_safe       EN: A cluster of players on the ground in the middle third.
+                                    FR: Un groupe de joueurs au sol dans le tiers central.
+[   9.90s] q=4 A_safe       EN: Players pause around the downed man.
+                                    FR: Les joueurs marquent une pause autour de l'homme au sol.
+[  13.20s] q=4 A_specific   EN: Tietz challenges for the loose ball.
+                                    FR: Tietz dispute le ballon libre.
+[  18.70s] q=4 B_safe       EN: The assistant referee makes a call on the sideline.
+                                    FR: L’assistante arbitrale Stegemann fait signe de laisser jouer.
+[  24.75s] q=4 A_safe       EN: Mainz reset after the stoppage.
+                                    FR: Mayence se remet en place après l'arrêt de jeu.
+[  29.70s] q=4 A_safe       EN: Players set around the box for restart.
+                                    FR: Les joueurs se placent autour de la surface pour la reprise.
+[  35.20s] q=4 A_specific   EN: Sano listens as Henriksen gestures on the touchline.
+                                    FR: Sano écoute pendant que Henriksen fait des gestes sur la ligne de touche.
+[  41.25s] q=4 A_specific   EN: Amiri stands over the restart.
+                                    FR: Amiri se tient au-dessus du coup franc.
+[  45.65s] q=4 A_safe       EN: Players reset around the six-yard box.
+                                    FR: Les joueurs se replacent autour des six mètres.
+[  50.60s] q=4 A_safe       EN: Mainz set pieces crowd the box.
+                                    FR: Mayence regroupe du monde dans la surface sur coup de pied arrêté.
+[  56.65s] q=4 A_safe       EN: Amiri waits over a dead-ball setup.
+                                    FR: Amiri attend au-dessus d’une situation de coup franc.
+[  61.60s] q=4 A_safe       EN: Klaus controls the box under pressure.
+                                    FR: Klaus contrôle la surface sous pression.
+[  66.55s] q=4 B_safe       EN: The ball is in the middle third of the pitch.
+                                    FR: Le ballon est dans le tiers médian du terrain.
+[  74.25s] q=4 A_safe       EN: Union hold shape in midfield.
+                                    FR: Union gardent leur organisation au milieu de terrain.
+[  78.65s] q=4 A_safe       EN: Mainz keep possession in midfield.
+                                    FR: Amiri remonte le long de la ligne de touche droite.
+[  83.60s] q=5 A_safe       EN: Players reset around the centre circle.
+                                    FR: Les joueurs se replacent autour du rond central.
+[  91.30s] q=4 A_safe       EN: Mainz probe in open play.
+                                    FR: Mayence construit en jeu ouvert.
+[  97.90s] q=4 A_safe       EN: Mainz keep probing in Union territory.
+                                    FR: Mayence continue de pousser dans le camp de l'Union.
+[ 102.85s] q=4 B_specific   EN: Nebel is on the ball in the middle third.
+                                    FR: Nebel a le ballon dans le tiers médian.
+[ 109.45s] q=4 A_safe       EN: Union build from the back on halfway.
+                                    FR: Union construit depuis l’arrière au milieu de terrain.
+[ 114.40s] q=4 A_safe       EN: Veratschnig over the ball near the touchline.
+                                    FR: Veratschnig est au-dessus du ballon près de la ligne de touche.
+[ 119.90s] q=4 A_safe       EN: Zentner prepares a long distribution.
+                                    FR: Zentner prépare une longue relance.
+[ 125.40s] q=4 B_safe       EN: The home side moves the ball into attacking territory.
+                                    FR: L'équipe à domicile fait avancer le ballon dans la zone offensive.
+[ 132.00s] q=4 B_safe       EN: The ball is in the attacking third.
+                                    FR: Le ballon est dans le dernier tiers offensif.
+[ 136.95s] q=4 A_safe       EN: Mainz advance through the left channel.
+                                    FR: Mwene progresse sur l'aile gauche.
+[ 141.90s] q=4 A_safe       EN: Mainz press around the penalty area.
+                                    FR: Mayence presse autour de la surface de réparation.
+[ 146.85s] q=4 A_safe       EN: Mainz work the ball around the box.
+                                    FR: Mainz 05 font circuler le ballon autour de la surface.
+[ 152.35s] q=4 A_safe       EN: Mainz probe near the Union box.
+                                    FR: Mainz 05 combine près de la surface de l'Union.
+[ 158.40s] q=4 A_specific   EN: Becker carries it forward on the right.
+                                    FR: Becker progresse avec le ballon sur la droite.
+[ 163.35s] q=4 A_safe       EN: Union reset after the loose ball.
+                                    FR: Union se réorganise après le ballon perdu.
+[ 168.30s] q=4 B_safe       EN: The home side advances into the attacking third.
+                                    FR: L'équipe à domicile progresse dans le dernier tiers offensif.
+[ 173.80s] q=4 A_safe       EN: The ball stays tight on the flank.
+                                    FR: Le ballon reste près de la ligne de touche.
+[ 179.30s] q=4 A_safe       EN: Mainz recycle possession in midfield.
+                                    FR: Mayence fait circuler le ballon au milieu de terrain.
+[ 183.70s] q=4 A_safe       EN: Play pauses around the centre circle.
+                                    FR: Le jeu s'arrête autour du rond central.
+[ 190.85s] q=4 B_safe       EN: The referee makes a clear signal for a set piece.
+                                    FR: L’arbitre fait un signal clair pour un coup de pied arrêté.
+[ 196.90s] q=4 A_safe       EN: Burke stands over the restart.
+                                    FR: Burke se tient au-dessus du coup franc.
+[ 201.85s] q=5 B_safe       EN: The fourth official displays the substitution board on the sideline.
+                                    FR: Le quatrième arbitre affiche le panneau de remplacement sur la ligne de touche.
+[ 209.55s] q=4 A_safe       EN: Mainz pause for the substitution.
+                                    FR: Weiper applaudit depuis la ligne de touche.
+[ 215.60s] q=4 A_safe       EN: Union scramble inside the six-yard box.
+                                    FR: Becker se rapproche au second poteau.
+[ 218.35s] q=4 A_safe       EN: Becker resets after the attacking move.
+                                    FR: Becker se replace après l'action offensive.
+[ 223.85s] q=4 A_safe       EN: Mainz pause around the sideline.
+                                    FR: Mayence marque une pause près de la ligne de touche.
+[ 228.25s] q=4 B_safe       EN: A substitution is taking place near the touchline.
+                                    FR: Un remplacement est en cours près de la ligne de touche.
+[ 233.75s] q=5 A_safe       EN: Substitution continues near the sideline.
+                                    FR: Le remplacement se poursuit près de la ligne de touche.
+[ 238.70s] q=4 A_safe       EN: Mainz reset near the penalty area.
+                                    FR: Mayence se replace près de la surface de réparation.
+[ 243.65s] q=4 A_safe       EN: Mainz shape up for the restart.
+                                    FR: Amiri se tient au-dessus du coup franc.
+[ 248.60s] q=4 A_safe       EN: Mainz prepare the set-piece restart.
+                                    FR: Mayence se prépare à reprendre sur coup de pied arrêté.
+[ 254.10s] q=5 A_safe       EN: Mainz set up for a wide free kick.
+                                    FR: Mainz 05 se mettent en place pour un coup franc excentré.
+[ 261.25s] q=4 A_safe       EN: Union reset after the stoppage.
+                                    FR: Union se remet en place après l'arrêt de jeu.
+[ 265.65s] q=4 B_safe       EN: The substitution is complete near the sideline.
+                                    FR: Le remplacement est terminé près de la ligne de touche.
+[ 270.60s] q=4 A_safe       EN: Mainz bench settles during the stoppage.
+                                    FR: Le banc de Mayence se calme pendant l’arrêt de jeu.
+[ 275.55s] q=4 A_safe       EN: Mainz build from deep on the left.
+                                    FR: Mayence construit depuis l'arrière sur la gauche.
+[ 282.15s] q=4 B_safe       EN: Union Berlin are in possession deep in their own half.
+                                    FR: Union Berlin a la possession dans sa propre moitié de terrain.
+[ 288.20s] q=4 B_safe       EN: The away side looks to restart play from the sideline.
+                                    FR: L'équipe à l'extérieur semble vouloir reprendre le jeu depuis la ligne de touche.
+[ 294.25s] q=4 A_safe       EN: Union reset for the throw-in.
+                                    FR: Juranovic attend sur la ligne de touche.
+[ 298.65s] q=4 A_safe       EN: Klaus holds the ball for the restart.
+                                    FR: Klaus tient le ballon pour la reprise du jeu.

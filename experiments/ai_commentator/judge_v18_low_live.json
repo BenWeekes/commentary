@@ -1,0 +1,475 @@
+{
+  "summary": {
+    "judge_sample_n": 58,
+    "judge_hallucination_rate": 0.276,
+    "judge_subject_present_rate": 0.845,
+    "judge_human_likeness_mean": 3.47,
+    "soniox_turn_coverage": 1.0
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Union player appears down with the referee nearby stopping play; line is natural and plausible.",
+      "_text": "Exner halts play, Union player down.",
+      "_t": 2.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee appears to be showing a card amid protests; wording is a bit odd but plausible.",
+      "_text": "Exner books the protester.",
+      "_t": 6.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee is visible with arm extended, plausibly pointing; phrasing is natural broadcast shorthand.",
+      "_text": "Exner points to the spot.",
+      "_t": 9.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Generic replay reference; frame shows match action and could plausibly be a replay, with no specific unverifiable event claimed.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 14.3
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "No penalty award or crowding players visible; only one sideline figure who could plausibly be Exner.",
+      "_text": "Penalty awarded, players crowd Exner.",
+      "_t": 19.25
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "No substitute or Sieb is visible; only Mainz players on the pitch are shown.",
+      "_text": "Sieb waiting to come on for Mainz.",
+      "_t": 23.65
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "Only a Mainz player not named Weiper or Lee is visible, and no restart setup is shown; phrasing is awkward.",
+      "_text": "Weiper and Lee, waiting over the restart.",
+      "_t": 28.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Free-kick setup with players gathered near the box is visible; named taker is plausible though not identifiable from frame.",
+      "_text": "Sieb over the free-kick, bodies set.",
+      "_t": 33.55
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Amiri is plausibly visible, but the ball/set-piece situation is not shown in this tight frame; phrasing is natural.",
+      "_text": "Amiri over the dead ball, bodies packed.",
+      "_t": 42.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Vague buildup comment; a red Mainz player and field state are plausible, though 'Klaus' is unclear and the phrasing is clipped.",
+      "_text": "Klaus set, Mainz probing.",
+      "_t": 47.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Set-piece setup with a Mainz player over the ball and many players crowded in the box; concise, broadcaster-like phrasing.",
+      "_text": "Amiri over it, bodies packed.",
+      "_t": 54.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Attacking delivery into a crowded box and pressure are plausible from the frame; names aren't clearly identifiable but the situation fits.",
+      "_text": "Amiri\u2019s delivery, Klaus under pressure!",
+      "_t": 61.05
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union player/team plausibly visible, but a specific 'Klaus sweeps up' action and break are not clearly evident from the frame.",
+      "_text": "Klaus sweeps up again; Union Berlin break.",
+      "_t": 68.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union players are visible under pressure, but no clear Klaus or gathering action is evident.",
+      "_text": "Klaus gathers, Union under pressure.",
+      "_t": 63.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible in possession on the right side; phrase is natural and plausible.",
+      "_text": "Mainz recycling it on the right.",
+      "_t": 76.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz player appears over a stationary ball for a restart; wording is natural and plausible.",
+      "_text": "Amiri over the restart, Mainz 05 poised.",
+      "_t": 81.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player is visibly carrying the ball, so Amiri is plausibly present; phrasing is natural though minimal.",
+      "_text": "Amiri driving from the left.",
+      "_t": 93.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is on the ball on the right side, so the description is plausible and sounds like natural commentary.",
+      "_text": "Caci, probing down the right.",
+      "_t": 95.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz player on ball facing Union's defensive shape; Amiri could plausibly be him, and phrasing is natural.",
+      "_text": "Amiri sizing up Union\u2019s block.",
+      "_t": 98.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "General tactical description fits visible Mainz possession shape and Union players compact behind the ball.",
+      "_text": "Mainz probing patiently, Union Berlin compact.",
+      "_t": 102.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player on the right flank is plausibly advancing with visitors set defensively; natural commentator phrasing.",
+      "_text": "Caci advancing on the right, the visitors set.",
+      "_t": 107.8
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "No Klaus or quick coming-out action is visible; only a Mainz player on the ball, though the phrasing is fairly natural.",
+      "_text": "Klaus out quickly, Union under pressure.",
+      "_t": 113.3
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Ball is loose near the right side, but Becker and the touch itself are not visible.",
+      "_text": "Becker\u2019s touch runs loose wide right.",
+      "_t": 118.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible and appear to be working possession on the right side; phrasing is natural broadcast style.",
+      "_text": "Mainz probing right side again.",
+      "_t": 123.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Ball carrier in red is visibly advancing toward defenders, plausibly Amiri; phrasing is natural commentary.",
+      "_text": "Amiri driving at the back line.",
+      "_t": 127.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player plausibly Amiri is visibly carrying the ball through midfield; line is natural and concise.",
+      "_text": "Amiri driving through midfield.",
+      "_t": 132.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Generic broadcast line; frame shows on-field action but no clear replay indicator.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 134.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz are visibly in an attacking shape around the box, with a central red player plausibly Amiri; phrasing is natural and broadcaster-like.",
+      "_text": "Mainz circling again, Amiri poised centrally.",
+      "_t": 139.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A set-piece setup is visible with Union defending; the wording is natural and plausible.",
+      "_text": "Amiri over the free kick, Union set.",
+      "_t": 144.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is plausibly near the ball on the flank; the line is brief and natural enough but not very vivid.",
+      "_text": "Caci over the ball on the right.",
+      "_t": 151.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Names are plausible with players near the ball on the left, though 'over it' is a bit vague and not especially vivid.",
+      "_text": "Becker and Sano over it on the left.",
+      "_t": 158.4
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player/keeper is plausibly visible, but no clear ball-gathering action under pressure is evident in the frame.",
+      "_text": "Klaus gathers under pressure.",
+      "_t": 163.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Red-shirted Mainz appear to be advancing with black-clad Union players dropping back, and the phrasing is natural.",
+      "_text": "Mainz break, Union retreating quickly.",
+      "_t": 167.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A dark-shirted attacker is carrying the ball down the flank with a red-shirted defender closing, so the line matches the visible action and sounds natural.",
+      "_text": "Burke driving down the right, Kohr closing.",
+      "_t": 172.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz in red appear in possession near the right touchline; phrasing is natural commentary.",
+      "_text": "Mainz 05 recycling it wide right.",
+      "_t": 177.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee appears to have stopped play and a red-shirted player is visibly down; phrasing is concise and broadcast-like.",
+      "_text": "Exner halts play; a red shirt down.",
+      "_t": 182.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visible gesturing after a foul-like stoppage; free-kick direction is plausible though wording is a bit stiff.",
+      "_text": "Exner points for a Union free kick.",
+      "_t": 185.35
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Referee and a Mainz player are visible, but no yellow card or identifiable number 22 is shown; phrasing is terse.",
+      "_text": "Yellow for Mainz 22.",
+      "_t": 190.3
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "No referee or booking is visible, and the player shown appears to be Union, not Mainz\u2019s Veratschnig.",
+      "_text": "Exner books the 05ers\u2019 Veratschnig.",
+      "_t": 195.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player appears to be waiting near the touchline for play to restart; Ilic could plausibly be present, though the line is plain.",
+      "_text": "Ilic waiting for the restart.",
+      "_t": 200.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Substitution board is visibly raised and players are waiting; terse caption-like phrasing.",
+      "_text": "Veratschnig on, board raised.",
+      "_t": 204.6
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a Mainz player on the pitch, not substitutes Weiper and Sieb ready on the touchline.",
+      "_text": "Weiper and Sieb ready on the touchline.",
+      "_t": 208.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Generic replay line; frame shows match action and could plausibly be a replay, though not especially vivid.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 213.4
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is visible, but there is no visible back-post celebration or obvious event in this frame.",
+      "_text": "Mainz 05er celebrate at the back post.",
+      "_t": 218.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A substitution/touchline greeting is visibly plausible, with Mainz players and staff at the sideline, though the phrasing is a bit awkward.",
+      "_text": "Sieb on, greeting the touchline.",
+      "_t": 227.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Becker is clearly visible near the bench, but Sieb going off/substitution is not visible from this frame.",
+      "_text": "Sieb off, Becker embraces the bench.",
+      "_t": 232.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly jogging; concise and broadcast-like, though 'reset' is only broadly inferred.",
+      "_text": "Becker jogging back, Mainz reset.",
+      "_t": 237.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible and appear moving; the phrasing is natural though not especially vivid.",
+      "_text": "Weiper and Sieb on the move for Mainz.",
+      "_t": 241.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Substitution graphic clearly shows Mainz: Sieb on, Becker off; line is accurate but terse.",
+      "_text": "Sieb replaces Becker for Mainz.",
+      "_t": 246.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is standing over a stationary ball for a likely free kick; phrasing is plausible but terse.",
+      "_text": "Weiper over the free kick.",
+      "_t": 251.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "Set-piece situation is plausible, but Amiri is not visibly identifiable or shown over the ball; phrasing is brief but commentator-like.",
+      "_text": "Amiri over the set piece.",
+      "_t": 257.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution is confirmed by the on-screen graphic showing Juranovi\u0107 and Trimmel; phrasing is natural and concise.",
+      "_text": "Juranovi\u0107 on for Trimmel.",
+      "_t": 262.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution is confirmed by the on-screen graphic; concise and natural commentary.",
+      "_text": "Juranovi\u0107 on, Trimmel off for Union.",
+      "_t": 266.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "Mainz bench is visible, but Juranovi\u0107 and Trimmel are not plausibly shown; phrasing is caption-like.",
+      "_text": "Mainz bench, Juranovi\u0107 and Trimmel on screen.",
+      "_t": 271.15
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 2,
+      "rationale": "The frame shows open play, not the bench or Becker, so the claimed bench presence is not visible.",
+      "_text": "Becker back among the 05ers\u2019 bench.",
+      "_t": 276.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Booking is shown on the graphic and Union players/field state are visible; phrasing is concise but a bit caption-like.",
+      "_text": "K\u00f6hn booked; Union Berlin free kick.",
+      "_t": 281.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A throw-in setup is visible near the touchline and a Mainz player could plausibly be Amiri, but the phrasing is awkward.",
+      "_text": "Amiri over the throw-in.",
+      "_t": 286.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A throw-in/reset situation is plausible from the visible sideline setup; the line is concise and natural.",
+      "_text": "Klaus with the throw, Union reset.",
+      "_t": 300.85
+    }
+  ]
+}

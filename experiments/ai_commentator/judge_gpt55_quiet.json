@@ -1,0 +1,163 @@
+{
+  "summary": {
+    "judge_sample_n": 19,
+    "judge_hallucination_rate": 0.158,
+    "judge_subject_present_rate": 0.895,
+    "judge_human_likeness_mean": 4.0,
+    "soniox_turn_coverage": 0.529
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A foul/free-kick situation is visible with a player down and Union players appealing to the referee; wording is natural broadcast style.",
+      "_text": "Free kick given, and the Union players want rather more than that after the chal",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame only shows a close-up player; no free kick setup or D/penalty area is visible, though the line sounds natural.",
+      "_text": "A real chance from the free kick, just outside the D.",
+      "_t": 29.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly standing over a set piece, so the claim is plausible and naturally phrased.",
+      "_text": "Amiri is the man standing over it for Mainz.",
+      "_t": 54.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Crowded Mainz attack with a delivery near the keeper is visible; specific touch/player is plausible but not clearly identifiable.",
+      "_text": "Klaus comes and gets a decisive touch in a crowd \u2014 that was a teasing delivery f",
+      "_t": 60.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz are visible moving forward with teammates wide on both sides, so a counter with runners is plausible and naturally phrased.",
+      "_text": "The Karnevalsverein look to counter, with runners left and right.",
+      "_t": 130.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visibly attacking near the edge of the box amid several defenders; phrasing is natural and broadcaster-like.",
+      "_text": "Die Nullf\u00fcnfer trying to wriggle through the crowd on the edge of the area.",
+      "_t": 141.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz player is visibly on the ball near the near side, so the described buildup is plausible and natural.",
+      "_text": "Becker trying to get Mainz moving down this near side.",
+      "_t": 157.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper is visibly positioned at the near post area and appears involved in dealing with a ball in; phrasing is natural and broadcast-like.",
+      "_text": "Klaus alert at his near post, taking the sting out of Becker\u2019s ball in.",
+      "_t": 161.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Union attacker and a Mainz defender are visibly contesting the ball; the phrasing is natural and plausible.",
+      "_text": "K\u00f6hn trying to force the issue for Union, but Sano gets across to close the door",
+      "_t": 172.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee and players are visible with a player down, making a foul/free-kick call plausible; phrasing is natural broadcast style.",
+      "_text": "The whistle goes \u2014 the referee has seen enough in that challenge, and the 05ers ",
+      "_t": 182.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee is clearly holding up a yellow card; wording is natural, though the challenge itself is not shown.",
+      "_text": "Yellow card is out \u2014 the referee making his point after that challenge.",
+      "_t": 191.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution scene is visibly occurring with Mainz players at the touchline; specific names are not verifiable from the frame.",
+      "_text": "Mainz making the change: Phillip Tietz is the man withdrawn, and Armindo Sieb co",
+      "_t": 200.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mwene is visibly under a dropping ball near the far side; phrasing is natural commentary.",
+      "_text": "Mwene arriving at the far post for the 05ers\u2026 poised under the dropping ball.",
+      "_t": 211.75
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a Mainz player but not plausibly Veratschnig or a rueful smile; the claimed missed opening is not visible. Natural broadcaster phrasing.",
+      "_text": "Veratschnig with the rueful smile \u2014 he knows that was an opening for die Nullf\u00fcn",
+      "_t": 221.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz substitution is visibly taking place at the touchline with players and the fourth official present; the wording sounds natural.",
+      "_text": "Another switch for the Karnevalsverein: Sheraldo Becker makes way, and Nelson We",
+      "_t": 229.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Weiper/Mainz player is plausibly visible among players waiting in the area; free-kick setup is plausible though not directly shown.",
+      "_text": "Mainz load the penalty area \u2014 Weiper among the targets for this free kick.",
+      "_t": 242.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz 05 appear to be delivering a set piece/cross into a crowded box, matching the line; phrasing is natural broadcast style.",
+      "_text": "The 05ers send it in\u2026 plenty to aim at in there.",
+      "_t": 256.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution is clearly shown by the on-screen graphic naming Juranovic on and Trimmel off; delivery sounds natural.",
+      "_text": "Union make the change: Christopher Trimmel is withdrawn, and Josip Juranovic com",
+      "_t": 262.9
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A booking/card after a touchline challenge is not visible; play appears ongoing, though Union Berlin players are present and the line sounds natural.",
+      "_text": "Kohn goes into the book for Union Berlin after that challenge by the touchline.",
+      "_t": 279.4
+    }
+  ]
+}

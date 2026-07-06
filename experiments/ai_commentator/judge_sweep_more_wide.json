@@ -1,0 +1,83 @@
+{
+  "summary": {
+    "judge_sample_n": 9,
+    "judge_hallucination_rate": 0.889,
+    "judge_subject_present_rate": 0.556,
+    "judge_human_likeness_mean": 3.89,
+    "soniox_turn_coverage": 0.265
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referenced player is plausibly visible, but he is still down rather than getting back up; referee is present and waiting.",
+      "_text": "Veratschnig gets back up as the referee waits.",
+      "_t": 6.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A booking after a challenge is not visible; only a player and ball are shown, though the referenced player could plausibly be on screen.",
+      "_text": "Veratschnig goes into the book after that challenge.",
+      "_t": 13.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "Burke is not visible, and taking a breather after a stoppage is not evident from this frame.",
+      "_text": "Burke takes a breather after that stoppage.",
+      "_t": 19.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Substitution is not visible in the frame, and the named players are not clearly present; phrasing is natural.",
+      "_text": "Weiper is coming on, Tietz makes way.",
+      "_t": 24.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Frame appears to show live play setup with no clear replay indicator; line is natural and general.",
+      "_text": "And here's the replay of that moment.",
+      "_t": 34.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visible, but no one is wiping his face; the phrasing sounds natural.",
+      "_text": "Becker wipes his face after that big chance.",
+      "_t": 39.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows players near the goal, not Sieb waiting on the touchline; line is natural but unsupported.",
+      "_text": "Sieb waits on the touchline for his farewell minutes.",
+      "_t": 45.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "The frame shows a set-piece situation, not a visible substitution; Sieb or Becker cannot be identified.",
+      "_text": "Sieb is on now, Becker makes way.",
+      "_t": 51.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz attacker is visibly in the penalty area, and the line is a plausible, natural description of positioning.",
+      "_text": "Weiper takes up his position in the box.",
+      "_t": 60.0
+    }
+  ]
+}

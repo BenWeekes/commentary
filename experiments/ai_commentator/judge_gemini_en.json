@@ -1,0 +1,355 @@
+{
+  "summary": {
+    "judge_sample_n": 43,
+    "judge_hallucination_rate": 0.326,
+    "judge_subject_present_rate": 0.93,
+    "judge_human_likeness_mean": 3.37,
+    "soniox_turn_coverage": 0.912
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player is down with the referee beside the incident, so a foul on Ilic is plausible and the line sounds natural.",
+      "_text": "Foul on Ilic, and the referee is right there.",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Becker is clearly visible and the referee appears to be addressing players; phrasing is natural broadcast style.",
+      "_text": "A talking-to for Becker from the referee.",
+      "_t": 8.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player is visibly down on the pitch, making the foul appeal line plausible and natural.",
+      "_text": "Sano goes down, looking for the foul.",
+      "_t": 15.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Eta appears visible on the touchline; the line refers generally to match pressure, not a specific unseen event, and sounds natural.",
+      "_text": "Eta's side, the visitors, still pushing for a winner.",
+      "_t": 20.9
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "The frame shows players set around the penalty area, not a visible substitution or touchline exchange.",
+      "_text": "Sano comes off, and it's Lee Jae-sung who comes on.",
+      "_t": 34.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Two Mainz players are plausibly in conversation, and Amiri may be visible; phrasing is natural but plain.",
+      "_text": "Becker talking to Amiri here.",
+      "_t": 42.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Goalkeeper for Union is clearly visible in front of the net; line is a simple but plausible identification.",
+      "_text": "Klaus in goal for the Iron Ones.",
+      "_t": 46.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player is visibly standing over a stationary ball for a set piece; Amiri is plausible, though the line is plain.",
+      "_text": "Amiri stands over the ball.",
+      "_t": 54.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A set-piece delivery into the box is visible, and the kicker is plausibly present though not identifiable as Amiri from the frame.",
+      "_text": "Amiri delivers the free kick.",
+      "_t": 58.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper Zentner is visible with the ball near his area, and a short pass looks plausible; the line is natural but basic.",
+      "_text": "Zentner plays it short.",
+      "_t": 68.75
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible, but a pass back to Kohr is not clearly shown in this single frame.",
+      "_text": "Amiri plays it back to Kohr.",
+      "_t": 77.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red-shirted player is visibly on the ball in open play, plausibly Kohr; the line is simple but natural.",
+      "_text": "Kohr with the ball, looking up.",
+      "_t": 92.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is on the ball and could plausibly be Kohr moving play forward; phrasing is natural.",
+      "_text": "Kohr pushes it forward for the Rhinelanders.",
+      "_t": 98.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A simple pass between visible Mainz players is plausible from the frame; terse but natural commentary.",
+      "_text": "Kohr to Amiri.",
+      "_t": 104.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Zentner/the goalkeeper is plausibly visible and a goal-kick setup is plausible, though the line is terse.",
+      "_text": "Zentner with the goal kick.",
+      "_t": 109.45
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Zentner is plausibly visible with the ball, but the frame does not clearly show a pass being played out wide.",
+      "_text": "Zentner plays it out wide.",
+      "_t": 119.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red Mainz player plausibly Sano is visible with the ball moving ahead, so the forward play is plausible; wording is simple but natural.",
+      "_text": "Sano plays it forward.",
+      "_t": 132.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Mainz #2 is visibly controlling the ball, and Mwene is plausible; line is accurate but very plain.",
+      "_text": "Mwene on the ball.",
+      "_t": 136.4
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Ball is visibly at a red-shirted player's feet, not clearly Becker; phrasing is basic but plausible.",
+      "_text": "Becker with the ball.",
+      "_t": 140.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly crossing from the left, and 'with the delivery' is natural commentary.",
+      "_text": "Caci with the delivery.",
+      "_t": 146.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is on the ball with teammates nearby, so a short pass to Kohr is plausible, though the line is fairly plain.",
+      "_text": "Mwene plays it to Kohr.",
+      "_t": 152.9
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Players are visible, but a completed pass from Becker to Mwene is not clearly shown in the frame.",
+      "_text": "Becker to Mwene.",
+      "_t": 161.15
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Play appears live in open field, not a visible goal-kick setup; hosts are on screen.",
+      "_text": "Goal kick for the hosts.",
+      "_t": 165.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Midfield play with players and ball plausibly in view; touch is possible but not clearly identifiable, line is natural but terse.",
+      "_text": "Burcu with a nice touch.",
+      "_t": 170.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Veratschnig is visible on the ball moving forward, but the phrasing is grammatically awkward and unnatural.",
+      "_text": "Veratschnig venture forward.",
+      "_t": 174.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Ball is visibly played upfield with Union Berlin players in frame; phrasing is natural broadcast shorthand.",
+      "_text": "Long ball forward for the Berliners.",
+      "_t": 179.3
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Referee is visible but no yellow card is visibly being shown; named player could plausibly be the nearby player, but not identifiable.",
+      "_text": "Yellow card shown to Veratschnig.",
+      "_t": 185.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visibly showing a yellow card; the recipient is only partially visible but plausibly present.",
+      "_text": "Yellow card to Sano.",
+      "_t": 191.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Two home players are visibly waiting by the fourth official for a substitution; line sounds natural.",
+      "_text": "Sieb and Weiper are coming on for the hosts.",
+      "_t": 200.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player near the ball is visible, but no acrobatic attempt is evident in this frame.",
+      "_text": "An acrobatic attempt from Weiper!",
+      "_t": 212.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper is visibly diving at the ball near goal, consistent with a save; Zentner is plausibly the Mainz keeper.",
+      "_text": "Zentner with a diving save!",
+      "_t": 214.5
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A goal is not visibly happening in this frame, though the referenced Becker is plausibly the FCU player in view; phrasing is natural but generic.",
+      "_text": "GOAL! Becker puts it in the back of the net!",
+      "_t": 216.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "No visible celebration, and Becker is not plausibly identifiable in the frame.",
+      "_text": "Becker is still celebrating.",
+      "_t": 221.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A hug/embrace is visibly happening, though identities aren\u2019t confirmable from the frame; phrasing is natural but plain.",
+      "_text": "Becker gets a hug from Henriksen.",
+      "_t": 229.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player in red is visibly jogging; Becker is plausibly the subject, though the center circle is not shown.",
+      "_text": "Becker now jogging back to the center circle.",
+      "_t": 235.95
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Claims a substitution, but the frame only shows open play/set-piece setup with no visible substitution or identifiable Sieb/Becker.",
+      "_text": "Sieb on for Becker.",
+      "_t": 244.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution is clearly shown by the on-screen graphic; line is concise and natural.",
+      "_text": "Weiper on for Tietz.",
+      "_t": 249.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red-shirted player is visibly near a stationary ball for a set piece; Amiri is plausible, though the line is plain.",
+      "_text": "Amiri stands over the ball.",
+      "_t": 254.65
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Claims substitutions are happening, but the frame only shows open play in the box; Union players are visible though individuals aren\u2019t identifiable.",
+      "_text": "Juranovic and Trimmel are on for die Eisernen.",
+      "_t": 260.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Becker is visible, but he is standing apart and not visibly receiving a hug; the hug appears to involve someone else.",
+      "_text": "Becker gets a hug from Henriksen.",
+      "_t": 266.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player is visibly by the bench area, so the line is plausible, though Becker is not identifiable from the frame.",
+      "_text": "Becker heads for the bench.",
+      "_t": 272.25
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution claim is not visibly supported; visitors are on the pitch and the phrasing is natural.",
+      "_text": "Derrick Kohn is on for the visitors.",
+      "_t": 286.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Union player is at the touchline preparing a throw-in, plausibly Juranovic; line is natural but very terse.",
+      "_text": "Juranovic with the throw.",
+      "_t": 290.95
+    }
+  ]
+}

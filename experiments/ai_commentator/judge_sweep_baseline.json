@@ -1,0 +1,83 @@
+{
+  "summary": {
+    "judge_sample_n": 9,
+    "judge_hallucination_rate": 0.778,
+    "judge_subject_present_rate": 0.333,
+    "judge_human_likeness_mean": 3.56,
+    "soniox_turn_coverage": 0.235
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Referee is visible with players stopped and appears to be signaling after a foul, so a free-kick call is plausible; wording is plain but natural.",
+      "_text": "Florian Exner signals a free-kick.",
+      "_t": 2.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee appears to be showing a card and Mainz #22, plausibly Veratschnig, is visible; phrasing is natural.",
+      "_text": "Veratschnig trudges away after the booking.",
+      "_t": 8.8
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "Frame shows active play with the ball in motion, not anyone waiting for a restart; Ansah is not identifiable.",
+      "_text": "Ansah waits for the restart.",
+      "_t": 13.75
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "The frame shows a staff member on the touchline, not the named players waiting to be substituted on.",
+      "_text": "Juranovic, Sieb and Weiper wait to come on.",
+      "_t": 19.8
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "No visible dive or smothered chance; players and goalkeeper are present, but the claimed save action is not shown.",
+      "_text": "Klaus dives across to smother Becker's chance.",
+      "_t": 34.1
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "No one is visibly wiping his face; the shown Mainz player is unlikely to be Becker.",
+      "_text": "Becker wipes his face as play pauses.",
+      "_t": 39.6
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows the goalkeeper near the goal, not Sieb on the touchline receiving instructions.",
+      "_text": "Sieb gets final instructions on the touchline.",
+      "_t": 44.55
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a set-piece setup, not a substitution or player coming off; Becker is not identifiable.",
+      "_text": "Becker comes off to a warm touchline reception.",
+      "_t": 49.5
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows players set for a set piece, not Becker jogging off or an ovation/substitution moment.",
+      "_text": "Becker jogs off after his ovation.",
+      "_t": 57.75
+    }
+  ]
+}

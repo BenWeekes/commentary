@@ -1,0 +1,5 @@
+Window: 300-600s of m05_uni_eval_25min
+Gold words: 562
+
+soniox: words=566 edits=33 wer=0.059
+gemini: words=137 edits=454 wer=0.808

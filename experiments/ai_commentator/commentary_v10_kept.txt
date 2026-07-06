@@ -1,0 +1,69 @@
+# v10: single gpt-5.4-mini + playerist + rich context (control)
+# 66 accepted; subs [{'off': 'Trimmel', 'on': 'Juranovic', 'at_s': 263.5}]
+
+[   2.20s] Exner halts play for Union injury.
+[   4.95s] Exner books the protest, Union player down.
+[   8.80s] Exner calms the players, Union man down.
+[  11.55s] Exner checks on the downed Union man.
+[  14.30s] Tietz cushions it under pressure.
+[  18.70s] Eta gestures for calm after the stoppage.
+[  23.65s] Sieb waits near the touchline.
+[  28.60s] Sieb gestures, awaiting the restart.
+[  33.00s] Exner gathers players for the restart.
+[  37.95s] Sieb awaits instructions on the touchline.
+[  42.90s] Amiri waits over the restart.
+[  47.85s] Klaus waits calmly behind his wall.
+[  52.80s] Amiri stands over the free kick.
+[  58.30s] Amiri curls it into the box.
+[  63.25s] Klaus gathers and launches Union forward.
+[  68.20s] Klaus collects under pressure.
+[  72.60s] Klaus waits for the restart.
+[  77.00s] Caci controls on the right.
+[  81.40s] Amiri carries down the left touchline.
+[  84.70s] Union recycle it near halfway.
+[  89.10s] Amiri carries across midfield.
+[  94.05s] Caci surveys from the right flank.
+[  99.00s] Amiri switches play right.
+[ 103.40s] Amiri battles in midfield under pressure.
+[ 108.35s] Klaus rolls it across his box.
+[ 113.30s] Caci steadies the ball on the right.
+[ 118.25s] Klaus waits over the restart.
+[ 122.65s] Klaus sets Union’s shape from the back.
+[ 127.60s] Amiri drives through midfield.
+[ 132.00s] Amiri drives at the back line.
+[ 136.95s] Mwene drives forward down the left.
+[ 139.70s] Amiri probes just outside the box.
+[ 144.65s] Amiri recycles possession from the left.
+[ 151.25s] Caci carries down the right flank.
+[ 154.55s] Caci surveys the edge of the box.
+[ 159.50s] Becker squares up his marker.
+[ 163.90s] Klaus gathers and calms Union.
+[ 168.30s] Klaus drives Union forward from midfield.
+[ 173.25s] Klaus smothers the loose ball.
+[ 177.65s] Caci probes down the right touchline.
+[ 180.40s] Burke goes down clutching his leg.
+[ 183.15s] Exner halts play after Burke’s injury.
+[ 185.90s] Veratschnig booked for the challenge.
+[ 190.30s] Exner signals Union free-kick.
+[ 194.70s] Burke waits for Exner’s restart.
+[ 199.10s] Burke rubs his head, awaiting the restart.
+[ 204.05s] Sieb waits by the touchline.
+[ 208.45s] Sieb waits for the touchline change.
+[ 213.40s] Ilic hovers at the far post.
+[ 218.35s] Becker watches the ball drift wide.
+[ 223.30s] Sieb comes on for Mainz.
+[ 227.70s] Sieb embraces Becker on the touchline.
+[ 232.65s] Sieb gets a warm touchline embrace.
+[ 237.60s] Becker jogs back into position.
+[ 242.00s] Weiper waits in the box.
+[ 246.40s] Sieb stands over Mainz’s free-kick.
+[ 250.80s] Amiri stands over the free-kick.
+[ 256.85s] Amiri whips in the set-piece.
+[ 259.05s] Amiri’s corner causes chaos.
+[ 263.45s] Juranovic replaces Trimmel.
+[ 267.30s] Becker checks on the bench.
+[ 272.25s] Becker waits on the touchline.
+[ 276.65s] Zentner rolls it short under pressure.
+[ 281.60s] Amiri waits over Mainz’s throw-in.
+[ 286.00s] Burke waits for the throw-in.
+[ 295.90s] Juranovic strides into Union’s shape.

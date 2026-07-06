@@ -1,0 +1,99 @@
+# v8c: arbiter=gpt-5.5 tight=True confgate=False
+# 48 accepted; choices {'A_safe': 28, 'B_safe': 20, 'NO_CALL': 15, 'A_specific': 9, 'B_specific': 2}
+
+[   2.20s] q=4 A_safe       EN: Play paused with Union protesting around the Mainz area.
+                                    FR: Le jeu est arrêté, avec des joueurs de l’Union qui protestent aux abords de la surface de Mayence.
+[   8.25s] q=4 B_safe       EN: A Union Berlin player is down on the pitch, stopping play.
+                                    FR: Un joueur de l’Union Berlin est au sol sur la pelouse, et le jeu est arrêté.
+[  13.20s] q=3 B_safe       EN: We're seeing a replay of the build-up to the foul.
+                                    FR: On revoit le ralenti de l'action qui mène à la faute.
+[  19.25s] q=4 B_safe       EN: Union Berlin's coach, Marie-Louise Eta, is vocal on the touchline.
+                                    FR: La coach de l'Union Berlin, Marie-Louise Eta, se fait entendre sur le bord du terrain.
+[  25.30s] q=3 A_safe       EN: Mainz players walking back into shape near halfway.
+                                    FR: Les joueurs de Mayence se replacent tranquillement près du milieu de terrain.
+[  30.80s] q=4 A_safe       EN: The 05ers set up a free kick near the area.
+                                    FR: Les Nullfünfer se préparent à tirer un coup franc près de la surface.
+[  36.85s] q=4 B_safe       EN: A red-and-white player exits the field, being addressed by the coaching team.
+                                    FR: Un joueur en rouge et blanc quitte le terrain, interpellé par le staff technique.
+[  44.55s] q=4 B_safe       EN: Union's goalkeeper Klaus is in frame, with a teammate walking past him.
+                                    FR: Le gardien de l’Union, Klaus, est à l’image, avec un coéquipier qui passe devant lui.
+[  51.70s] q=5 A_safe       EN: Mainz 05 preparing a set piece from the right.
+                                    FR: Mayence 05 se prépare à jouer un coup de pied arrêté côté droit.
+[  58.85s] q=5 B_specific   EN: The set piece is taken, with the ball now in the penalty area for the 05ers.
+                                    FR: Le coup de pied arrêté est joué, et le ballon arrive maintenant dans la surface pour les 05ers.
+[  67.65s] q=4 A_safe       EN: Union Berlin advancing through midfield into the attacking half.
+                                    FR: Union Berlin progresse au milieu de terrain et entre dans la moitié de terrain adverse.
+[  73.70s] q=4 A_safe       EN: The reds are circulating the ball near halfway.
+                                    FR: Les rouges font circuler le ballon près de la ligne médiane.
+[  79.20s] q=4 A_safe       EN: Mainz work the ball wide on the right flank.
+                                    FR: Mayence écarte le jeu sur le flanc droit.
+[  85.25s] q=4 A_safe       EN: The 05ers keep the ball around midfield.
+                                    FR: Les Nullfünfer gardent le ballon aux abords du milieu de terrain.
+[  90.75s] q=4 A_safe       EN: The red-and-whites keep it around halfway.
+                                    FR: Les Rouge et Blanc conservent le ballon aux abords de la ligne médiane.
+[  96.25s] q=4 A_safe       EN: The reds work it around midfield, probing forward.
+                                    FR: Les rouges font circuler le ballon au milieu, en cherchant à progresser.
+[ 102.30s] q=3 A_safe       EN: Union regroup around midfield as Mainz circulate possession.
+                                    FR: L’Union se réorganise autour du milieu de terrain pendant que Mayence fait circuler le ballon.
+[ 107.80s] q=4 B_safe       EN: The home side has the ball deep in their own half.
+                                    FR: L’équipe à domicile a le ballon bas dans son propre camp.
+[ 114.40s] q=5 A_specific   EN: Mainz 05's number 22 pauses over the ball near the touchline.
+                                    FR: Le numéro 22 de Mainz 05 temporise au-dessus du ballon près de la ligne de touche.
+[ 121.55s] q=4 A_safe       EN: Union Berlin building from deep on the right side.
+                                    FR: L’Union Berlin construit depuis l’arrière, côté droit.
+[ 127.60s] q=4 A_specific   EN: The 05ers carry the ball centrally toward the final third.
+                                    FR: Les Nullfünfer portent le ballon dans l’axe vers le dernier tiers.
+[ 131.45s] q=4 B_safe       EN: The 05ers advance the ball into the attacking third.
+                                    FR: Les Nullfünfer progressent ballon au pied vers le dernier tiers.
+[ 137.50s] q=4 A_safe       EN: Mainz have possession near the penalty area.
+                                    FR: Mayence a la possession près de la surface de réparation.
+[ 142.45s] q=4 A_specific   EN: Mainz crowd the edge of Union's box, probing for a shooting lane.
+                                    FR: Mainz 05 se masse aux abords de la surface de l’Union, à la recherche d’une fenêtre de tir.
+[ 149.60s] q=5 A_safe       EN: The 05ers work the ball near the left touchline.
+                                    FR: Les Nullfünfer font circuler le ballon près de la ligne de touche gauche.
+[ 156.20s] q=4 B_safe       EN: The 05ers' number 6 has possession in the middle of the park.
+                                    FR: Le numéro 6 des Nullfünfer a le ballon dans l’axe du terrain.
+[ 162.80s] q=4 A_safe       EN: Union Berlin’s keeper claims it in the six-yard box.
+                                    FR: Le gardien de l’Union Berlin s’en saisit dans les six mètres.
+[ 168.85s] q=4 A_safe       EN: Away side advancing through midfield into transition.
+                                    FR: L’équipe visiteuse progresse au milieu de terrain en phase de transition.
+[ 173.80s] q=4 A_safe       EN: Mainz 05 attacking down the right flank near the area.
+                                    FR: Mainz 05 attaque sur le flanc droit, aux abords de la surface.
+[ 178.20s] q=4 B_safe       EN: The home side takes possession in central midfield.
+                                    FR: L’équipe à domicile récupère la possession au milieu de terrain.
+[ 184.80s] q=4 B_safe       EN: The referee has issued a yellow card to a Mainz player.
+                                    FR: L’arbitre adresse un carton jaune à un joueur des Nullfünfer.
+[ 193.05s] q=4 A_safe       EN: Play paused near the touchline for a referee decision.
+                                    FR: Le jeu est arrêté près de la ligne de touche pour une décision de l’arbitre.
+[ 199.10s] q=3 A_safe       EN: Union player in black waits during a brief stoppage.
+                                    FR: Un joueur de l’Union en noir patiente pendant un bref arrêt de jeu.
+[ 205.15s] q=4 A_specific   EN: Fourth official raises the board for a Union Berlin change.
+                                    FR: Le quatrième arbitre lève le panneau pour un changement d’Union Berlin.
+[ 211.20s] q=4 A_safe       EN: Mainz defending a lofted ball near their penalty area.
+                                    FR: Mayence défend sur un ballon aérien près de sa surface de réparation.
+[ 219.45s] q=4 B_safe       EN: The Mainz 05 forward takes a moment to compose himself.
+                                    FR: L’attaquant de Mainz 05 prend un instant pour se remettre.
+[ 225.50s] q=4 A_safe       EN: Mainz set for a substitution near the sideline.
+                                    FR: Les Nullfünfer se préparent à effectuer un changement près de la ligne de touche.
+[ 231.55s] q=4 A_safe       EN: Mainz’s number 23 is at the sideline during a stoppage.
+                                    FR: Le numéro 23 des Nullfünfer est au bord de la touche pendant un arrêt de jeu.
+[ 237.60s] q=3 A_safe       EN: Becker moving back into position for Mainz.
+                                    FR: Becker se replace pour Mayence.
+[ 242.55s] q=4 A_specific   EN: Mainz 05 set over a dangerous free-kick on the right.
+                                    FR: Mainz 05 se prépare à tirer un coup franc dangereux côté droit.
+[ 248.60s] q=5 A_specific   EN: Weiper replaces Tietz as the 05ers prepare the free-kick.
+                                    FR: Weiper remplace Tietz alors que les Nullfünfer préparent le coup franc.
+[ 254.65s] q=4 B_safe       EN: The red-and-whites prepare to take a free-kick from a dangerous position.
+                                    FR: Les Rouge et Blanc se préparent à tirer un coup franc dans une position dangereuse.
+[ 261.25s] q=5 B_specific   EN: A Union Berlin substitution is confirmed: Juranovic on for Trimmel.
+                                    FR: Changement confirmé pour l’Union Berlin : Juranovic entre à la place de Trimmel.
+[ 267.30s] q=3 A_specific   EN: Becker stands by the Mainz bench during this stoppage.
+                                    FR: Becker se tient près du banc de Mainz pendant cet arrêt de jeu.
+[ 273.35s] q=5 B_safe       EN: Mainz 05's number 23, Becker, is standing on the sideline near his bench.
+                                    FR: Le numéro 23 de Mainz 05, Becker, se tient sur la ligne de touche près de son banc.
+[ 280.50s] q=4 A_safe       EN: Union Berlin defend deep on the left flank.
+                                    FR: Les Berlinois défendent bas sur le flanc gauche.
+[ 287.10s] q=3 B_safe       EN: The Union Berlin attacker, Ansah, is on screen during a break in play.
+                                    FR: L’attaquant de l’Union Berlin, Ansah, apparaît à l’écran pendant un arrêt de jeu.
+[ 294.25s] q=3 B_safe       EN: Union Berlin's Juranovic is on the field, ready for action.
+                                    FR: Juranovic est sur la pelouse pour l’Union Berlin, prêt à entrer dans le rythme.

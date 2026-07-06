@@ -1,0 +1,71 @@
+# AI commentary v2 — strict naming + fallback vocab + gold-derived examples
+# 68 accepted of 91 vision calls made
+
+[   2.20s] Play stopped for an injury.
+[   6.05s] Union protesting, referee calming things down.
+[  11.00s] Injury treatment continues here.
+[  17.05s] Still down here, play halted.
+[  21.45s] Still paused here, tension building.
+[  25.85s] Mainz regrouping after the stoppage.
+[  30.25s] Mainz over this free kick now.
+[  35.20s] Mainz bench still animated.
+[  39.05s] Mainz still reorganizing on the touchline.
+[  43.45s] Mainz players waiting on the restart.
+[  47.85s] Union keeper set behind the wall.
+[  52.25s] Mainz with a dangerous free kick.
+[  56.65s] Mainz’s number 10 over the ball.
+[  61.05s] Mainz still pressing from the set piece.
+[  65.45s] Union break into midfield.
+[  69.30s] Union recycle it at the back.
+[  73.15s] Union probing down the right.
+[  77.00s] Mainz calmly work it right.
+[  82.50s] Brief lull as both sides reset.
+[  86.90s] Mainz probe patiently down the right.
+[  91.30s] Mainz switch it left.
+[  94.60s] Union sitting deep, Mainz probing patiently.
+[  99.55s] Mainz recycle it patiently.
+[ 103.40s] Mainz crowded out in midfield.
+[ 107.25s] Mainz work it wide, patient build-up.
+[ 112.20s] Union break down the right.
+[ 115.50s] Mainz’s number 22 under pressure.
+[ 121.00s] Union reset deep, Mainz circulating.
+[ 126.50s] Mainz probing the right channel.
+[ 130.35s] Mainz break through midfield.
+[ 133.65s] Union’s number 28 drives forward.
+[ 138.60s] Mainz camped on the edge of the box.
+[ 143.55s] Mainz recycle it to the left.
+[ 147.95s] Mainz still probing from distance.
+[ 152.35s] Mainz work it down the right flank.
+[ 156.20s] Mainz probing patiently from the left.
+[ 161.15s] Union probing for a cross.
+[ 165.55s] Union keep it compact.
+[ 169.40s] Union breaking through midfield quickly.
+[ 174.35s] Veratschnig driving at the back line.
+[ 178.75s] Union loft it forward into midfield.
+[ 183.15s] Referee halts play, Mainz appealing.
+[ 187.55s] Yellow for Mainz’s number 22.
+[ 191.95s] Yellow card shown there.
+[ 195.80s] Union’s number 7 looks frustrated.
+[ 201.30s] Substitution board is up here.
+[ 205.70s] Substitution coming for Mainz here.
+[ 211.20s] Mainz’s number 2 sends it long.
+[ 215.05s] Mainz denied at the back post!
+[ 218.90s] Mainz player regrouping after the stoppage.
+[ 223.85s] Mainz reset for the restart.
+[ 228.25s] Substitution about to land for Mainz.
+[ 232.65s] Becker coming off; Mainz reshuffle.
+[ 237.05s] Mainz jogging back into shape.
+[ 242.55s] Mainz over the free kick.
+[ 246.95s] Sieb over the set piece now.
+[ 250.80s] Weiper over the restart.
+[ 254.65s] Mainz over the dead ball again.
+[ 258.50s] Mainz crowding the six-yard box.
+[ 262.90s] Union still pressing after the change.
+[ 267.85s] Mainz bench, all eyes on Becker.
+[ 272.25s] Mainz bench taking a breather.
+[ 276.10s] Mainz probing from deep.
+[ 279.95s] Union win a throw on the left.
+[ 286.00s] Union readying the throw.
+[ 289.30s] Union’s throw-in, late pressure.
+[ 293.70s] Union’s number 18 over the throw.
+[ 297.55s] Union set for the restart.

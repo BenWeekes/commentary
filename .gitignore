@@ -2,8 +2,16 @@
 .env
 matches_live.yaml
 
-# Side-experiment artefacts — indexed in docs/ai/L1/10_experiments.md, kept local
-experiments/
+# Side-experiment artefacts — code, JSONL data, and results tracked in git.
+# Large media files (frames, WAV, MP4) stay local and served via URLs
+# (see docs/ai/L1/10_experiments.md for the URL list).
+experiments/**/frames/
+experiments/**/*.wav
+experiments/**/*.mp4
+experiments/**/*.log
+experiments/**/*.bak
+experiments/**/__pycache__/
+experiments/**/*.pyc
 
 # Python
 __pycache__/

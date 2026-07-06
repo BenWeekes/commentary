@@ -1,0 +1,267 @@
+{
+  "summary": {
+    "judge_sample_n": 32,
+    "judge_hallucination_rate": 0.094,
+    "judge_subject_present_rate": 0.969,
+    "judge_human_likeness_mean": 3.22,
+    "soniox_turn_coverage": 0.735
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper is visible waiting while a player is down in a central area; phrasing is natural and concise.",
+      "_text": "Zentner waits, with a player down centrally.",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee is visibly beside/over a player down on the pitch; phrasing is natural enough.",
+      "_text": "The referee stands over the player down.",
+      "_t": 12.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A Mainz player in a red shirt is visible nearby, plausibly Jae-sung, but the line is plain and caption-like.",
+      "_text": "Jae-sung stands nearby in the red shirt.",
+      "_t": 24.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Touchline staff are visible gesturing, and a Mainz player watches/looks down nearby; names are plausible though not verifiable from frame.",
+      "_text": "Sano watches as Henriksen gestures on the touchline.",
+      "_t": 37.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A Mainz player is visibly partly obscured by another, so the description is plausible, though the wording is caption-like.",
+      "_text": "Amiri stands partially hidden behind Becker.",
+      "_t": 42.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper is visible near the goal line during a set piece; line is plausible and fairly natural.",
+      "_text": "Klaus stands alert on his goal line.",
+      "_t": 48.95
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A goalkeeper/player is visible in the six-yard area, but he is not down in this frame.",
+      "_text": "Klaus is down inside his six-yard box.",
+      "_t": 61.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Several players are visible around and beyond halfway, so the positional comment is plausible and sounds fairly natural.",
+      "_text": "Burke moves into space beyond halfway.",
+      "_t": 67.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player near the touchline with the ball nearby is plausible; wording is natural, though the ball's flight is not very clear.",
+      "_text": "Burke waits under the ball near the touchline.",
+      "_t": 74.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A player in red, likely Sano, is visible with the ball close to his feet; the line is accurate but plain.",
+      "_text": "Sano has the ball at his feet.",
+      "_t": 80.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red player is plausibly stationary with the ball on the right side; the line is simple but natural enough.",
+      "_text": "Caci stands with the ball on the right.",
+      "_t": 86.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Ball is visible on the right flank and a Mainz player could plausibly be Caci; phrasing is understandable but fairly plain.",
+      "_text": "Caci watches the ball roll up the right.",
+      "_t": 107.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly beside a stationary ball near the touchline; the wording is natural.",
+      "_text": "Veratschnig stands over the ball by the touchline.",
+      "_t": 113.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Goalkeeper in cyan is visible near his area and the ball appears to have been played out; line is plausible but plain.",
+      "_text": "Zentner plays the ball from his area.",
+      "_t": 121.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player is plausibly near halfway with the ball nearby; simple but natural phrasing.",
+      "_text": "Mwene waits for the ball near halfway.",
+      "_t": 130.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Ball and players are visible; a Mainz player could plausibly be Jae-sung ahead of a Union player, though the frame is blurry.",
+      "_text": "Jae-sung has the ball in front of Trimmel.",
+      "_t": 135.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper is visible in/near the six-yard box, but he appears upright rather than stooping low.",
+      "_text": "Klaus stoops low inside his six-yard box.",
+      "_t": 163.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Referee and a red-shirted player are visible; 'walks away' is plausible, but phrasing is caption-like.",
+      "_text": "The referee walks away, red-shirted player nearby.",
+      "_t": 193.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player is visibly holding the back of his head and looking across the field; naming him Burke is plausible though not fully verifiable from frame.",
+      "_text": "Burke holds his head, looking across the pitch.",
+      "_t": 199.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Substitution setup is visible with board raised and players waiting, though the wording is awkward and names/numbers are not clearly verifiable.",
+      "_text": "Weiper is readied, Tietz\u2019s number shown off.",
+      "_t": 205.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Player in Mainz kit is visibly applauding toward the stands near the sideline; wording is clear but caption-like.",
+      "_text": "Sieb applauds the crowd on the touchline.",
+      "_t": 210.1
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A prone player by the post is visible, but Becker sliding in is not clearly shown; wording is terse but fairly natural.",
+      "_text": "Becker slides in by the post, Klaus prone.",
+      "_t": 215.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "No event claimed; a Mainz player is visible and partly obscured by the official, but the line sounds like a plain visual caption.",
+      "_text": "Becker is partly hidden behind the official.",
+      "_t": 221.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Substitution by the touchline is plausible from the board and sideline scene, though the named players are not clearly identifiable.",
+      "_text": "Weiper comes on, Becker by the touchline.",
+      "_t": 229.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A Mainz player in red is visibly jogging; identifying him as Weiper is plausible, though the line is terse.",
+      "_text": "Weiper jogs on in red.",
+      "_t": 238.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Weiper appears visible among nearby players; 'inside the area' isn't verifiable from tight shot but no clear event claim.",
+      "_text": "Weiper stands among teammates inside the area.",
+      "_t": 242.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Set-piece setup with a Mainz player by the ball on the right; natural concise commentary.",
+      "_text": "Amiri stands over the ball on the right.",
+      "_t": 247.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Ball is visibly above a crowded penalty area; Weiper could plausibly be among Mainz players watching it.",
+      "_text": "Weiper watches the ball above the crowded area.",
+      "_t": 258.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution is shown on the on-screen graphic, and a Union player is visible; phrasing is concise and broadcast-like.",
+      "_text": "Juranovic replaces Trimmel for Union.",
+      "_t": 264.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "A player is standing by the bench holding a bottle, but Becker is not clearly identifiable or plausibly shown.",
+      "_text": "Becker stands by the bench, bottle in hand.",
+      "_t": 269.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Kohn booking graphic is visible and a red-shirted player appears down near the touchline; phrasing is concise but a bit caption-like.",
+      "_text": "Kohn\u2019s booking graphic appears, red shirt down.",
+      "_t": 280.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Player in black kit is visible and appears to be Ansah; phrase is understandable but awkward and not very broadcaster-like.",
+      "_text": "Ansah looks down in the black kit.",
+      "_t": 287.65
+    }
+  ]
+}

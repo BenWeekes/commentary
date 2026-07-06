@@ -1,0 +1,83 @@
+{
+  "summary": {
+    "judge_sample_n": 9,
+    "judge_hallucination_rate": 0.889,
+    "judge_subject_present_rate": 0.667,
+    "judge_human_likeness_mean": 3.78,
+    "soniox_turn_coverage": 0.206
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player is visibly down with the referee nearby and play appears stopped; line is natural and plausible.",
+      "_text": "The official stops play with a player down.",
+      "_t": 3.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee and Augsburg players are visible, but a yellow card/booking is not clearly shown in the frame.",
+      "_text": "Veratschnig receives the booking from Mr Exner.",
+      "_t": 8.25
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Players are actively contesting the ball, so play does not appear halted; Ansah could plausibly be one of the visible players.",
+      "_text": "Ansah looks on as play remains halted.",
+      "_t": 13.75
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Substitution is claimed but frame only shows a generic transition graphic/scorebug, with no players or substitution board visible.",
+      "_text": "Weiper replaces Tietz for the hosts.",
+      "_t": 22.55
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a Mainz player on the pitch, not Juranovic waiting on the touchline for a substitution.",
+      "_text": "Juranovic waits for his introduction on the touchline.",
+      "_t": 27.5
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows Mainz sideline staff/player, not Becker scoring from a tight angle.",
+      "_text": "Becker squeezes it in from a tight angle!",
+      "_t": 35.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player is visible and score is level, but the equaliser itself is not shown in this frame.",
+      "_text": "Becker catches his breath after that equaliser.",
+      "_t": 40.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Claims a substitution/farewell, which is not visible in the frame; players are visible but identities are unclear.",
+      "_text": "Sieb gets his farewell, Becker comes off.",
+      "_t": 45.65
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Set-piece setup is visible and Becker may be on the pitch, but there is no visible bench interaction or instruction.",
+      "_text": "Becker gets a word from the bench.",
+      "_t": 52.25
+    }
+  ]
+}

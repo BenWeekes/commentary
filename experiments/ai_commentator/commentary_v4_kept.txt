@@ -1,0 +1,80 @@
+# AI commentary v4 — alias rotation + 5 new rules
+# 77 accepted of 89 calls
+
+[   2.20s] Play halted; one player down in midfield.
+[   6.05s] Referee calms things down, play still stopped.
+[   9.90s] Still halted, medical attention for the man on the turf.
+[  14.85s] Tietz tussles for it in midfield.
+[  18.15s] Still down here, and Eta’s side waiting on the whistle.
+[  23.10s] Lee Jae-sung back on his feet.
+[  26.40s] Lee Jae-sung back up; play can restart.
+[  30.25s] Köpenick set the wall; Mainz over a free kick.
+[  34.65s] Free kick pending; the benches are animated.
+[  38.50s] Mainz bench still animated, Henriksen barking orders.
+[  42.35s] Amiri waiting over this restart.
+[  45.65s] Klaus organising his box, bodies everywhere.
+[  48.95s] Amiri over a dangerous dead ball.
+[  52.25s] Amiri over it, with bodies packed in.
+[  56.10s] Amiri over it again, crowd holding its breath.
+[  60.50s] Klaus punches clear amid the scramble.
+[  63.80s] Klaus launches it long, and the danger eases.
+[  68.20s] Klaus sweeps up again, calmly.
+[  72.05s] Klaus waits, and the visitors reset patiently.
+[  75.90s] Klaus has it again, and the pace drops.
+[  81.40s] Amiri strolling it down the left touchline.
+[  85.25s] Köpenick recycle it cautiously at halfway.
+[  88.55s] Mainz probing patiently across halfway.
+[  91.85s] Caci driving down the right, options ahead.
+[  95.70s] Caci surveys, Mainz 05 probing from the right.
+[ 100.10s] Caci takes it on, still probing wide.
+[ 103.95s] Becker crowded out, and the visitors clear.
+[ 107.80s] Klaus rolls it out, and Union reset.
+[ 111.65s] Klaus sweeps out, and the danger’s gone.
+[ 115.50s] Veratschnig cushions it under pressure.
+[ 118.80s] Zentner over the dead ball, taking his time.
+[ 123.20s] Burke pinned wide; the reds holding shape.
+[ 127.05s] Nebel driving centrally, options left and right.
+[ 130.90s] Amiri driving through midfield for the hosts.
+[ 134.75s] Khedira closes down Amiri in midfield.
+[ 138.05s] Caci probing right, bodies packed in.
+[ 141.35s] Amiri crowded out on the edge of the box.
+[ 145.75s] Caci over the free kick, bodies everywhere.
+[ 149.60s] Kohr on the left, probing forward.
+[ 152.90s] Caci over the ball, probing from the right.
+[ 157.30s] Amiri and Becker over this free kick.
+[ 161.15s] Mainz probing, but Union’s shape holds firm.
+[ 165.00s] Zentner claims it, and the danger eases.
+[ 168.85s] Khedira driving through midfield, Berlin on the break.
+[ 173.25s] Veratschnig battling through the middle, pressure mounting.
+[ 177.10s] Khedira keeps it moving, Berlin settling.
+[ 180.40s] Play stopped, and he’s down in midfield.
+[ 184.25s] Play halted; referee signals a free kick.
+[ 188.10s] Yellow for Veratschnig, and Mainz are down to ten.
+[ 192.50s] Another booking for the 05ers.
+[ 195.80s] Burcu, hands on hips, awaiting the restart.
+[ 199.65s] Juranovic waits, and the board’s coming on.
+[ 203.50s] Sieb and Weiper ready to come on.
+[ 207.35s] Juranovic on, Burke off.
+[ 210.10s] Kohr applauds the crowd, game still level.
+[ 213.95s] Klaus claws away, and the rebound stays out!
+[ 218.35s] Becker, frustrated, after that chance.
+[ 221.65s] Sieb on, and he’s straight into the action.
+[ 226.05s] Sieb waits on the touchline, ready to enter.
+[ 230.45s] Becker off, Sieb on for the hosts.
+[ 234.85s] Sieb off, and Jae-sung Lee on.
+[ 238.15s] Nebel and Amiri jogging back, regrouping.
+[ 241.45s] Mainz 05 regrouping, Amiri in shot.
+[ 244.75s] Sieb on for Becker; free kick to come.
+[ 249.15s] Weiper over the dead ball, Tietz off.
+[ 253.00s] Amiri over the free kick, bodies packed in.
+[ 257.40s] Amiri to swing it in from the right.
+[ 261.80s] Juranovic on, Trimmel off.
+[ 265.65s] Juranovic replaces Trimmel; Becker back on the bench.
+[ 271.15s] Mainz bench in a tense pause.
+[ 275.00s] Becker checks the bench, tension everywhere.
+[ 278.30s] Klaus under pressure, working it left.
+[ 281.60s] Burke over the throw, looking for a runner.
+[ 286.00s] Köhn still waiting to restart things.
+[ 289.30s] Juranovic over the throw, still probing.
+[ 294.25s] Juranović waiting to deliver from the right.
+[ 298.10s] Klaus poised for the restart.

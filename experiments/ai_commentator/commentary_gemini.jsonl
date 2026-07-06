@@ -1,0 +1,231 @@
+{"burst_index": 3, "video_time_s": 2.2, "vision_latency_ms": 1337, "text": "Foul on Ilic, and the referee is right there.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 3.0, "scheduled_start_s": 2.5, "scheduled_end_s": 7.7, "sub_detected": null}
+{"burst_index": 14, "video_time_s": 8.25, "vision_latency_ms": 1041, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 15, "video_time_s": 8.8, "vision_latency_ms": 1232, "text": "A talking-to for Becker from the referee.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.333, "scheduled_start_s": 9.1, "scheduled_end_s": 13.633, "sub_detected": null}
+{"burst_index": 24, "video_time_s": 13.75, "vision_latency_ms": 985, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 25, "video_time_s": 14.3, "vision_latency_ms": 1482, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 26, "video_time_s": 14.85, "vision_latency_ms": 740, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 27, "video_time_s": 15.4, "vision_latency_ms": 983, "text": "Sano goes down, looking for the foul.", "accepted": true, "reason": null, "error": null, "est_tag": "[sorrowful]", "gate_s": 1.8, "est_duration_s": 2.333, "scheduled_start_s": 15.7, "scheduled_end_s": 18.033, "sub_detected": null}
+{"burst_index": 32, "video_time_s": 18.15, "vision_latency_ms": 864, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 33, "video_time_s": 18.7, "vision_latency_ms": 922, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 34, "video_time_s": 19.25, "vision_latency_ms": 1055, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 35, "video_time_s": 19.8, "vision_latency_ms": 1235, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 36, "video_time_s": 20.35, "vision_latency_ms": 1048, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 37, "video_time_s": 20.9, "vision_latency_ms": 919, "text": "Eta's side, the visitors, still pushing for a winner.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 3.0, "scheduled_start_s": 21.2, "scheduled_end_s": 26.4, "sub_detected": null}
+{"burst_index": 48, "video_time_s": 26.95, "vision_latency_ms": 1363, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 49, "video_time_s": 27.5, "vision_latency_ms": 1044, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 50, "video_time_s": 28.05, "vision_latency_ms": 1721, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 51, "video_time_s": 28.6, "vision_latency_ms": 927, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 52, "video_time_s": 29.15, "vision_latency_ms": 23826, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 53, "video_time_s": 29.7, "vision_latency_ms": 1113, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 54, "video_time_s": 30.25, "vision_latency_ms": 803, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 55, "video_time_s": 30.8, "vision_latency_ms": 982, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 56, "video_time_s": 31.35, "vision_latency_ms": 1107, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 57, "video_time_s": 31.9, "vision_latency_ms": 804, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 58, "video_time_s": 32.45, "vision_latency_ms": 909, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 59, "video_time_s": 33.0, "vision_latency_ms": 1874, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 60, "video_time_s": 33.55, "vision_latency_ms": 1057, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 61, "video_time_s": 34.1, "vision_latency_ms": 1665, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 62, "video_time_s": 34.65, "vision_latency_ms": 2706, "text": "Sano comes off, and it's Lee Jae-sung who comes on.", "accepted": true, "reason": null, "error": null, "est_tag": "[resigned tone]", "gate_s": 4.0, "est_duration_s": 3.333, "scheduled_start_s": 34.95, "scheduled_end_s": 40.483, "sub_detected": null}
+{"burst_index": 73, "video_time_s": 40.7, "vision_latency_ms": 1183, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 74, "video_time_s": 41.25, "vision_latency_ms": 3214, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 75, "video_time_s": 41.8, "vision_latency_ms": 1414, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 76, "video_time_s": 42.35, "vision_latency_ms": 1975, "text": "Becker talking to Amiri here.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 42.65, "scheduled_end_s": 46.517, "sub_detected": null}
+{"burst_index": 84, "video_time_s": 46.75, "vision_latency_ms": 804, "text": "Klaus in goal for the Iron Ones.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.333, "scheduled_start_s": 47.05, "scheduled_end_s": 51.583, "sub_detected": null}
+{"burst_index": 93, "video_time_s": 51.7, "vision_latency_ms": 862, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 94, "video_time_s": 52.25, "vision_latency_ms": 861, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 95, "video_time_s": 52.8, "vision_latency_ms": 2855, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 96, "video_time_s": 53.35, "vision_latency_ms": 1097, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 97, "video_time_s": 53.9, "vision_latency_ms": 1544, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 98, "video_time_s": 54.45, "vision_latency_ms": 3401, "text": "Amiri stands over the ball.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 54.75, "scheduled_end_s": 58.617, "sub_detected": null}
+{"burst_index": 106, "video_time_s": 58.85, "vision_latency_ms": 1666, "text": "Amiri delivers the free kick.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 59.15, "scheduled_end_s": 63.017, "sub_detected": null}
+{"burst_index": 114, "video_time_s": 63.25, "vision_latency_ms": 865, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 115, "video_time_s": 63.8, "vision_latency_ms": 1052, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 116, "video_time_s": 64.35, "vision_latency_ms": 1175, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 117, "video_time_s": 64.9, "vision_latency_ms": 1486, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 118, "video_time_s": 65.45, "vision_latency_ms": 1240, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 119, "video_time_s": 66.0, "vision_latency_ms": 927, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 120, "video_time_s": 66.55, "vision_latency_ms": 1119, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 121, "video_time_s": 67.1, "vision_latency_ms": 920, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 122, "video_time_s": 67.65, "vision_latency_ms": 1299, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 123, "video_time_s": 68.2, "vision_latency_ms": 3832, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 124, "video_time_s": 68.75, "vision_latency_ms": 1127, "text": "Zentner plays it short.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 69.05, "scheduled_end_s": 72.583, "sub_detected": null}
+{"burst_index": 132, "video_time_s": 73.15, "vision_latency_ms": 922, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 133, "video_time_s": 73.7, "vision_latency_ms": 1481, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 134, "video_time_s": 74.25, "vision_latency_ms": 1294, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 135, "video_time_s": 74.8, "vision_latency_ms": 930, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 136, "video_time_s": 75.35, "vision_latency_ms": 3453, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 137, "video_time_s": 75.9, "vision_latency_ms": 993, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 138, "video_time_s": 76.45, "vision_latency_ms": 1111, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 139, "video_time_s": 77.0, "vision_latency_ms": 3083, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 140, "video_time_s": 77.55, "vision_latency_ms": 867, "text": "Amiri plays it back to Kohr.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.0, "scheduled_start_s": 77.85, "scheduled_end_s": 82.05, "sub_detected": null}
+{"burst_index": 149, "video_time_s": 82.5, "vision_latency_ms": 983, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 150, "video_time_s": 83.05, "vision_latency_ms": 1169, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 151, "video_time_s": 83.6, "vision_latency_ms": 926, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 152, "video_time_s": 84.15, "vision_latency_ms": 933, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 153, "video_time_s": 84.7, "vision_latency_ms": 2724, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 154, "video_time_s": 85.25, "vision_latency_ms": 1054, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 155, "video_time_s": 85.8, "vision_latency_ms": 1097, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 156, "video_time_s": 86.35, "vision_latency_ms": 1790, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 157, "video_time_s": 86.9, "vision_latency_ms": 1228, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 158, "video_time_s": 87.45, "vision_latency_ms": 1479, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 159, "video_time_s": 88.0, "vision_latency_ms": 1112, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 160, "video_time_s": 88.55, "vision_latency_ms": 916, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 161, "video_time_s": 89.1, "vision_latency_ms": 869, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 162, "video_time_s": 89.65, "vision_latency_ms": 984, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 163, "video_time_s": 90.2, "vision_latency_ms": 1532, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 164, "video_time_s": 90.75, "vision_latency_ms": 919, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 165, "video_time_s": 91.3, "vision_latency_ms": 860, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 166, "video_time_s": 91.85, "vision_latency_ms": 1304, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 167, "video_time_s": 92.4, "vision_latency_ms": 1419, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 168, "video_time_s": 92.95, "vision_latency_ms": 865, "text": "Kohr with the ball, looking up.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.0, "scheduled_start_s": 93.25, "scheduled_end_s": 97.45, "sub_detected": null}
+{"burst_index": 177, "video_time_s": 97.9, "vision_latency_ms": 1050, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 178, "video_time_s": 98.45, "vision_latency_ms": 984, "text": "Kohr pushes it forward for the Rhinelanders.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.333, "scheduled_start_s": 98.75, "scheduled_end_s": 103.283, "sub_detected": null}
+{"burst_index": 187, "video_time_s": 103.4, "vision_latency_ms": 2296, "text": "Mwene with the ball.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 188, "video_time_s": 103.95, "vision_latency_ms": 1557, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 189, "video_time_s": 104.5, "vision_latency_ms": 1433, "text": "Kohr to Amiri.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.2, "scheduled_start_s": 104.8, "scheduled_end_s": 108.2, "sub_detected": null}
+{"burst_index": 196, "video_time_s": 108.35, "vision_latency_ms": 946, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 197, "video_time_s": 108.9, "vision_latency_ms": 1106, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 198, "video_time_s": 109.45, "vision_latency_ms": 914, "text": "Zentner with the goal kick.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 109.75, "scheduled_end_s": 113.617, "sub_detected": null}
+{"burst_index": 206, "video_time_s": 113.85, "vision_latency_ms": 1047, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 207, "video_time_s": 114.4, "vision_latency_ms": 916, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 208, "video_time_s": 114.95, "vision_latency_ms": 1189, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 209, "video_time_s": 115.5, "vision_latency_ms": 1502, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 210, "video_time_s": 116.05, "vision_latency_ms": 915, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 211, "video_time_s": 116.6, "vision_latency_ms": 1175, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 212, "video_time_s": 117.15, "vision_latency_ms": 2947, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 213, "video_time_s": 117.7, "vision_latency_ms": 789, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 214, "video_time_s": 118.25, "vision_latency_ms": 917, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 215, "video_time_s": 118.8, "vision_latency_ms": 1825, "text": "Zentner with the goal kick.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 216, "video_time_s": 119.35, "vision_latency_ms": 1241, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 217, "video_time_s": 119.9, "vision_latency_ms": 2692, "text": "Zentner plays it out wide.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 120.2, "scheduled_end_s": 124.067, "sub_detected": null}
+{"burst_index": 225, "video_time_s": 124.3, "vision_latency_ms": 995, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 226, "video_time_s": 124.85, "vision_latency_ms": 1181, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 227, "video_time_s": 125.4, "vision_latency_ms": 1243, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 228, "video_time_s": 125.95, "vision_latency_ms": 979, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 229, "video_time_s": 126.5, "vision_latency_ms": 914, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 230, "video_time_s": 127.05, "vision_latency_ms": 1430, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 231, "video_time_s": 127.6, "vision_latency_ms": 3286, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 232, "video_time_s": 128.15, "vision_latency_ms": 860, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 233, "video_time_s": 128.7, "vision_latency_ms": 1376, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 234, "video_time_s": 129.25, "vision_latency_ms": 1047, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 235, "video_time_s": 129.8, "vision_latency_ms": 1233, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 236, "video_time_s": 130.35, "vision_latency_ms": 911, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 237, "video_time_s": 130.9, "vision_latency_ms": 1240, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 238, "video_time_s": 131.45, "vision_latency_ms": 912, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 239, "video_time_s": 132.0, "vision_latency_ms": 918, "text": "Sano plays it forward.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 132.3, "scheduled_end_s": 135.833, "sub_detected": null}
+{"burst_index": 247, "video_time_s": 136.4, "vision_latency_ms": 793, "text": "Mwene on the ball.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 136.7, "scheduled_end_s": 140.233, "sub_detected": null}
+{"burst_index": 255, "video_time_s": 140.8, "vision_latency_ms": 1500, "text": "Becker with the ball.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 141.1, "scheduled_end_s": 144.633, "sub_detected": null}
+{"burst_index": 263, "video_time_s": 145.2, "vision_latency_ms": 1637, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 264, "video_time_s": 145.75, "vision_latency_ms": 1307, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 265, "video_time_s": 146.3, "vision_latency_ms": 2560, "text": "Caci with the delivery.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 146.6, "scheduled_end_s": 150.133, "sub_detected": null}
+{"burst_index": 273, "video_time_s": 150.7, "vision_latency_ms": 1108, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 274, "video_time_s": 151.25, "vision_latency_ms": 920, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 275, "video_time_s": 151.8, "vision_latency_ms": 1308, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 276, "video_time_s": 152.35, "vision_latency_ms": 1246, "text": "Mwene with the ball on the left.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 277, "video_time_s": 152.9, "vision_latency_ms": 842, "text": "Mwene plays it to Kohr.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 153.2, "scheduled_end_s": 157.067, "sub_detected": null}
+{"burst_index": 285, "video_time_s": 157.3, "vision_latency_ms": 991, "text": "Becker with the short corner.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 286, "video_time_s": 157.85, "vision_latency_ms": 3138, "text": "Becker on the ball.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 287, "video_time_s": 158.4, "vision_latency_ms": 1183, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 288, "video_time_s": 158.95, "vision_latency_ms": 982, "text": "Becker on the ball.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 289, "video_time_s": 159.5, "vision_latency_ms": 1367, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 290, "video_time_s": 160.05, "vision_latency_ms": 3350, "text": "Becker with the ball.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 291, "video_time_s": 160.6, "vision_latency_ms": 1106, "text": "Becker with the cross.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 292, "video_time_s": 161.15, "vision_latency_ms": 916, "text": "Becker to Mwene.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.2, "scheduled_start_s": 161.45, "scheduled_end_s": 164.85, "sub_detected": null}
+{"burst_index": 299, "video_time_s": 165.0, "vision_latency_ms": 2222, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 300, "video_time_s": 165.55, "vision_latency_ms": 3352, "text": "Goal kick for the hosts.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 165.85, "scheduled_end_s": 169.717, "sub_detected": null}
+{"burst_index": 308, "video_time_s": 169.95, "vision_latency_ms": 1503, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 309, "video_time_s": 170.5, "vision_latency_ms": 1037, "text": "Burcu with a nice touch.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 170.8, "scheduled_end_s": 174.667, "sub_detected": null}
+{"burst_index": 317, "video_time_s": 174.9, "vision_latency_ms": 1121, "text": "Veratschnig venture forward.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.2, "scheduled_start_s": 175.2, "scheduled_end_s": 178.6, "sub_detected": null}
+{"burst_index": 324, "video_time_s": 178.75, "vision_latency_ms": 1245, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 325, "video_time_s": 179.3, "vision_latency_ms": 1514, "text": "Long ball forward for the Berliners.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.0, "scheduled_start_s": 179.6, "scheduled_end_s": 183.8, "sub_detected": null}
+{"burst_index": 334, "video_time_s": 184.25, "vision_latency_ms": 983, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 335, "video_time_s": 184.8, "vision_latency_ms": 1044, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 336, "video_time_s": 185.35, "vision_latency_ms": 917, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 337, "video_time_s": 185.9, "vision_latency_ms": 1107, "text": "Yellow card shown to Veratschnig.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 186.2, "scheduled_end_s": 190.067, "sub_detected": null}
+{"burst_index": 345, "video_time_s": 190.3, "vision_latency_ms": 1912, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 346, "video_time_s": 190.85, "vision_latency_ms": 981, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 347, "video_time_s": 191.4, "vision_latency_ms": 1718, "text": "Yellow card shown to Mwene.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 348, "video_time_s": 191.95, "vision_latency_ms": 1184, "text": "Yellow card to Sano.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 192.25, "scheduled_end_s": 195.783, "sub_detected": null}
+{"burst_index": 356, "video_time_s": 196.35, "vision_latency_ms": 1037, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 357, "video_time_s": 196.9, "vision_latency_ms": 986, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 358, "video_time_s": 197.45, "vision_latency_ms": 918, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 359, "video_time_s": 198.0, "vision_latency_ms": 1500, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 360, "video_time_s": 198.55, "vision_latency_ms": 1762, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 361, "video_time_s": 199.1, "vision_latency_ms": 1846, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 362, "video_time_s": 199.65, "vision_latency_ms": 1104, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 363, "video_time_s": 200.2, "vision_latency_ms": 2482, "text": "Sieb and Weiper are coming on for the hosts.", "accepted": true, "reason": null, "error": null, "est_tag": "[resigned tone]", "gate_s": 4.0, "est_duration_s": 3.0, "scheduled_start_s": 200.5, "scheduled_end_s": 205.7, "sub_detected": null}
+{"burst_index": 374, "video_time_s": 206.25, "vision_latency_ms": 791, "text": "Juranovic coming on for the Berliners.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 375, "video_time_s": 206.8, "vision_latency_ms": 1177, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 376, "video_time_s": 207.35, "vision_latency_ms": 1117, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 377, "video_time_s": 207.9, "vision_latency_ms": 918, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 378, "video_time_s": 208.45, "vision_latency_ms": 920, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 379, "video_time_s": 209.0, "vision_latency_ms": 1117, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 380, "video_time_s": 209.55, "vision_latency_ms": 1503, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 381, "video_time_s": 210.1, "vision_latency_ms": 1967, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 382, "video_time_s": 210.65, "vision_latency_ms": 1181, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 383, "video_time_s": 211.2, "vision_latency_ms": 1570, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 384, "video_time_s": 211.75, "vision_latency_ms": 921, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 385, "video_time_s": 212.3, "vision_latency_ms": 906, "text": "An acrobatic attempt from Weiper!", "accepted": true, "reason": null, "error": null, "est_tag": "[excited]", "gate_s": 1.8, "est_duration_s": 1.667, "scheduled_start_s": 212.6, "scheduled_end_s": 214.267, "sub_detected": null}
+{"burst_index": 389, "video_time_s": 214.5, "vision_latency_ms": 1314, "text": "Zentner with a diving save!", "accepted": true, "reason": null, "error": null, "est_tag": "[excited]", "gate_s": 1.8, "est_duration_s": 1.667, "scheduled_start_s": 214.8, "scheduled_end_s": 216.467, "sub_detected": null}
+{"burst_index": 393, "video_time_s": 216.7, "vision_latency_ms": 912, "text": "GOAL! Becker puts it in the back of the net!", "accepted": true, "reason": null, "error": null, "est_tag": "[excited]", "gate_s": 1.8, "est_duration_s": 3.333, "scheduled_start_s": 217.0, "scheduled_end_s": 220.333, "sub_detected": null}
+{"burst_index": 400, "video_time_s": 220.55, "vision_latency_ms": 1237, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 401, "video_time_s": 221.1, "vision_latency_ms": 917, "text": "Becker is still celebrating.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 221.4, "scheduled_end_s": 224.933, "sub_detected": null}
+{"burst_index": 409, "video_time_s": 225.5, "vision_latency_ms": 1106, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 410, "video_time_s": 226.05, "vision_latency_ms": 1506, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 411, "video_time_s": 226.6, "vision_latency_ms": 1109, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 412, "video_time_s": 227.15, "vision_latency_ms": 845, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 413, "video_time_s": 227.7, "vision_latency_ms": 1053, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 414, "video_time_s": 228.25, "vision_latency_ms": 3282, "text": "Becker is still celebrating.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 415, "video_time_s": 228.8, "vision_latency_ms": 1052, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 416, "video_time_s": 229.35, "vision_latency_ms": 1180, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 417, "video_time_s": 229.9, "vision_latency_ms": 909, "text": "Becker gets a hug from Henriksen.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.0, "scheduled_start_s": 230.2, "scheduled_end_s": 234.4, "sub_detected": null}
+{"burst_index": 426, "video_time_s": 234.85, "vision_latency_ms": 985, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 427, "video_time_s": 235.4, "vision_latency_ms": 2233, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 428, "video_time_s": 235.95, "vision_latency_ms": 783, "text": "Becker now jogging back to the center circle.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.667, "scheduled_start_s": 236.25, "scheduled_end_s": 241.117, "sub_detected": null}
+{"burst_index": 438, "video_time_s": 241.45, "vision_latency_ms": 973, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 439, "video_time_s": 242.0, "vision_latency_ms": 982, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 440, "video_time_s": 242.55, "vision_latency_ms": 914, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 441, "video_time_s": 243.1, "vision_latency_ms": 2696, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 442, "video_time_s": 243.65, "vision_latency_ms": 912, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 443, "video_time_s": 244.2, "vision_latency_ms": 2628, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 444, "video_time_s": 244.75, "vision_latency_ms": 1040, "text": "Sieb on for Becker.", "accepted": true, "reason": null, "error": null, "est_tag": "[resigned tone]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 245.05, "scheduled_end_s": 248.583, "sub_detected": ["Becker", "Sieb"]}
+{"burst_index": 452, "video_time_s": 249.15, "vision_latency_ms": 2355, "text": "Weiper on for Tietz.", "accepted": true, "reason": null, "error": null, "est_tag": "[resigned tone]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 249.45, "scheduled_end_s": 252.983, "sub_detected": ["Tietz", "Weiper"]}
+{"burst_index": 460, "video_time_s": 253.55, "vision_latency_ms": 1049, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 461, "video_time_s": 254.1, "vision_latency_ms": 915, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 462, "video_time_s": 254.65, "vision_latency_ms": 1048, "text": "Amiri stands over the ball.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 254.95, "scheduled_end_s": 258.817, "sub_detected": null}
+{"burst_index": 470, "video_time_s": 259.05, "vision_latency_ms": 2106, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 471, "video_time_s": 259.6, "vision_latency_ms": 777, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 472, "video_time_s": 260.15, "vision_latency_ms": 1179, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 473, "video_time_s": 260.7, "vision_latency_ms": 983, "text": "Juranovic and Trimmel are on for die Eisernen.", "accepted": true, "reason": null, "error": null, "est_tag": "[resigned tone]", "gate_s": 4.0, "est_duration_s": 2.667, "scheduled_start_s": 261.0, "scheduled_end_s": 265.867, "sub_detected": null}
+{"burst_index": 483, "video_time_s": 266.2, "vision_latency_ms": 922, "text": "Becker gets a hug from Henriksen.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 2.0, "scheduled_start_s": 266.5, "scheduled_end_s": 270.7, "sub_detected": null}
+{"burst_index": 492, "video_time_s": 271.15, "vision_latency_ms": 912, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 493, "video_time_s": 271.7, "vision_latency_ms": 984, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 494, "video_time_s": 272.25, "vision_latency_ms": 2431, "text": "Becker heads for the bench.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.667, "scheduled_start_s": 272.55, "scheduled_end_s": 276.417, "sub_detected": null}
+{"burst_index": 502, "video_time_s": 276.65, "vision_latency_ms": 1239, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 503, "video_time_s": 277.2, "vision_latency_ms": 856, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 504, "video_time_s": 277.75, "vision_latency_ms": 1638, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 505, "video_time_s": 278.3, "vision_latency_ms": 1807, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 506, "video_time_s": 278.85, "vision_latency_ms": 970, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 507, "video_time_s": 279.4, "vision_latency_ms": 895, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 508, "video_time_s": 279.95, "vision_latency_ms": 896, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 509, "video_time_s": 280.5, "vision_latency_ms": 1220, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 510, "video_time_s": 281.05, "vision_latency_ms": 962, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 511, "video_time_s": 281.6, "vision_latency_ms": 2254, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 512, "video_time_s": 282.15, "vision_latency_ms": 1225, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 513, "video_time_s": 282.7, "vision_latency_ms": 955, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 514, "video_time_s": 283.25, "vision_latency_ms": 1229, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 515, "video_time_s": 283.8, "vision_latency_ms": 1669, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 516, "video_time_s": 284.35, "vision_latency_ms": 1033, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 517, "video_time_s": 284.9, "vision_latency_ms": 1478, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 518, "video_time_s": 285.45, "vision_latency_ms": 1475, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 519, "video_time_s": 286.0, "vision_latency_ms": 967, "text": "Derrick Kohn is on for the visitors.", "accepted": true, "reason": null, "error": null, "est_tag": "[resigned tone]", "gate_s": 4.0, "est_duration_s": 2.333, "scheduled_start_s": 286.3, "scheduled_end_s": 290.833, "sub_detected": null}
+{"burst_index": 528, "video_time_s": 290.95, "vision_latency_ms": 1101, "text": "Juranovic with the throw.", "accepted": true, "reason": null, "error": null, "est_tag": "[calm]", "gate_s": 4.0, "est_duration_s": 1.333, "scheduled_start_s": 291.25, "scheduled_end_s": 294.783, "sub_detected": null}
+{"burst_index": 536, "video_time_s": 295.35, "vision_latency_ms": 1861, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 537, "video_time_s": 295.9, "vision_latency_ms": 1166, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 538, "video_time_s": 296.45, "vision_latency_ms": 901, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 539, "video_time_s": 297.0, "vision_latency_ms": 1084, "text": "Juranovic with the throw.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 540, "video_time_s": 297.55, "vision_latency_ms": 1033, "text": "Juranovic with the throw.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 541, "video_time_s": 298.1, "vision_latency_ms": 1110, "text": "Juranovic with the throw.", "accepted": false, "reason": "trigram_dup", "error": null}
+{"burst_index": 542, "video_time_s": 298.65, "vision_latency_ms": 1029, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 543, "video_time_s": 299.2, "vision_latency_ms": 1170, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}
+{"burst_index": 544, "video_time_s": 299.75, "vision_latency_ms": 1596, "text": "NO_CALL", "accepted": false, "reason": "no_call", "error": null}

@@ -1,0 +1,315 @@
+{
+  "summary": {
+    "judge_sample_n": 38,
+    "judge_hallucination_rate": 0.263,
+    "judge_subject_present_rate": 0.947,
+    "judge_human_likeness_mean": 4.0,
+    "soniox_turn_coverage": 1.0
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Union player appears down with teammates and the referee nearby, and play looks stopped; phrasing is natural enough.",
+      "_text": "The referee brings it to a halt, with a Union player still down and teammates as",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee is visibly pointing, Kemlein and a Union teammate down are plausibly in frame; wording is natural though slightly interpretive.",
+      "_text": "The referee points for the restart, while Kemlein waits anxiously with a teammat",
+      "_t": 8.8
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "A red player is down, but the visitors appear to be in dark kit and no challenge is visible in this frame.",
+      "_text": "A heavy coming-together in midfield, and one of the visitors is down again after",
+      "_t": 15.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "The frame shows Marie-Louise Eta on the touchline appearing focused; no obvious unsupported event is claimed. Wording is natural broadcast style.",
+      "_text": "Marie-Louise Eta still making her feelings clear on the touchline, trying to res",
+      "_t": 21.45
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Only a Mainz player close-up is visible; no free-kick setup, wall, keeper Klaus, or crowded box can be seen.",
+      "_text": "Mainz have a very inviting free kick here, with Klaus setting his wall and plent",
+      "_t": 29.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visible and Mewa branding is shown, but he is not visibly poised over a set piece and the captain\u2019s armband is not visible.",
+      "_text": "Amiri looks poised over this set piece, captain\u2019s armband on, with the Mewa Aren",
+      "_t": 39.05
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Keeper is visible and looking alert, but Amiri\u2019s delivery/ball is not visible in the frame.",
+      "_text": "Klaus peers through the bodies, trying to keep sight of Amiri\u2019s delivery from th",
+      "_t": 46.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Number 10 for Mainz is visible standing over the ball; looking toward the box is plausible though the penalty area itself is off-frame. Natural broadcast phrasing.",
+      "_text": "Amiri, number ten, takes one last look toward that crowded penalty area for the ",
+      "_t": 55.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union players are visible, but the frame does not clearly show Klaus taking charge of a delivery or Union stepping out.",
+      "_text": "Klaus takes charge of that delivery, and now Union can step out with a bit of pu",
+      "_t": 62.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Calm back-line circulation is plausible from the frame, with Union visible, though the specific short pass/Klaus isn\u2019t clearly identifiable.",
+      "_text": "Klaus has moved it short, and die Eisernen are spreading out across the back lin",
+      "_t": 70.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player, likely Kohr, is visible near the touchline; the possession/recycling description is plausible and natural.",
+      "_text": "Kohr picks it up on the near side, and Mainz try to recycle the attack patiently",
+      "_t": 79.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz are visibly in possession and set up patiently; phrasing is natural and plausible.",
+      "_text": "The 05ers are taking their time in possession, drawing the visitors across befor",
+      "_t": 88.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz are visibly in possession with Union set in a compact defensive shape; phrasing is natural broadcast-style.",
+      "_text": "The 05ers keep probing down this near side, but Union\u2019s shape is still nice and ",
+      "_t": 96.25
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible in possession, but no sliding challenge is apparent in the frame.",
+      "_text": "A sliding challenge comes in, but die Nullf\u00fcnfer work it past him and keep the m",
+      "_t": 102.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Zentner is visibly on the ball preparing a clearance; the long kick is implied but plausible, and the wording sounds natural.",
+      "_text": "Zentner steps into that clearance, sending Mainz long and asking the front line ",
+      "_t": 110.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper in Mainz colors is visibly near the ball at his feet, consistent with resetting play from the back; phrasing is natural.",
+      "_text": "Zentner has this one at his feet, and the Karnevalsverein can reset from the bac",
+      "_t": 118.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz players are visible in midfield and near the touchline; the line describes plausible buildup play without claiming a major unseen event.",
+      "_text": "The 05ers move it inside from the touchline, looking for a cleaner angle through",
+      "_t": 125.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz and a Union defender likely Trimmel are visible running centrally; the tracking-run description is plausible and sounds natural.",
+      "_text": "Mainz 05 drive on through the middle now, with Trimmel having to turn and track ",
+      "_t": 133.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz are attacking in a congested area with several Union players around the ball; the line is plausible and natural.",
+      "_text": "The hosts try to slip it through the crowd, but Union get bodies around the ball",
+      "_t": 141.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz in red are visibly working the near flank while Union in dark are organized defensively; phrasing is natural and idiomatic.",
+      "_text": "The Karnevalsverein keep probing down this near side, but die Eisernen are set i",
+      "_t": 151.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Two Mainz players are visible with one on the ball and another nearby as a square option; names are plausible though not fully verifiable from the frame.",
+      "_text": "Becker has drifted deep to collect for the 05ers, with Sano offering the simple ",
+      "_t": 157.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Visitors in dark kit are visible near their own box with play shifting to the right, and the phrasing sounds natural.",
+      "_text": "The visitors work it out to the right-hand side, trying to ease the pressure aro",
+      "_t": 165.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz player #22 is visibly carrying the ball down the flank with a defender closing, matching the line; phrasing is natural.",
+      "_text": "Veratschnig drives away down the right for Mainz, with Kohn trying to close that",
+      "_t": 173.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz and Union players are visible, with a Mainz player down/coming off a challenge and play continuing, so the foul appeal is plausible.",
+      "_text": "The Karnevalsverein want a foul there, but play continues as Union try to move i",
+      "_t": 179.85
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee and a player are visible, but no card or challenge is shown in this frame.",
+      "_text": "Veratschnig goes into the book for that challenge, and the referee made the deci",
+      "_t": 188.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Union Berlin player is visible during a lull; the line describes a general pause/restart without claiming a specific unseen event.",
+      "_text": "A brief pause as the Iron Ones reset themselves, with the restart still being or",
+      "_t": 196.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A substitution is clearly being signaled, with Mainz players including #44 visible at the touchline; wording sounds like normal commentary.",
+      "_text": "Mainz make the change now: Tietz is withdrawn, and the tall youngster Weiper is ",
+      "_t": 204.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red attacker is visibly challenging a dropping ball at the far post with the goalkeeper setting himself; wording is natural.",
+      "_text": "Becker attacks the dropping ball at the far post, and Klaus has to set himself v",
+      "_t": 212.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visible near the sideline/bench area, and the stoppage-tempo comment is plausible though not clearly verifiable from the frame.",
+      "_text": "Veratschnig waits for the restart right in front of the benches, with the tempo ",
+      "_t": 221.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Mainz player and staff are visible at the touchline during what appears to be a substitution; wording is natural.",
+      "_text": "The 05ers get fresh legs on from the bench, with the staff offering those final ",
+      "_t": 229.35
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Weiper/Mainz player is plausibly visible near the goal, but no clear penalty-area traffic or Union defender checking a shoulder is visible in this close-up.",
+      "_text": "Weiper is straight into the penalty-area traffic, while a Union defender just ch",
+      "_t": 238.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution graphic for Sieb/Becker is visible, and Mainz players are gathered in the box for a set-piece delivery; phrasing is natural.",
+      "_text": "The graphic confirms Becker has made way for Sieb, as Mainz load the box for thi",
+      "_t": 248.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Free-kick setup is visible with a Mainz player over the ball and players gathered near the area; Amiri identity is plausible but not verifiable from frame.",
+      "_text": "Amiri stands over the free kick for Mainz 05, with plenty gathered on the edge o",
+      "_t": 254.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Substitution graphic clearly shows Juranovic on and Trimmel off for Union Berlin; line is natural broadcast style.",
+      "_text": "Union Berlin make their change: Trimmel\u2019s evening is done, and Juranovic comes o",
+      "_t": 262.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Frame clearly shows Mainz/05ers bench with players seated/standing; waiting for play to resume is plausible and not a specific unverifiable event.",
+      "_text": "The camera lingers on the 05ers\u2019 bench, with everyone waiting for play to get mo",
+      "_t": 271.15
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "No visible yellow card or stopped-play restart; players from the referenced side are plausibly on screen.",
+      "_text": "Kohn is shown the yellow card for that challenge, and the Karnevalsverein have a",
+      "_t": 279.4
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a close-up Union player, not plausibly Juranovic or a near-touchline restart; line sounds fairly natural.",
+      "_text": "Juranovic is quickly involved on this near touchline, and the visitors look to r",
+      "_t": 288.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union player Khedira appears plausibly visible, and the late 81st-minute clock supports the comment; no obvious specific event is invented.",
+      "_text": "Khedira just trying to settle things down for Union, with the clock beginning to",
+      "_t": 296.45
+    }
+  ]
+}

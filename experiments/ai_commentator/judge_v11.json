@@ -1,0 +1,483 @@
+{
+  "summary": {
+    "judge_sample_n": 59,
+    "judge_hallucination_rate": 0.22,
+    "judge_subject_present_rate": 0.881,
+    "judge_human_likeness_mean": 3.85,
+    "soniox_turn_coverage": 1.0
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "A free-kick situation is plausible with the referee and players gathered, and Mainz players are visible, but the phrasing is awkward and Kohr is not clearly identifiable.",
+      "_text": "Kohr stands over the free kick decision.",
+      "_t": 2.2
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Union player is down and another protests to the referee, but Kemlein appears visibly standing, not staying down.",
+      "_text": "Khedira protests as Kemlein stays down.",
+      "_t": 7.15
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee appears to be directing players and Kemlein is visible, but no clear treatment of Kemlein is shown.",
+      "_text": "Exner waves players away as Kemlein receives treatment.",
+      "_t": 9.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player is visibly down on the turf, and the line sounds like natural commentary.",
+      "_text": "Nebel goes to ground as play breaks up.",
+      "_t": 15.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A woman on the touchline is visibly gesturing and speaking, plausibly Eta; the phrasing is natural commentary.",
+      "_text": "Eta voices her frustration from the touchline.",
+      "_t": 18.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Lee Jae-sung appears to be on the pitch for Mainz, not waiting to come on.",
+      "_text": "Jae-sung waits to come on for Mainz.",
+      "_t": 23.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Amiri is visible and the line suggests anticipation rather than a concrete unseen event; natural commentary phrasing.",
+      "_text": "Amiri sizes it up from a dangerous position.",
+      "_t": 29.7
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Kawasaki is visible by the bench with staff appearing to give instructions; phrasing is natural enough.",
+      "_text": "Kawasaki takes on instructions at the bench.",
+      "_t": 35.2
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Amiri appears visible with a tense/frustrated expression; no obvious event is falsely claimed, though the ball/set piece is not shown.",
+      "_text": "Amiri waits over it with a frustrated look.",
+      "_t": 40.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player is visibly positioned behind a defensive wall, fitting the line; phrasing is natural enough.",
+      "_text": "Klaus sets himself behind the wall.",
+      "_t": 45.65
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A free kick setup is clearly visible with a Mainz player standing over the ball; Amiri could plausibly be the taker, and the phrasing is natural.",
+      "_text": "Amiri pauses again over the free kick.",
+      "_t": 50.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly standing over a stationary ball for a set piece; the phrasing is natural.",
+      "_text": "Amiri stands poised over the dead ball.",
+      "_t": 56.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Goalkeeper in yellow is visible near the near post/goal line; wording is natural though motion is inferred from a still.",
+      "_text": "Klaus scrambles across his line at the near post.",
+      "_t": 61.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Ball is visibly moving into open midfield space, and a Union player who could be Doekhi is plausibly present; phrasing is natural.",
+      "_text": "Doekhi sends it long into open space.",
+      "_t": 64.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Keeper and ball are visible in/near the box, making a short roll across the area plausible; phrasing is natural.",
+      "_text": "Klaus rolls it short across his box.",
+      "_t": 69.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A defender in red appears to have possession in a deep wide area; identity isn't clear but the action is plausible and the phrasing is natural.",
+      "_text": "Posch carries it calmly across the back line.",
+      "_t": 74.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Amiri is plausibly a visible Mainz player; no obvious major event is falsely claimed, though the set-piece context isn't clear from the frame.",
+      "_text": "Amiri circles away after the set piece.",
+      "_t": 80.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "A red player on the right flank appears positioned to receive/play the ball; the named player is plausible though not identifiable from the frame. Line is natural but plain.",
+      "_text": "da Costa receives it again on the right.",
+      "_t": 85.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player on the right side is plausibly advancing with the ball; named player cannot be verified but is plausibly present.",
+      "_text": "Veratschnig carries it forward from the right.",
+      "_t": 90.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player is visibly carrying the ball near the halfway line at a measured pace; the named player is plausible though not identifiable from the frame.",
+      "_text": "Posch slows it down across the halfway line.",
+      "_t": 96.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player is on the ball near halfway and could be playing it square; wording is natural enough.",
+      "_text": "Posch clips it square from halfway.",
+      "_t": 101.75
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Ball carrier is visible on the right flank, so the description is plausible and natural.",
+      "_text": "da Costa carries it on down the right.",
+      "_t": 106.7
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Zentner is visible with the ball at the back, but the frame does not show him actually striking it long.",
+      "_text": "Zentner drives it long from the back.",
+      "_t": 110.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player and ball are visible near the right side, consistent with a square pass; the named player can't be confirmed but is plausible.",
+      "_text": "Veratschnig rolls it square along the right.",
+      "_t": 116.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Ball is being circulated in the back line, but Posch is not plausibly identifiable/present in this Mainz-Union frame.",
+      "_text": "Posch settles it again across the back.",
+      "_t": 121.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "A player is visibly carrying the ball centrally, but Posch is not plausibly identifiable/present in this Mainz-Union frame.",
+      "_text": "Posch carries it forward through the middle.",
+      "_t": 126.5
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Trimmel (#28) is visible carrying the ball, but Sano chasing is not clearly visible in the frame.",
+      "_text": "Trimmel gets back across with Sano chasing.",
+      "_t": 133.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is on the ball outside the penalty area and the phrasing is natural; action is plausible from the frame.",
+      "_text": "Mwene slows it down outside the box.",
+      "_t": 138.05
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is on the ball near the edge of the box, so the description is plausible though identity/movement can't be confirmed from one frame.",
+      "_text": "Amiri shifts inside at the edge of the box.",
+      "_t": 140.8
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is plausibly on the left side near the corner/edge area; the phrasing is natural and no major unverifiable event is claimed.",
+      "_text": "Caci checks back up near the left corner.",
+      "_t": 146.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Right-side Mainz play with a plausible da Costa visible; the phrase is natural and not claiming an obvious unverifiable major event.",
+      "_text": "da Costa works it inside on the right.",
+      "_t": 152.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "A player is visibly carrying the ball, but Becker does not appear to be the visible subject.",
+      "_text": "Becker carries it on down the left.",
+      "_t": 157.85
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Becker is visible on the ball near the left side facing a defender; phrasing sounds natural.",
+      "_text": "Becker squares up his man on the left.",
+      "_t": 160.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A dark-shirted player is visibly carrying the ball out of defense, plausibly Khedira, though he is more to the right than the middle.",
+      "_text": "Khedira carries it out through the middle.",
+      "_t": 166.1
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player in dark kit is carrying the ball down the touchline under pressure, matching the flank action; 'Burcu' is plausibly the visible player.",
+      "_text": "Burcu tries to skip away down the flank.",
+      "_t": 172.15
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player on the right flank is plausibly in possession or involved, and the line is natural commentary without claiming a major unseen event.",
+      "_text": "Veratschnig keeps it moving up the right.",
+      "_t": 175.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red player is visibly down on the far side; naming Caci is plausible and the line sounds natural.",
+      "_text": "Caci stays down on the far side.",
+      "_t": 180.4
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee is visible signaling, but Caci being down is not visible in the frame.",
+      "_text": "Exner brings play back with Caci still down.",
+      "_t": 183.15
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player and referee are visible, but no yellow card or booking action is clearly shown in the frame.",
+      "_text": "Veratschnig goes into the book here.",
+      "_t": 188.65
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "A booking for Burke is not visibly shown, and Burke is not identifiable in frame; wording is passable but a bit generic.",
+      "_text": "Burke has the booking as play settles.",
+      "_t": 193.6
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player is clearly visible and appears to be waiting during a stoppage; no obvious contradicted event is claimed.",
+      "_text": "Burke waits for the restart here.",
+      "_t": 198.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 3,
+      "rationale": "Two substitutes are visibly waiting by the fourth official and board; names are plausible though not readable.",
+      "_text": "Sieb and Weiper wait to come on.",
+      "_t": 203.5
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a Mainz player applauding on the pitch, not visibly Weiper or a substitution about to come on.",
+      "_text": "Weiper gets his applause before coming on.",
+      "_t": 208.45
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A player is visibly stretching/jumping for the ball in front of the goalkeeper; names are plausible though not clearly identifiable.",
+      "_text": "Becker stretches for it right in front of Klaus.",
+      "_t": 213.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player is visibly catching breath during a stoppage-like close-up; phrasing is natural.",
+      "_text": "Becker takes a breather as play pauses.",
+      "_t": 219.45
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Substitution is not clearly visible from the frame, and neither Sieb nor Becker is identifiable.",
+      "_text": "Sieb comes on as Becker heads off.",
+      "_t": 224.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Sideline substitution scene with a player/coach interaction and board visible; handshake/coming on is plausible though partly obscured.",
+      "_text": "Weiper gets a handshake as he heads on.",
+      "_t": 229.9
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly jogging, but a farewell or substitution context is not evident from the frame.",
+      "_text": "Sieb jogs on for his Mainz farewell.",
+      "_t": 235.4
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Player plausibly Weiper is visible near the goal area; line is natural and describes a calm moment rather than a clear unsupported event.",
+      "_text": "Weiper gathers himself in the box here.",
+      "_t": 240.35
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A Mainz player is visibly over a set piece on the right side; concise and broadcaster-like.",
+      "_text": "Amiri stands over it from the right.",
+      "_t": 245.3
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Amiri is visible by the ball with his hand raised, consistent with taking a free kick; phrasing is natural.",
+      "_text": "Amiri raises a hand over the free kick.",
+      "_t": 250.25
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Set-piece/cross situation toward a crowded far post is plausible, with the referenced player likely off to the right; phrasing is natural broadcast style.",
+      "_text": "Amiri hangs it up toward the back post.",
+      "_t": 257.4
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A red-shirted player is visible, but the frame does not clearly show him getting back up or joining a press.",
+      "_text": "Weiper gets back up and joins the press.",
+      "_t": 262.9
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 2,
+      "rationale": "Bench scene with players cooling off, and Becker could plausibly be present, but 'takes a word' is awkward and not very broadcaster-like.",
+      "_text": "Becker takes a word as he cools off.",
+      "_t": 268.4
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows the Mainz bench, not a player rolling the ball across the box; Klaus is not plausibly visible.",
+      "_text": "Klaus rolls it short across his box.",
+      "_t": 275.55
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "K\u00f6hn appears near the touchline with the ball for a likely throw-in; phrasing is natural enough.",
+      "_text": "K\u00f6hn waits over the throw on the left.",
+      "_t": 280.5
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Play appears stopped with players standing; K\u00f6hn could plausibly be one of the visible players, and the line sounds natural.",
+      "_text": "K\u00f6hn catches his breath during the stoppage.",
+      "_t": 286.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "A black-clad player is at the right touchline with the ball for a throw-in, so the described restart is plausible; phrasing is natural.",
+      "_text": "Juranovic gets the throw moving down the right.",
+      "_t": 290.95
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Union player plausibly Juranovic is visible walking; 'up the line' is not fully verifiable but not a major invented event.",
+      "_text": "Juranovic strolls up the line for Union.",
+      "_t": 294.8
+    }
+  ]
+}

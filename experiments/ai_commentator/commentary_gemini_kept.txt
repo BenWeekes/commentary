@@ -1,0 +1,47 @@
+# AI commentary GEMINI — gemini-2.5-flash, same pipeline as v5
+# 43 accepted of 231 calls
+# Subs tracked: [{'off': 'Becker', 'on': 'Sieb', 'at_s': 244.8}, {'off': 'Tietz', 'on': 'Weiper', 'at_s': 249.2}]
+
+[   2.20s] Foul on Ilic, and the referee is right there.
+[   8.80s] A talking-to for Becker from the referee.
+[  15.40s] Sano goes down, looking for the foul.
+[  20.90s] Eta's side, the visitors, still pushing for a winner.
+[  34.65s] Sano comes off, and it's Lee Jae-sung who comes on.
+[  42.35s] Becker talking to Amiri here.
+[  46.75s] Klaus in goal for the Iron Ones.
+[  54.45s] Amiri stands over the ball.
+[  58.85s] Amiri delivers the free kick.
+[  68.75s] Zentner plays it short.
+[  77.55s] Amiri plays it back to Kohr.
+[  92.95s] Kohr with the ball, looking up.
+[  98.45s] Kohr pushes it forward for the Rhinelanders.
+[ 104.50s] Kohr to Amiri.
+[ 109.45s] Zentner with the goal kick.
+[ 119.90s] Zentner plays it out wide.
+[ 132.00s] Sano plays it forward.
+[ 136.40s] Mwene on the ball.
+[ 140.80s] Becker with the ball.
+[ 146.30s] Caci with the delivery.
+[ 152.90s] Mwene plays it to Kohr.
+[ 161.15s] Becker to Mwene.
+[ 165.55s] Goal kick for the hosts.
+[ 170.50s] Burcu with a nice touch.
+[ 174.90s] Veratschnig venture forward.
+[ 179.30s] Long ball forward for the Berliners.
+[ 185.90s] Yellow card shown to Veratschnig.
+[ 191.95s] Yellow card to Sano.
+[ 200.20s] Sieb and Weiper are coming on for the hosts.
+[ 212.30s] An acrobatic attempt from Weiper!
+[ 214.50s] Zentner with a diving save!
+[ 216.70s] GOAL! Becker puts it in the back of the net!
+[ 221.10s] Becker is still celebrating.
+[ 229.90s] Becker gets a hug from Henriksen.
+[ 235.95s] Becker now jogging back to the center circle.
+[ 244.75s] Sieb on for Becker.
+[ 249.15s] Weiper on for Tietz.
+[ 254.65s] Amiri stands over the ball.
+[ 260.70s] Juranovic and Trimmel are on for die Eisernen.
+[ 266.20s] Becker gets a hug from Henriksen.
+[ 272.25s] Becker heads for the bench.
+[ 286.00s] Derrick Kohn is on for the visitors.
+[ 290.95s] Juranovic with the throw.

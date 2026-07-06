@@ -1,0 +1,172 @@
+# v8 hybrid — Vision gpt-5.4-mini + gemini-2.5-flash + Arbiter/Judge gpt-5.4-mini(with frame)
+# 42 accepted; choices {'B_safe': 55, 'A_safe': 17, 'B_specific': 15, 'A_specific': 15}
+# subs: []
+
+[   2.20s] q=4 B_safe       EN: A Mainz player is down injured in the midfield, with both sets of players gathered.
+                                    FR: Un joueur de Mainz est au sol, blessé au milieu de terrain, avec les deux équipes rassemblées.
+                                    why: The frame clearly shows a Mainz player down with players and the referee nearby, while the specific naming Sano and the physios claim is not fully visible.
+
+[   7.70s] q=4 B_safe       EN: The referee is intervening to calm players, with a Union player on the ground.
+                                    FR: L’arbitre intervient pour calmer les joueurs, avec un joueur de l’Union au sol.
+                                    why: The frame clearly shows the referee managing a stoppage and a Union player down, while B_safe stays accurate without overclaiming the specific identity.
+
+[  15.95s] q=4 A_safe       EN: Play has stopped for treatment in midfield.
+                                    FR: Le jeu est arrêté pour soigner un joueur au milieu de terrain.
+                                    why: The frame clearly shows a stoppage with a player down in midfield, while B adds an unsupported specific foul and player identity.
+
+[  20.90s] q=4 B_specific   EN: Union Berlin coach Marie-Louise Eta looks on intently from the touchline, giving instructions.
+                                    FR: L’entraîneure de l’Union Berlin, Marie-Louise Eta, observe attentivement depuis la touche et donne des consignes.
+                                    why: The frame clearly shows Marie-Louise Eta on the touchline, and B_specific is accurate and more informative than the generic alternative.
+
+[  28.05s] q=4 B_specific   EN: Jae-sung on for the hosts, the South Korean international looking to make a late impact.
+                                    FR: Jae-sung entre en jeu pour les locaux, l’international sud-coréen espérant peser en fin de match.
+                                    why: The frame shows Mainz’s Jae-sung on the pitch, so the specific identification is supported and more informative than the generic alternative.
+
+[  35.75s] q=4 A_safe       EN: Mainz bench and coach discussing the next phase.
+                                    FR: Le banc de Mainz et l’entraîneur discutent de la suite.
+                                    why: The frame clearly shows Mainz’s coach on the touchline talking to staff and a player, while the specific player instruction in B is not visibly certain.
+
+[  41.25s] q=4 B_safe       EN: Mainz 05's Amiri is watching the play develop in the midfield.
+                                    FR: Amiri de Mainz 05 observe le jeu se développer au milieu de terrain.
+                                    why: The frame clearly shows Amiri in view and the safe wording avoids the speculative Becker reference while fitting the stoppage context.
+
+[  47.85s] q=4 B_safe       EN: Union's goalkeeper Klaus is in his own penalty area, preparing to restart play.
+                                    FR: Le gardien de l’Union, Klaus, est dans sa surface et s’apprête à relancer.
+                                    why: The frame clearly shows Union’s goalkeeper in his box, while the safe variant avoids overcommitting to a specific restart that isn’t fully visible.
+
+[  55.00s] q=4 B_specific   EN: Mainz's key creator Amiri stands over a free-kick on the edge of the box.
+                                    FR: Amiri, le créateur clé de Mainz, s’apprête à frapper un coup franc à l’entrée de la surface.
+                                    why: The frame clearly shows Amiri over a set piece, and B_specific is accurate and more precise than the safer alternative.
+
+[  62.70s] q=4 A_specific   EN: Klaus gathers the loose ball amid a crowded six-yard box.
+                                    FR: Klaus capte le ballon relâché dans une surface de réparation très encombrée.
+                                    why: The frame clearly shows Klaus collecting the ball in a crowded box, while the B option misidentifies the visible action and player context.
+
+[  71.50s] q=4 A_safe       EN: Red-and-whites building from deep in their own half.
+                                    FR: Les Rouge et Blanc construisent depuis leur propre moitié de terrain.
+                                    why: The frame shows a deep buildup phase and A_safe is accurate without overclaiming a specific event.
+
+[  78.10s] q=4 A_safe       EN: Amiri has the ball on the right flank.
+                                    FR: Amiri a le ballon sur l’aile droite.
+                                    why: The frame clearly shows Amiri in possession wide on the right, while the more specific wording adds unnecessary detail.
+
+[  84.15s] q=4 B_safe       EN: Mainz 05 are in possession in their defensive half, building an attack.
+                                    FR: Mayence 05 a la possession dans sa moitié de terrain et construit son attaque.
+                                    why: The frame shows Mainz in controlled possession near midfield, while the specific naming Caci is not clearly verifiable.
+
+[  94.05s] q=4 A_safe       EN: Union building patiently in the middle third.
+                                    FR: Union construit patiemment dans le cœur du jeu.
+                                    why: The frame shows Union in controlled possession in midfield, while the specific Mainz player claim is not clearly visible.
+
+[ 102.85s] q=4 B_safe       EN: A foul in midfield sees play stopped, with the visitors earning a free-kick.
+                                    FR: Une faute au milieu de terrain interrompt le jeu, et les visiteurs obtiennent un coup franc.
+                                    why: The frame shows a midfield stoppage and B_safe matches it without overclaiming a specific player or unseen contact.
+
+[ 110.55s] q=4 A_specific   EN: Klaus in mint green calmly rolls it out from the back.
+                                    FR: Klaus, en vert menthe, relance calmement depuis l’arrière.
+                                    why: The frame clearly shows Klaus in a mint-green kit playing the ball from deep, and A_specific is accurate and more directly supported than B.
+
+[ 117.15s] q=4 B_safe       EN: The home side's number 22 has put the ball out for a throw-in.
+                                    FR: Le numéro 22 de l’équipe à domicile a mis le ballon en touche pour une remise en jeu.
+                                    why: The frame shows the ball going out near the touchline, and the safer option avoids the speculative booking claim and specific player identification.
+
+[ 127.60s] q=4 B_safe       EN: The red-and-whites are advancing into the final third with the ball.
+                                    FR: Les Rouge et Blanc avancent dans le dernier tiers avec le ballon.
+                                    why: The frame shows Mainz attacking into the final third, but Amiri specifically is not clearly identifiable, so the safer generic line is the best fit.
+
+[ 133.65s] q=4 A_specific   EN: Mainz’s number 16 drives forward on the right, Union retreating.
+                                    FR: Le numéro 16 de Mainz progresse sur la droite, Union recule.
+                                    why: The frame clearly shows Mainz number 16 carrying the ball on the right, so the specific call is accurate and more vivid than the generic alternative.
+
+[ 140.25s] q=4 B_safe       EN: Mainz 05 are attacking in the box, a shot is blocked by the visitors.
+                                    FR: Mainz 05 attaque dans la surface, une frappe est contrée par les visiteurs.
+                                    why: The frame shows Mainz 05 in the attacking third with a blocked attempt, while the specific version’s claim about Amiri is not clearly visible.
+
+[ 145.75s] q=4 A_safe       EN: The reds work it near the left corner of the area.
+                                    FR: Les rouges font circuler le ballon près de l’angle gauche de la surface.
+                                    why: The frame clearly shows Mainz in possession near the left edge of the box, while the specific player claim in B is not visibly supported.
+
+[ 161.70s] q=3 A_safe       EN: Union Berlin goalkeeper set to restart from the six-yard box.
+                                    FR: Le gardien de l'Union Berlin s'apprête à relancer depuis les six mètres.
+                                    why: The frame shows the goalkeeper with the ball in a restart setup, while the specific save claims are not visibly confirmed.
+
+[ 167.75s] q=4 A_specific   EN: The 05ers break forward centrally, black shirts retreating.
+                                    FR: Les 05ers partent en contre plein axe, les maillots noirs reculent.
+                                    why: The frame clearly shows the red-and-whites breaking forward through the middle with the black shirts dropping back, and this is more accurate than the speculative player-specific alternative.
+
+[ 173.80s] q=4 B_specific   EN: Mainz's Veratschnig, on a booking, is challenged by the Iron Ones' number 39 near the touchline.
+                                    FR: Veratschnig de Mainz, averti, est accroché près de la ligne de touche par le numéro 39 des Iron Ones.
+                                    why: The frame clearly shows Veratschnig being challenged by number 39 near the touchline, making B_specific the most accurate and specific option.
+
+[ 182.05s] q=4 B_safe       EN: The home side has won a free-kick in the middle of the park.
+                                    FR: L'équipe à domicile obtient un coup franc au milieu du terrain.
+                                    why: The frame clearly shows a stoppage with a player down and a free-kick situation, while the specific player claim is not fully verifiable.
+
+[ 189.20s] q=4 A_specific   EN: Union’s number 22 is booked, referee showing yellow.
+                                    FR: Le numéro 22 de l'Union est averti, l'arbitre sort le carton jaune.
+                                    why: The frame visibly shows the referee showing a yellow card to Union’s number 22, making A_specific the most accurate and specific option.
+
+[ 194.70s] q=3 B_safe       EN: The visitors' number 10, Ansah, stands in midfield, surveying his options.
+                                    FR: Le numéro 10 des visiteurs, Ansah, est au milieu et prend ses options du regard.
+                                    why: The frame shows a visitor player in midfield, while the specific claim about the exact player identity is not fully verifiable, so the safer variant is best.
+
+[ 201.30s] q=4 B_specific   EN: Mainz 05's number 11, Sieb, comes on for his home farewell, replacing number 44 Weiper.
+                                    FR: Le numéro 11 de Mainz 05, Sieb, entre pour ses adieux à domicile, en remplacement du numéro 44 Weiper.
+                                    why: The frame clearly shows Mainz’s number 11 and 44 at the touchline with the substitution board raised, making B_specific the most informative accurate call.
+
+[ 209.55s] q=4 A_specific   EN: Sieb applauds the crowd after Mainz’s late change.
+                                    FR: Sieb applaudit le public après le changement tardif de Mainz.
+                                    why: The frame shows Sieb in Mainz kit applauding, and A_specific matches the visible action without overreaching.
+
+[ 215.05s] q=4 A_specific   EN: Union’s keeper is sprawling to smother a close-range effort.
+                                    FR: Le gardien de l’Union se détend pour capter une frappe à bout portant.
+                                    why: The frame clearly shows Union’s keeper diving low to stop a close-range chance, while the more specific alternative names an unconfirmed player and event.
+
+[ 221.10s] q=3 A_safe       EN: Mainz 05 player waits during a brief stoppage.
+                                    FR: Un joueur de Mayence 05 attend pendant un bref arrêt de jeu.
+                                    why: The frame shows a Mainz player standing during a stoppage, while B’s substitution claim is not visibly confirmed.
+
+[ 226.60s] q=4 A_safe       EN: Sieb and teammates wait near the sideline for play to resume.
+                                    FR: Sieb et ses coéquipiers attendent près de la ligne de touche que le jeu reprenne.
+                                    why: The frame clearly shows Sieb by the touchline in a stoppage, while B adds an unsupported substitution detail.
+
+[ 233.75s] q=4 B_safe       EN: Mainz's number 23, Becker, is substituted off, receiving a hug from a coach.
+                                    FR: Le numéro 23 de Mainz, Becker, sort du terrain et reçoit une accolade de son entraîneur.
+                                    why: The frame clearly shows Becker at the touchline with staff and a substitution context, while the safer wording avoids overclaiming the exact on-pitch action.
+
+[ 242.00s] q=4 B_safe       EN: A Mainz player in a red patterned kit looks dejected, hands on head.
+                                    FR: Un joueur de Mainz en maillot rouge à motifs a l’air abattu, les mains sur la tête.
+                                    why: The frame clearly shows a red-patterned Mainz player looking frustrated, while the specific naming of Tietz is not verifiable from the image.
+
+[ 249.15s] q=4 A_specific   EN: Weiper stands over the dead ball on the right, Mainz ready to deliver.
+                                    FR: Weiper se tient au ballon arrêté sur la droite, Mainz 05 est prêt à le jouer.
+                                    why: The frame clearly shows Weiper over a stationary ball for a set piece, while the substitution claim is not visible here.
+
+[ 256.30s] q=4 B_safe       EN: Mainz 05 takes a corner from the right flank, sending it into the area.
+                                    FR: Mainz 05 joue un corner depuis la droite, envoyé dans la surface.
+                                    why: The frame clearly shows a right-sided corner delivery into a crowded box, while the specific claim naming Amiri is not visibly supported.
+
+[ 264.00s] q=4 A_specific   EN: Union’s Juranovic and Trimmel are involved in a midfield change.
+                                    FR: Juranovic et Trimmel de l’Union sont impliqués dans un changement au milieu de terrain.
+                                    why: The frame shows Union players and the on-screen substitution graphic, so the specific substitution line is supported and more informative than the generic alternative.
+
+[ 270.60s] q=4 A_safe       EN: Mainz bench waiting through a stoppage near the sideline.
+                                    FR: Le banc de Mainz attend pendant un arrêt de jeu près de la ligne de touche.
+                                    why: The frame clearly shows the bench during a stoppage, while B’s specific substitution claim is not visibly supported.
+
+[ 276.65s] q=4 B_safe       EN: The home side are in possession in the penalty area, seeking an opening.
+                                    FR: Les locaux ont la possession dans la surface, à la recherche d’une ouverture.
+                                    why: The frame clearly shows the home side attacking in the box, while the specific naming Caci is not verifiable from the image.
+
+[ 283.80s] q=4 A_safe       EN: The 05ers have a throw-in near the corner flag.
+                                    FR: Les 05ers ont une touche près du poteau de corner.
+                                    why: The frame clearly shows a throw-in situation near the left corner area, while the more specific player claim is not visible.
+
+[ 292.05s] q=4 A_specific   EN: Juranovic prepares Union's throw-in on the right touchline.
+                                    FR: Juranovic prépare la touche d’Union sur la ligne de touche droite.
+                                    why: The frame clearly shows Juranovic by the right sideline ready for a throw-in, and A is the cleanest accurate description.
+
+[ 297.55s] q=4 A_safe       EN: Mainz preparing a dead-ball delivery from the flank.
+                                    FR: Mayence prépare un coup de pied arrêté sur le côté.
+                                    why: The frame shows a Mainz player holding the ball for a restart, while the specific throw-in claim from B is not clearly visible.
+

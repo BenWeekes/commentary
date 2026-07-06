@@ -1,0 +1,83 @@
+{
+  "summary": {
+    "judge_sample_n": 9,
+    "judge_hallucination_rate": 0.778,
+    "judge_subject_present_rate": 0.333,
+    "judge_human_likeness_mean": 3.78,
+    "soniox_turn_coverage": 0.235
+  },
+  "verdicts": [
+    {
+      "hallucination_likely": 0,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Referee and players are visible with a player down and play apparently halted, matching the line.",
+      "_text": "The referee is stopping play after that challenge.",
+      "_t": 4.0
+    },
+    {
+      "hallucination_likely": 0,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a stoppage/restart-like moment, but Ansah is not identifiable or clearly visible.",
+      "_text": "Ansah gathers himself before the restart.",
+      "_t": 16.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Veratschnig may be visible, but no yellow card/booking is clearly shown in the frame.",
+      "_text": "Veratschnig goes into the book after the stoppage.",
+      "_t": 10.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "Claims specific substitutes are ready, but only a staff member/official is visible and the named players are not shown.",
+      "_text": "Weiper and Sieb are stripped for late changes.",
+      "_t": 21.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows players set up on the pitch, not a visible substitution or applauding player coming on.",
+      "_text": "Sieb applauds the crowd as he comes on.",
+      "_t": 30.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows the Mainz bench/staff, not a close-range finish or Becker/Klaus involved.",
+      "_text": "Becker wheels away after beating Klaus from close range!",
+      "_t": 36.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 1,
+      "human_likeness": 4,
+      "rationale": "Score is 1-1 and Mainz players are visible, but no clear smile or levelling event is shown in the frame.",
+      "_text": "Becker shares a smile after levelling it.",
+      "_t": 43.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 4,
+      "rationale": "Frame shows a goalkeeper, not Weiper or an obvious injury-return/substitution moment.",
+      "_text": "Weiper gets his long-awaited return from injury.",
+      "_t": 48.0
+    },
+    {
+      "hallucination_likely": 1,
+      "subject_present": 0,
+      "human_likeness": 3,
+      "rationale": "The visible player is standing, not jogging, and 'farewell minutes' is not evident from the frame; Sieb is not plausibly identifiable.",
+      "_text": "Sieb jogs into position for his farewell minutes.",
+      "_t": 55.0
+    }
+  ]
+}

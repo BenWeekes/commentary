@@ -1,0 +1,103 @@
+# v8a: arbiter=gpt-5.4-mini tight=True confgate=False
+# 50 accepted; choices {'B_safe': 22, 'A_safe': 52, 'B_specific': 1, 'A_specific': 3}
+
+[   2.20s] q=4 B_safe       EN: Play is stopped as a Mainz player receives attention in midfield.
+                                    FR: Le jeu est arrêté pendant qu’un joueur de Mayence reçoit des soins au milieu de terrain.
+[   8.80s] q=4 A_safe       EN: Union’s midfield is paused while a player receives treatment.
+                                    FR: Le milieu de terrain de l’Union est à l’arrêt pendant qu’un joueur reçoit des soins.
+[  14.85s] q=4 A_safe       EN: Mainz work the ball forward in midfield.
+                                    FR: Mainz 05 fait progresser le ballon au milieu de terrain.
+[  19.80s] q=4 A_safe       EN: Union Berlin’s coach protests on the sideline.
+                                    FR: L’entraîneure de l’Union Berlin proteste sur la ligne de touche.
+[  24.75s] q=2 B_specific   EN: The 05ers' number 22, Veratschnig, looks on as play continues in midfield.
+                                    FR: Le numéro 22 des 05ers, Veratschnig, regarde pendant que le jeu se poursuit au milieu de terrain.
+[  31.35s] q=4 B_safe       EN: Mainz 05 prepare for a free kick just outside the Union box.
+                                    FR: Mainz 05 s’apprêtent à frapper un coup franc juste à l’entrée de la surface des visiteurs.
+[  37.95s] q=4 A_safe       EN: Mainz bench area during a stoppage, coaches talking.
+                                    FR: Zone du banc de Mainz pendant un arrêt de jeu, les entraîneurs échangent.
+[  43.45s] q=4 A_safe       EN: Mainz players stand over the ball in midfield.
+                                    FR: Les joueurs de Mainz se tiennent au-dessus du ballon au milieu de terrain.
+[  48.95s] q=5 A_safe       EN: The red-and-whites prepare a set piece near the area.
+                                    FR: Les rouges et blancs préparent un coup de pied arrêté à l’entrée de la surface.
+[  56.65s] q=4 A_safe       EN: Mainz 05 set up for a restart near the box.
+                                    FR: Mainz 05 se prépare pour une remise en jeu près de la surface.
+[  62.70s] q=4 A_safe       EN: Union goalkeeper Klaus claims it inside the box.
+                                    FR: Le gardien de l’Union, Klaus, capte le ballon dans sa surface.
+[  69.30s] q=4 B_safe       EN: The visitors' keeper gathers the ball deep in his own half.
+                                    FR: Le gardien des visiteurs récupère le ballon très bas dans sa moitié de terrain.
+[  76.45s] q=4 A_safe       EN: Mainz keep the ball near halfway on the right.
+                                    FR: Les 05ers gardent le ballon près de la ligne médiane sur le côté droit.
+[  82.50s] q=4 A_safe       EN: The 05ers work the ball around midfield.
+                                    FR: Les 05ers font circuler le ballon au milieu de terrain.
+[  87.45s] q=4 A_safe       EN: Mainz 05 probing in midfield, Union set behind the ball.
+                                    FR: Mainz 05 cherche des solutions au milieu, Union est bien en place derrière le ballon.
+[  94.05s] q=4 B_safe       EN: The red-and-whites take possession in the middle third.
+                                    FR: Les Rouge et Blanc prennent le contrôle dans le milieu du terrain.
+[ 103.40s] q=4 A_safe       EN: Mainz circulate possession in midfield, just inside Union's half.
+                                    FR: Les Nullfünfer font circuler le ballon au milieu, juste dans la moitié de terrain des visiteurs.
+[ 109.45s] q=5 B_safe       EN: The home side's keeper has the ball deep in his own territory.
+                                    FR: Le gardien de l'équipe à domicile a le ballon très bas dans son camp.
+[ 117.15s] q=4 A_safe       EN: Mainz 05 advancing down the right flank.
+                                    FR: Mainz 05 progresse sur le flanc droit.
+[ 119.90s] q=4 A_safe       EN: Union goalkeeper Zentner stands over a restart near halfway.
+                                    FR: Le gardien de l’Union, Zentner, se tient au ballon pour une remise en jeu près de la ligne médiane.
+[ 125.95s] q=4 A_safe       EN: Die Nullfünfer circulate possession on the right side.
+                                    FR: Les Nullfünfer font circuler le ballon sur le côté droit.
+[ 131.45s] q=4 A_safe       EN: The 05ers carry play through the middle third.
+                                    FR: Les 05ers font progresser le jeu dans le milieu de terrain.
+[ 137.50s] q=4 A_safe       EN: Mainz working the ball just outside the area.
+                                    FR: Mainz fait circuler le ballon juste à l’entrée de la surface.
+[ 143.00s] q=4 A_safe       EN: The reds work it around the edge of the area.
+                                    FR: Les Rouges font circuler le ballon à l’entrée de la surface.
+[ 149.05s] q=4 A_safe       EN: The red-and-whites work it on the left flank.
+                                    FR: Les Rouge et Blanc font circuler le ballon sur le flanc gauche.
+[ 154.55s] q=4 B_safe       EN: Mainz 05 advancing down the right flank.
+                                    FR: Mainz 05 progresse sur le flanc droit.
+[ 157.30s] q=4 B_safe       EN: The hosts are on the ball on the right wing.
+                                    FR: Les locaux ont le ballon sur l'aile droite.
+[ 163.35s] q=4 A_safe       EN: Union defending deep, keeper securing the ball in the box.
+                                    FR: Union défend très bas, le gardien sécurise le ballon dans la surface.
+[ 171.05s] q=4 A_specific   EN: Burke drives at Kohr near the right touchline.
+                                    FR: Burke provoque Kohr près de la ligne de touche droite.
+[ 176.55s] q=4 A_safe       EN: Mainz in possession near halfway, building patiently.
+                                    FR: Mayence a la possession près de la ligne médiane, en train de construire patiemment.
+[ 181.50s] q=4 A_safe       EN: Loose ball and stoppage around midfield, both sides reset.
+                                    FR: Ballon libre et arrêt de jeu au milieu de terrain, les deux équipes se replacent.
+[ 187.55s] q=5 A_specific   EN: Yellow card shown to Mainz 05’s number 22 after the stoppage.
+                                    FR: Carton jaune pour le numéro 22 de Mainz 05 après l’arrêt de jeu.
+[ 194.15s] q=4 A_safe       EN: Union preparing for a restart near midfield.
+                                    FR: Union se prépare pour une remise en jeu près du milieu de terrain.
+[ 199.10s] q=4 A_safe       EN: Union Berlin player stands still near midfield after play stops.
+                                    FR: Le joueur de l'Union Berlin reste immobile près du milieu de terrain après l'arrêt du jeu.
+[ 205.15s] q=5 B_safe       EN: Mainz preparing a substitution with the fourth official holding up the board.
+                                    FR: Mainz prépare un changement avec le quatrième arbitre qui lève le panneau.
+[ 211.75s] q=4 B_safe       EN: The home side's striker heads the ball high over the goal.
+                                    FR: L’attaquant de l’équipe à domicile place sa tête au-dessus du but.
+[ 218.90s] q=4 A_safe       EN: Becker stands near midfield during a brief pause.
+                                    FR: Becker est debout près du milieu de terrain pendant une courte interruption.
+[ 224.40s] q=5 A_specific   EN: Sieb waits by the touchline for Mainz 05.
+                                    FR: Sieb attend au bord de la ligne de touche pour le Mainz 05.
+[ 229.90s] q=4 A_safe       EN: Union’s number 23 leaves the pitch near the sideline.
+                                    FR: Le numéro 23 de l’Union quitte la pelouse près de la ligne de touche.
+[ 235.95s] q=4 A_safe       EN: Mainz attacker retreating into shape near halfway.
+                                    FR: L’attaquant des 05ers redescend pour se replacer près de la ligne médiane.
+[ 240.90s] q=4 A_safe       EN: The red-and-whites regroup near the box after the pause.
+                                    FR: Les Rouge et Blanc se regroupent près de la surface après l’arrêt de jeu.
+[ 246.95s] q=4 A_safe       EN: Mainz 05 over a dead-ball near the right flank.
+                                    FR: Mainz 05 a un coup de pied arrêté côté droit.
+[ 256.30s] q=4 A_safe       EN: Union set to swing in a right-side dead ball.
+                                    FR: Union s’apprête à envoyer un coup de pied arrêté depuis la droite.
+[ 262.35s] q=4 A_safe       EN: Union Berlin make a change near their own box.
+                                    FR: Union Berlin procède à un changement près de sa propre surface.
+[ 268.40s] q=4 A_safe       EN: Becker near the bench as play pauses.
+                                    FR: Becker est près du banc pendant l’arrêt de jeu.
+[ 273.35s] q=5 A_safe       EN: Mainz’s bench area during a brief stoppage.
+                                    FR: Le banc de Mayence pendant une brève interruption.
+[ 278.30s] q=4 A_safe       EN: Visitors circulate possession on the left side of the area.
+                                    FR: Les visiteurs font circuler le ballon sur le côté gauche de la surface.
+[ 284.35s] q=4 A_safe       EN: Throw-in for the red-and-whites near the left touchline.
+                                    FR: Rentrée de touche pour les Rouge et Blanc près de la ligne de touche gauche.
+[ 289.85s] q=4 B_safe       EN: Union Berlin with a throw-in deep in the attacking half.
+                                    FR: Union Berlin a une touche dans le camp adverse, assez haut sur le terrain.
+[ 296.45s] q=4 A_safe       EN: Mainz player in black walking back through midfield.
+                                    FR: Le joueur de Mayence en noir revient en trottinant au milieu de terrain.
