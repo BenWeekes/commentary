@@ -76,13 +76,18 @@ We land the cheapest tier first, measure hallucination reduction, decide whether
 
 ### Tier A — off-the-shelf detector, no training (target 1-2 days)
 
-**Stack:**
-- `ultralytics` (YOLOv8-nano or YOLOv8-small, pretrained on COCO includes "person" and "sports ball")
+**Recommended starting point (2026): `roboflow/sports`** — https://github.com/roboflow/sports
+
+Actively maintained open-source pipeline that bundles ball detection, player detection, kit-colour clustering, jersey-number OCR, homography, and tracker plumbing in one repo. Uses ultralytics YOLO under the hood. Comes with pretrained weights that work reasonably well on football broadcast footage out of the box. Zero training required for milestone 1.
+
+Fallback / from-scratch equivalent stack (assemble manually if `roboflow/sports` doesn't fit):
+- `ultralytics` (YOLOv8-nano/small or newer — YOLOv11 was current at time of writing; check for a newer release when starting), pretrained on COCO includes "person" and "sports ball"
 - OpenCV for jersey-number crop + Tesseract (or PaddleOCR) for digit recognition
-- ByteTrack (bundled with ultralytics) for cross-frame association
+- BoT-SORT (preferred, better re-ID for football's frequent occlusions) or ByteTrack — both bundled with ultralytics — for cross-frame association
 - Kit-colour classification via HSV histogram of each person bbox (2-cluster k-means → home vs away)
 
 **Runs on:**
+- **New GPU box (3.9.234.40):** ~15-25 ms/frame for YOLOv11n at 960×540, negligible cost at 0.55 s cadence
 - CPU inference (this box has 16 cores, no GPU). YOLOv8n on 960×540 frames ≈ 40-80 ms/frame CPU. At 0.55 s cadence, plenty of headroom.
 - Cloud alternative: Roboflow Universe hosted inference API — a pretrained football detector is available; ~$0.001/inference; adds ~100-200 ms.
 
@@ -112,14 +117,22 @@ The LLM prompt adds: *"Names given below the TRACKING block are high-confidence.
 ### Tier B — trained football detector (target +1 week)
 
 **Stack:**
-- `ultralytics` fine-tuned YOLO on football datasets (SoccerNet, Roboflow Universe "soccer-players" datasets)
-- Same tracker + OCR from Tier A
-- Adds: **ball-in-play detector** (is the ball actually in play?), **referee bbox class** (ref shirt colour), **fourth-official board detector**
+- `ultralytics` fine-tuned YOLO (YOLOv11n / YOLOv11s recommended; drop in a newer base model if one has shipped) on football-specific datasets
+- Same tracker + OCR from Tier A (BoT-SORT / ByteTrack)
+- Adds: **ball-in-play detector** (is the ball actually in play?), **referee bbox class** (ref shirt colour), **fourth-official board detector**, optional **jersey-number classification head** trained on SoccerNet jersey annotations
 
 **Trains on:**
-- Public datasets already labelled (SoccerNet has ~500 hours annotated)
-- ~2-4 hours of GPU time on a rented instance for a nano/small variant
-- No need for our specific match footage in training set
+Recency matters — older SoccerNet splits are limited; use the most recent tracks:
+- **SoccerNet-Tracking-2024** (or newer if the annual challenge has released a fresher split) — ~12 full-match tracks with player + ball annotations, freely downloadable after signing the licence at soccer-net.org
+- **SoccerNet-ReID** — for training a jersey-number classifier / player re-identification head
+- **SoccerNet-Jersey** — jersey-number annotations
+- **Roboflow Universe "football-players-detection"** family — community-uploaded fine-tuning datasets, quality varies; useful as top-up data
+- Also worth checking the latest **SoccerNet MOT Challenge leaderboard** on Papers with Code — winning configs are usually published and give a strong starting recipe
+
+Compute:
+- ~4-6 hours of GPU time on a single L4 / A10 (or the new GPU box) for a nano/small variant
+- No need for our specific match footage in the training set
+- Cost on the new box: negligible (already have the hardware); if renting, ~$5 of GPU rental
 
 **Output additions:**
 
@@ -190,7 +203,9 @@ Total additional runtime cost per live match (~2 hours) is bounded around **$3-4
 
 ## What I'd build first (my recommendation)
 
-**Just Tier A milestone 1-2** — off-the-shelf YOLO, kit clustering, no OCR yet — as a text block in the prompt. Two days of work. If the judge's hallucination rate drops meaningfully on the eval slice, we know tracker-grounding works and it's worth investing in the harder tiers. If it doesn't move, we've spent two days and learned that pixel-level grounding isn't the bottleneck (it's something else, like LLM interpretive bias).
+**Just Tier A milestone 1-2** — clone `roboflow/sports`, run its football pipeline over the stored `frames/` dir, inject the per-frame detections as a text block into the vision-LLM prompt. No custom training. Two days of work.
+
+If the judge's hallucination rate drops meaningfully on the eval slice, we know tracker-grounding works and it's worth investing in Tier B (fine-tune YOLOv11 on SoccerNet-Tracking-2024 on the new GPU box). If it doesn't move, we've spent two days and learned that pixel-level grounding isn't the bottleneck (it's something else, like LLM interpretive bias).
 
 ## Related pieces already in the repo
 
