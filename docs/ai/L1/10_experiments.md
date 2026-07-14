@@ -88,7 +88,27 @@ GEMINI_API_KEY=<key> VARIANT=no_interrupt /home/ubuntu/commentary/.venv/bin/pyth
 1. Test Soniox v5 `translation_terms` to confirm it can serve as the equivalent of `lib/corrections.py`.
 2. Run all 5 target languages (es/pt/fr/tr/de) through v5 — does PT come back with similar length characteristics, or does v5 fix the PT-cadence problem?
 3. If translation quality holds up, scope a migration from Soniox v4 + gpt-5.5 to Soniox v5 single call.
-4. Re-test Gemini if a key for `gemini-3.1-flash-lite-live-translate` (closed-beta translate-specific model) becomes available — it may behave differently from the conversational `gemini-3.1-flash-live-preview` we tested.
+4. Re-test Gemini if a key for `gemini-3.1-flash-lite-live-translate` (closed-beta translate-specific model) becomes available — it may behave differently from the conversational `gemini-3.1-flash-live-preview` we tested. **✅ DONE 2026-07-07 — see update below.**
+
+### Update (2026-07-07): translate-specific model reverses the negative result
+
+Re-ran with **`gemini-3.1-flash-lite-live-translate`** ("Gemini v4xs Translation S2ST WizLive", the purpose-built streaming speech-to-speech translation model — now available on our key). Setup: `translationConfig.targetLanguageCode="fr"` in `generationConfig`; `inputAudioTranscription`/`outputAudioTranscription` at setup level; `responseModalities:["AUDIO"]` (text-only not allowed — audio-restricted for latency). Runner: `experiments/v2v_5min_slice/run_gemini_stt.py`.
+
+**The coverage problem is gone.** On the same 5-min slice:
+
+| Metric | conversational `flash-live-preview` (old) | **`flash-lite-live-translate` (new)** | Soniox v4 |
+|---|---:|---:|---:|
+| EN STT coverage | 24 % | **104 %** (586 vs 562 gold words) | 100 % |
+| EN WER vs gold | 80.8 % | **22.1 %** | 5.9 % |
+| Interruptions (dropped turns) | many | **0** | — |
+| Tail latency (last transcript vs audio end) | — | **−0.5 s (real-time)** | higher |
+| Output in one stream | — | EN text + FR text + 317 s FR audio | STT only |
+
+- The turn-management input-dropping that killed the conversational model does NOT happen on the translate model. Full coverage, zero interruptions, real-time.
+- WER 22.1 % is almost entirely **proper nouns / football terms** (Mainz→"might", Khedira→"Kera", "free kick"→"three kick") — a small known vocabulary fixable with a roster-glossary correction pass (cf. `lib/corrections.py`).
+- Delivers STT + FR translation (text **and** audio) in a single low-latency stream — a candidate one-call replacement for the Soniox → gpt-5.5 → ElevenLabs chain when latency dominates and ~22 % WER (pre-correction) is acceptable.
+
+Open follow-ups: (a) roster-glossary correction pass to pull WER toward Soniox; (b) test the other 4 target languages (es/pt/tr/de); (c) precise end-to-end latency A/B vs the Soniox pipeline.
 
 ---
 
@@ -123,6 +143,37 @@ Same 5-min slice as the V2V comparison above: `300–600 s` of `clips/m05_uni_ev
 ```
 
 Each vision call is essentially stateless across calls (text-only memory of recent lines). Inside a burst it sees 2.2 s of action and can read motion. The architecture is described in more detail in the experiment folder's README.
+
+### Origin, upstream, and the v1 prompt
+
+The whole line of work started from the upstream project
+**[zicojiao/worldcupvoice](https://github.com/zicojiao/worldcupvoice)** — the same
+core loop (frame-burst sampling → vision LLM → ElevenLabs TTS → publish audio),
+originally built as a broadcast-to-Agora relay. This experiment fanned out from
+there into: multi-language TTS, live SRT ingest, judge-based scoring, cross-frame
+temporal context, and the two-stage safe-draft/polisher split.
+
+**The v1 prompt — the one that started everything** — lives in
+`experiments/ai_commentator/run_ai_commentator.py` (`build_visual_prompt` +
+`STYLE_PROMPT`). Its seed idea, preserved *verbatim* in every version since (still
+the first line of `V5_PROMPT_BODY` and the `run_gpt55_variant` prompts):
+
+> "You are a live football play-by-play commentator, not an image captioner."
+
+v1 already established the **number-first naming rule**: inspect the visible shirt
+numbers on the ball carrier / passer / crosser / shooter / goalkeeper / nearest
+defender; use the roster short-name only if the number is readable and the kit
+matches, otherwise fall back to a generic role ("the Mainz striker"). This is the
+ancestor of both the later "generic over incorrect" framing and the current
+direction of **outputting shirt numbers + positions and substituting names
+downstream** rather than asking the vision model to recall names.
+
+Lineage:
+- **v1** — original prompt (`run_ai_commentator.py`), ~120 lines/5 min, every line named a team; energetic but high hallucination.
+- **v2–v4** — strict naming, live-pace booth-busy gate, team-alias rotation, sub-board recognition, NO_CALL bias.
+- **v5** — sub-event state memory, trigram dedup, frame carry-over → the low-latency Pareto point.
+- **v18–v20** — two-stage architecture (safe-draft vision + text polisher) that structurally caps hallucination.
+- **v20_par** (2026-07-06) — parallel/async vision so a slow, CPU-contention-starved call can't freeze the live loop on the 4-core + T4 box (see [[gpu-box-and-latency-fix]] / `DEBUG_latency_tail.md`).
 
 ### Iteration ladder
 
@@ -449,6 +500,22 @@ Currently we judge by listening + transcript comparison against Soniox gold. Ope
 
 ---
 
+### Round 4 — structured events-detector eval + tracker + fact-phrase blend (2026-07-06 → 10)
+
+A pivot from "one model writes commentary" to **grounded facts + real language, chosen by a final LLM**. Everything runs on the GPU box; pages are at **`https://sa-dev.agora.io/experiments/…`** (SSL; added as an additive `/experiments/` static location on the sa-dev server — does not touch the `:8095` app proxy).
+
+**(a) Events-detector eval — OpenAI vs Gemini vs tracker.** Shared prompt `prompts/events_detector_v1.txt` (from the other server) emits strict JSON: phase / possession(team,third,side,shirt#) / ball_state / events[]. Runner `run_vision_eval.py` (OpenAI `responses` + Gemini `generateContent`, `--frames` sweep). Comparison + human-scoring page `build_vision_eval_page.py` → `/experiments/vision_tracker_eval/<test>/` (time-aligned single-scroll grid, tick-per-cell, per-reviewer submit via `submit_server.py` behind nginx `/vte_submit`). Findings on the 5-min slice:
+- gpt-5.5: conservative, higher-precision events; **latency flat across 2/4/6/8 frames** (~7-8s, reasoning-bound not image-bound; consistent with prod vision p90).
+- gemini-3-flash: ~2x events + shirt#s, near-everything "high-confidence" (mis-calibrated), occasional team flips; latency rises at 8 frames.
+- No column is "best" outright — LLMs for events/possession, tracker for objective location. Human ticking is the arbiter (UI built; not yet scored).
+
+**(b) Tracker (round 2).** `run_tracker_detector.py` on the T4: roboflow/sports player+ball YOLO weights (`tracker_models/`, gdown) + kit-colour team + **pitch homography** (inlined `SoccerPitchConfiguration.vertices` + `cv2.findHomography`) → **objective ball third** on ~99/271 bursts (orientation from keeper positions). Objective third distribution (def 43 / mid 35 / att 21) **contradicts the LLMs' "attacking" bias** — so `third` is dropped from LLM columns and shown only for the tracker. **easyOCR reads 0/271 jersey numbers** — genuine 720p resolution limit (players ~70px, numbers ~12px), not a bug; needs 1080p+/OCR or a data feed.
+
+**(c) Gemini STT re-test** — see the V2V section update above (translate model: 104% coverage, 22% WER, real-time; reverses the old negative).
+
+**(d) Fact+phrase blend composer.** `run_blend_live.py` — one commentary track built **live over SRT**: short standalone Soniox phrases verbatim (harvested by `harvest_soniox.py`: ≤4s + sentence-complete + conf≥0.8 + LLM football-relevance filter → ~26 phrases) as anchors; a roster-aware **chooser LLM** fills gaps from a grounded menu {vision fact, tracker truth, broadcaster-named players}. Guards: event/subject/lull dedup + near-duplicate output rejection; Soniox preempts the gate. **Real player identity wired in** — authoritative Sportradar lineup (`sr_cache.json` → number/name/position/team/starter) + broadcaster STT mentions; the chooser only names a *validated* lineup player whose team matches, else team/role (kills invented/cross-team names). EN + FR (translate + ElevenLabs), muxed to synced videos. Results page `build_blend_page.py` → **`/experiments/ai_commentator/blend/`** (Original / AI-English / AI-French audio toggle + 3 transcript columns).
+- **Honest status: strong demo, not customer-ready.** Blockers: (1) per-moment player identity still fallible (lineup validates *directory*, not who-has-the-ball — vision can still map to the wrong *real* player, e.g. "Kohn takes the goal kick"; fix = 1080p OCR / tracking feed); (2) accuracy unverified by humans (tick UI ready); (3) generation is functional not emotive; (4) the real-phrase pillar only exists for *already-commentated* footage. See `SESSION_STATE.md` for full file map.
+
 ## 3. Server-side BWE / ABR feasibility (C++ Agora SDK)
 
 ### Status
@@ -483,6 +550,118 @@ The bundle expects an Agora SDK at `~/sdk-testing/Agora_Native_SDK_for_Linux_FUL
 ### Open follow-ups
 
 If product needs per-viewer ABR, the **v2 design** is client-driven: browser measures its own downlink and reports back over the existing WebSocket / control channel. The server then drives variant selection from the reported metric. The C++ ABR controller in `plan_bwe.md` is still useful for the *server-side execution* (switching pre-encoded variants on keyframe boundaries) — but the *trigger* must come from the client, not from `onDownlinkNetworkInfoUpdated`.
+
+---
+
+## Round 5 — 1080p vs 720p player identity (tracker + gpt-5.6 vision)
+
+**Status:** done. **Clip:** Dortmund vs Eintracht, 5-min extract 20:00–25:00 (native
+1920×1080 vs downscaled 1280×720). **Question:** does 1080p give better player identity,
+and should OCR read the shorts number too? Full detail →
+[L2/resolution_tracker_eval.md](../L2/resolution_tracker_eval.md).
+
+Upgraded the "tracker" from stateless per-frame detection to **BoT-SORT multi-object
+tracking + OCR-vote-and-propagate** (`run_tracker_tracked.py`): each player gets a
+persistent id, OCR runs opportunistically, the number is voted over the track and
+propagated to every frame. `read_number` now OCRs the **shirt and the shorts**.
+
+| Metric | 720p @5fps | 1080p @5fps | 1080p @10fps |
+|---|---|---|---|
+| easyOCR reads (shirt / shorts) | 178 / 17 | 220 / 30 | 329 / 54 |
+| Tracks named | 38 | 47 | 78 |
+| Frame identity coverage | 7.9% | 9.6% | **19.1%** |
+| gpt-5.6 vision numbers read (of 68) | 28 | 30 | — |
+
+Headline: **1080p helps easyOCR/tracker ~+22–28%** (shorts benefit most, +76%) but
+**barely helps the vision LLM** (+7%, resolution-robust). **Frame rate matters more than
+resolution** — 5→10 fps *doubled* identity coverage. The real bottleneck is **tracking
+fragmentation** (BoT-SORT ReID off + broadcast cuts → ~600 tracks for ~22 players), not
+pixels. Next lever: **ReID + shot-boundary handling** (the SoccerNet Game-State-
+Reconstruction stack), and a **hybrid** where the vision LLM reads the carrier number and
+the tracker propagates it.
+
+---
+
+## Round 6 — the recommended live pipeline + public 5-column page
+
+**Status:** done, live at `https://sa-dev.agora.io/experiments/ai_commentator/blend/`.
+The best commentary we can currently produce for Mainz vs Union, built **live over the
+SRT feed** and voiced EN + FR.
+
+**Recommended pipeline (multi-rate hybrid, 720p).** See
+[L2/resolution_tracker_eval.md](../L2/resolution_tracker_eval.md) for why 720p:
+1. **STT anchor** (Soniox short + high-conf phrases) — preempts everything; real
+   broadcaster words, zero hallucination.
+2. **Vision spine** (gpt-5.6, 4-frame bursts, **720p**, parallel calls) — events +
+   possession + carrier number. Low confidence is dropped; a player is **named whenever the
+   shirt number is readable + roster-valid** (either high OR medium possession — a filled
+   number already passed the detector's "unambiguously readable" bar, ~44/271 bursts here);
+   otherwise the line stays team/role level.
+3. **Tracker** (BoT-SORT + OCR-vote-and-propagate) — async identity/location truth,
+   off the critical path.
+4. **Blend chooser** (gpt-5.4-mini) — STT-first; else generates authentic play-by-play
+   from vision/tracker. Names the **pass receiver** ("Trimmel collects it"), names a player
+   whenever the menu hands one (vision number or a broadcaster mention nearby, never a guess),
+   enforces **verb variety** via an avoid-list (same topic fine, repeated verbs not), knows
+   the **match clock** (2nd half, ~77', 1-1) and references it *sparingly/varied*, and fills
+   rare dead air (>40 s) with a scene note. A **fresh named ball-carrier in open play can
+   preempt** the trailing pause of the previous line (once its audio has finished) so genuine
+   passes are called promptly — gated on `phase=open_play`, so replays/stoppages never trigger
+   a name. The **tracker contributes territory + shape** (ball-third via homography, "numbers
+   back") on ~half the generated lines, and is the sole grounding on a few.
+5. **TTS** (ElevenLabs flash) EN + FR.
+
+**Public page.** Five columns on one timeline: **STT / Vision / Tracker** (the three live
+input signals, labelled by *function* only) + **Blend EN / FR**. The columns are named by
+what they do, but the specific **products/models are never disclosed** (no Soniox / OpenAI /
+gpt / BoT-SORT strings leak to the page). Built by `build_hybrid_page.py` from
+`soniox_live_short.jsonl` (STT), `oai_col.jsonl` (Vision, `render_oai_col.py`),
+`tracker_col.jsonl` (Tracker, `render_tracker_col.py`), and `commentary_blend_live.jsonl`.
+Shared-timeline grid, scrub-sync, click-to-seek, audio toggle Original / AI-EN / AI-FR.
+
+### End-to-end latency applied to live (720p)
+
+A live deployment delays the outgoing video by a buffer and speaks into it. Budget by
+line type:
+
+| Stage | STT-anchored line | Vision-generated line |
+|---|---|---|
+| SRT + ffmpeg transport | ~0.3 s | ~0.3 s |
+| Soniox partial→final | ~1–2 s | — |
+| Frame-burst cadence | — | ≤0.55 s |
+| Vision inference (gpt-5.6, 720p) | — | **~4.5–6 s median, ~10 s p90** (measured) |
+| Chooser LLM (gpt-5.4-mini) | ~0.6 s | ~0.6 s |
+| TTS (ElevenLabs flash) | ~0.4 s | ~0.4 s |
+| Placement lag (`NATURAL_LAG_S`) | 0.3 s | 0.3 s |
+| **End-to-end behind live** | **~2.5–3.5 s** | **~6.5–8 s median, ~12 s p90** |
+
+### MEASURED end-to-end (true-live run, `run_blend_true_live.py`)
+
+The latency budget is now **proven in-loop**, not estimated: a run with vision inference
+(gpt-5.6, 4-frame 720p bursts, 3 parallel workers) called live inside the SRT loop, STT
+availability-gated to realistic arrival, per-line latency logged, and audio rendered as
+"live with a 10 s buffer" (a line about moment *t* placed at `t + max(0, behind_live − 10)`,
+so late lines audibly slip). Results (`latency_report.json`, 105 vision calls, 50 lines):
+
+| Measured | median | p90 | max |
+|---|---|---|---|
+| Vision call (gpt-5.6, 720p, shared 4-core box) | 7.7 s | 13.2 s | 20.2 s |
+| Behind-live — vision lines | **10.7 s** | **16.3 s** | 19.0 s |
+| Behind-live — STT lines | ~3–6 s | — | — |
+
+**16 of 50 lines exceeded the 10 s buffer** (all vision lines; max slip ~7 s). Honest
+conclusions:
+1. **STT-anchored commentary is comfortably live** (any buffer ≥6 s).
+2. **Vision commentary on THIS box needs a ~16 s buffer** to land on the play at p90 —
+   the earlier ~7 s estimate is disproven. The gap vs the isolated ~4.5 s probe is
+   contention: the same 4 cores run 2× ffmpeg, TTS, translation, and 3 vision encoders.
+3. **The fix is engineering, not modelling:** a dedicated inference host (no ffmpeg/TTS
+   contention), smaller frames for the vision call, fewer output tokens, or a faster
+   model tier — each attacks the 7.7 s median directly. Until then, quote **~10–15 s
+   behind live** for vision-grounded lines, not 7 s.
+
+(The published page demo is the true-live render: lines that fit the buffer sit on the
+play; the 16 late lines are placed where they would genuinely have been heard.)
 
 ---
 

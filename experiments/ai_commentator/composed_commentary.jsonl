@@ -1,0 +1,73 @@
+{"video_time_s": 2.2, "src": "gen", "text": "Foul given, play stops here.", "fact": "event: foul"}
+{"video_time_s": 5.5, "src": "gen", "text": "Foul called, and play is halted.", "fact": "event: foul"}
+{"video_time_s": 10.32, "src": "soniox", "text": "Khedira leading that particular charge.", "conf": 0.968, "dur": 2.16}
+{"video_time_s": 13.2, "src": "gen", "text": "Injury stoppage now, play is paused.", "fact": "event: injury_stoppage"}
+{"video_time_s": 16.5, "src": "gen", "text": "Tackle goes in, and play stops.", "fact": "event: tackle"}
+{"video_time_s": 26.64, "src": "soniox", "text": "And therefore, free kick awarded to Mainz.", "conf": 0.964, "dur": 3.48}
+{"video_time_s": 30.8, "src": "gen", "text": "Mainz have a free kick in midfield.", "fact": "event: free_kick for Mainz, in midfield"}
+{"video_time_s": 47.7, "src": "soniox", "text": "13 minutes of normal time remaining.", "conf": 0.928, "dur": 2.46}
+{"video_time_s": 51.0, "src": "soniox", "text": "Here at the Mewa Arena.", "conf": 0.993, "dur": 1.08}
+{"video_time_s": 52.8, "src": "gen", "text": "Mainz to take this midfield free kick.", "fact": "event: free_kick for Mainz, in midfield"}
+{"video_time_s": 56.1, "src": "gen", "text": "Mainz keep the ball with Ansah.", "fact": "possession: Mainz, player: Ansah"}
+{"video_time_s": 59.4, "src": "gen", "text": "Mainz deliver a cross into the box.", "fact": "event: cross for Mainz"}
+{"video_time_s": 62.76, "src": "soniox", "text": "Going to be caught every day of the week by Karl Klaus.", "conf": 0.978, "dur": 2.94}
+{"video_time_s": 66.0, "src": "gen", "text": "Union hold possession in midfield.", "fact": "possession: Union, player: unknown, in midfield"}
+{"video_time_s": 70.2, "src": "soniox", "text": "Trying to close in.", "conf": 0.975, "dur": 3.12}
+{"video_time_s": 73.7, "src": "gen", "text": "Mainz retain possession in midfield.", "fact": "possession: Mainz, player: unknown"}
+{"video_time_s": 77.0, "src": "gen", "text": "Mainz work the ball in attack.", "fact": "possession: Mainz, player: unknown, in the final third"}
+{"video_time_s": 80.3, "src": "gen", "text": "Mainz keep possession through Ansah.", "fact": "possession: Mainz, player: Ansah"}
+{"video_time_s": 83.6, "src": "gen", "text": "Mainz keep possession for now.", "fact": "possession: Mainz, player: unknown"}
+{"video_time_s": 86.9, "src": "gen", "text": "Mainz work it in the final third.", "fact": "possession: Mainz, player: unknown, in the final third"}
+{"video_time_s": 90.2, "src": "gen", "text": "Mainz keep it moving in midfield.", "fact": "possession: Mainz, player: unknown, in midfield"}
+{"video_time_s": 93.5, "src": "gen", "text": "Mainz continue circulating the ball.", "fact": "possession: Mainz, player: unknown"}
+{"video_time_s": 96.8, "src": "gen", "text": "Juranovic keeps Mainz moving in midfield.", "fact": "possession: Mainz, player: Juranovic, in midfield"}
+{"video_time_s": 100.1, "src": "gen", "text": "Mainz keep possession in midfield.", "fact": "possession: Mainz, player: unknown, in midfield"}
+{"video_time_s": 103.4, "src": "gen", "text": "Union win the tackle in midfield.", "fact": "event: tackle for Union, in midfield"}
+{"video_time_s": 106.7, "src": "gen", "text": "Mainz retain possession in midfield.", "fact": "possession: Mainz, player: unknown, in midfield"}
+{"video_time_s": 110.0, "src": "gen", "text": "Mainz work the ball through midfield.", "fact": "possession: Mainz, player: unknown, in midfield"}
+{"video_time_s": 113.3, "src": "gen", "text": "Veratschnig keeps Mainz in possession.", "fact": "possession: Mainz, player: Veratschnig"}
+{"video_time_s": 116.6, "src": "gen", "text": "Veratschnig keeps Mainz circulating the ball.", "fact": "possession: Mainz, player: Veratschnig"}
+{"video_time_s": 119.9, "src": "gen", "text": "Mainz set up for the goal kick.", "fact": "event: goal_kick"}
+{"video_time_s": 123.2, "src": "gen", "text": "Union probe forward in the final third.", "fact": "possession: Union, player: unknown, in the final third"}
+{"video_time_s": 126.5, "src": "gen", "text": "Mainz probe in the final third.", "fact": "possession: Mainz, player: unknown, in the final third"}
+{"video_time_s": 129.8, "src": "gen", "text": "Mainz retain possession in midfield.", "fact": "possession: Mainz, player: unknown, in midfield"}
+{"video_time_s": 133.1, "src": "gen", "text": "Trimmel keeps Union in possession.", "fact": "possession: Union, player: Trimmel"}
+{"video_time_s": 136.4, "src": "gen", "text": "Mwene holds possession for Mainz.", "fact": "possession: Mainz, player: Mwene"}
+{"video_time_s": 141.42, "src": "soniox", "text": "And Becker with a flick.", "conf": 0.873, "dur": 1.62}
+{"video_time_s": 144.66, "src": "soniox", "text": "Crowd of defenders for Union.", "conf": 0.986, "dur": 1.62}
+{"video_time_s": 147.9, "src": "soniox", "text": "There it breaks down.", "conf": 0.904, "dur": 0.9}
+{"video_time_s": 150.18, "src": "soniox", "text": "It's Jae-sung Lee and Amiri on the scene.", "conf": 0.905, "dur": 3.54}
+{"video_time_s": 156.06, "src": "soniox", "text": "Kaishu Sano for Sheraldo Becker.", "conf": 0.966, "dur": 2.82}
+{"video_time_s": 159.5, "src": "gen", "text": "Ilic keeps possession for Mainz.", "fact": "possession: Mainz, player: Ilic"}
+{"video_time_s": 162.8, "src": "gen", "text": "Union goalkeeper makes the save.", "fact": "event: save for Union"}
+{"video_time_s": 166.1, "src": "gen", "text": "Union keep possession in their own third.", "fact": "possession: Union, player: unknown, in their own third"}
+{"video_time_s": 169.4, "src": "gen", "text": "Union working it in midfield.", "fact": "possession: Union, player: unknown, in midfield"}
+{"video_time_s": 174.42, "src": "soniox", "text": "Take it away by Veratschnig.", "conf": 0.961, "dur": 1.62}
+{"video_time_s": 177.1, "src": "gen", "text": "Mainz keep possession here.", "fact": "possession: Mainz, player: unknown"}
+{"video_time_s": 179.28, "src": "soniox", "text": "It's Amiri's pass.", "conf": 0.966, "dur": 0.96}
+{"video_time_s": 181.02, "src": "soniox", "text": "Veratschnig continued his counter.", "conf": 0.976, "dur": 1.98}
+{"video_time_s": 183.7, "src": "gen", "text": "Foul given in the midfield.", "fact": "event: foul"}
+{"video_time_s": 187.0, "src": "gen", "text": "Yellow card to Mainz.", "fact": "event: yellow_card for Mainz"}
+{"video_time_s": 189.2, "src": "gen", "text": "Mainz are shown a yellow card.", "fact": "event: yellow_card for Mainz"}
+{"video_time_s": 192.5, "src": "gen", "text": "Mainz receive a booking.", "fact": "event: yellow_card for Mainz"}
+{"video_time_s": 200.7, "src": "soniox", "text": "Meanwhile, changes of foot.", "conf": 0.944, "dur": 1.74}
+{"video_time_s": 203.5, "src": "gen", "text": "Mainz make a substitution in their own third.", "fact": "event: substitution for Mainz, in their own third"}
+{"video_time_s": 207.9, "src": "gen", "text": "Mainz make another substitution.", "fact": "event: substitution for Mainz"}
+{"video_time_s": 212.3, "src": "gen", "text": "Mainz deliver a cross into the box.", "fact": "event: cross"}
+{"video_time_s": 215.6, "src": "gen", "text": "Union keep it out with a save.", "fact": "event: save for Union"}
+{"video_time_s": 230.1, "src": "soniox", "text": "Has gone off.", "conf": 0.999, "dur": 1.86}
+{"video_time_s": 232.38, "src": "soniox", "text": "And it's not just Armindo Sieb.", "conf": 0.993, "dur": 1.5}
+{"video_time_s": 234.42, "src": "soniox", "text": "On the pitch.", "conf": 0.973, "dur": 0.66}
+{"video_time_s": 235.38, "src": "soniox", "text": "It's also Nelson Weiper.", "conf": 0.974, "dur": 2.34}
+{"video_time_s": 243.1, "src": "gen", "text": "Mainz have a free-kick in their third.", "fact": "event: free_kick for Mainz, in their own third"}
+{"video_time_s": 246.4, "src": "gen", "text": "Mainz restart with a free-kick deep.", "fact": "event: free_kick for Mainz, in their own third"}
+{"video_time_s": 249.7, "src": "gen", "text": "Mainz have a free-kick now.", "fact": "event: free_kick for Mainz"}
+{"video_time_s": 253.0, "src": "gen", "text": "Mainz take the free-kick in deep.", "fact": "event: free_kick for Mainz, in their own third"}
+{"video_time_s": 258.18, "src": "soniox", "text": "Sending it in.", "conf": 0.934, "dur": 0.66}
+{"video_time_s": 262.02, "src": "soniox", "text": "Wide of the target.", "conf": 0.994, "dur": 0.78}
+{"video_time_s": 276.42, "src": "soniox", "text": "Yeah, and again, just before seeing a good delivery from Amiri.", "conf": 0.988, "dur": 3.78}
+{"video_time_s": 282.7, "src": "gen", "text": "Mainz prepare a throw-in deep.", "fact": "event: throw_in for Mainz, in their own third"}
+{"video_time_s": 288.2, "src": "gen", "text": "Juranovic in possession for Union.", "fact": "possession: Union, player: Juranovic"}
+{"video_time_s": 291.5, "src": "gen", "text": "Union have a free-kick now.", "fact": "event: free_kick for Union"}
+{"video_time_s": 294.8, "src": "gen", "text": "Juranovic keeps possession for Union.", "fact": "possession: Union, player: Juranovic"}
+{"video_time_s": 298.1, "src": "gen", "text": "Union keep the ball.", "fact": "possession: Union, player: unknown"}

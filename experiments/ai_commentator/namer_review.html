@@ -1,0 +1,2415 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<title>Player naming — human review</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#0a0a0a;color:#e5e5e5;padding:16px}
+h1{font-size:20px;margin-bottom:4px} .sub{color:#888;font-size:13px;margin-bottom:12px}
+.top{position:sticky;top:0;background:#0a0a0a;padding-bottom:10px;z-index:10;border-bottom:1px solid #222}
+video{width:100%;max-width:640px;display:block;border-radius:6px;background:#000}
+.tally{font-size:14px;margin:8px 0} .tally b{color:#fbbf24}
+button.exp{background:#1f2937;color:#a5b4fc;border:1px solid #374151;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}
+.card{background:#111;border:1px solid #222;border-radius:8px;overflow:hidden}
+.card.done-ok{border-color:#166534} .card.done-no{border-color:#7f1d1d} .card.done-uns{border-color:#78350f}
+.card img{width:100%;display:block;cursor:pointer}
+.body{padding:8px 10px}
+.t{font-family:ui-monospace,monospace;color:#60a5fa;font-size:12px;margin-bottom:4px}
+.nm{font-size:13px;margin:2px 0} .nm.dim{color:#9ca3af}
+.conf{font-size:10px;color:#fff;padding:1px 6px;border-radius:8px;margin-left:4px}
+.line{font-style:italic;color:#cbd5e1;font-size:12px;margin:6px 0}
+.mark button{border:1px solid #333;background:#1a1a1a;color:#ccc;border-radius:5px;padding:4px 8px;font-size:12px;cursor:pointer;margin-right:4px}
+.mark button.sel-ok{background:#166534;color:#fff} .mark button.sel-no{background:#7f1d1d;color:#fff} .mark button.sel-uns{background:#78350f;color:#fff}
+</style></head><body>
+<div class='top'>
+  <h1>Player naming — human review</h1>
+  <p class='sub'>For each moment the vision model named a ball-carrier / pass target. Click a frame to seek the video and verify (esp. passes). Mark each ✓/✗/?. Verdicts save in your browser — click Export when done.</p>
+  <video id='vid' controls preload='metadata' src='/experiments/ai_commentator/original_with_human_commentary.mp4'></video>
+  <div class='tally' id='tally'></div>
+  <button class='exp' onclick='exportJSON()'>Export verdicts (JSON)</button>
+</div>
+<div class='grid'>
+    <div class='card' data-i='0' data-t='2.2'>
+      <img loading='lazy' src='./namer_frames/f_0004.jpg'>
+      <div class='body'>
+        <div class='t'>2.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Zentner, Mwene, Burke</div>
+        <div class='line'>“Play is halted with Zentner back in goal, while Mwene and Burke are visible nearby.”</div>
+        <div class='mark' data-i='0'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='1' data-t='3.85'>
+      <img loading='lazy' src='./namer_frames/f_0007.jpg'>
+      <div class='body'>
+        <div class='t'>3.9s</div>
+        <div class='nm'><b>has ball:</b> Zentner #27 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Burke, Doekhi</div>
+        <div class='line'>“Zentner has the ball at the back while Burke and Doekhi appeal near midfield”</div>
+        <div class='mark' data-i='1'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='2' data-t='5.5'>
+      <img loading='lazy' src='./namer_frames/f_0010.jpg'>
+      <div class='body'>
+        <div class='t'>5.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Lee, Mwene, Veratschnig</div>
+        <div class='line'>“Becker, Lee and Mwene gather around the referee during the stoppage.”</div>
+        <div class='mark' data-i='2'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='3' data-t='7.15'>
+      <img loading='lazy' src='./namer_frames/f_0013.jpg'>
+      <div class='body'>
+        <div class='t'>7.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Mwene, Jae-sung, Kemlein, Veratschnig</div>
+        <div class='line'>“Play is stopped as Becker, Mwene and Jae-sung look on with Kemlein nearby.”</div>
+        <div class='mark' data-i='3'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='4' data-t='8.8'>
+      <img loading='lazy' src='./namer_frames/f_0016.jpg'>
+      <div class='body'>
+        <div class='t'>8.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Mwene, Kemlein, Veratschnig, Jae-sung</div>
+        <div class='line'>“Play is stopped with Becker, Mwene and Kemlein gathered around the referee.”</div>
+        <div class='mark' data-i='4'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='5' data-t='10.45'>
+      <img loading='lazy' src='./namer_frames/f_0019.jpg'>
+      <div class='body'>
+        <div class='t'>10.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Kemlein, Burke, Kohr, Potulski</div>
+        <div class='line'>“Play is stopped with Becker nearby as Kemlein and Burke stand over the incident.”</div>
+        <div class='mark' data-i='5'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='6' data-t='12.1'>
+      <img loading='lazy' src='./namer_frames/f_0022.jpg'>
+      <div class='body'>
+        <div class='t'>12.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Jae-sung, Potulski, Burke</div>
+        <div class='line'>“Becker stands nearby as Jae-sung and Potulski wait during the stoppage, with Burke beside them.”</div>
+        <div class='mark' data-i='6'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='7' data-t='13.75'>
+      <img loading='lazy' src='./namer_frames/f_0025.jpg'>
+      <div class='body'>
+        <div class='t'>13.8s</div>
+        <div class='nm'><b>has ball:</b> Tietz #20 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Tietz brings the ball under control for Mainz.”</div>
+        <div class='mark' data-i='7'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='8' data-t='15.4'>
+      <img loading='lazy' src='./namer_frames/f_0028.jpg'>
+      <div class='body'>
+        <div class='t'>15.4s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Weiper</div>
+        <div class='line'>“Amiri carries it as Weiper is visible to the right.”</div>
+        <div class='mark' data-i='8'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='9' data-t='17.05'>
+      <img loading='lazy' src='./namer_frames/f_0031.jpg'>
+      <div class='body'>
+        <div class='t'>17.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Players from both sides are down after a challenge near the touchline”</div>
+        <div class='mark' data-i='9'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='10' data-t='18.7'>
+      <img loading='lazy' src='./namer_frames/f_0034.jpg'>
+      <div class='body'>
+        <div class='t'>18.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Players are down after a challenge, but no shirt numbers are clear enough to identify anyone confidently.”</div>
+        <div class='mark' data-i='10'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='11' data-t='20.35'>
+      <img loading='lazy' src='./namer_frames/f_0037.jpg'>
+      <div class='body'>
+        <div class='t'>20.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“No players are visible in this frame burst.”</div>
+        <div class='mark' data-i='11'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='12' data-t='22.0'>
+      <img loading='lazy' src='./namer_frames/f_0040.jpg'>
+      <div class='body'>
+        <div class='t'>22.0s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“No player identification is possible from this cutaway shot.”</div>
+        <div class='mark' data-i='12'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='13' data-t='23.65'>
+      <img loading='lazy' src='./namer_frames/f_0043.jpg'>
+      <div class='body'>
+        <div class='t'>23.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Lee, Veratschnig</div>
+        <div class='line'>“Lee Jae-sung and Veratschnig are seen walking as play pauses.”</div>
+        <div class='mark' data-i='13'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='14' data-t='25.3'>
+      <img loading='lazy' src='./namer_frames/f_0046.jpg'>
+      <div class='body'>
+        <div class='t'>25.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Jae-sung is visible for Mainz as play pauses.”</div>
+        <div class='mark' data-i='14'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='15' data-t='26.95'>
+      <img loading='lazy' src='./namer_frames/f_0049.jpg'>
+      <div class='body'>
+        <div class='t'>26.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Jae-sung is shown walking back into position for Mainz.”</div>
+        <div class='mark' data-i='15'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='16' data-t='28.6'>
+      <img loading='lazy' src='./namer_frames/f_0052.jpg'>
+      <div class='body'>
+        <div class='t'>28.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Jae-sung is shown walking back into position for Mainz.”</div>
+        <div class='mark' data-i='16'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='17' data-t='30.25'>
+      <img loading='lazy' src='./namer_frames/f_0055.jpg'>
+      <div class='body'>
+        <div class='t'>30.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung, Klaus</div>
+        <div class='line'>“Jae-sung is shown before Mainz prepare to deliver into the Union box with Klaus in goal.”</div>
+        <div class='mark' data-i='17'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='18' data-t='31.9'>
+      <img loading='lazy' src='./namer_frames/f_0058.jpg'>
+      <div class='body'>
+        <div class='t'>31.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Klaus sets his wall as Mainz prepare the set piece.”</div>
+        <div class='mark' data-i='18'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='19' data-t='33.55'>
+      <img loading='lazy' src='./namer_frames/f_0061.jpg'>
+      <div class='body'>
+        <div class='t'>33.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Klaus watches the setup as Mainz crowd the Union box”</div>
+        <div class='mark' data-i='19'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='20' data-t='35.2'>
+      <img loading='lazy' src='./namer_frames/f_0064.jpg'>
+      <div class='body'>
+        <div class='t'>35.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sano</div>
+        <div class='line'>“Sano is on the touchline receiving instructions.”</div>
+        <div class='mark' data-i='20'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='21' data-t='36.85'>
+      <img loading='lazy' src='./namer_frames/f_0067.jpg'>
+      <div class='body'>
+        <div class='t'>36.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sano</div>
+        <div class='line'>“Sano stands by the Mainz bench as the staff give instructions”</div>
+        <div class='mark' data-i='21'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='22' data-t='38.5'>
+      <img loading='lazy' src='./namer_frames/f_0070.jpg'>
+      <div class='body'>
+        <div class='t'>38.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Mainz gather on the touchline with no identifiable player in possession.”</div>
+        <div class='mark' data-i='22'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='23' data-t='40.15'>
+      <img loading='lazy' src='./namer_frames/f_0073.jpg'>
+      <div class='body'>
+        <div class='t'>40.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Amiri</div>
+        <div class='line'>“Amiri waits on the touchline as Mainz prepare to restart.”</div>
+        <div class='mark' data-i='23'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='24' data-t='41.8'>
+      <img loading='lazy' src='./namer_frames/f_0076.jpg'>
+      <div class='body'>
+        <div class='t'>41.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker</div>
+        <div class='line'>“Becker stands in the foreground as Mainz prepare to restart.”</div>
+        <div class='mark' data-i='24'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='25' data-t='43.45'>
+      <img loading='lazy' src='./namer_frames/f_0079.jpg'>
+      <div class='body'>
+        <div class='t'>43.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Amiri</div>
+        <div class='line'>“Becker stands in front of Amiri as Mainz prepare to restart.”</div>
+        <div class='mark' data-i='25'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='26' data-t='45.1'>
+      <img loading='lazy' src='./namer_frames/f_0082.jpg'>
+      <div class='body'>
+        <div class='t'>45.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Mwene, Klaus</div>
+        <div class='line'>“Mwene stands in front of Klaus as the players reset in the box”</div>
+        <div class='mark' data-i='26'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='27' data-t='46.75'>
+      <img loading='lazy' src='./namer_frames/f_0085.jpg'>
+      <div class='body'>
+        <div class='t'>46.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Klaus stands alert in the Union goal.”</div>
+        <div class='mark' data-i='27'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='28' data-t='48.4'>
+      <img loading='lazy' src='./namer_frames/f_0088.jpg'>
+      <div class='body'>
+        <div class='t'>48.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus, Sano</div>
+        <div class='line'>“Klaus sets his wall as Mainz prepare the free kick.”</div>
+        <div class='mark' data-i='28'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='29' data-t='50.05'>
+      <img loading='lazy' src='./namer_frames/f_0091.jpg'>
+      <div class='body'>
+        <div class='t'>50.0s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus, Sano</div>
+        <div class='line'>“Mainz line up the free kick with Sano outside the box and Klaus guarding the Union goal”</div>
+        <div class='mark' data-i='29'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='30' data-t='51.7'>
+      <img loading='lazy' src='./namer_frames/f_0094.jpg'>
+      <div class='body'>
+        <div class='t'>51.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Mainz prepare a free kick while Klaus sets himself in the Union goal”</div>
+        <div class='mark' data-i='30'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='31' data-t='53.35'>
+      <img loading='lazy' src='./namer_frames/f_0097.jpg'>
+      <div class='body'>
+        <div class='t'>53.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus, Becker</div>
+        <div class='line'>“Mainz line up a free kick with Klaus guarding the Union goal and Becker among the red shirts waiting to attack it”</div>
+        <div class='mark' data-i='31'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='32' data-t='55.0'>
+      <img loading='lazy' src='./namer_frames/f_0100.jpg'>
+      <div class='body'>
+        <div class='t'>55.0s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Amiri stands over the free kick for Mainz.”</div>
+        <div class='mark' data-i='32'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='33' data-t='56.65'>
+      <img loading='lazy' src='./namer_frames/f_0103.jpg'>
+      <div class='body'>
+        <div class='t'>56.6s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Amiri stands over the set piece for Mainz.”</div>
+        <div class='mark' data-i='33'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='34' data-t='58.3'>
+      <img loading='lazy' src='./namer_frames/f_0106.jpg'>
+      <div class='body'>
+        <div class='t'>58.3s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Amiri whips the free kick into the Union box”</div>
+        <div class='mark' data-i='34'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='35' data-t='59.95'>
+      <img loading='lazy' src='./namer_frames/f_0109.jpg'>
+      <div class='body'>
+        <div class='t'>60.0s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus, Potulski, Jae-sung, Becker</div>
+        <div class='line'>“Klaus rises beneath the cross as Potulski and Jae-sung attack the back post.”</div>
+        <div class='mark' data-i='35'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='36' data-t='61.6'>
+      <img loading='lazy' src='./namer_frames/f_0112.jpg'>
+      <div class='body'>
+        <div class='t'>61.6s</div>
+        <div class='nm'><b>has ball:</b> Klaus #25 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Kohr</div>
+        <div class='line'>“Klaus gathers the ball in the Union goalmouth with Kohr nearby.”</div>
+        <div class='mark' data-i='36'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='37' data-t='63.25'>
+      <img loading='lazy' src='./namer_frames/f_0115.jpg'>
+      <div class='body'>
+        <div class='t'>63.2s</div>
+        <div class='nm'><b>has ball:</b> Klaus #25 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Klaus releases the ball from the Union penalty area.”</div>
+        <div class='mark' data-i='37'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='38' data-t='64.9'>
+      <img loading='lazy' src='./namer_frames/f_0118.jpg'>
+      <div class='body'>
+        <div class='t'>64.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“The ball is sent long into midfield.”</div>
+        <div class='mark' data-i='38'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='39' data-t='66.55'>
+      <img loading='lazy' src='./namer_frames/f_0121.jpg'>
+      <div class='body'>
+        <div class='t'>66.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Zentner</div>
+        <div class='line'>“Zentner is visible in the Mainz goal as the play moves through midfield.”</div>
+        <div class='mark' data-i='39'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='40' data-t='68.2'>
+      <img loading='lazy' src='./namer_frames/f_0124.jpg'>
+      <div class='body'>
+        <div class='t'>68.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm'><b>pass to:</b> Klaus <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“The ball runs back toward Klaus in the Union goal.”</div>
+        <div class='mark' data-i='40'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='41' data-t='69.85'>
+      <img loading='lazy' src='./namer_frames/f_0127.jpg'>
+      <div class='body'>
+        <div class='t'>69.8s</div>
+        <div class='nm'><b>has ball:</b> Klaus #25 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Klaus plays it out from the back”</div>
+        <div class='mark' data-i='41'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='42' data-t='71.5'>
+      <img loading='lazy' src='./namer_frames/f_0130.jpg'>
+      <div class='body'>
+        <div class='t'>71.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Mainz switch the ball across the back with Klaus watching from his area”</div>
+        <div class='mark' data-i='42'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='43' data-t='73.15'>
+      <img loading='lazy' src='./namer_frames/f_0133.jpg'>
+      <div class='body'>
+        <div class='t'>73.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker</div>
+        <div class='line'>“Becker waits centrally as the ball is worked up the far touchline.”</div>
+        <div class='mark' data-i='43'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='44' data-t='74.8'>
+      <img loading='lazy' src='./namer_frames/f_0136.jpg'>
+      <div class='body'>
+        <div class='t'>74.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> da Costa</div>
+        <div class='line'>“Da Costa holds his position as Mainz switch play across the back line.”</div>
+        <div class='mark' data-i='44'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='45' data-t='76.45'>
+      <img loading='lazy' src='./namer_frames/f_0139.jpg'>
+      <div class='body'>
+        <div class='t'>76.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Mainz circulate the ball across the right side of midfield.”</div>
+        <div class='mark' data-i='45'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='46' data-t='78.1'>
+      <img loading='lazy' src='./namer_frames/f_0142.jpg'>
+      <div class='body'>
+        <div class='t'>78.1s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Amiri carries the ball forward on the right side.”</div>
+        <div class='mark' data-i='46'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='47' data-t='79.75'>
+      <img loading='lazy' src='./namer_frames/f_0145.jpg'>
+      <div class='body'>
+        <div class='t'>79.8s</div>
+        <div class='nm'><b>has ball:</b> Sano #6 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm'><b>pass to:</b> Sano <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Kohr, Amiri</div>
+        <div class='line'>“Amiri rolls it inside to Sano as Kohr moves up alongside.”</div>
+        <div class='mark' data-i='47'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='48' data-t='81.4'>
+      <img loading='lazy' src='./namer_frames/f_0148.jpg'>
+      <div class='body'>
+        <div class='t'>81.4s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Amiri carries the ball forward for Mainz.”</div>
+        <div class='mark' data-i='48'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='49' data-t='83.05'>
+      <img loading='lazy' src='./namer_frames/f_0151.jpg'>
+      <div class='body'>
+        <div class='t'>83.0s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Amiri sends the ball forward with Jae-sung offering an option on the near side”</div>
+        <div class='mark' data-i='49'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='50' data-t='84.7'>
+      <img loading='lazy' src='./namer_frames/f_0154.jpg'>
+      <div class='body'>
+        <div class='t'>84.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Jae-sung is visible as Mainz circulate the ball in midfield”</div>
+        <div class='mark' data-i='50'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='51' data-t='86.35'>
+      <img loading='lazy' src='./namer_frames/f_0157.jpg'>
+      <div class='body'>
+        <div class='t'>86.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Mainz work it out to the right flank, with Jae-sung offering support.”</div>
+        <div class='mark' data-i='51'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='52' data-t='88.0'>
+      <img loading='lazy' src='./namer_frames/f_0160.jpg'>
+      <div class='body'>
+        <div class='t'>88.0s</div>
+        <div class='nm'><b>has ball:</b> da Costa #21 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Jae-sung, Kohr</div>
+        <div class='line'>“Da Costa has it on the right, with Jae-sung and Kohr visible nearby.”</div>
+        <div class='mark' data-i='52'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='53' data-t='89.65'>
+      <img loading='lazy' src='./namer_frames/f_0163.jpg'>
+      <div class='body'>
+        <div class='t'>89.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm'><b>pass to:</b> Potulski <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Mainz play it across midfield toward Potulski.”</div>
+        <div class='mark' data-i='53'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='54' data-t='91.3'>
+      <img loading='lazy' src='./namer_frames/f_0166.jpg'>
+      <div class='body'>
+        <div class='t'>91.3s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm'><b>pass to:</b> Caci <span class='conf' style='background:#d97706'>medium</span></div>
+        <div class='line'>“Caci receives the switch near the halfway line on the right.”</div>
+        <div class='mark' data-i='54'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='55' data-t='92.95'>
+      <img loading='lazy' src='./namer_frames/f_0169.jpg'>
+      <div class='body'>
+        <div class='t'>93.0s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Caci carries the ball forward on the right flank.”</div>
+        <div class='mark' data-i='55'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='56' data-t='94.6'>
+      <img loading='lazy' src='./namer_frames/f_0172.jpg'>
+      <div class='body'>
+        <div class='t'>94.6s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Caci has the ball on the right side for Mainz.”</div>
+        <div class='mark' data-i='56'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='57' data-t='96.25'>
+      <img loading='lazy' src='./namer_frames/f_0175.jpg'>
+      <div class='body'>
+        <div class='t'>96.2s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Caci carries the ball forward for Mainz, with Klaus back in the Union goal.”</div>
+        <div class='mark' data-i='57'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='58' data-t='97.9'>
+      <img loading='lazy' src='./namer_frames/f_0178.jpg'>
+      <div class='body'>
+        <div class='t'>97.9s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Amiri carries the ball in midfield with Klaus stationed in the Union goal.”</div>
+        <div class='mark' data-i='58'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='59' data-t='99.55'>
+      <img loading='lazy' src='./namer_frames/f_0181.jpg'>
+      <div class='body'>
+        <div class='t'>99.5s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Amiri rolls the ball out toward the right side”</div>
+        <div class='mark' data-i='59'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='60' data-t='101.2'>
+      <img loading='lazy' src='./namer_frames/f_0184.jpg'>
+      <div class='body'>
+        <div class='t'>101.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Caci</div>
+        <div class='line'>“Mainz hold the ball near halfway with Caci offering an option inside.”</div>
+        <div class='mark' data-i='60'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='61' data-t='102.85'>
+      <img loading='lazy' src='./namer_frames/f_0187.jpg'>
+      <div class='body'>
+        <div class='t'>102.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker</div>
+        <div class='line'>“Becker offers support as Mainz work the ball through midfield”</div>
+        <div class='mark' data-i='61'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='62' data-t='104.5'>
+      <img loading='lazy' src='./namer_frames/f_0190.jpg'>
+      <div class='body'>
+        <div class='t'>104.5s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm'><b>pass to:</b> Caci <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Becker, Zentner</div>
+        <div class='line'>“Caci receives the switch on the right with Becker available near the touchline.”</div>
+        <div class='mark' data-i='62'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='63' data-t='106.15'>
+      <img loading='lazy' src='./namer_frames/f_0193.jpg'>
+      <div class='body'>
+        <div class='t'>106.2s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Becker</div>
+        <div class='line'>“Caci carries the ball up the right flank with Becker available behind him.”</div>
+        <div class='mark' data-i='63'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='64' data-t='107.8'>
+      <img loading='lazy' src='./namer_frames/f_0196.jpg'>
+      <div class='body'>
+        <div class='t'>107.8s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm'><b>pass to:</b> Zentner <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Caci rolls it back to Zentner.”</div>
+        <div class='mark' data-i='64'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='65' data-t='109.45'>
+      <img loading='lazy' src='./namer_frames/f_0199.jpg'>
+      <div class='body'>
+        <div class='t'>109.5s</div>
+        <div class='nm'><b>has ball:</b> Zentner #27 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Zentner has the ball at his feet and looks to play out from the back”</div>
+        <div class='mark' data-i='65'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='66' data-t='111.1'>
+      <img loading='lazy' src='./namer_frames/f_0202.jpg'>
+      <div class='body'>
+        <div class='t'>111.1s</div>
+        <div class='nm'><b>has ball:</b> Zentner #27 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Zentner drives the ball forward from the back.”</div>
+        <div class='mark' data-i='66'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='67' data-t='112.75'>
+      <img loading='lazy' src='./namer_frames/f_0205.jpg'>
+      <div class='body'>
+        <div class='t'>112.8s</div>
+        <div class='nm'><b>has ball:</b> Veratschnig #22 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm'><b>pass to:</b> Veratschnig <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Zentner finds Veratschnig on the right.”</div>
+        <div class='mark' data-i='67'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='68' data-t='114.4'>
+      <img loading='lazy' src='./namer_frames/f_0208.jpg'>
+      <div class='body'>
+        <div class='t'>114.4s</div>
+        <div class='nm'><b>has ball:</b> Veratschnig #22 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Veratschnig carries the ball down the right touchline.”</div>
+        <div class='mark' data-i='68'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='69' data-t='116.05'>
+      <img loading='lazy' src='./namer_frames/f_0211.jpg'>
+      <div class='body'>
+        <div class='t'>116.0s</div>
+        <div class='nm'><b>has ball:</b> Veratschnig #22 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Veratschnig plays the ball forward from the right touchline.”</div>
+        <div class='mark' data-i='69'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='70' data-t='117.7'>
+      <img loading='lazy' src='./namer_frames/f_0214.jpg'>
+      <div class='body'>
+        <div class='t'>117.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm'><b>pass to:</b> Zentner <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Zentner</div>
+        <div class='line'>“The ball rolls back toward Zentner in the Mainz goal.”</div>
+        <div class='mark' data-i='70'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='71' data-t='119.35'>
+      <img loading='lazy' src='./namer_frames/f_0217.jpg'>
+      <div class='body'>
+        <div class='t'>119.3s</div>
+        <div class='nm'><b>has ball:</b> Zentner #27 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Zentner waits over the ball in his penalty area”</div>
+        <div class='mark' data-i='71'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='72' data-t='121.0'>
+      <img loading='lazy' src='./namer_frames/f_0220.jpg'>
+      <div class='body'>
+        <div class='t'>121.0s</div>
+        <div class='nm'><b>has ball:</b> Zentner #27 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Caci</div>
+        <div class='line'>“Zentner plays it out from the back toward a Mainz teammate.”</div>
+        <div class='mark' data-i='72'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='73' data-t='122.65'>
+      <img loading='lazy' src='./namer_frames/f_0223.jpg'>
+      <div class='body'>
+        <div class='t'>122.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Caci, Mwene, Klaus</div>
+        <div class='line'>“Caci holds the near-side width while play is worked up the far touchline.”</div>
+        <div class='mark' data-i='73'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='74' data-t='124.3'>
+      <img loading='lazy' src='./namer_frames/f_0226.jpg'>
+      <div class='body'>
+        <div class='t'>124.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Caci, Mwene, Jae-sung</div>
+        <div class='line'>“Caci holds the width on the right while Mwene is visible on the opposite side.”</div>
+        <div class='mark' data-i='74'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='75' data-t='125.95'>
+      <img loading='lazy' src='./namer_frames/f_0229.jpg'>
+      <div class='body'>
+        <div class='t'>126.0s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Caci</div>
+        <div class='line'>“Mainz carry it inside with Caci holding the width on the right”</div>
+        <div class='mark' data-i='75'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='76' data-t='127.6'>
+      <img loading='lazy' src='./namer_frames/f_0232.jpg'>
+      <div class='body'>
+        <div class='t'>127.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Caci</div>
+        <div class='line'>“Mainz carry it forward with Caci available on the right”</div>
+        <div class='mark' data-i='76'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='77' data-t='129.25'>
+      <img loading='lazy' src='./namer_frames/f_0235.jpg'>
+      <div class='body'>
+        <div class='t'>129.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> da Costa</div>
+        <div class='line'>“Mainz switch play left, with da Costa wide on the right.”</div>
+        <div class='mark' data-i='77'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='78' data-t='130.9'>
+      <img loading='lazy' src='./namer_frames/f_0238.jpg'>
+      <div class='body'>
+        <div class='t'>130.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Mainz carry it forward through midfield.”</div>
+        <div class='mark' data-i='78'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='79' data-t='132.55'>
+      <img loading='lazy' src='./namer_frames/f_0241.jpg'>
+      <div class='body'>
+        <div class='t'>132.6s</div>
+        <div class='nm'><b>has ball:</b> Jae-sung #7 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Trimmel</div>
+        <div class='line'>“Jae-sung drives forward with Trimmel closing him down”</div>
+        <div class='mark' data-i='79'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='80' data-t='134.2'>
+      <img loading='lazy' src='./namer_frames/f_0244.jpg'>
+      <div class='body'>
+        <div class='t'>134.2s</div>
+        <div class='nm'><b>has ball:</b> Trimmel #28 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Jae-sung</div>
+        <div class='line'>“Trimmel carries it forward as Jae-sung closes him down.”</div>
+        <div class='mark' data-i='80'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='81' data-t='135.85'>
+      <img loading='lazy' src='./namer_frames/f_0247.jpg'>
+      <div class='body'>
+        <div class='t'>135.8s</div>
+        <div class='nm'><b>has ball:</b> Mwene #2 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm'><b>pass to:</b> Mwene <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Zentner</div>
+        <div class='line'>“Mwene receives the pass on the left with Zentner behind him.”</div>
+        <div class='mark' data-i='81'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='82' data-t='137.5'>
+      <img loading='lazy' src='./namer_frames/f_0250.jpg'>
+      <div class='body'>
+        <div class='t'>137.5s</div>
+        <div class='nm'><b>has ball:</b> Mwene #2 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus, Jae-sung</div>
+        <div class='line'>“Mwene carries the ball forward for Mainz.”</div>
+        <div class='mark' data-i='82'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='83' data-t='139.15'>
+      <img loading='lazy' src='./namer_frames/f_0253.jpg'>
+      <div class='body'>
+        <div class='t'>139.2s</div>
+        <div class='nm'><b>has ball:</b> Jae-sung #7 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Jae-sung carries the ball on the edge of the Union box with Klaus guarding the goal”</div>
+        <div class='mark' data-i='83'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='84' data-t='140.8'>
+      <img loading='lazy' src='./namer_frames/f_0256.jpg'>
+      <div class='body'>
+        <div class='t'>140.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Mainz work the ball around the edge of Klaus&#x27;s box”</div>
+        <div class='mark' data-i='84'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='85' data-t='142.45'>
+      <img loading='lazy' src='./namer_frames/f_0259.jpg'>
+      <div class='body'>
+        <div class='t'>142.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung, Klaus</div>
+        <div class='line'>“Mainz work it around the edge while Jae-sung waits wide and Klaus guards the Union goal”</div>
+        <div class='mark' data-i='85'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='86' data-t='144.1'>
+      <img loading='lazy' src='./namer_frames/f_0262.jpg'>
+      <div class='body'>
+        <div class='t'>144.1s</div>
+        <div class='nm'><b>has ball:</b> Jae-sung #7 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm'><b>pass to:</b> Jae-sung <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Jae-sung receives the pass on the left with Klaus guarding the Union goal.”</div>
+        <div class='mark' data-i='86'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='87' data-t='145.75'>
+      <img loading='lazy' src='./namer_frames/f_0265.jpg'>
+      <div class='body'>
+        <div class='t'>145.8s</div>
+        <div class='nm'><b>has ball:</b> Jae-sung #7 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Jae-sung shapes to cross from the left with Klaus guarding the Union goal”</div>
+        <div class='mark' data-i='87'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='88' data-t='147.4'>
+      <img loading='lazy' src='./namer_frames/f_0268.jpg'>
+      <div class='body'>
+        <div class='t'>147.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm'><b>pass to:</b> Jae-sung <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“A Mainz player rolls it toward Jae-sung on the edge of the box as Klaus watches from goal”</div>
+        <div class='mark' data-i='88'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='89' data-t='149.05'>
+      <img loading='lazy' src='./namer_frames/f_0271.jpg'>
+      <div class='body'>
+        <div class='t'>149.1s</div>
+        <div class='nm'><b>has ball:</b> Mwene #2 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Mwene carries it forward on the left with Klaus guarding the Union goal”</div>
+        <div class='mark' data-i='89'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='90' data-t='150.7'>
+      <img loading='lazy' src='./namer_frames/f_0274.jpg'>
+      <div class='body'>
+        <div class='t'>150.7s</div>
+        <div class='nm'><b>has ball:</b> Mwene #2 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Mwene carries the ball down the left with Klaus watching from the Union goal.”</div>
+        <div class='mark' data-i='90'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='91' data-t='152.35'>
+      <img loading='lazy' src='./namer_frames/f_0277.jpg'>
+      <div class='body'>
+        <div class='t'>152.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung, Klaus</div>
+        <div class='line'>“Mainz move it on the right with Jae-sung nearby and Klaus guarding the Union goal”</div>
+        <div class='mark' data-i='91'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='92' data-t='154.0'>
+      <img loading='lazy' src='./namer_frames/f_0280.jpg'>
+      <div class='body'>
+        <div class='t'>154.0s</div>
+        <div class='nm'><b>has ball:</b> Caci #19 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Caci carries the ball on the right with Klaus guarding the Union goal”</div>
+        <div class='mark' data-i='92'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='93' data-t='155.65'>
+      <img loading='lazy' src='./namer_frames/f_0283.jpg'>
+      <div class='body'>
+        <div class='t'>155.7s</div>
+        <div class='nm'><b>has ball:</b> Mwene #2 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm'><b>pass to:</b> Mwene <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Mwene receives the pass on the left and drives forward with Klaus watching from the Union goal.”</div>
+        <div class='mark' data-i='93'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='94' data-t='157.3'>
+      <img loading='lazy' src='./namer_frames/f_0286.jpg'>
+      <div class='body'>
+        <div class='t'>157.3s</div>
+        <div class='nm'><b>has ball:</b> Becker #23 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm'><b>pass to:</b> Becker <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Sano</div>
+        <div class='line'>“Becker receives the ball with Sano nearby in support.”</div>
+        <div class='mark' data-i='94'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='95' data-t='158.95'>
+      <img loading='lazy' src='./namer_frames/f_0289.jpg'>
+      <div class='body'>
+        <div class='t'>158.9s</div>
+        <div class='nm'><b>has ball:</b> Becker #23 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Sano</div>
+        <div class='line'>“Becker carries the ball forward with Sano supporting inside.”</div>
+        <div class='mark' data-i='95'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='96' data-t='160.6'>
+      <img loading='lazy' src='./namer_frames/f_0292.jpg'>
+      <div class='body'>
+        <div class='t'>160.6s</div>
+        <div class='nm'><b>has ball:</b> Becker #23 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Trimmel, Sano</div>
+        <div class='line'>“Becker carries it down the left with Trimmel closing him down.”</div>
+        <div class='mark' data-i='96'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='97' data-t='162.25'>
+      <img loading='lazy' src='./namer_frames/f_0295.jpg'>
+      <div class='body'>
+        <div class='t'>162.2s</div>
+        <div class='nm'><b>has ball:</b> Klaus #25 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Becker, Jae-sung, Mwene, Amiri</div>
+        <div class='line'>“Klaus gathers the low ball into the box with Becker, Jae-sung, Mwene and Amiri around the area”</div>
+        <div class='mark' data-i='97'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='98' data-t='163.9'>
+      <img loading='lazy' src='./namer_frames/f_0298.jpg'>
+      <div class='body'>
+        <div class='t'>163.9s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#d97706'>medium</span></div><div class='nm'><b>pass to:</b> Amiri <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Becker, Jae-sung, Mwene, Klaus</div>
+        <div class='line'>“Amiri receives it wide on the right with Becker and Jae-sung arriving in support.”</div>
+        <div class='mark' data-i='98'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='99' data-t='165.55'>
+      <img loading='lazy' src='./namer_frames/f_0301.jpg'>
+      <div class='body'>
+        <div class='t'>165.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Klaus has Union building out to the right”</div>
+        <div class='mark' data-i='99'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='100' data-t='167.2'>
+      <img loading='lazy' src='./namer_frames/f_0304.jpg'>
+      <div class='body'>
+        <div class='t'>167.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Zentner</div>
+        <div class='line'>“Union carry it forward as Zentner guards the Mainz goal”</div>
+        <div class='mark' data-i='100'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='101' data-t='168.85'>
+      <img loading='lazy' src='./namer_frames/f_0307.jpg'>
+      <div class='body'>
+        <div class='t'>168.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Klaus watches from his area as Mainz carry the ball forward.”</div>
+        <div class='mark' data-i='101'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='102' data-t='170.5'>
+      <img loading='lazy' src='./namer_frames/f_0310.jpg'>
+      <div class='body'>
+        <div class='t'>170.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Union attacker carries the ball forward under pressure from Mainz.”</div>
+        <div class='mark' data-i='102'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='103' data-t='172.15'>
+      <img loading='lazy' src='./namer_frames/f_0313.jpg'>
+      <div class='body'>
+        <div class='t'>172.2s</div>
+        <div class='nm'><b>has ball:</b> Kohn #39 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Sano</div>
+        <div class='line'>“Kohn drives forward under pressure from Sano.”</div>
+        <div class='mark' data-i='103'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='104' data-t='173.8'>
+      <img loading='lazy' src='./namer_frames/f_0316.jpg'>
+      <div class='body'>
+        <div class='t'>173.8s</div>
+        <div class='nm'><b>has ball:</b> Veratschnig #22 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Kohn</div>
+        <div class='line'>“Veratschnig drives forward with Kohn chasing him down.”</div>
+        <div class='mark' data-i='104'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='105' data-t='175.45'>
+      <img loading='lazy' src='./namer_frames/f_0319.jpg'>
+      <div class='body'>
+        <div class='t'>175.4s</div>
+        <div class='nm'><b>has ball:</b> Veratschnig #22 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Trimmel, Doekhi</div>
+        <div class='line'>“Veratschnig carries it up the right flank for Mainz.”</div>
+        <div class='mark' data-i='105'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='106' data-t='177.1'>
+      <img loading='lazy' src='./namer_frames/f_0322.jpg'>
+      <div class='body'>
+        <div class='t'>177.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Kohr, Doekhi, Trimmel</div>
+        <div class='line'>“Mainz carry it up the right touchline while Kohr holds his position in midfield.”</div>
+        <div class='mark' data-i='106'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='107' data-t='178.75'>
+      <img loading='lazy' src='./namer_frames/f_0325.jpg'>
+      <div class='body'>
+        <div class='t'>178.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Trimmel, Kohr</div>
+        <div class='line'>“The ball is loose in midfield with Trimmel and Kohr nearby.”</div>
+        <div class='mark' data-i='107'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='108' data-t='180.4'>
+      <img loading='lazy' src='./namer_frames/f_0328.jpg'>
+      <div class='body'>
+        <div class='t'>180.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Trimmel</div>
+        <div class='line'>“Union move it down the left with Trimmel deeper in support”</div>
+        <div class='mark' data-i='108'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='109' data-t='182.05'>
+      <img loading='lazy' src='./namer_frames/f_0331.jpg'>
+      <div class='body'>
+        <div class='t'>182.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sieb, Trimmel</div>
+        <div class='line'>“Union have it on the left touchline as Sieb and Trimmel hold their positions”</div>
+        <div class='mark' data-i='109'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='110' data-t='183.7'>
+      <img loading='lazy' src='./namer_frames/f_0334.jpg'>
+      <div class='body'>
+        <div class='t'>183.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“The referee halts play with no player clearly identifiable on the ball.”</div>
+        <div class='mark' data-i='110'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='111' data-t='185.35'>
+      <img loading='lazy' src='./namer_frames/f_0337.jpg'>
+      <div class='body'>
+        <div class='t'>185.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Veratschnig</div>
+        <div class='line'>“Veratschnig gets back to his feet as play is halted.”</div>
+        <div class='mark' data-i='111'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='112' data-t='187.0'>
+      <img loading='lazy' src='./namer_frames/f_0340.jpg'>
+      <div class='body'>
+        <div class='t'>187.0s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Veratschnig, Kohr</div>
+        <div class='line'>“Veratschnig is shown the yellow card as Kohr walks away nearby.”</div>
+        <div class='mark' data-i='112'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='113' data-t='188.65'>
+      <img loading='lazy' src='./namer_frames/f_0343.jpg'>
+      <div class='body'>
+        <div class='t'>188.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Veratschnig</div>
+        <div class='line'>“Veratschnig stands by after the referee shows the yellow card”</div>
+        <div class='mark' data-i='113'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='114' data-t='190.3'>
+      <img loading='lazy' src='./namer_frames/f_0346.jpg'>
+      <div class='body'>
+        <div class='t'>190.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“The referee pauses play as Mainz reset near the touchline”</div>
+        <div class='mark' data-i='114'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='115' data-t='191.95'>
+      <img loading='lazy' src='./namer_frames/f_0349.jpg'>
+      <div class='body'>
+        <div class='t'>191.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“No identifiable player is on the ball as the referee shows a card.”</div>
+        <div class='mark' data-i='115'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='116' data-t='193.6'>
+      <img loading='lazy' src='./namer_frames/f_0352.jpg'>
+      <div class='body'>
+        <div class='t'>193.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“No clear player identification or pass is visible in this burst”</div>
+        <div class='mark' data-i='116'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='117' data-t='195.25'>
+      <img loading='lazy' src='./namer_frames/f_0355.jpg'>
+      <div class='body'>
+        <div class='t'>195.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Union have a player waiting off the ball, but no shirt number is visible.”</div>
+        <div class='mark' data-i='117'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='118' data-t='196.9'>
+      <img loading='lazy' src='./namer_frames/f_0358.jpg'>
+      <div class='body'>
+        <div class='t'>196.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Union player waits as play pauses.”</div>
+        <div class='mark' data-i='118'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='119' data-t='198.55'>
+      <img loading='lazy' src='./namer_frames/f_0361.jpg'>
+      <div class='body'>
+        <div class='t'>198.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Union player waits as play is paused.”</div>
+        <div class='mark' data-i='119'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='120' data-t='200.2'>
+      <img loading='lazy' src='./namer_frames/f_0364.jpg'>
+      <div class='body'>
+        <div class='t'>200.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Juranovic, Sieb, Weiper</div>
+        <div class='line'>“Sieb and Weiper wait on the touchline as Juranovic stands by the substitution board”</div>
+        <div class='mark' data-i='120'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='121' data-t='201.85'>
+      <img loading='lazy' src='./namer_frames/f_0367.jpg'>
+      <div class='body'>
+        <div class='t'>201.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sieb, Weiper, Juranovic</div>
+        <div class='line'>“Sieb and Weiper wait on the touchline as Juranovic stands by the fourth official.”</div>
+        <div class='mark' data-i='121'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='122' data-t='203.5'>
+      <img loading='lazy' src='./namer_frames/f_0370.jpg'>
+      <div class='body'>
+        <div class='t'>203.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sieb, Weiper, Juranovic</div>
+        <div class='line'>“Sieb and Weiper wait on the touchline as Mainz prepare a substitution.”</div>
+        <div class='mark' data-i='122'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='123' data-t='205.15'>
+      <img loading='lazy' src='./namer_frames/f_0373.jpg'>
+      <div class='body'>
+        <div class='t'>205.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sieb, Weiper, Juranovic</div>
+        <div class='line'>“Sieb and Weiper wait on the touchline as Juranovic stands by during the substitution.”</div>
+        <div class='mark' data-i='123'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='124' data-t='206.8'>
+      <img loading='lazy' src='./namer_frames/f_0376.jpg'>
+      <div class='body'>
+        <div class='t'>206.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sieb, Weiper, Juranovic</div>
+        <div class='line'>“Sieb and Weiper wait on the touchline as Juranovic stands by the fourth official.”</div>
+        <div class='mark' data-i='124'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='125' data-t='208.45'>
+      <img loading='lazy' src='./namer_frames/f_0379.jpg'>
+      <div class='body'>
+        <div class='t'>208.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sieb</div>
+        <div class='line'>“Sieb applauds the crowd as Mainz make a change.”</div>
+        <div class='mark' data-i='125'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='126' data-t='210.1'>
+      <img loading='lazy' src='./namer_frames/f_0382.jpg'>
+      <div class='body'>
+        <div class='t'>210.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Mainz player applauds the crowd during the stoppage.”</div>
+        <div class='mark' data-i='126'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='127' data-t='211.75'>
+      <img loading='lazy' src='./namer_frames/f_0385.jpg'>
+      <div class='body'>
+        <div class='t'>211.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm'><b>pass to:</b> Mwene <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Mwene, Klaus, Ilic</div>
+        <div class='line'>“The ball is dropping toward Mwene at the far post.”</div>
+        <div class='mark' data-i='127'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='128' data-t='213.4'>
+      <img loading='lazy' src='./namer_frames/f_0388.jpg'>
+      <div class='body'>
+        <div class='t'>213.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Mwene, Trimmel, Klaus</div>
+        <div class='line'>“Mwene watches on as Klaus and Trimmel deal with the danger in the box”</div>
+        <div class='mark' data-i='128'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='129' data-t='215.05'>
+      <img loading='lazy' src='./namer_frames/f_0391.jpg'>
+      <div class='body'>
+        <div class='t'>215.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> da Costa, Trimmel, Klaus</div>
+        <div class='line'>“da Costa arrives at the back post as Trimmel tracks him and Klaus dives across his goal”</div>
+        <div class='mark' data-i='129'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='130' data-t='216.7'>
+      <img loading='lazy' src='./namer_frames/f_0394.jpg'>
+      <div class='body'>
+        <div class='t'>216.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Trimmel</div>
+        <div class='line'>“Becker runs away from goal with Trimmel nearby after the chance.”</div>
+        <div class='mark' data-i='130'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='131' data-t='218.35'>
+      <img loading='lazy' src='./namer_frames/f_0397.jpg'>
+      <div class='body'>
+        <div class='t'>218.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Mainz player waits as play resets.”</div>
+        <div class='mark' data-i='131'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='132' data-t='220.0'>
+      <img loading='lazy' src='./namer_frames/f_0400.jpg'>
+      <div class='body'>
+        <div class='t'>220.0s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Mainz player pauses during the stoppage with no clear pass visible”</div>
+        <div class='mark' data-i='132'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='133' data-t='221.65'>
+      <img loading='lazy' src='./namer_frames/f_0403.jpg'>
+      <div class='body'>
+        <div class='t'>221.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Veratschnig</div>
+        <div class='line'>“Veratschnig waits near the touchline as play is paused.”</div>
+        <div class='mark' data-i='133'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='134' data-t='223.3'>
+      <img loading='lazy' src='./namer_frames/f_0406.jpg'>
+      <div class='body'>
+        <div class='t'>223.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Sieb</div>
+        <div class='line'>“Becker walks over toward the touchline with Sieb nearby.”</div>
+        <div class='mark' data-i='134'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='135' data-t='224.95'>
+      <img loading='lazy' src='./namer_frames/f_0409.jpg'>
+      <div class='body'>
+        <div class='t'>224.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Sieb</div>
+        <div class='line'>“Sieb waits on the touchline as Mainz prepare a change.”</div>
+        <div class='mark' data-i='135'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='136' data-t='226.6'>
+      <img loading='lazy' src='./namer_frames/f_0412.jpg'>
+      <div class='body'>
+        <div class='t'>226.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Tietz, Sieb</div>
+        <div class='line'>“Tietz and Sieb are on the touchline as Mainz prepare the change.”</div>
+        <div class='mark' data-i='136'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='137' data-t='228.25'>
+      <img loading='lazy' src='./namer_frames/f_0415.jpg'>
+      <div class='body'>
+        <div class='t'>228.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Sieb</div>
+        <div class='line'>“Becker greets the arriving Mainz substitutes as Sieb jogs on.”</div>
+        <div class='mark' data-i='137'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='138' data-t='229.9'>
+      <img loading='lazy' src='./namer_frames/f_0418.jpg'>
+      <div class='body'>
+        <div class='t'>229.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker</div>
+        <div class='line'>“Becker comes over to the touchline for Mainz.”</div>
+        <div class='mark' data-i='138'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='139' data-t='231.55'>
+      <img loading='lazy' src='./namer_frames/f_0421.jpg'>
+      <div class='body'>
+        <div class='t'>231.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Tietz</div>
+        <div class='line'>“Becker comes off near the touchline as Tietz is also visible nearby.”</div>
+        <div class='mark' data-i='139'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='140' data-t='233.2'>
+      <img loading='lazy' src='./namer_frames/f_0424.jpg'>
+      <div class='body'>
+        <div class='t'>233.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Amiri</div>
+        <div class='line'>“Becker stands by the touchline with Amiri also on the Mainz sideline.”</div>
+        <div class='mark' data-i='140'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='141' data-t='234.85'>
+      <img loading='lazy' src='./namer_frames/f_0427.jpg'>
+      <div class='body'>
+        <div class='t'>234.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Veratschnig</div>
+        <div class='line'>“Veratschnig is on for Mainz as play prepares to restart.”</div>
+        <div class='mark' data-i='141'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='142' data-t='236.5'>
+      <img loading='lazy' src='./namer_frames/f_0430.jpg'>
+      <div class='body'>
+        <div class='t'>236.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Mainz player jogs back into position.”</div>
+        <div class='mark' data-i='142'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='143' data-t='238.15'>
+      <img loading='lazy' src='./namer_frames/f_0433.jpg'>
+      <div class='body'>
+        <div class='t'>238.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Weiper</div>
+        <div class='line'>“Weiper is shown in the Mainz attack as play resets.”</div>
+        <div class='mark' data-i='143'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='144' data-t='239.8'>
+      <img loading='lazy' src='./namer_frames/f_0436.jpg'>
+      <div class='body'>
+        <div class='t'>239.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Weiper</div>
+        <div class='line'>“Weiper stands in the Mainz box as play pauses.”</div>
+        <div class='mark' data-i='144'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='145' data-t='241.45'>
+      <img loading='lazy' src='./namer_frames/f_0439.jpg'>
+      <div class='body'>
+        <div class='t'>241.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Weiper</div>
+        <div class='line'>“Weiper is seen walking back into position for Mainz.”</div>
+        <div class='mark' data-i='145'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='146' data-t='243.1'>
+      <img loading='lazy' src='./namer_frames/f_0442.jpg'>
+      <div class='body'>
+        <div class='t'>243.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Weiper, Mwene</div>
+        <div class='line'>“Mainz line up a set piece with Weiper waiting in the area and Mwene nearby.”</div>
+        <div class='mark' data-i='146'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='147' data-t='244.75'>
+      <img loading='lazy' src='./namer_frames/f_0445.jpg'>
+      <div class='body'>
+        <div class='t'>244.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Mwene</div>
+        <div class='line'>“Mainz prepare the set piece with Mwene stationed on the right.”</div>
+        <div class='mark' data-i='147'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='148' data-t='246.4'>
+      <img loading='lazy' src='./namer_frames/f_0448.jpg'>
+      <div class='body'>
+        <div class='t'>246.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Mwene, Kohr</div>
+        <div class='line'>“Mwene and Kohr wait in position as Mainz prepare the free kick.”</div>
+        <div class='mark' data-i='148'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='149' data-t='248.05'>
+      <img loading='lazy' src='./namer_frames/f_0451.jpg'>
+      <div class='body'>
+        <div class='t'>248.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Jae-sung, Weiper</div>
+        <div class='line'>“Mainz line up a set piece with Jae-sung and Weiper visible in the box.”</div>
+        <div class='mark' data-i='149'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='150' data-t='249.7'>
+      <img loading='lazy' src='./namer_frames/f_0454.jpg'>
+      <div class='body'>
+        <div class='t'>249.7s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Amiri stands over the free kick for Mainz.”</div>
+        <div class='mark' data-i='150'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='151' data-t='251.35'>
+      <img loading='lazy' src='./namer_frames/f_0457.jpg'>
+      <div class='body'>
+        <div class='t'>251.3s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Amiri stands over the dead ball for Mainz.”</div>
+        <div class='mark' data-i='151'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='152' data-t='253.0'>
+      <img loading='lazy' src='./namer_frames/f_0460.jpg'>
+      <div class='body'>
+        <div class='t'>253.0s</div>
+        <div class='nm'><b>has ball:</b> Amiri #10 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Amiri stands over the set piece for Mainz.”</div>
+        <div class='mark' data-i='152'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='153' data-t='254.65'>
+      <img loading='lazy' src='./namer_frames/f_0463.jpg'>
+      <div class='body'>
+        <div class='t'>254.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Kohr</div>
+        <div class='line'>“Mainz are set for the free kick, with Kohr waiting in the box”</div>
+        <div class='mark' data-i='153'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='154' data-t='256.3'>
+      <img loading='lazy' src='./namer_frames/f_0466.jpg'>
+      <div class='body'>
+        <div class='t'>256.3s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“A Mainz free-kick is delivered into the Union box with Klaus guarding his goal.”</div>
+        <div class='mark' data-i='154'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='155' data-t='257.95'>
+      <img loading='lazy' src='./namer_frames/f_0469.jpg'>
+      <div class='body'>
+        <div class='t'>257.9s</div>
+        <div class='nm'><b>has ball:</b> Potulski #48 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm'><b>pass to:</b> Potulski <span class='conf' style='background:#d97706'>medium</span></div><div class='nm dim'><b>also:</b> Klaus, Veratschnig</div>
+        <div class='line'>“Potulski gathers the dropping ball at the back post with Klaus guarding the Union goal.”</div>
+        <div class='mark' data-i='155'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='156' data-t='259.6'>
+      <img loading='lazy' src='./namer_frames/f_0472.jpg'>
+      <div class='body'>
+        <div class='t'>259.6s</div>
+        <div class='nm'><b>has ball:</b> da Costa #21 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus, Kohn, Leite</div>
+        <div class='line'>“Da Costa has it on the right as Klaus guards the Union goal.”</div>
+        <div class='mark' data-i='156'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='157' data-t='261.25'>
+      <img loading='lazy' src='./namer_frames/f_0475.jpg'>
+      <div class='body'>
+        <div class='t'>261.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Mainz player is down in the box as play pauses.”</div>
+        <div class='mark' data-i='157'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='158' data-t='262.9'>
+      <img loading='lazy' src='./namer_frames/f_0478.jpg'>
+      <div class='body'>
+        <div class='t'>262.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Weiper</div>
+        <div class='line'>“Weiper jogs back with a Mainz teammate after the stoppage”</div>
+        <div class='mark' data-i='158'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='159' data-t='264.55'>
+      <img loading='lazy' src='./namer_frames/f_0481.jpg'>
+      <div class='body'>
+        <div class='t'>264.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Posch</div>
+        <div class='line'>“Posch jogs back into position for Mainz.”</div>
+        <div class='mark' data-i='159'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='160' data-t='266.2'>
+      <img loading='lazy' src='./namer_frames/f_0484.jpg'>
+      <div class='body'>
+        <div class='t'>266.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Kawasaki</div>
+        <div class='line'>“Becker stands by the Mainz bench as the substitutions are made.”</div>
+        <div class='mark' data-i='160'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='161' data-t='267.85'>
+      <img loading='lazy' src='./namer_frames/f_0487.jpg'>
+      <div class='body'>
+        <div class='t'>267.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker, Tietz</div>
+        <div class='line'>“Becker stands by the Mainz bench as Tietz sits alongside him.”</div>
+        <div class='mark' data-i='161'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='162' data-t='269.5'>
+      <img loading='lazy' src='./namer_frames/f_0490.jpg'>
+      <div class='body'>
+        <div class='t'>269.5s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Tietz, Weiper</div>
+        <div class='line'>“Tietz and Weiper watch from the Mainz bench with no ball in play.”</div>
+        <div class='mark' data-i='162'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='163' data-t='271.15'>
+      <img loading='lazy' src='./namer_frames/f_0493.jpg'>
+      <div class='body'>
+        <div class='t'>271.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Amiri</div>
+        <div class='line'>“Amiri watches on from the Mainz bench.”</div>
+        <div class='mark' data-i='163'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='164' data-t='272.8'>
+      <img loading='lazy' src='./namer_frames/f_0496.jpg'>
+      <div class='body'>
+        <div class='t'>272.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker</div>
+        <div class='line'>“Becker stands by the Mainz bench as play is paused.”</div>
+        <div class='mark' data-i='164'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='165' data-t='274.45'>
+      <img loading='lazy' src='./namer_frames/f_0499.jpg'>
+      <div class='body'>
+        <div class='t'>274.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Becker</div>
+        <div class='line'>“Becker stands by the Mainz bench as play is stopped.”</div>
+        <div class='mark' data-i='165'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='166' data-t='276.1'>
+      <img loading='lazy' src='./namer_frames/f_0502.jpg'>
+      <div class='body'>
+        <div class='t'>276.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus, Mwene</div>
+        <div class='line'>“Union play out from the back with Klaus behind the move and Mwene visible wide for Mainz”</div>
+        <div class='mark' data-i='166'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='167' data-t='277.75'>
+      <img loading='lazy' src='./namer_frames/f_0505.jpg'>
+      <div class='body'>
+        <div class='t'>277.8s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus, Juranovic, Mwene</div>
+        <div class='line'>“Union move it left across the back as Klaus watches, with Juranovic and Mwene visible nearby”</div>
+        <div class='mark' data-i='167'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='168' data-t='279.4'>
+      <img loading='lazy' src='./namer_frames/f_0508.jpg'>
+      <div class='body'>
+        <div class='t'>279.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm'><b>pass to:</b> Juranovic <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Klaus</div>
+        <div class='line'>“Union switch it down the near touchline toward Juranovic, with Klaus behind the play.”</div>
+        <div class='mark' data-i='168'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='169' data-t='281.05'>
+      <img loading='lazy' src='./namer_frames/f_0511.jpg'>
+      <div class='body'>
+        <div class='t'>281.1s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Zentner</div>
+        <div class='line'>“Mainz have it near the left touchline with Zentner set behind them.”</div>
+        <div class='mark' data-i='169'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='170' data-t='282.7'>
+      <img loading='lazy' src='./namer_frames/f_0514.jpg'>
+      <div class='body'>
+        <div class='t'>282.7s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Zentner</div>
+        <div class='line'>“Zentner waits in goal as Mainz prepare a throw-in on the left.”</div>
+        <div class='mark' data-i='170'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='171' data-t='284.35'>
+      <img loading='lazy' src='./namer_frames/f_0517.jpg'>
+      <div class='body'>
+        <div class='t'>284.4s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Klaus, Jae-sung, Sano</div>
+        <div class='line'>“Mainz have it on the left touchline, with Jae-sung and Sano available as Klaus watches from the Union goal.”</div>
+        <div class='mark' data-i='171'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='172' data-t='286.0'>
+      <img loading='lazy' src='./namer_frames/f_0520.jpg'>
+      <div class='body'>
+        <div class='t'>286.0s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div><div class='nm dim'><b>also:</b> Kohn</div>
+        <div class='line'>“Kohn is shown after Mainz prepare to restart from the left touchline”</div>
+        <div class='mark' data-i='172'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='173' data-t='287.65'>
+      <img loading='lazy' src='./namer_frames/f_0523.jpg'>
+      <div class='body'>
+        <div class='t'>287.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Union player waits as play is paused.”</div>
+        <div class='mark' data-i='173'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='174' data-t='289.3'>
+      <img loading='lazy' src='./namer_frames/f_0526.jpg'>
+      <div class='body'>
+        <div class='t'>289.3s</div>
+        <div class='nm'><b>has ball:</b> Juranovic #18 <span class='conf' style='background:#16a34a'>high</span></div>
+        <div class='line'>“Juranovic prepares to take the throw-in for Union.”</div>
+        <div class='mark' data-i='174'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='175' data-t='290.95'>
+      <img loading='lazy' src='./namer_frames/f_0529.jpg'>
+      <div class='body'>
+        <div class='t'>290.9s</div>
+        <div class='nm'><b>has ball:</b> Juranovic #18 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Jae-sung, Zentner</div>
+        <div class='line'>“Juranovic sets the ball down by the touchline as Jae-sung points across the pitch.”</div>
+        <div class='mark' data-i='175'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='176' data-t='292.6'>
+      <img loading='lazy' src='./namer_frames/f_0532.jpg'>
+      <div class='body'>
+        <div class='t'>292.6s</div>
+        <div class='nm'><b>has ball:</b> Juranovic #18 <span class='conf' style='background:#16a34a'>high</span></div><div class='nm dim'><b>also:</b> Jae-sung, Zentner</div>
+        <div class='line'>“Juranovic prepares to restart play from the touchline.”</div>
+        <div class='mark' data-i='176'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='177' data-t='294.25'>
+      <img loading='lazy' src='./namer_frames/f_0535.jpg'>
+      <div class='body'>
+        <div class='t'>294.2s</div>
+        <div class='nm'><b>has ball:</b> Juranovic #18 <span class='conf' style='background:#d97706'>medium</span></div>
+        <div class='line'>“Juranovic waits on the touchline for Union.”</div>
+        <div class='mark' data-i='177'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='178' data-t='295.9'>
+      <img loading='lazy' src='./namer_frames/f_0538.jpg'>
+      <div class='body'>
+        <div class='t'>295.9s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“A Union Berlin player walks back into position.”</div>
+        <div class='mark' data-i='178'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='179' data-t='297.55'>
+      <img loading='lazy' src='./namer_frames/f_0541.jpg'>
+      <div class='body'>
+        <div class='t'>297.6s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Union prepare to restart with a throw-in.”</div>
+        <div class='mark' data-i='179'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div>
+    <div class='card' data-i='180' data-t='299.2'>
+      <img loading='lazy' src='./namer_frames/f_0544.jpg'>
+      <div class='body'>
+        <div class='t'>299.2s</div>
+        <div class='nm dim'><b>has ball:</b> (unsure)</div>
+        <div class='line'>“Union prepare to restart with the ball in hand.”</div>
+        <div class='mark' data-i='180'>
+          <button class='ok'>✓ correct</button>
+          <button class='no'>✗ wrong</button>
+          <button class='uns'>? unsure</button>
+        </div>
+      </div>
+    </div></div>
+<script>
+const KEY='namer_review_v1';
+let marks=JSON.parse(localStorage.getItem(KEY)||'{}');
+const vid=document.getElementById('vid');
+function tally(){
+  let ok=0,no=0,uns=0;
+  for(const k in marks){if(marks[k]=='ok')ok++;else if(marks[k]=='no')no++;else if(marks[k]=='uns')uns++;}
+  const graded=ok+no; const acc=graded?Math.round(100*ok/graded):0;
+  document.getElementById('tally').innerHTML=
+    `reviewed <b>${ok+no+uns}</b> / 181 &nbsp;|&nbsp; correct <b>${ok}</b> &nbsp; wrong <b>${no}</b> &nbsp; unsure <b>${uns}</b> &nbsp;|&nbsp; naming accuracy (of graded) <b>${acc}%</b>`;
+}
+function apply(i){
+  const card=document.querySelector(`.card[data-i='${i}']`); if(!card)return;
+  const m=marks[i]; card.classList.remove('done-ok','done-no','done-uns');
+  const btns=card.querySelectorAll('.mark button'); btns.forEach(b=>b.classList.remove('sel-ok','sel-no','sel-uns'));
+  if(m){card.classList.add('done-'+m); const map={ok:0,no:1,uns:2}; btns[map[m]].classList.add('sel-'+m);}
+}
+document.querySelectorAll('.card').forEach(card=>{
+  const i=card.dataset.i, t=parseFloat(card.dataset.t);
+  card.querySelector('img').onclick=()=>{vid.currentTime=Math.max(0,t-1.2);vid.play();};
+  const [b1,b2,b3]=card.querySelectorAll('.mark button');
+  b1.onclick=()=>{marks[i]='ok';save(i);}; b2.onclick=()=>{marks[i]='no';save(i);}; b3.onclick=()=>{marks[i]='uns';save(i);};
+  apply(i);
+});
+function save(i){localStorage.setItem(KEY,JSON.stringify(marks));apply(i);tally();}
+function exportJSON(){
+  const data=JSON.stringify(marks,null,2);
+  const b=new Blob([data],{type:'application/json'});const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download='namer_verdicts.json';a.click();
+}
+tally();
+</script></body></html>

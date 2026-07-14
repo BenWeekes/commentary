@@ -107,12 +107,14 @@ def main():
                     help='frames between burst centres (default 4 = one burst per ~2.2s)')
     ap.add_argument('--start', type=int, default=0, help='burst index to start at')
     ap.add_argument('--out', default=str(OUT_JSONL))
+    ap.add_argument('--frames-dir', default=str(FRAMES_DIR))
+    ap.add_argument('--prompt', default=str(PROMPT_PATH))
     args = ap.parse_args()
 
-    prompt = PROMPT_PATH.read_text()
-    frame_paths = sorted(FRAMES_DIR.glob('f_*.jpg'))
+    prompt = Path(args.prompt).read_text()
+    frame_paths = sorted(Path(args.frames_dir).glob('f_*.jpg'))
     if not frame_paths:
-        sys.exit(f"No frames in {FRAMES_DIR}")
+        sys.exit(f"No frames in {args.frames_dir}")
 
     bursts = []
     for i in range(BURST_SIZE - 1, len(frame_paths), args.stride):

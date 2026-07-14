@@ -50,3 +50,8 @@ match_data/
 # OS
 .DS_Store
 Thumbs.db
+
+# Model weights + resolution-test artifacts (regenerable / downloadable)
+experiments/**/*.pt
+experiments/ai_commentator/res_test/frames_*/
+experiments/ai_commentator/res_test/*.log

@@ -1,0 +1,45 @@
+{
+  "variant": "v20_par_live",
+  "n_hallucinations": 4,
+  "tracker_accurate_rate": 0.5,
+  "contradicts_rate": 1.0,
+  "preventable_rate": 0.5,
+  "items": [
+    {
+      "tracking_accurate": 0,
+      "contradicts_line": 1,
+      "tracker_error": "ball is visible on the right",
+      "rationale": "The frame is a live wide pitch shot with both teams present, not a replay, but the tracker incorrectly says the ball is not detected despite it being visible near the Mainz players on the right.",
+      "_t": 51.15,
+      "_text": "And here's the replay of that moment.",
+      "_view": "- view: LIVE pitch shot (grass 96%)"
+    },
+    {
+      "tracking_accurate": 1,
+      "contradicts_line": 1,
+      "tracker_error": "",
+      "rationale": "The frame is a live wide pitch shot with many players active around the box and no clearly detected ball, which makes a player standing over a dead ball inside the six-yard box implausible.",
+      "_t": 162.8,
+      "_text": "Klaus stands over it inside the six-yard box.",
+      "_view": "- view: LIVE pitch shot (grass 97%)"
+    },
+    {
+      "tracking_accurate": 1,
+      "contradicts_line": 1,
+      "tracker_error": "",
+      "rationale": "The frame is a live pitch shot with the ball near the left and a single Mainz player on the right, so the tracker is accurate and its live-view fact contradicts the claim that this is a replay.",
+      "_t": 252.45,
+      "_text": "The replay shows it again.",
+      "_view": "- view: LIVE pitch shot (grass 93%)"
+    },
+    {
+      "tracking_accurate": 0,
+      "contradicts_line": 1,
+      "tracker_error": "ball visible near left side but reported not detected",
+      "rationale": "The frame is a live pitch shot with players from both teams, not a replay, but the ball is visibly on the left side despite the tracker saying it was not detected.",
+      "_t": 278.3,
+      "_text": "And here's the replay of that moment.",
+      "_view": "- view: LIVE pitch shot (grass 99%)"
+    }
+  ]
+}

@@ -173,6 +173,17 @@ PIPELINE_CONFIGS = {
         'out_prefix': 'v20_low_live',
         'sample_interval_s': 0.55, 'burst_frames': 4,
     },
+    # v20_par = high_v20 but vision+polish run in a worker pool so a slow
+    # (CPU-contention-starved) call can't freeze the main loop. See main_parallel().
+    'high_v20_par': {
+        'model': 'gpt-5.5', 'prompt_style': 'safe_draft',
+        'polisher_model': 'gpt-5.5',
+        'max_output_tokens': 200, 'srt_port': 10093,
+        'frames_dir': '/tmp/live_frames_high_v20_par',
+        'out_prefix': 'v20_par_live',
+        'sample_interval_s': 0.55, 'burst_frames': 4,
+        'parallel': True, 'vision_concurrency': 4,
+    },
     'low': {
         'model': 'gpt-5.4-mini',
         'prompt_style': 'v5',
@@ -197,6 +208,7 @@ SRT_URL_RECV = None
 LIVE_FRAMES_DIR = None
 OUT_PREFIX = None
 PROMPT_STYLE = None
+VISION_CONCURRENCY = 4  # set by CLI for parallel pipelines
 
 SOURCE_MP4 = Path(os.environ.get('AI_COMMENTATOR_SOURCE', '/tmp/v2v_compare/slice_5min.mp4'))
 BASE = Path('/home/ubuntu/commentary/experiments/ai_commentator')
@@ -299,6 +311,12 @@ STRICT OUTPUT RULES (violating these breaks the pipeline downstream):
       touchline, edge of box, six-yard box, corner)
     - Static ball state (over the ball, at the ball, near the ball,
       in possession, on the touchline, in the goalmouth)
+    - PASS IN PROGRESS — NAME THE RECEIVER. If the ball is clearly travelling
+      from one player to an identifiable team-mate, name the receiver with a
+      PLAIN pass phrase: "to <Surname>", "played to <Surname>", "square to
+      <Surname>", "back to <Surname>". Do this AS OFTEN AS POSSIBLE whenever a
+      pass is visible and the receiver is identifiable (shirt number / position
+      / roster). Plain pass phrasing only — NOT the banned flashy verbs below.
     - Referee position ("the referee near midfield")
     - Substitution board visible → name both players from roster
     - Team tactical phase ("home side in possession", "visitors defending deep")
@@ -323,6 +341,9 @@ STRICT OUTPUT RULES (violating these breaks the pipeline downstream):
   Fine examples:
     "Klaus at his goalmouth."
     "Amiri over the ball at the edge of the box."
+    "Amiri to Caci on the left."
+    "Played square to Kohr."
+    "Back to Zentner."
     "Mainz shirts in the attacking third."
     "Referee near the incident."
     "The ball at the near touchline."
@@ -370,6 +391,10 @@ STYLING FREEDOM you DO have (use it):
     "wide on the touchline") if the safe draft implied it.
   - Match variety across recent lines — don't reuse the same verb/subject/
     opener twice in three lines.
+  - PASSES: if the draft names a pass receiver ("to <Surname>", "played to
+    <Surname>"), KEEP the receiver's name and lead with the pass — "…finds
+    <Surname>", "…and it's to <Surname>", "<Surname> receives" — that naming
+    is the most natural football commentary. Never drop the named receiver.
 
 DANGER LIST (imply unseen events, avoid these):
   - dangerous, threatening, brilliant, incisive, clever, decisive
@@ -1017,6 +1042,264 @@ def main():
     print(f"EN track: {out_en_wav}   FR track: {out_fr_wav}")
 
 
+REPLAY_VARIANTS = [
+    "And here's the replay of that moment.",
+    "A closer look at what just happened.",
+    "The replay shows it again.",
+    "Watch that one back.",
+]
+
+
+def main_parallel():
+    """Parallel variant of main().
+
+    The sequential main() blocks the loop on each `vision_call`; under CPU
+    contention (few cores + ffmpeg + TTS threads) a single call can stall ~30s
+    and freeze the whole pipeline, starving throughput. Here vision+polish run
+    in a bounded worker pool so a slow call can't freeze the loop:
+      - submission is gated by video-time cadence + max in-flight
+      - non-overlap between accepted lines is enforced at ACCEPT time
+      - audio is placed by video-time, so out-of-order completion still lands
+        each line at the correct spot in the track.
+    Isolated probing (latency_probe.py) showed even 8 concurrent gpt-5.5 vision
+    calls stay fast, so adding vision concurrency does not itself add latency.
+    """
+    for f in LIVE_FRAMES_DIR.glob('f_*.jpg'):
+        f.unlink()
+
+    ctx = build_match_context()
+    rich_ctx = build_rich_context_text(ctx)
+    aliases = ctx['aliases']
+    roster_by_short = {p['short_name']: p for p in ctx['roster']}
+    print(f"[PARALLEL] model={MODEL} concurrency={VISION_CONCURRENCY} rich_ctx={len(rich_ctx)} chars")
+
+    sender_proc = start_srt_sender()
+    time.sleep(1.5)
+    recv_proc = start_srt_receiver_frames()
+
+    accepted = []
+    all_attempts = []
+    subs = []
+    booth_busy_until_video = 0.0
+    wall_start = time.monotonic()
+
+    def video_time_of_frame(idx):
+        return idx * SAMPLE_INTERVAL_S
+
+    def wall_time():
+        return time.monotonic() - wall_start
+
+    audio_en = bytearray(int((DURATION_S + 30) * SR_TTS * 2))
+    audio_fr = bytearray(int((DURATION_S + 30) * SR_TTS * 2))
+    audio_lock = threading.Lock()
+    completed_lines = []
+    tts_exec = concurrent.futures.ThreadPoolExecutor(max_workers=6, thread_name_prefix='tts')
+    vision_exec = concurrent.futures.ThreadPoolExecutor(max_workers=VISION_CONCURRENCY, thread_name_prefix='vis')
+
+    def enqueue_tts_and_write(text, video_t, wall_t_when_accepted, fr_pretranslated=None):
+        tag = pick_tag(text)
+        tagged_en = f"{tag} {text}"
+        if fr_pretranslated:
+            fr = fr_pretranslated
+        else:
+            try:
+                fr = translate_fr(text)
+            except Exception as e:
+                print(f"    translate fail: {e}"); fr = text
+        tagged_fr = f"{tag} {fr}"
+
+        def one_tts(track_name, tagged, voice, out_buf):
+            t0 = time.monotonic()
+            try:
+                pcm = tts(tagged, voice)
+            except Exception as e:
+                print(f"    tts {track_name} fail: {e}"); return None
+            tts_ms = int((time.monotonic()-t0)*1000)
+            start_s = video_t + NATURAL_LAG_S
+            b = int(start_s * SR_TTS) * 2
+            with audio_lock:
+                if b < len(out_buf):
+                    usable = min(len(pcm), len(out_buf) - b)
+                    if usable > 0:
+                        out_buf[b:b+usable] = pcm[:usable]
+            return tts_ms
+
+        f_en = tts_exec.submit(one_tts, 'EN', tagged_en, EN_VOICE, audio_en)
+        f_fr = tts_exec.submit(one_tts, 'FR', tagged_fr, FR_VOICE, audio_fr)
+        en_ms = f_en.result(); fr_ms = f_fr.result()
+        completed_lines.append({
+            'video_time_s': round(video_t, 2),
+            'wall_at_accept_s': round(wall_t_when_accepted, 2),
+            'text': text, 'fr': fr, 'tag': tag,
+            'natural_start_s': round(video_t + NATURAL_LAG_S, 2),
+            'en_tts_ms': en_ms, 'fr_tts_ms': fr_ms,
+        })
+        print(f"    tts done EN={en_ms}ms FR={fr_ms}ms  → {text[:60]!r}")
+
+    def vision_job(burst_paths, prompt, prev_texts, latest_video_t):
+        """Runs in the worker pool: vision + (safe_draft) polish. No shared
+        state mutation — returns a result dict for the main thread to finalize."""
+        text, vision_ms, err = vision_call(burst_paths, prompt)
+        is_replay = False
+        if text and text.lower().startswith('motion:'):
+            first, _, rest = text.partition('\n')
+            sig = first.split(':', 1)[1].strip().lower()
+            text = rest.lstrip('\n').strip()
+            is_replay = (sig == 'replay')
+        elif text and text.lower().startswith('replay:'):
+            first, _, rest = text.partition('\n')
+            is_replay = 'yes' in first.lower()
+            text = rest.strip()
+        fr_pre = None
+        polisher_ms = 0
+        if PROMPT_STYLE == 'safe_draft' and text and not is_no_call(text) and not is_replay:
+            safe_draft = text
+            polished_en, polished_fr, polisher_ms = polish_line(safe_draft, prev_texts)
+            if polished_en.lower().startswith('replay:'):
+                _, _, r = polished_en.partition('\n'); polished_en = r.strip() or safe_draft
+            if polished_fr.lower().startswith('replay:'):
+                _, _, r = polished_fr.partition('\n'); polished_fr = r.strip()
+            text = polished_en if polished_en else safe_draft
+            fr_pre = polished_fr
+        return dict(text=text, vision_ms=vision_ms, err=err, polisher_ms=polisher_ms,
+                    fr_pre=fr_pre, is_replay=is_replay, video_t=latest_video_t)
+
+    def accept_line(text, video_t, vision_ms, polisher_ms, fr_pre, is_replay):
+        """Main-thread only: dedup / sub / non-overlap gate / accept + TTS."""
+        nonlocal booth_busy_until_video
+        if is_repetitive_trigram(text, [a['text'] for a in accepted], last_n=5):
+            print(f"    [{video_t:5.1f}s] trigram_dup: {text[:50]!r}"); return
+        if is_repeated_waiting(text, [a['text'] for a in accepted]):
+            print(f"    [{video_t:5.1f}s] waiting_dup: {text[:50]!r}"); return
+        sub = detect_sub(text, roster_by_short)
+        if sub:
+            on_pitch = {p['short_name'] for p in ctx['roster'] if p['role'] == 'starter'}
+            for s in subs:
+                on_pitch.discard(s['off']); on_pitch.add(s['on'])
+            if sub[0] not in on_pitch or sub[1] in on_pitch or any(s['off'] == sub[0] and s['on'] == sub[1] for s in subs):
+                print(f"    [{video_t:5.1f}s] sub reject {sub}: {text[:50]!r}")
+                all_attempts.append({'video_time_s': video_t, 'text': text, 'reason': 'sub_reject'}); return
+            subs.append({'off': sub[0], 'on': sub[1], 'at_s': round(video_t, 1)})
+        words = len(text.split())
+        est_duration_s = max(1.2, words / 3.0)
+        est_tag = cheap_tag_guess(text)
+        gate_s = 4.0 if est_tag in ('[calm]', '[flatly]', '[deadpan]', '[resigned tone]') else 1.8
+        wt2 = wall_time()
+        accepted.append({'text': text, 'video_time_s': video_t, 'wall_at_accept_s': wt2,
+                         'vision_ms': vision_ms, 'est_duration_s': est_duration_s, 'replay': is_replay})
+        booth_busy_until_video = video_t + NATURAL_LAG_S + est_duration_s + (gate_s - 1.8)
+        print(f"    [{video_t:5.1f}s] ACCEPT (vis {vision_ms}ms pol {polisher_ms}ms) tag={est_tag} → {text[:55]!r}")
+        tts_exec.submit(enqueue_tts_and_write, text, video_t, wt2, fr_pre)
+
+    def handle_result(res):
+        text = res['text']; video_t = res['video_t']
+        if res['err']:
+            print(f"    [{video_t:5.1f}s] err {res['err'][:100]!r}")
+            all_attempts.append({'video_time_s': video_t, 'err': res['err']}); return
+        if res['is_replay']:
+            n_replay = sum(1 for a in accepted if a.get('replay'))
+            text = REPLAY_VARIANTS[n_replay % len(REPLAY_VARIANTS)]
+        if not text or is_no_call(text):
+            print(f"    [{video_t:5.1f}s] NO_CALL ({res['vision_ms']}ms)"); return
+        if video_t < booth_busy_until_video - 0.01:
+            print(f"    [{video_t:5.1f}s] drop-overlap (booth busy to {booth_busy_until_video:.1f}s): {text[:45]!r}"); return
+        accept_line(text, video_t, res['vision_ms'], res['polisher_ms'], res['fr_pre'], res['is_replay'])
+
+    pending = []
+    last_submit_video_t = -999.0
+    MIN_SUBMIT_SPACING_S = 1.5
+    processed_idx = 0
+    max_wait_s = 400
+    last_new_frame_wall = wall_time()
+    stopping = False
+
+    while True:
+        current_frames = sorted(LIVE_FRAMES_DIR.glob('f_*.jpg'))
+        n = len(current_frames)
+        if n > processed_idx:
+            last_new_frame_wall = wall_time()
+        processed_idx = n
+
+        if sender_proc.poll() is not None and (wall_time() - last_new_frame_wall) > 5:
+            if not stopping:
+                print(f"[main] sender ended; {wall_time()-last_new_frame_wall:.1f}s since last frame; stop submitting")
+            stopping = True
+
+        # ---- SUBMIT (non-blocking) ----
+        if not stopping and n >= CONTEXT_FRAMES:
+            latest_frame_idx = n
+            latest_video_t = video_time_of_frame(latest_frame_idx)
+            inflight = sum(1 for p in pending if not p.done())
+            submit_after = max(last_submit_video_t + MIN_SUBMIT_SPACING_S, booth_busy_until_video)
+            if latest_video_t >= submit_after and inflight < VISION_CONCURRENCY:
+                burst_paths = current_frames[max(0, n - CONTEXT_FRAMES - 1): n]
+                prev_texts = [a['text'] for a in accepted[-12:]]
+                # Replay detection REMOVED — the CPU slow-mo short-circuit
+                # false-fired on pre-kick pauses (a player pausing before a
+                # kick read as a replay). Always run the vision call now.
+                alias_usage = summarise_alias_usage(prev_texts, aliases)
+                referee_usage = summarise_referee_usage(prev_texts)
+                sub_hist = format_sub_history(subs)
+                pitch_state = format_pitch_state(ctx['roster'], subs)
+                prompt = build_prompt(rich_ctx, latest_video_t, prev_texts,
+                                      alias_usage, sub_hist, pitch_state,
+                                      referee_usage=referee_usage)
+                fut = vision_exec.submit(vision_job, burst_paths, prompt, prev_texts, latest_video_t)
+                pending.append(fut)
+                last_submit_video_t = latest_video_t
+                print(f"[t_wall={wall_time():5.1f}s / t_video={latest_video_t:5.1f}s] SUBMIT idx={latest_frame_idx} inflight={inflight+1}")
+
+        # ---- REAP completed (main thread finalizes) ----
+        for fut in [p for p in pending if p.done()]:
+            pending.remove(fut)
+            try:
+                handle_result(fut.result())
+            except Exception as e:
+                print(f"    vision_job exception: {e}")
+
+        # ---- Stop when sender done and all in-flight drained ----
+        if stopping and not pending:
+            print(f"[main] draining; {len(accepted)} accepted")
+            vision_exec.shutdown(wait=True)
+            tts_exec.shutdown(wait=True)
+            break
+        if wall_time() - last_new_frame_wall > max_wait_s:
+            print(f"[main] no frames for {max_wait_s}s; giving up")
+            vision_exec.shutdown(wait=True)
+            tts_exec.shutdown(wait=True)
+            break
+        time.sleep(0.05)
+
+    for p in (sender_proc, recv_proc):
+        if p.poll() is None:
+            p.terminate()
+            try: p.wait(timeout=3)
+            except subprocess.TimeoutExpired: p.kill()
+
+    out_en_wav = BASE / f'ai_commentary_{OUT_PREFIX}_en_track.wav'
+    out_fr_wav = BASE / f'ai_commentary_{OUT_PREFIX}_fr_track.wav'
+    trim_to = int(DURATION_S * SR_TTS * 2)
+    with wave.open(str(out_en_wav), 'wb') as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR_TTS); w.writeframes(bytes(audio_en[:trim_to]))
+    with wave.open(str(out_fr_wav), 'wb') as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR_TTS); w.writeframes(bytes(audio_fr[:trim_to]))
+    with open(BASE / f'commentary_{OUT_PREFIX}.jsonl', 'w') as f:
+        for r in completed_lines:
+            f.write(json.dumps(r, ensure_ascii=False) + '\n')
+
+    print(f"\n=== SUMMARY (parallel) ===")
+    print(f"Wall time to complete: {wall_time():.1f}s (source video is {DURATION_S:.0f}s)")
+    print(f"Accepted lines: {len(accepted)}   Subs: {subs}")
+    if accepted:
+        lags = sorted(max(0, a['wall_at_accept_s'] - a['video_time_s']) for a in accepted)
+        vms = sorted(a['vision_ms'] for a in accepted if a['vision_ms'])
+        p50 = lags[len(lags)//2]; p90 = lags[int(len(lags)*0.9)]
+        print(f"Live pipeline lag (wall - video)  p50={p50:.2f}s  p90={p90:.2f}s")
+        if vms:
+            print(f"Vision latency  min={vms[0]}ms  median={vms[len(vms)//2]}ms  max={vms[-1]}ms  (>15s: {sum(1 for v in vms if v>15000)})")
+    print(f"EN track: {out_en_wav}   FR track: {out_fr_wav}")
+
+
 if __name__ == '__main__':
     import argparse
     ap = argparse.ArgumentParser()
@@ -1037,8 +1320,13 @@ if __name__ == '__main__':
     SAMPLE_INTERVAL_S = cfg.get('sample_interval_s', 0.55)
     CONTEXT_FRAMES = cfg.get('burst_frames', 4)
     POLISHER_MODEL = cfg.get('polisher_model', 'gpt-5.4-mini')
+    VISION_CONCURRENCY = cfg.get('vision_concurrency', 4)
+    parallel = cfg.get('parallel', False)
     print(f"=== live SRT — pipeline={args.pipeline} model={MODEL} prompt={PROMPT_STYLE}"
-          f" polisher={POLISHER_MODEL}"
+          f" polisher={POLISHER_MODEL}{' PARALLEL k='+str(VISION_CONCURRENCY) if parallel else ''}"
           f" port={SRT_PORT} prefix={OUT_PREFIX} sample_interval={SAMPLE_INTERVAL_S}s"
           f" burst_frames={CONTEXT_FRAMES} ===")
-    main()
+    if parallel:
+        main_parallel()
+    else:
+        main()

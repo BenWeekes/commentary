@@ -15,6 +15,7 @@ Usage:
   python judge.py <variant> <ai_jsonl> [--sample N]
 """
 import json, sys, os, re, argparse, base64, time
+from collections import Counter
 from pathlib import Path
 
 for line in open('/home/ubuntu/commentary/.env'):
@@ -85,11 +86,61 @@ def judge_line(text, frame_path):
         return None
 
 
+STYLE_SYSTEM = """You are an expert football-broadcast editor reviewing a WHOLE
+run of AI commentary lines, in order. Judge the run as a whole — its rhythm and,
+especially, whether it repeats verbs / phrasings / sentence-openings too much.
+Return STRICT JSON:
+
+{
+  "realism_1_5": 1-5,     // 5 = reads like a real continuous broadcast; 1 = disjointed robotic captions
+  "variety_1_5": 1-5,     // 5 = fresh, varied verbs & phrasing; 1 = the same few verbs/phrases/openings over and over
+  "overused_verbs": [..], // action verbs repeated too often (lowercase); [] if none
+  "overused_phrases": [..],// repeated phrasings / sentence openings; [] if none
+  "rationale": "one or two sentences"
+}
+Return ONLY the JSON."""
+
+
+def _repetition_hint(lines):
+    """Cheap objective signal fed to the style judge as evidence (not a separate score)."""
+    openings = Counter(); toks = []
+    for t in lines:
+        w = re.sub(r'[^\w\s]', ' ', t.lower()).split(); toks += w
+        if len(w) >= 2:
+            openings[(w[0], w[1])] += 1
+    reps = [f"'{a} {b}' x{c}" for (a, b), c in openings.most_common(6) if c > 1]
+    distinct_word_ratio = round(len(set(toks)) / max(1, len(toks)), 2)
+    return reps, distinct_word_ratio
+
+
+def judge_run_style(lines):
+    """One whole-transcript judgement of realism + verb/phrase repetition."""
+    reps, dwr = _repetition_hint(lines)
+    numbered = "\n".join(f"{i+1}. {t}" for i, t in enumerate(lines))
+    hint = (f"(objective signals — repeated openings: {reps or 'none'}; "
+            f"distinct-word ratio: {dwr})")
+    try:
+        resp = client.responses.create(
+            model=JUDGE_MODEL,
+            instructions=STYLE_SYSTEM,
+            input=[{"role": "user", "content": f"{hint}\n\nCOMMENTARY RUN ({len(lines)} lines):\n{numbered}"}],
+            max_output_tokens=800,
+            reasoning={"effort": "low"},
+        )
+        raw = (resp.output_text or '').strip()
+        m = re.search(r'\{.*\}', raw, re.DOTALL)
+        v = json.loads(m.group(0)) if m else {}
+    except Exception as e:
+        print(f"  style-judge error: {e}", file=sys.stderr); v = {}
+    v['_distinct_word_ratio'] = dwr
+    return v
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('variant')
     ap.add_argument('jsonl')
-    ap.add_argument('--sample', type=int, default=30, help='cap on lines judged')
+    ap.add_argument('--sample', type=int, default=30, help='cap on lines judged (per-line pass)')
     args = ap.parse_args()
 
     rows = [json.loads(l) for l in open(args.jsonl) if l.strip()]
@@ -133,15 +184,26 @@ def main():
             covered += 1
     coverage = covered / max(1, len(gold))
 
+    # Whole-run style pass — realism + verb/phrase repetition (one judgement)
+    all_lines = [(r.get('text') or r.get('fr') or '').strip() for r in rows]
+    all_lines = [l for l in all_lines if l and l.upper() != 'NO_CALL']
+    style = judge_run_style(all_lines) if all_lines else {}
+
     summary = {
         'judge_sample_n': n,
         'judge_hallucination_rate': round(halluc, 3),
         'judge_subject_present_rate': round(subj, 3),
         'judge_human_likeness_mean': round(hl, 2),
+        'judge_realism_1_5': style.get('realism_1_5'),
+        'judge_variety_1_5': style.get('variety_1_5'),
         'soniox_turn_coverage': round(coverage, 3),
     }
     print(f"\nJudge summary for {args.variant}:")
     print(json.dumps(summary, indent=2))
+    if style:
+        print(f"  overused verbs:   {style.get('overused_verbs')}")
+        print(f"  overused phrases: {style.get('overused_phrases')}")
+        print(f"  style rationale:  {style.get('rationale')}")
 
     # Merge into leaderboard
     board = json.load(open(LEADERBOARD)) if LEADERBOARD.exists() else {'variants': []}
@@ -157,7 +219,7 @@ def main():
 
     # Also save raw verdicts
     raw_path = BASE / f"judge_{args.variant}.json"
-    json.dump({'summary': summary, 'verdicts': results}, open(raw_path, 'w'), indent=2)
+    json.dump({'summary': summary, 'style': style, 'verdicts': results}, open(raw_path, 'w'), indent=2)
     print(f"Updated leaderboard; raw verdicts at {raw_path}")
 
 
