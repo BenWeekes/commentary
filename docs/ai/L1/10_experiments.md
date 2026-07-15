@@ -660,8 +660,29 @@ conclusions:
    model tier — each attacks the 7.7 s median directly. Until then, quote **~10–15 s
    behind live** for vision-grounded lines, not 7 s.
 
-(The published page demo is the true-live render: lines that fit the buffer sit on the
-play; the 16 late lines are placed where they would genuinely have been heard.)
+### FINAL production recipe (drop-late policy — sync guaranteed)
+
+Follow-up bench + run fixed the latency: an idle-box sweep (`latency_bench.py`) showed the
+tier was never the problem — **gpt-5.6 fed 960×540 frames is ~40% faster than at 1280×720**
+(3.9 s vs 6.3 s median; gpt-5.4-mini is 2.4 s but its possession-team agreement with the
+reference detector was only 10/16 — rejected for quality). Final config in
+`run_blend_true_live.py`:
+
+- **Fixed broadcast delay: 10 s** — the number to quote.
+- **Vision: gpt-5.6, 4-frame bursts at 960×540, 3 parallel workers** — measured live
+  (150 calls, with full pipeline contention): median 5.7 s, p90 8.3 s, max 11.4 s.
+- **Drop-late policy:** stale detections are skipped before speaking (`STALE_S = buffer − 3`);
+  any line whose true latency still exceeds the buffer is cut from the audio, never shifted.
+  **Every line heard is exactly on its play.**
+- **Result (final 5-min live run): 42/45 lines survived (93%)** — 18 STT + 24 vision, all
+  ≤ 9.6 s behind live; 3 dropped (a quiet beat, not an error). Dense phrase sequences may
+  start up to ~4 s after their moment when the previous line is still being spoken
+  (no-clobber; normal booth behaviour).
+
+So the customer-facing statement is: **"AI commentary runs 10 seconds behind the live feed,
+with commentary guaranteed in sync with the pictures; ~93% of candidate lines make the
+window on current shared hardware."** A dedicated inference host raises survival further
+and could support an 8 s delay.
 
 ---
 

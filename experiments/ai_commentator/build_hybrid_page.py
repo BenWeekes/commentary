@@ -59,6 +59,8 @@ for r in trk:
     items.append((float(r['video_time_s']), 2,
                   html.escape(r['text']) + (f"<span class='det'>{d}</span>" if d else '')))
 for r in blend:
+    if r.get('dropped'):
+        continue          # missed the live buffer — never heard, never shown
     t = float(r.get('video_time_s', 0))
     items.append((t, 3, html.escape(r.get('text', ''))))     # no source badge — mix is hidden
     fr = r.get('fr') or ''

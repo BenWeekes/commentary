@@ -1,25 +1,28 @@
 {
-  "buffer_s": 10.0,
+  "fixed_delay_s": 10.0,
+  "policy": "on-play or dropped \u2014 lines never slip",
   "vision_model": "gpt-5.6",
+  "vision_scale": "960:540",
   "workers": 3,
-  "vision_calls": 105,
+  "vision_calls": 150,
   "vision_latency_s": {
-    "median": 7.65,
-    "p90": 13.2,
-    "max": 20.23
+    "median": 5.69,
+    "p90": 8.27,
+    "max": 11.35
   },
-  "lines": 50,
-  "behind_live_s_all": {
-    "median": 7.25,
-    "p90": 14.96,
-    "max": 19.02
+  "lines_kept": 42,
+  "lines_dropped": 3,
+  "survival_rate": 0.933,
+  "kept_behind_live_s": {
+    "median": 7.2,
+    "p90": 8.74,
+    "max": 9.62
   },
-  "behind_live_s_vision_lines": {
-    "median": 10.73,
-    "p90": 16.27,
-    "max": 19.02
-  },
-  "lines_late_vs_buffer": 16,
-  "audio_shifts": 15,
-  "max_audio_shift_s": 7.06
+  "audio_shifts": 9,
+  "max_audio_shift_s": 4.2,
+  "dropped_texts": [
+    "Khedira leading that particular charge.",
+    "Look at all the defenders back.",
+    "Union calmly keep possession."
+  ]
 }

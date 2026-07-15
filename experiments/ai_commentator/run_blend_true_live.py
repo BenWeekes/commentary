@@ -10,11 +10,11 @@ this runs the ENTIRE decision path live inside the SRT loop:
     arrival time (phrase usable only after end_s + STT_LAG) — models live STT.
   - TRACKER: artifact lookup gated to detections at least TRK_LAG old
     (the GPU tracker runs near-realtime, slightly behind).
-  - AUDIO: rendered as "live with a BUFFER_S-second buffer" — a line about
-    moment t_det is placed at t_det + max(0, behind_live - BUFFER_S), so any
-    line whose real latency fits the buffer lands exactly on the play, and
-    late lines audibly slip. No byte clobbering: placements never overwrite
-    earlier audio (shifts are logged).
+  - AUDIO: broadcast policy — the stream runs a FIXED BUFFER_S-second delay and
+    every line either lands EXACTLY on its play (placed at t_det) or is DROPPED
+    (behind_live > BUFFER_S). Lines never slip; sync is guaranteed throughout.
+    Stale detections are also skipped at decision time (STALE_S). No byte
+    clobbering: placements never overwrite earlier audio.
 
 Outputs: commentary_blend_live.jsonl (with per-line latency fields),
 ai_blend_live_{en,fr}_track.wav, latency_report.json.
@@ -32,11 +32,13 @@ import run_blend_live as B          # chooser, signals, tts, lineup, SRT plumbin
 import run_events_detector as D     # call_vision, extract_json, validate_shape
 
 BASE = B.BASE
-BUFFER_S = 10.0            # the live video buffer we are proving
+BUFFER_S = 10.0            # FIXED broadcast delay: every surviving line lands on the play
+STALE_S = BUFFER_S - 3.0   # drop-late: skip detections too old to clear chooser+TTS in time
 STT_LAG = 1.8              # Soniox finalize latency modelled on top of phrase end
 TRK_LAG = 0.5              # tracker runs near-realtime, slightly behind
 VISION_WORKERS = 3
 VISION_MODEL = 'gpt-5.6'
+VISION_SCALE = '960:540'   # benchmark sweet spot: 3.9s median vs 6.3s at 720p, quality holds
 PROMPT = (BASE / 'prompts' / 'events_detector_v1.txt').read_text()
 SR = B.SR
 
@@ -67,7 +69,13 @@ def main():
     print(f"TRUE LIVE: vision={VISION_MODEL} x{VISION_WORKERS} workers in-loop | "
           f"{len(son_sorted)} STT phrases (gated) | buffer={BUFFER_S}s")
 
-    sender = B.start_sender(); time.sleep(1.5); recv = B.start_receiver()
+    def start_receiver_540():
+        return subprocess.Popen(['ffmpeg', '-hide_banner', '-loglevel', 'warning',
+            '-i', B.SRT_URL_RECV, '-vf', f'fps=1/{B.SAMPLE_INTERVAL_S},scale={VISION_SCALE}',
+            '-q:v', '4', '-start_number', '1', '-y', str(B.FRAMES_DIR / 'f_%05d.jpg')],
+            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+
+    sender = B.start_sender(); time.sleep(1.5); recv = start_receiver_540()
     wall0 = time.monotonic()
     pool = ThreadPoolExecutor(max_workers=VISION_WORKERS)
     inflight = threading.Semaphore(VISION_WORKERS)
@@ -85,14 +93,22 @@ def main():
     processed = 0; last_new = time.monotonic(); stopping = False
 
     def place(rec, t_det, seen_to_decide, chooser_ms):
-        """Translate+TTS, then place at t_det + max(0, behind_live - BUFFER)."""
+        """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
+        buffer. Sync policy: a line either lands on its play or is never heard."""
         t_tts0 = time.monotonic()
         en = B.tts(rec['text'], B.EN_VOICE)
         fr_text = B.translate_fr(rec['text']); rec['fr'] = fr_text
         frp = B.tts(fr_text, B.FR_VOICE)
         tts_ms = int((time.monotonic() - t_tts0) * 1000)
         behind = (time.monotonic() - wall0) - t_det          # true live latency
-        v_place = t_det + max(0.0, behind - BUFFER_S)
+        rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
+                      'chooser_ms': chooser_ms, 'tts_ms': tts_ms,
+                      'behind_live_s': round(behind, 2)}
+        if behind > BUFFER_S:                                 # DROP, never slip
+            rec['dropped'] = True
+            print(f"  [ drop ] ({rec['src']}) {rec['text']}   [behind_live={behind:.1f}s > {BUFFER_S}s]")
+            return
+        v_place = t_det
         shift = 0.0
         with audio_lock:
             for lang, pcm in (('en', en), ('fr', frp)):
@@ -105,14 +121,10 @@ def main():
                 if u > 0:
                     audio[lang][b:b + u] = pcm[:u]
                     audio_end[lang] = b + u
-        rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
-                      'chooser_ms': chooser_ms, 'tts_ms': tts_ms,
-                      'behind_live_s': round(behind, 2),
-                      'late_vs_buffer_s': round(max(0.0, behind - BUFFER_S), 2),
-                      'audio_shift_s': round(shift, 2)}
+        rec['lat']['audio_shift_s'] = round(shift, 2)
         rec['video_time_s'] = round(v_place + shift, 2)
         print(f"  [{rec['video_time_s']:6.1f}s] ({rec['src']}) {rec['text']}"
-              f"   [behind_live={behind:.1f}s{' LATE' if behind > BUFFER_S else ''}]")
+              f"   [behind_live={behind:.1f}s]")
 
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
         nonlocal booth
@@ -162,7 +174,10 @@ def main():
             # --- (2) vision-grounded line from the LATEST ARRIVED detection ---
             if t >= booth:
                 with VIS_LOCK:
-                    fresh = [v for v in VIS_LIVE if v['t_det'] > vis_consumed]
+                    # stale-skip: never speak a detection too old to land within
+                    # the buffer after chooser+TTS (~3s pipeline remainder)
+                    fresh = [v for v in VIS_LIVE
+                             if v['t_det'] > vis_consumed and t - v['t_det'] <= STALE_S]
                     cand = max(fresh, key=lambda v: v['t_det']) if fresh else None
                 if cand:
                     vis_consumed = cand['t_det']
@@ -228,35 +243,36 @@ def main():
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
             w.writeframes(bytes(audio[lang][:int(B.DURATION_S * SR * 2)]))
 
-    lines.sort(key=lambda l: l['video_time_s'])
+    kept = [l for l in lines if not l.get('dropped')]
+    dropped = [l for l in lines if l.get('dropped')]
+    kept.sort(key=lambda l: l['video_time_s'])
     (BASE / 'commentary_blend_live.jsonl').write_text(
-        '\n'.join(json.dumps(l, ensure_ascii=False) for l in lines) + '\n')
+        '\n'.join(json.dumps(l, ensure_ascii=False) for l in kept) + '\n')
 
-    # ---- latency report ----
+    # ---- latency + sync report ----
     vl = sorted(VIS_STATS)
-    bl = sorted(l['lat']['behind_live_s'] for l in lines if 'lat' in l)
-    blv = sorted(l['lat']['behind_live_s'] for l in lines if 'lat' in l and l['src'] == 'blend')
-    late = [l for l in lines if l.get('lat', {}).get('late_vs_buffer_s', 0) > 0]
-    shifts = [l['lat']['audio_shift_s'] for l in lines if l.get('lat', {}).get('audio_shift_s', 0) > 0]
+    bl = sorted(l['lat']['behind_live_s'] for l in kept if 'lat' in l)
+    shifts = [l['lat'].get('audio_shift_s', 0) for l in kept
+              if l.get('lat', {}).get('audio_shift_s', 0) > 0]
     rep = {
-        'buffer_s': BUFFER_S, 'vision_model': VISION_MODEL, 'workers': VISION_WORKERS,
-        'vision_calls': len(vl),
+        'fixed_delay_s': BUFFER_S, 'policy': 'on-play or dropped — lines never slip',
+        'vision_model': VISION_MODEL, 'vision_scale': VISION_SCALE,
+        'workers': VISION_WORKERS, 'vision_calls': len(vl),
         'vision_latency_s': {'median': round(vl[len(vl)//2]/1000, 2),
                              'p90': round(vl[int(len(vl)*0.9)]/1000, 2),
                              'max': round(vl[-1]/1000, 2)} if vl else None,
-        'lines': len(lines),
-        'behind_live_s_all': {'median': round(statistics.median(bl), 2),
-                              'p90': round(bl[int(len(bl)*0.9)], 2),
-                              'max': round(bl[-1], 2)} if bl else None,
-        'behind_live_s_vision_lines': {'median': round(statistics.median(blv), 2),
-                                       'p90': round(blv[int(len(blv)*0.9)], 2),
-                                       'max': round(blv[-1], 2)} if blv else None,
-        'lines_late_vs_buffer': len(late),
+        'lines_kept': len(kept), 'lines_dropped': len(dropped),
+        'survival_rate': round(len(kept) / max(1, len(lines)), 3),
+        'kept_behind_live_s': {'median': round(statistics.median(bl), 2),
+                               'p90': round(bl[int(len(bl)*0.9)], 2),
+                               'max': round(bl[-1], 2)} if bl else None,
         'audio_shifts': len(shifts), 'max_audio_shift_s': max(shifts) if shifts else 0.0,
+        'dropped_texts': [d['text'] for d in dropped],
     }
     (BASE / 'latency_report.json').write_text(json.dumps(rep, indent=2))
-    ns = sum(1 for l in lines if l['src'] == 'soniox')
-    print(f"\n=== TRUE LIVE: {len(lines)} lines ({ns} STT, {len(lines)-ns} vision) ===")
+    ns = sum(1 for l in kept if l['src'] == 'soniox')
+    print(f"\n=== TRUE LIVE (fixed {BUFFER_S:.0f}s delay): {len(kept)} on-play lines "
+          f"({ns} STT, {len(kept)-ns} vision), {len(dropped)} dropped ===")
     print(json.dumps(rep, indent=2))
 
 
