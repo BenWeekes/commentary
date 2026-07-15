@@ -5,24 +5,30 @@
   "vision_model": "gpt-5.6",
   "vision_scale": "960:540",
   "workers": 3,
-  "vision_calls": 130,
+  "vision_calls": 135,
   "vision_latency_s": {
-    "median": 6.56,
-    "p90": 10.8,
-    "max": 22.17
+    "median": 6.1,
+    "p90": 10.31,
+    "max": 15.92
   },
-  "lines_kept": 46,
-  "lines_dropped": 2,
-  "survival_rate": 0.958,
+  "lines_kept": 38,
+  "lines_dropped": 8,
+  "survival_rate": 0.826,
   "kept_behind_live_s": {
-    "median": 6.8,
-    "p90": 9.12,
-    "max": 9.95
+    "median": 6.22,
+    "p90": 9.0,
+    "max": 9.53
   },
-  "audio_shifts": 12,
-  "max_audio_shift_s": 2.19,
+  "audio_shifts": 5,
+  "max_audio_shift_s": 1.47,
   "dropped_texts": [
-    "Mainz keep possession, Kohn involved again.",
-    "Veratschnig collects it in midfield."
+    "Here at the Mewa Arena.",
+    "Free kick here for Mainz, a chance to load the box.",
+    "Mainz recycle again, trying to pry Union open.",
+    "Union keep the line compact as Mainz recycle in their own third.",
+    "Mainz still on the ball, probing Union\u2019s block.",
+    "And here is the aforementioned Derrick Kohn.",
+    "Kohn keeps it in Union\u2019s own third.",
+    "And another Mainz change."
   ]
 }

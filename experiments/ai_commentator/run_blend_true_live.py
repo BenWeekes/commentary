@@ -58,6 +58,65 @@ come ONLY from the menu — the style is eager, the grounding is not."""
 OPENER = ("Back underway at the Mewa Arena — Mainz and Union level at one apiece, "
           "just over a quarter of an hour to play.")
 
+# ---- EAGER final stage: a COMMENTATOR, not a chooser ----------------------------
+# Completely separate final-LLM architecture from the safe mode: a stronger model,
+# a rolling WINDOW of recent grounded observations (motion, not a snapshot), and
+# its own timed commentary history so lines can build a narrative.
+EAGER_MODEL = 'gpt-5.5'            # falls back to gpt-5.4-mini when the detection is old
+EAGER_SYSTEM = f"""You are the sole live English TV commentator for this Bundesliga match:
+Mainz (red, home) vs Union Berlin (olive, away) at the Mewa Arena. Referee Florian Exner.
+MATCH CLOCK: {B.MATCH_CLOCK}.
+
+Each moment you receive: YOUR RECENT COMMENTARY (timestamped — what the viewer already
+heard), a WINDOW of grounded observations from the last few seconds (vision facts with
+times, tracker position/shape), possibly the player who just received the ball, and any
+names the human broadcaster used nearby.
+
+Write the ONE line a top broadcaster would say NOW (4-16 words), or exactly NO_CALL.
+
+CRAFT — this is what separates you from a caption generator:
+- Build on your own recent lines: continue a thread, note a change, complete an arc
+  ("still Mainz... — and NOW Union win it back"). Never restate what you just said.
+- Describe the window as MOTION and intent, not a frozen snapshot: where play has moved,
+  who is pressing, what the shape suggests is coming.
+- Vary sentence architecture line to line: sometimes a name first, sometimes the action,
+  sometimes a short punch ("Won back instantly."). Never open consecutive lines alike.
+- Do not reuse any verb in AVOID VERBS. Clock/scoreline at most once every two minutes.
+
+GROUNDING — hard rules, never bend them:
+- Speak ONLY facts present in the WINDOW, tracker line, or roster below. No invented
+  events, shots, saves, goals, or scoreline changes. If the window is empty or unclear,
+  NO_CALL.
+- Name a player ONLY if the window or broadcaster-names provide them. Never guess.
+
+ROSTER (number, name, team, position):
+{B.ROSTER_BLOCK}
+Output only the line, or NO_CALL."""
+
+
+def eager_commentator(t_det, window, ttruth, recent_timed, bnames, received, avoid, age_s):
+    """The eager final stage. window = [(t_rel, fact_str), ...] oldest->newest."""
+    wl = "\n".join(f"  - [{tr:+.1f}s] {f}" for tr, f in window) or "  - (nothing certain)"
+    rc = "\n".join(f"  [{tt:6.1f}s] {tx}" for tt, tx in recent_timed[-8:]) or "  (nothing yet)"
+    user = (f"MOMENT t={t_det:.0f}s\n"
+            f"WINDOW of grounded observations (relative to now):\n{wl}\n"
+            f"- tracker(truth): {ttruth or '(no read)'}\n"
+            f"- pass just received by: {received or '(nobody new)'}\n"
+            f"- broadcaster just named: {', '.join(bnames) if bnames else '(nobody)'}\n"
+            f"- AVOID VERBS: {', '.join(avoid) if avoid else '(none yet)'}\n"
+            f"YOUR RECENT COMMENTARY:\n{rc}\nLine:")
+    model = EAGER_MODEL if age_s <= 5.0 else 'gpt-5.4-mini'   # protect the 10s window
+    try:
+        r = B.client.responses.create(model=model, instructions=EAGER_SYSTEM,
+                                      input=[{"role": "user", "content": user}],
+                                      max_output_tokens=300,
+                                      reasoning={"effort": "low"})
+        import re as _re
+        return _re.sub(r'\s+', ' ', (r.output_text or '').strip().strip('"'))
+    except Exception as e:
+        print(f"  eager-commentator err: {e}")
+        return 'NO_CALL'
+
 
 def prewarm():
     """Open TLS/connections for TTS, translate and vision BEFORE the stream starts,
@@ -260,9 +319,24 @@ def main():
                         cur_named = vsig.get('poss_player')
                         received = cur_named if (cur_named and cur_named != last_named) else None
                         c0 = time.monotonic()
-                        line = B.chooser(t_det, None, vfact, ttruth, recent,
-                                         B.broadcaster_names_near(t_det),
-                                         B.vision_conf(vsig), received, scene)
+                        if MODE == 'eager':
+                            # separate final stage: windowed observations + timed history
+                            with VIS_LOCK:
+                                win = [v for v in VIS_LIVE if t_det - 6.0 <= v['t_det'] <= t_det]
+                            window = []
+                            for v in sorted(win, key=lambda v: v['t_det']):
+                                f = B.fact_str(B.vision_signal(v['det']))
+                                if f:
+                                    window.append((v['t_det'] - t_det, f))
+                            recent_timed = [(l['video_time_s'], l['text']) for l in lines
+                                            if not l.get('dropped')]
+                            line = eager_commentator(t_det, window, ttruth, recent_timed,
+                                                     B.broadcaster_names_near(t_det), received,
+                                                     B.recent_verbs(recent), t - t_det)
+                        else:
+                            line = B.chooser(t_det, None, vfact, ttruth, recent,
+                                             B.broadcaster_names_near(t_det),
+                                             B.vision_conf(vsig), received, scene)
                         chooser_ms = int((time.monotonic() - c0) * 1000)
                         if (line and line.upper() != 'NO_CALL' and len(line.split()) >= 2
                                 and not B.too_similar(line, recent[-8:])):
