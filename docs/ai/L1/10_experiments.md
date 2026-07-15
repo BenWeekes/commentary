@@ -684,6 +684,38 @@ with commentary guaranteed in sync with the pictures; ~93% of candidate lines ma
 window on current shared hardware."** A dedicated inference host raises survival further
 and could support an 8 s delay.
 
+### Safe vs eager — two final-LLM stages, A/B on the page
+
+The published page carries TWO complete blends over the same live run, toggleable as
+audio tracks and shown as side-by-side columns:
+
+- **Safe** — the production recipe above. gpt-5.4-mini chooser, one detection per line.
+  **45 lines, 95.7% survival**, max gap 24.8 s.
+- **Eager** — a *separate final-LLM architecture* (`eager_commentator` in
+  `run_blend_true_live.py`, `BLEND_MODE=eager`): a gpt-5.5 **commentator** given a
+  6-second WINDOW of detections (motion, not a snapshot), its own timestamped commentary
+  history (told to build narrative threads), and a broadcast-craft brief — grounding rules
+  identical to safe. Age-adaptive fallback to mini protects the sync window.
+  **38 lines, 82.6% survival** — the slower model costs ~13 pts of coverage, but the lines
+  are visibly better crafted ("Mainz work it side to side, Union squeezing the space").
+
+Shared fixes in both: **pre-warm** of TTS/translate/vision connections plus a
+**scoreboard-grounded scripted opener** put the first line at 0:01 (previously silent to
+0:12 — cold-start latency cost the first STT anchor); a **desync guard** drops any line
+whose no-clobber audio shift would exceed 1.5 s (one anomalous oversized write had
+silently cascaded 64 s shifts — sync is now enforced at both gates).
+
+**Judge control — the key calibration finding:** the whole-run style judge scores every
+AI config 2/5 realism/variety, but the **real Bundesliga booth's own transcript scores
+only 3/5 on the same rubric, with identical word-diversity (0.5)**. The text-only rubric
+ceilings at ~3 for any live transcript, so the AI is one point off the human booth, not
+three — and the automated judge is **saturated**: it cannot distinguish improvements
+human listeners can hear. Next instrument: human A/B review (safe vs eager) on the page.
+If reviewers prefer the eager voice, its coverage loss is recoverable (the windowed
+narrative prompt on the fast model, or a dedicated inference host) — engagement beyond
+the ~3/5 booth ceiling is the known identity work (ReID tracker), not more final-stage
+tuning.
+
 ---
 
 ## Adding a new experiment
