@@ -1,0 +1,28 @@
+{
+  "mode": "eager",
+  "fixed_delay_s": 10.0,
+  "policy": "on-play or dropped \u2014 lines never slip",
+  "vision_model": "gpt-5.6",
+  "vision_scale": "960:540",
+  "workers": 3,
+  "vision_calls": 130,
+  "vision_latency_s": {
+    "median": 6.56,
+    "p90": 10.8,
+    "max": 22.17
+  },
+  "lines_kept": 46,
+  "lines_dropped": 2,
+  "survival_rate": 0.958,
+  "kept_behind_live_s": {
+    "median": 6.8,
+    "p90": 9.12,
+    "max": 9.95
+  },
+  "audio_shifts": 12,
+  "max_audio_shift_s": 2.19,
+  "dropped_texts": [
+    "Mainz keep possession, Kohn involved again.",
+    "Veratschnig collects it in midfield."
+  ]
+}

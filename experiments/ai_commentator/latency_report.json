@@ -1,28 +1,28 @@
 {
+  "mode": "conservative",
   "fixed_delay_s": 10.0,
   "policy": "on-play or dropped \u2014 lines never slip",
   "vision_model": "gpt-5.6",
   "vision_scale": "960:540",
   "workers": 3,
-  "vision_calls": 150,
+  "vision_calls": 137,
   "vision_latency_s": {
-    "median": 5.69,
-    "p90": 8.27,
-    "max": 11.35
+    "median": 6.06,
+    "p90": 10.16,
+    "max": 14.86
   },
-  "lines_kept": 42,
-  "lines_dropped": 3,
-  "survival_rate": 0.933,
+  "lines_kept": 45,
+  "lines_dropped": 2,
+  "survival_rate": 0.957,
   "kept_behind_live_s": {
-    "median": 7.2,
-    "p90": 8.74,
-    "max": 9.62
+    "median": 6.26,
+    "p90": 8.13,
+    "max": 8.84
   },
   "audio_shifts": 9,
-  "max_audio_shift_s": 4.2,
+  "max_audio_shift_s": 1.18,
   "dropped_texts": [
-    "Khedira leading that particular charge.",
-    "Look at all the defenders back.",
-    "Union calmly keep possession."
+    "It's Amiri's pass.",
+    "Yellow for Mainz!"
   ]
 }

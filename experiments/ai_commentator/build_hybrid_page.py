@@ -31,7 +31,9 @@ def fmt(s):
 
 VIDS = [('original', 'original_with_human_commentary.mp4'),
         ('blend_en', 'blend_live_en_synced.mp4'),
-        ('blend_fr', 'blend_live_fr_synced.mp4')]
+        ('blend_fr', 'blend_live_fr_synced.mp4'),
+        ('eager_en', 'blend_eager_en_synced.mp4'),
+        ('eager_fr', 'blend_eager_fr_synced.mp4')]
 have = {}
 for name, src in VIDS:
     sp = BASE / src
@@ -42,6 +44,7 @@ son = load(BASE / 'soniox_live_short.jsonl')   # A
 oai = load(BASE / 'oai_col.jsonl')             # B
 trk = load(BASE / 'tracker_col.jsonl')         # C
 blend = load(BASE / 'commentary_blend_live.jsonl')
+eager = load(BASE / 'commentary_blend_live_eager.jsonl')
 
 items = []   # (t, col_index 0..4, cell_html)
 for r in son:
@@ -58,20 +61,23 @@ for r in trk:
     d = html.escape(r.get('detail') or '')
     items.append((float(r['video_time_s']), 2,
                   html.escape(r['text']) + (f"<span class='det'>{d}</span>" if d else '')))
-for r in blend:
-    if r.get('dropped'):
-        continue          # missed the live buffer — never heard, never shown
-    t = float(r.get('video_time_s', 0))
-    items.append((t, 3, html.escape(r.get('text', ''))))     # no source badge — mix is hidden
-    fr = r.get('fr') or ''
-    if fr:
-        items.append((t, 4, html.escape(fr)))
+def add_blend(rows_src, col_en, col_fr):
+    for r in rows_src:
+        if r.get('dropped'):
+            continue      # missed the live buffer — never heard, never shown
+        t = float(r.get('video_time_s', 0))
+        items.append((t, col_en, html.escape(r.get('text', ''))))
+        fr = r.get('fr') or ''
+        if fr:
+            items.append((t, col_fr, html.escape(fr)))
+add_blend(blend, 3, 5)
+add_blend(eager, 4, 6)
 
 items.sort(key=lambda x: x[0])
 rows = []
 for t, col, cell in items:
     if not rows or t - rows[-1]['t0'] > ROW_MERGE_S:
-        rows.append({'t': t, 't0': t, 'cells': [[], [], [], [], []]})
+        rows.append({'t': t, 't0': t, 'cells': [[], [], [], [], [], [], []]})
     rows[-1]['cells'][col].append(cell)
 
 def cell_html(cs):
@@ -79,13 +85,15 @@ def cell_html(cs):
 
 body = ""
 for row in rows:
-    tds = "".join(f"<div class='cell'>{cell_html(row['cells'][i])}</div>" for i in range(5))
+    tds = "".join(f"<div class='cell'>{cell_html(row['cells'][i])}</div>" for i in range(7))
     body += (f"<div class='row' data-t='{row['t']:.2f}'><div class='tc'>{fmt(row['t'])}</div>{tds}</div>")
 
 tabs = []
 if have.get('original'): tabs.append("<button data-src='./original.mp4'>Original broadcast</button>")
-tabs.append("<button data-src='./blend_en.mp4' class='active'>AI · English</button>")
-if have.get('blend_fr'): tabs.append("<button data-src='./blend_fr.mp4'>AI · French</button>")
+tabs.append("<button data-src='./blend_en.mp4' class='active'>EN · safe</button>")
+if have.get('eager_en'): tabs.append("<button data-src='./eager_en.mp4'>EN · eager</button>")
+if have.get('blend_fr'): tabs.append("<button data-src='./blend_fr.mp4'>FR · safe</button>")
+if have.get('eager_fr'): tabs.append("<button data-src='./eager_fr.mp4'>FR · eager</button>")
 
 doc = f"""<!DOCTYPE html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
@@ -100,8 +108,8 @@ video{{width:100%;max-width:640px;display:block;margin:0 auto 8px;border-radius:
 .tabs button{{background:#1a1a1a;color:#aaa;border:1px solid #2a2a2a;padding:7px 15px;font-size:12.5px;border-radius:18px;cursor:pointer;font-weight:600}}
 .tabs button.active{{background:#052e16;color:#4ade80;border-color:#166534}}
 .wrap{{margin-top:12px;border:1px solid #1f1f1f;border-radius:7px;overflow-x:auto}}
-.grid{{min-width:820px}}
-.head,.row{{display:grid;grid-template-columns:50px repeat(5,1fr)}}
+.grid{{min-width:1240px}}
+.head,.row{{display:grid;grid-template-columns:50px repeat(7,1fr)}}
 .head{{position:sticky;top:0;background:#141414;z-index:2;border-bottom:1px solid #262626}}
 .head>div{{padding:8px 9px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}}
 .head .h0{{color:#666}} .head .hA{{color:#fbbf24}} .head .hB{{color:#a78bfa}} .head .hC{{color:#38bdf8}}
@@ -132,7 +140,7 @@ video{{width:100%;max-width:640px;display:block;margin:0 auto 8px;border-radius:
   <div class='tabs'>{''.join(tabs)}</div>
 </div>
 <div class='wrap'><div class='grid'>
-  <div class='head'><div class='h0'>time</div><div class='hA'>STT</div><div class='hB'>Vision</div><div class='hC'>Tracker</div><div class='hEN'>Blend · EN</div><div class='hFR'>Blend · FR</div></div>
+  <div class='head'><div class='h0'>time</div><div class='hA'>STT</div><div class='hB'>Vision</div><div class='hC'>Tracker</div><div class='hEN'>EN · safe</div><div class='hEN'>EN · eager</div><div class='hFR'>FR · safe</div><div class='hFR'>FR · eager</div></div>
   <div class='scroll' id='sc'>{body}</div>
 </div></div>
 <script>
@@ -153,5 +161,5 @@ v.addEventListener('timeupdate',()=>{{const t=v.currentTime; let a=null;
     cur=a;}}}});
 </script></body></html>"""
 (ROOT / 'index.html').write_text(doc)
-nb = len(blend)
-print(f"wrote {ROOT/'index.html'}  rows={len(rows)}  A={len(son)} B={len(oai)} C={len(trk)} blend={nb}")
+print(f"wrote {ROOT/'index.html'}  rows={len(rows)}  A={len(son)} B={len(oai)} C={len(trk)} "
+      f"safe={len(blend)} eager={len(eager)}")

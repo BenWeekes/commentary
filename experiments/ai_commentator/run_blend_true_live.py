@@ -39,6 +39,40 @@ TRK_LAG = 0.5              # tracker runs near-realtime, slightly behind
 VISION_WORKERS = 3
 VISION_MODEL = 'gpt-5.6'
 VISION_SCALE = '960:540'   # benchmark sweet spot: 3.9s median vs 6.3s at 720p, quality holds
+
+# ---- MODE: conservative (default) vs eager — same grounding rules, different pacing/style ----
+MODE = os.environ.get('BLEND_MODE', 'conservative')
+K = {'conservative': dict(lull=3.0, scene=40.0, event_regate=8.0, poss_gate=3.0, retreat=1.2),
+     'eager':        dict(lull=2.0, scene=22.0, event_regate=6.0, poss_gate=2.2, retreat=0.8)}[MODE]
+SUFFIX = '' if MODE == 'conservative' else '_eager'
+if MODE == 'eager':
+    B.CHOOSER_SYSTEM += """
+
+EAGER STYLE MODE: aim for a flowing broadcast feel. Prefer 8-16 word lines with two
+connected clauses ("Kohn collects it and looks for the switch out left"). Vary your
+openings — never start consecutive lines the same way, and don't always lead with the
+team name. Weave in brief colour (crowd, tension, the clock) sparingly. All facts still
+come ONLY from the menu — the style is eager, the grounding is not."""
+
+# grounded opener from the verified scoreboard (76:50, M05 1-1 FCU) — no vision needed
+OPENER = ("Back underway at the Mewa Arena — Mainz and Union level at one apiece, "
+          "just over a quarter of an hour to play.")
+
+
+def prewarm():
+    """Open TLS/connections for TTS, translate and vision BEFORE the stream starts,
+    so the first real line doesn't pay cold-start latency (it cost us the first
+    STT anchor: 11.2s behind on a 10s window)."""
+    sample = sorted((BASE / 'frames').glob('f_*.jpg'))[:4]
+    ths = [threading.Thread(target=lambda: B.tts('Ready.', B.EN_VOICE)),
+           threading.Thread(target=lambda: B.tts('Prêt.', B.FR_VOICE)),
+           threading.Thread(target=lambda: B.translate_fr('Ready to go.'))]
+    if sample:
+        ths.append(threading.Thread(target=lambda: D.call_vision(B.client, VISION_MODEL, sample, PROMPT)))
+    for th in ths:
+        th.start()
+    for th in ths:
+        th.join(timeout=25)
 PROMPT = (BASE / 'prompts' / 'events_detector_v1.txt').read_text()
 SR = B.SR
 
@@ -66,8 +100,10 @@ def main():
         f.unlink()
     trk_sorted = B.TRK                      # [(t, rec)] sorted
     son_sorted = B.SON                      # [(t, rec)] sorted
-    print(f"TRUE LIVE: vision={VISION_MODEL} x{VISION_WORKERS} workers in-loop | "
+    print(f"TRUE LIVE [{MODE}]: vision={VISION_MODEL} x{VISION_WORKERS} workers in-loop | "
           f"{len(son_sorted)} STT phrases (gated) | buffer={BUFFER_S}s")
+    print("prewarming TTS/translate/vision connections...")
+    prewarm()
 
     def start_receiver_540():
         return subprocess.Popen(['ffmpeg', '-hide_banner', '-loglevel', 'warning',
@@ -91,6 +127,7 @@ def main():
     last_lull = -99.0; last_scene = -99.0; last_named = None
     last_submitted = 0; vis_consumed = -1.0
     processed = 0; last_new = time.monotonic(); stopping = False
+    opener_done = False                     # scripted, scoreboard-grounded opening line
 
     def place(rec, t_det, seen_to_decide, chooser_ms):
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
@@ -104,19 +141,30 @@ def main():
         rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
                       'chooser_ms': chooser_ms, 'tts_ms': tts_ms,
                       'behind_live_s': round(behind, 2)}
+        rec['lat']['audio_s'] = round(len(en) / (SR * 2), 2)  # catch anomalous TTS sizes
         if behind > BUFFER_S:                                 # DROP, never slip
             rec['dropped'] = True
             print(f"  [ drop ] ({rec['src']}) {rec['text']}   [behind_live={behind:.1f}s > {BUFFER_S}s]")
             return
         v_place = t_det
-        shift = 0.0
         with audio_lock:
-            for lang, pcm in (('en', en), ('fr', frp)):
+            # decide the shift for BOTH tracks first; a shift is only acceptable if it
+            # stays within a natural speech gap — beyond that the line is DESYNCED, so
+            # drop it (also stops one bad write from cascading down the whole track)
+            bases = {}
+            shift = 0.0
+            for lang in ('en', 'fr'):
                 b = int((v_place + B.NATURAL_LAG_S) * SR) * 2
-                if b < audio_end[lang]:                       # no clobbering
-                    shift = max(shift, (audio_end[lang] - b) / (SR * 2))
-                    b = audio_end[lang]
                 b -= b % 2
+                bases[lang] = b
+                if b < audio_end[lang]:
+                    shift = max(shift, (audio_end[lang] - b) / (SR * 2))
+            if shift > 1.5:                                   # would desync — drop instead
+                rec['dropped'] = True
+                print(f"  [ drop ] ({rec['src']}) {rec['text']}   [shift {shift:.1f}s would desync]")
+                return
+            for lang, pcm in (('en', en), ('fr', frp)):
+                b = max(bases[lang], audio_end[lang]); b -= b % 2
                 u = min(len(pcm), len(audio[lang]) - b)
                 if u > 0:
                     audio[lang][b:b + u] = pcm[:u]
@@ -156,6 +204,15 @@ def main():
                         inflight.release()
                 pool.submit(run)
 
+            # --- (0) scripted opener: verified scoreboard facts, no vision needed ---
+            if not opener_done:
+                opener_done = True
+                rec = {'src': 'blend', 'text': OPENER, 'real_phrase': None,
+                       'vision': 'match context (scoreboard: 77th min, 1-1)',
+                       'tracker': None, 'video_time_s': 0.8}
+                emit(rec, t, 0.8, max(1.4, len(OPENER.split()) / 2.6), 1.5, t - 0.8, 0)
+                time.sleep(0.02); continue
+
             # --- (1) STT phrase, availability-gated (arrives end_s + STT_LAG) ---
             real = None
             for tt, r in son_sorted:
@@ -191,13 +248,13 @@ def main():
                     ttruth = B.tracker_truth(trk_det)
                     subj = (vsig.get('poss_team'), vsig.get('poss_player'))
                     speak, gate, scene = False, 4.0, False
-                    if vsig.get('event') and (vsig['event'] != last_event[0] or t - last_event[1] > 8):
+                    if vsig.get('event') and (vsig['event'] != last_event[0] or t - last_event[1] > K['event_regate']):
                         speak, gate = True, 2.5
                     elif vsig.get('poss_player'):
                         speak, gate = True, 2.5
-                    elif (vsig.get('poss_team') or ttruth) and t - last_lull > 3:
-                        speak, gate, last_lull = True, 3.0, t
-                    elif t - last_scene > 40:
+                    elif (vsig.get('poss_team') or ttruth) and t - last_lull > K['lull']:
+                        speak, gate, last_lull = True, K['poss_gate'], t
+                    elif t - last_scene > K['scene']:
                         speak, gate, scene, last_scene = True, 4.0, True, t
                     if speak:
                         cur_named = vsig.get('poss_player')
@@ -220,7 +277,7 @@ def main():
                             emit(rec, t, t_det, max(1.4, len(line.split()) / 2.6), gate,
                                  t - t_det, chooser_ms)
                         else:
-                            booth = t + 1.2
+                            booth = t + K['retreat']
                     else:
                         booth = t + 0.8
         if stopping:
@@ -239,14 +296,14 @@ def main():
     pool.shutdown(wait=True)
     time.sleep(7.0)   # drain TTS threads
     for lang in ('en', 'fr'):
-        with wave.open(str(BASE / f'ai_blend_live_{lang}_track.wav'), 'wb') as w:
+        with wave.open(str(BASE / f'ai_blend_live_{lang}{SUFFIX}_track.wav'), 'wb') as w:
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
             w.writeframes(bytes(audio[lang][:int(B.DURATION_S * SR * 2)]))
 
     kept = [l for l in lines if not l.get('dropped')]
     dropped = [l for l in lines if l.get('dropped')]
     kept.sort(key=lambda l: l['video_time_s'])
-    (BASE / 'commentary_blend_live.jsonl').write_text(
+    (BASE / f'commentary_blend_live{SUFFIX}.jsonl').write_text(
         '\n'.join(json.dumps(l, ensure_ascii=False) for l in kept) + '\n')
 
     # ---- latency + sync report ----
@@ -255,7 +312,7 @@ def main():
     shifts = [l['lat'].get('audio_shift_s', 0) for l in kept
               if l.get('lat', {}).get('audio_shift_s', 0) > 0]
     rep = {
-        'fixed_delay_s': BUFFER_S, 'policy': 'on-play or dropped — lines never slip',
+        'mode': MODE, 'fixed_delay_s': BUFFER_S, 'policy': 'on-play or dropped — lines never slip',
         'vision_model': VISION_MODEL, 'vision_scale': VISION_SCALE,
         'workers': VISION_WORKERS, 'vision_calls': len(vl),
         'vision_latency_s': {'median': round(vl[len(vl)//2]/1000, 2),
@@ -269,7 +326,7 @@ def main():
         'audio_shifts': len(shifts), 'max_audio_shift_s': max(shifts) if shifts else 0.0,
         'dropped_texts': [d['text'] for d in dropped],
     }
-    (BASE / 'latency_report.json').write_text(json.dumps(rep, indent=2))
+    (BASE / f'latency_report{SUFFIX}.json').write_text(json.dumps(rep, indent=2))
     ns = sum(1 for l in kept if l['src'] == 'soniox')
     print(f"\n=== TRUE LIVE (fixed {BUFFER_S:.0f}s delay): {len(kept)} on-play lines "
           f"({ns} STT, {len(kept)-ns} vision), {len(dropped)} dropped ===")
