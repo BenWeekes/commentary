@@ -695,9 +695,20 @@ audio tracks and shown as side-by-side columns:
   `run_blend_true_live.py`, `BLEND_MODE=eager`): a gpt-5.5 **commentator** given a
   6-second WINDOW of detections (motion, not a snapshot), its own timestamped commentary
   history (told to build narrative threads), and a broadcast-craft brief — grounding rules
-  identical to safe. Age-adaptive fallback to mini protects the sync window.
-  **38 lines, 82.6% survival** — the slower model costs ~13 pts of coverage, but the lines
-  are visibly better crafted ("Mainz work it side to side, Union squeezing the space").
+  identical to safe. Two mechanisms make its coverage match safe's:
+  1. **Hedge**: every moment fires BOTH final stages in parallel; if the gpt-5.5 line
+     can't be ready inside the remaining sync budget, the fast safe line is used instead
+     of dropping. Coverage floor = safe; craft ceiling = eager. Each line records its
+     `stage` (`eager` vs `safe_fallback`).
+  2. **Placement-aware pacing**: the earlier eager coverage loss (82.6%) was mostly
+     *self-collision*, not model latency — 7 of 9 drops were lines whose true timestamp
+     was still covered by the previous line's audio. Moments already occupied by placed
+     audio are now never attempted (applies to STT slots too).
+  **Final eager run: 39 lines, 97.5% survival, 281 words, zero desync shifts** —
+  13 eager-crafted + 10 safe-fallback + opener; slightly exceeds safe's survival while
+  keeping crafted lines ("Kohn and Kemlein recycle it again from deep") wherever the
+  clock allowed. Word limits are NOT the lever for this: eager lines are already 4-16
+  words — its latency is model inference time, flat with output length.
 
 Shared fixes in both: **pre-warm** of TTS/translate/vision connections plus a
 **scoreboard-grounded scripted opener** put the first line at 0:01 (previously silent to

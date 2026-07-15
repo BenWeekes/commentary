@@ -173,6 +173,7 @@ def main():
     sender = B.start_sender(); time.sleep(1.5); recv = start_receiver_540()
     wall0 = time.monotonic()
     pool = ThreadPoolExecutor(max_workers=VISION_WORKERS)
+    chooser_pool = ThreadPoolExecutor(max_workers=4)   # eager hedge: 2 concurrent final stages
     inflight = threading.Semaphore(VISION_WORKERS)
 
     audio = {'en': bytearray(int((B.DURATION_S + 30) * SR * 2)),
@@ -187,6 +188,7 @@ def main():
     last_submitted = 0; vis_consumed = -1.0
     processed = 0; last_new = time.monotonic(); stopping = False
     opener_done = False                     # scripted, scoreboard-grounded opening line
+    placed_end = 0.0                        # video-time where the last placed line's audio ends
 
     def place(rec, t_det, seen_to_decide, chooser_ms):
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
@@ -234,7 +236,8 @@ def main():
               f"   [behind_live={behind:.1f}s]")
 
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
-        nonlocal booth
+        nonlocal booth, placed_end
+        placed_end = max(placed_end, t_det + B.NATURAL_LAG_S + est + 0.15)
         lines.append(rec); recent.append(rec['text'])
         threading.Thread(target=place, args=(rec, t_det, seen_to_decide, chooser_ms),
                          daemon=True).start()
@@ -278,7 +281,10 @@ def main():
                 if tt in used_son:
                     continue
                 if t >= float(r.get('end_s', tt)) + STT_LAG and t - tt <= 6.0:
-                    used_son.add(tt); real = r; break
+                    used_son.add(tt)
+                    if placed_end - tt > 1.4:
+                        continue          # slot already occupied — would desync, skip
+                    real = r; break
             if real:
                 rt = float(real['video_time_s'])
                 rec = {'src': 'soniox', 'text': real['text'], 'real_phrase': real['text'],
@@ -293,7 +299,8 @@ def main():
                     # stale-skip: never speak a detection too old to land within
                     # the buffer after chooser+TTS (~3s pipeline remainder)
                     fresh = [v for v in VIS_LIVE
-                             if v['t_det'] > vis_consumed and t - v['t_det'] <= STALE_S]
+                             if v['t_det'] > vis_consumed and t - v['t_det'] <= STALE_S
+                             and v['t_det'] >= placed_end - 0.2]
                     cand = max(fresh, key=lambda v: v['t_det']) if fresh else None
                 if cand:
                     vis_consumed = cand['t_det']
@@ -319,8 +326,12 @@ def main():
                         cur_named = vsig.get('poss_player')
                         received = cur_named if (cur_named and cur_named != last_named) else None
                         c0 = time.monotonic()
+                        stage = MODE
                         if MODE == 'eager':
-                            # separate final stage: windowed observations + timed history
+                            # separate final stage: windowed observations + timed history,
+                            # HEDGED with the fast safe chooser — if the eager line can't
+                            # be ready inside the sync budget, revert to the safe line
+                            # instead of dropping. Coverage floor = safe mode.
                             with VIS_LOCK:
                                 win = [v for v in VIS_LIVE if t_det - 6.0 <= v['t_det'] <= t_det]
                             window = []
@@ -330,9 +341,24 @@ def main():
                                     window.append((v['t_det'] - t_det, f))
                             recent_timed = [(l['video_time_s'], l['text']) for l in lines
                                             if not l.get('dropped')]
-                            line = eager_commentator(t_det, window, ttruth, recent_timed,
-                                                     B.broadcaster_names_near(t_det), received,
-                                                     B.recent_verbs(recent), t - t_det)
+                            fe = chooser_pool.submit(
+                                eager_commentator, t_det, window, ttruth, recent_timed,
+                                B.broadcaster_names_near(t_det), received,
+                                B.recent_verbs(recent), t - t_det)
+                            fm = chooser_pool.submit(
+                                B.chooser, t_det, None, vfact, ttruth, recent,
+                                B.broadcaster_names_near(t_det), B.vision_conf(vsig),
+                                received, scene)
+                            # budget: buffer minus age already spent, minus TTS+lag+margin
+                            budget = max(0.8, BUFFER_S - (t - t_det) - 2.5)
+                            try:
+                                line = fe.result(timeout=budget)
+                            except Exception:
+                                stage = 'safe_fallback'
+                                try:
+                                    line = fm.result(timeout=2.0)
+                                except Exception:
+                                    line = 'NO_CALL'
                         else:
                             line = B.chooser(t_det, None, vfact, ttruth, recent,
                                              B.broadcaster_names_near(t_det),
@@ -346,6 +372,7 @@ def main():
                                 last_subj = (subj, t); last_named = cur_named
                             rec = {'src': 'blend', 'text': line, 'real_phrase': None,
                                    'vision': vfact, 'tracker': ttruth,
+                                   'stage': stage,
                                    'vision_latency_ms': cand['latency_ms'],
                                    'video_time_s': round(t_det, 2)}
                             emit(rec, t, t_det, max(1.4, len(line.split()) / 2.6), gate,
