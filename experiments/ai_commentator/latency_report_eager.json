@@ -4,24 +4,25 @@
   "policy": "on-play or dropped \u2014 lines never slip",
   "vision_model": "gpt-5.6",
   "vision_scale": "960:540",
-  "workers": 3,
-  "vision_calls": 145,
+  "workers": 4,
+  "vision_calls": 188,
   "vision_latency_s": {
-    "median": 5.91,
-    "p90": 8.61,
-    "max": 12.57
+    "median": 5.66,
+    "p90": 8.6,
+    "max": 13.2
   },
-  "lines_kept": 39,
-  "lines_dropped": 1,
-  "survival_rate": 0.975,
+  "lines_kept": 43,
+  "lines_dropped": 2,
+  "survival_rate": 0.956,
   "kept_behind_live_s": {
-    "median": 7.43,
-    "p90": 9.09,
-    "max": 9.8
+    "median": 7.01,
+    "p90": 8.59,
+    "max": 9.81
   },
-  "audio_shifts": 0,
-  "max_audio_shift_s": 0.0,
+  "audio_shifts": 3,
+  "max_audio_shift_s": 0.39,
   "dropped_texts": [
-    "Sending it in."
+    "Union win it back in the final third.",
+    "Juranovic collects it for Union."
   ]
 }

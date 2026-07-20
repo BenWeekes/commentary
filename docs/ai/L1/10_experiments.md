@@ -744,6 +744,19 @@ shifts, first line ≤ 2 s) before acceptance; rules that would regress guarded 
 are **rejected and kept in the ledger with the measured reason**. New baselines commit
 with their rule.
 
+**Cycle 1 COMPLETE (2026-07-20): ACCEPTED at trio-9 worst-of-3** — survival
+[1.0, 0.974, 0.956], hallucinations [0,0,0], all 9 automated fixtures green, named
+lines [11,11,10] vs baseline 4. Nine gate iterations were needed; every rejection
+became a permanent deterministic guard (see
+[L2/review_cycle_1_dispositions.md](../L2/review_cycle_1_dispositions.md) — the
+per-comment disposition of all 21 reviewer comments: 16 addressed, 3 partial with
+stated vision-bound residuals, 2 positives retained, 0 unaddressed). Highlights the
+process caught that single-run gating would have shipped: a **false goal call**
+("Mainz have scored!", 2 same-moment detections — now R10 corroboration), a
+double-card "booked again" implying a sending-off, an ASR error propagating into
+two languages, and a completion-order audio race. Review page for cycle 2:
+`https://sa-dev.agora.io/experiments/ai_commentator/blend_v2/`.
+
 **First cycle (reviewer: Alex, 21 comments)** → 9 generic rules: event-priority
 (missed yellow card), content-floor (no pointless filler), fact-dedup (25 s window),
 continuity (mark state reversals), pronoun clarity, precision-restraint (no invented

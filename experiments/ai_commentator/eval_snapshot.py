@@ -45,6 +45,11 @@ def snapshot(jsonl_path, skip_llm=False):
         'gaps_ge_15s': sum(1 for g in gaps if g >= 15),
         'named_blend_lines': named,
     }
+    det_path = str(jsonl_path).replace('commentary_blend_live', 'vis_detections').replace('.jsonl', '.jsonl')
+    det_path = det_path.replace('vis_detections_eager', 'vis_detections_eager')
+    snap['fixtures'] = run_fixtures(b, Path(str(jsonl_path)).parent /
+                                    ('vis_detections_eager.jsonl' if 'eager' in str(jsonl_path)
+                                     else 'vis_detections.jsonl'))
     if not skip_llm:
         import judge as J
         gen = [x for x in b if x['src'] == 'blend']
@@ -60,6 +65,115 @@ def snapshot(jsonl_path, skip_llm=False):
     return snap
 
 
+PRIORITY_EVENTS = {'yellow_card', 'red_card', 'goal', 'penalty'}
+FILLER_RX = re.compile(r'quiet spell|midfield battle continues|still all square', re.I)
+FR_BANNED = ['sonder', 'dernier tiers', 'moment calme']
+TRANSITION_RX = re.compile(r'win|won|regain|turn|steal|intercept|back|break|rob|force', re.I)
+POSS_RX = re.compile(r'\b(Mainz|Union)\b.{0,30}\b(possess|keep|on the ball|have it|work|circulat|hold)', re.I)
+
+
+def run_fixtures(b, detections_path):
+    jsonl_dir = Path(detections_path).parent
+    eager = 'eager' in str(detections_path)
+    """Per-rule regression fixtures (cards-process discipline #2). Returns
+    {rule: True|False|'skip'|'manual'}. The suite only ever grows."""
+    fx = {}
+    blend = [x for x in b if x['src'] == 'blend']
+    ts = [x['video_time_s'] for x in b]
+    # R1: every high-conf priority event in the detections has a line within 8s
+    dp = Path(detections_path)
+    if dp.exists():
+        dets = [json.loads(l) for l in open(dp) if l.strip()]
+        misses, seen = [], set()
+        KW = {'yellow_card': ('yellow', 'card', 'book'), 'red_card': ('red', 'card'),
+              'goal': ('goal',), 'penalty': ('penalty',)}
+        goal_ts = [d2['t_det'] for d2 in dets
+                   if any(e2.get('type') == 'goal' and e2.get('confidence') == 'high'
+                          for e2 in (d2['det'].get('events') or []))]
+        for d in dets:
+            for e in (d['det'].get('events') or []):
+                et = e.get('type')
+                if et == 'goal':
+                    near = [g for g in goal_ts if abs(g - d['t_det']) <= 10]
+                    if len(near) < 3 or (max(near) - min(near)) < 5.0:
+                        continue    # R10-uncorroborated blip — correctly silenced, no line owed
+                if et in PRIORITY_EVENTS and e.get('confidence') == 'high':
+                    bucket = (et, int(d['t_det'] // 30))
+                    if bucket in seen:
+                        continue
+                    seen.add(bucket)
+                    hit = any(abs(x['video_time_s'] - d['t_det']) <= 8 and
+                              (any(k in x['text'].lower() for k in KW[et]) or
+                               et in str(x.get('vision') or ''))
+                              for x in b)
+                    if not hit:
+                        misses.append((round(d['t_det'], 1), et))
+        fx['R1'] = misses if misses else True
+        if misses:
+            fx['R1'] = False
+    else:
+        fx['R1'] = 'skip'
+    # R2: filler lines must be >=15s from the previous line
+    r2 = True
+    for i, x in enumerate(b):
+        if x['src'] == 'blend' and FILLER_RX.search(x['text']):
+            if i > 0 and x['video_time_s'] - b[i - 1]['video_time_s'] < 15:
+                r2 = False
+    fx['R2'] = r2
+    # R3: same event-fact twice within 25s requires a roster name in the second
+    r3 = True
+    ev_lines = [(x['video_time_s'], str(x.get('vision') or ''), x['text'])
+                for x in blend if 'event:' in str(x.get('vision') or '')]
+    for i in range(1, len(ev_lines)):
+        t2, f2, tx2 = ev_lines[i]
+        for t1, f1, _ in ev_lines[:i]:
+            if f1.split('—')[0] == f2.split('—')[0] and t2 - t1 < 25:
+                if not (re.search(r'[A-Z][a-z]+', tx2.replace(tx2.split()[0], '', 1))
+                        or re.search(r'\b(another|second|a further|one more)\b', tx2, re.I)):
+                    r3 = False
+    fx['R3'] = r3
+    # R4: adjacent possession flips need a transition marker
+    r4 = True
+    for i in range(1, len(b)):
+        if b[i]['src'] != 'blend' or b[i]['video_time_s'] - b[i-1]['video_time_s'] > 12:
+            continue
+        m1, m2 = POSS_RX.search(b[i-1]['text']), POSS_RX.search(b[i]['text'])
+        if m1 and m2 and m1.group(1) != m2.group(1) and not TRANSITION_RX.search(b[i]['text']):
+            r4 = False
+    fx['R4'] = r4
+    # R7: banned French calques never appear
+    bad = [w for x in b for w in FR_BANNED if w in (x.get('fr') or '').lower()]
+    fx['R7'] = False if bad else True
+    # R1b: at most one card line per 30s (team labels flap; dedup is type-only)
+    cards = [x['video_time_s'] for x in b
+             if re.search(r'yellow|red card|booked|book\b', x['text'], re.I) and x['src'] == 'blend']
+    fx['R1b'] = all(b2 - a2 > 30 for a2, b2 in zip(cards, cards[1:])) if len(cards) > 1 else True
+    # R8: no spoken STT line may carry a cached-insane verdict
+    sp = Path(str(jsonl_dir)) / ('stt_sanity_eager.json' if eager else 'stt_sanity.json')
+    if sp.exists():
+        sane = json.loads(sp.read_text())
+        bad = [x['text'] for x in b if x['src'] == 'soniox' and sane.get(x['text']) is False]
+        fx['R8'] = False if bad else True
+    # R10: any goal-call line must be backed by >=3 high-conf goal detections spanning >=5s
+    if dp.exists():
+        goal_lines = [x for x in b if re.search(r'\bscored\b|\bgoal\b(?!\s*kick)', x['text'], re.I)
+                      and x['src'] == 'blend']
+        r10 = True
+        for x in goal_lines:
+            gs = [d['t_det'] for d in dets
+                  if abs(d['t_det'] - x['video_time_s']) <= 10
+                  and any(e.get('type') == 'goal' and e.get('confidence') == 'high'
+                          for e in (d['det'].get('events') or []))]
+            if len(gs) < 3 or (max(gs) - min(gs) if gs else 0) < 5.0:
+                r10 = False
+        fx['R10'] = r10
+    else:
+        fx['R10'] = 'skip'
+    # R5/R6/R8: reviewer/judge-checked (no deterministic oracle)
+    fx['R5'] = fx['R6'] = fx['R8'] = 'manual'
+    return fx
+
+
 GUARDED = [   # (key, predicate on (baseline, candidate), description)
     ('hallucinations', lambda b, c: c <= max(b, 0), 'hallucinations must stay at baseline (target 0)'),
     ('survival', lambda b, c: c is None or c >= min(b or 1.0, 0.95), 'survival >= 0.95 (or baseline if lower)'),
@@ -70,18 +184,43 @@ WATCHED = ['words', 'gaps_ge_15s', 'max_gap_s', 'named_blend_lines',
            'judge_realism', 'judge_variety', 'stt_lines', 'lines']
 
 
-def compare(base, cand):
+WORST = {'hallucinations': lambda v: max(v),
+         'survival': lambda v: min(x for x in v if x is not None),
+         'desync_shifts_gt_1_5': lambda v: max(v),
+         'first_line_s': lambda v: max(x for x in v if x is not None)}
+
+
+def compare(base, cands):
+    """Gate baseline vs one or more candidate runs. Multiple candidates = the
+    stochasticity discipline: guarded metrics judged on the WORST run; fixtures
+    must pass in ALL runs. Thresholds may only change via a logged amendment in
+    tuning_rules.yaml (no-silent-relaxation)."""
+    if isinstance(cands, dict):
+        cands = [cands]
     verdict = 'ACCEPT'
-    print(f"{'metric':24s} {'baseline':>10s} {'candidate':>10s}  gate")
+    print(f"{'metric':24s} {'baseline':>10s} {'worst-of-' + str(len(cands)):>12s}  gate")
     for k, pred, desc in GUARDED:
-        bv, cv = base.get(k), cand.get(k)
+        bv = base.get(k)
+        vals = [c.get(k) for c in cands]
+        cv = WORST[k](vals) if k in WORST else vals[0]
         ok = pred(bv, cv)
-        print(f"{k:24s} {str(bv):>10s} {str(cv):>10s}  {'PASS' if ok else 'FAIL — ' + desc}")
+        spread = '' if len(cands) == 1 else f"  (runs: {vals})"
+        print(f"{k:24s} {str(bv):>10s} {str(cv):>12s}  {'PASS' if ok else 'FAIL — ' + desc}{spread}")
         if not ok:
             verdict = 'REJECT'
+    print('--- per-rule fixtures (must pass in ALL runs) ---')
+    rules = sorted({r for c in cands for r in c.get('fixtures', {})})
+    for r in rules:
+        vals = [c.get('fixtures', {}).get(r) for c in cands]
+        if any(v is False for v in vals):
+            verdict = 'REJECT'
+            print(f"{r:24s} {'FAIL':>10s}  {vals}")
+        else:
+            print(f"{r:24s} {str(vals[0]):>10s}")
     print('--- watched (no gate, report only) ---')
     for k in WATCHED:
-        print(f"{k:24s} {str(base.get(k)):>10s} {str(cand.get(k)):>10s}")
+        vals = [c.get(k) for c in cands]
+        print(f"{k:24s} {str(base.get(k)):>10s} {str(vals):>18s}")
     print(f"\nVERDICT: {verdict}")
     return verdict
 
@@ -94,6 +233,6 @@ if __name__ == '__main__':
         print(json.dumps(snapshot(path, skip_llm=skip), indent=2))
     elif cmd == 'compare':
         base = json.loads(Path(sys.argv[2]).read_text())
-        cand = json.loads(Path(sys.argv[3]).read_text())
-        v = compare(base, cand)
+        cands = [json.loads(Path(a).read_text()) for a in sys.argv[3:]]
+        v = compare(base, cands)
         sys.exit(0 if v == 'ACCEPT' else 1)

@@ -1,19 +1,19 @@
 {
   "file": "commentary_blend_live_eager.jsonl",
-  "lines": 43,
-  "stt_lines": 15,
-  "words": 312,
-  "survival": 0.956,
+  "lines": 41,
+  "stt_lines": 16,
+  "words": 298,
+  "survival": 0.976,
   "desync_shifts_gt_1_5": 0,
   "first_line_s": 0.8,
-  "max_gap_s": 20.4,
-  "gaps_ge_15s": 2,
-  "named_blend_lines": 10,
+  "max_gap_s": 21.1,
+  "gaps_ge_15s": 3,
+  "named_blend_lines": 13,
   "fixtures": {
-    "R1": true,
+    "R1": false,
     "R2": true,
     "R3": true,
-    "R4": true,
+    "R4": false,
     "R7": true,
     "R1b": true,
     "R8": "manual",
@@ -23,5 +23,5 @@
   },
   "hallucinations": 0,
   "judge_realism": 2,
-  "judge_variety": 2
+  "judge_variety": 1
 }

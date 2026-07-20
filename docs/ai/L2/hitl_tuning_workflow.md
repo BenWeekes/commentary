@@ -154,6 +154,36 @@ guarantees the safe coverage floor inside eager.
 
 ---
 
+## Process upgrades (adopted 2026-07-20, from the cards-process review)
+
+Five disciplines adopted after an external review of this workflow against a sibling
+HITL process ("cards") — one of them validated empirically the same day:
+
+1. **Pin the defect before fixing it.** Between Distill and Implement: each candidate
+   rule must cite a pinned fixture — a timestamp + machine-checkable condition that
+   reproduces the issue in the *baseline artifact* (expected-fail). Only then is the
+   rule implemented. *Empirical validation: the first R1 gate run ACCEPTed while the
+   yellow card was still unnarrated — the global gates never encoded the defect. A
+   pinned expected-fail ("baseline detections contain a high-conf card with no line
+   within 8 s") would have caught it pre-implementation.*
+2. **Per-rule permanent fixtures.** Global metrics can't see a repetition rule regress.
+   On acceptance, every rule keeps a named regression check in
+   `eval_snapshot.run_fixtures()` (R1/R2/R3/R4/R7 automated; R5/R6/R8
+   reviewer-checked). **The fixture suite only ever grows** — every future gate re-runs
+   all of it.
+3. **Gate on the distribution, not one run.** Live runs vary (±5 lines observed).
+   Acceptance decisions use **worst-of-N (N≥3)** live runs for guarded metrics —
+   `eval_snapshot.py compare baseline.json c1.json c2.json c3.json` — fixtures must
+   pass in ALL runs, and the spread is recorded in the ledger. Single runs remain fine
+   for exploration; never for acceptance.
+4. **Dataset honesty / holdout.** The reviewed match is a *development set*: rules
+   distilled and gated on it will overfit to it however generic they read. The next
+   reviewed match is reserved as a **holdout** — the full accepted-rule suite re-runs
+   on it before any customer milestone. (Pending until a second match is reviewed.)
+5. **No silent threshold relaxation.** The guarded thresholds may only change via an
+   **amendment entry** in `tuning_rules.yaml` (before-evidence, change,
+   after-evidence, commit) — never an inline edit during a difficult rule.
+
 ## Scope boundaries (what this loop is NOT)
 
 - **Not for new capabilities.** "Name more players" is bounded by the identity

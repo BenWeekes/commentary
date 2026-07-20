@@ -36,12 +36,12 @@ BUFFER_S = 10.0            # FIXED broadcast delay: every surviving line lands o
 STALE_S = BUFFER_S - 3.0   # drop-late: skip detections too old to clear chooser+TTS in time
 STT_LAG = 1.8              # Soniox finalize latency modelled on top of phrase end
 TRK_LAG = 0.5              # tracker runs near-realtime, slightly behind
-VISION_WORKERS = 3
+VISION_WORKERS = 4   # 540p payloads are light; 4 workers halves burst-skip for brief events
 VISION_MODEL = 'gpt-5.6'
 VISION_SCALE = '960:540'   # benchmark sweet spot: 3.9s median vs 6.3s at 720p, quality holds
 
 # ---- MODE: conservative (default) vs eager — same grounding rules, different pacing/style ----
-MODE = os.environ.get('BLEND_MODE', 'conservative')
+MODE = os.environ.get('BLEND_MODE', 'eager')   # R9 (accepted): eager is the default voice
 K = {'conservative': dict(lull=3.0, scene=40.0, event_regate=8.0, poss_gate=3.0, retreat=1.2),
      'eager':        dict(lull=2.0, scene=22.0, event_regate=6.0, poss_gate=2.2, retreat=0.8)}[MODE]
 SUFFIX = '' if MODE == 'conservative' else '_eager'
@@ -93,6 +93,42 @@ ROSTER (number, name, team, position):
 {B.ROSTER_BLOCK}
 Output only the line, or NO_CALL."""
 
+# Reviewer-derived generation rules (tuning_rules.yaml R2, R4, R5, R6) — appended to
+# BOTH final stages so the safe fallback obeys them too.
+GEN_RULES = """
+
+REVIEWER RULES (hard requirements):
+- R2 CONTENT FLOOR: every line must contain at least one concrete piece of information
+  (a named player, an event, a location or shape change). Never emit empty filler like
+  "Midfield battle continues here" or "Quiet spell, still all square" — prefer NO_CALL.
+- R4 CONTINUITY: if possession or momentum has FLIPPED relative to your previous line,
+  mark the transition explicitly ("Union win it back", "turned over") — never assert
+  the opposite state as if your previous line did not exist.
+- R5 PRONOUNS: no pronoun without an explicit antecedent in this or the previous line.
+  When in doubt, use the concrete noun (the ball, the cross, the free kick).
+- R6 MANNER RESTRAINT: never state HOW an action was performed (long/short, driven,
+  floated, calmly, powerfully) unless the facts explicitly provide it. Use
+  manner-neutral verbs ("plays it forward", not "launches it long")."""
+EAGER_SYSTEM += GEN_RULES
+B.CHOOSER_SYSTEM += GEN_RULES
+
+# ---------- R7: French = football-French localization, not translation ----------
+B.TRANSLATE_SYSTEM = """You are the French LOCALIZER for live TV football commentary.
+Rewrite the English line as a French TV football commentator would actually SAY it —
+natural football French, not a literal translation. Same meaning, same length or
+shorter. Keep player and team names exactly.
+
+GLOSSARY (reviewer-maintained — banned calques -> preferred):
+- "le dernier tiers" is NEVER said -> "les trente derniers metres" / "le camp de X"
+- "sonder" is not football French -> "tenter" / "essayer"
+- "moment calme" -> "temps faible"
+- "aforementioned"-style references -> natural French ("le fameux X" only if genuinely famous, else just the name)
+- players returning to position -> "sont revenus"
+- prefer "Mayence" for Mainz where it reads naturally
+If the English line is nonsensical or untranslatable as football speech, output the
+closest sensible football-French line rather than a literal rendering.
+Return only the French line."""
+
 
 def eager_commentator(t_det, window, ttruth, recent_timed, bnames, received, avoid, age_s):
     """The eager final stage. window = [(t_rel, fact_str), ...] oldest->newest."""
@@ -118,6 +154,36 @@ def eager_commentator(t_det, window, ttruth, recent_timed, bnames, received, avo
         return 'NO_CALL'
 
 
+PRIORITY_EVENTS = {'yellow_card', 'red_card', 'goal', 'penalty'}   # R1
+import re as _re4
+POSS_RX = _re4.compile(r'\b(Mainz|Union)\b.{0,30}\b(possess|keep|on the ball|have it|work|circulat|hold)', _re4.I)
+TRANS_RX = _re4.compile(r'win|won|regain|turn|steal|intercept|back|break|rob|force', _re4.I)
+_SANE_CACHE = {}
+
+def stt_sane(text, event_type):
+    """R8: when a verbatim STT phrase coincides with a high-confidence event, ask a
+    fast model whether the phrase is sensible football English (ASR errors like
+    'changes of foot' during a substitution must not propagate into two languages)."""
+    if text in _SANE_CACHE:
+        return _SANE_CACHE[text]
+    try:
+        r = B.client.responses.create(model='gpt-5.4-mini',
+            instructions=("Answer YES or NO only. YES unless this is CLEARLY a garbled "
+                          "speech-recognition error (nonsense words, impossible grammar). "
+                          "Idioms, colloquialisms and commentator flourishes are all YES. "
+                          "Example NO: 'Meanwhile, changes of foot.' (garble of 'changes "
+                          "afoot' during a substitution). Example YES: 'Going to be caught "
+                          "every day of the week by the keeper.' "
+                          "Context: a '" + str(event_type) + "' event is on."),
+            input=[{"role": "user", "content": text}], max_output_tokens=150,
+            reasoning={"effort": "low"})
+        ok = 'YES' in (r.output_text or 'YES').upper()
+    except Exception:
+        ok = True
+    _SANE_CACHE[text] = ok
+    return ok
+
+
 def prewarm():
     """Open TLS/connections for TTS, translate and vision BEFORE the stream starts,
     so the first real line doesn't pay cold-start latency (it cost us the first
@@ -126,6 +192,9 @@ def prewarm():
     ths = [threading.Thread(target=lambda: B.tts('Ready.', B.EN_VOICE)),
            threading.Thread(target=lambda: B.tts('Prêt.', B.FR_VOICE)),
            threading.Thread(target=lambda: B.translate_fr('Ready to go.'))]
+    # R8 with zero in-loop latency: pre-vet every pool phrase now (parallel, cached)
+    for _, r in B.SON:
+        ths.append(threading.Thread(target=stt_sane, args=(r['text'], 'the current play')))
     if sample:
         ths.append(threading.Thread(target=lambda: D.call_vision(B.client, VISION_MODEL, sample, PROMPT)))
     for th in ths:
@@ -180,17 +249,22 @@ def main():
              'fr': bytearray(int((B.DURATION_S + 30) * SR * 2))}
     audio_end = {'en': 0, 'fr': 0}          # last written byte — no-clobber floor
     audio_lock = threading.Lock()
+    write_cond = threading.Condition()
+    in_flight = {}                          # token -> v_place; writes commit in v_place order
 
     lines = []; used_son = set(); recent = []
     booth = 0.0                             # pacing in current-time domain
-    last_event = (None, -99.0); last_subj = (None, -99.0)
+    last_team_spoken = None   # F8/R4: explicit possession-flip signal for the stages
+    last_prio = {}     # R1: event-type -> last narration time (30s, team-agnostic)
+    last_events = {}   # R3: (event_type, team) -> {'t':, 'named':} — 25s dedup w/ new-info escape
+    last_subj = (None, -99.0)
     last_lull = -99.0; last_scene = -99.0; last_named = None
     last_submitted = 0; vis_consumed = -1.0
     processed = 0; last_new = time.monotonic(); stopping = False
     opener_done = False                     # scripted, scoreboard-grounded opening line
     placed_end = 0.0                        # video-time where the last placed line's audio ends
 
-    def place(rec, t_det, seen_to_decide, chooser_ms):
+    def place(rec, t_det, seen_to_decide, chooser_ms, est=3.0):
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
         buffer. Sync policy: a line either lands on its play or is never heard."""
         t_tts0 = time.monotonic()
@@ -202,10 +276,30 @@ def main():
         rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
                       'chooser_ms': chooser_ms, 'tts_ms': tts_ms,
                       'behind_live_s': round(behind, 2)}
-        rec['lat']['audio_s'] = round(len(en) / (SR * 2), 2)  # catch anomalous TTS sizes
+        # F11: commit writes in PLACEMENT order — a later-timed line must not raise
+        # the floor before an earlier-timed line has written (completion-order race)
+        tok = id(rec)
+        deadline = time.monotonic() + 8.0
+        with write_cond:
+            while any(vp < t_det - 1e-6 for tk, vp in in_flight.items() if tk != tok):
+                if time.monotonic() > deadline:
+                    print(f"  [ warn ] write-order wait timed out for {rec['text'][:30]!r}")
+                    break
+                write_cond.wait(timeout=0.5)
+        cap = int((est * 2.5 + 3.0) * SR) * 2   # F7: a TTS blob can never exceed its speech slot
+        if len(en) > cap:
+            print(f"  [ trunc ] EN audio {len(en)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
+            en = en[:cap]
+        if len(frp) > cap:
+            print(f"  [ trunc ] FR audio {len(frp)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
+            frp = frp[:cap]
+        rec['lat']['audio_s'] = round(len(en) / (SR * 2), 2)
+        rec['lat']['audio_fr_s'] = round(len(frp) / (SR * 2), 2)
         if behind > BUFFER_S:                                 # DROP, never slip
             rec['dropped'] = True
             print(f"  [ drop ] ({rec['src']}) {rec['text']}   [behind_live={behind:.1f}s > {BUFFER_S}s]")
+            with write_cond:
+                in_flight.pop(id(rec), None); write_cond.notify_all()
             return
         v_place = t_det
         with audio_lock:
@@ -223,6 +317,8 @@ def main():
             if shift > 1.5:                                   # would desync — drop instead
                 rec['dropped'] = True
                 print(f"  [ drop ] ({rec['src']}) {rec['text']}   [shift {shift:.1f}s would desync]")
+                with write_cond:
+                    in_flight.pop(id(rec), None); write_cond.notify_all()
                 return
             for lang, pcm in (('en', en), ('fr', frp)):
                 b = max(bases[lang], audio_end[lang]); b -= b % 2
@@ -232,6 +328,8 @@ def main():
                     audio_end[lang] = b + u
         rec['lat']['audio_shift_s'] = round(shift, 2)
         rec['video_time_s'] = round(v_place + shift, 2)
+        with write_cond:
+            in_flight.pop(id(rec), None); write_cond.notify_all()
         print(f"  [{rec['video_time_s']:6.1f}s] ({rec['src']}) {rec['text']}"
               f"   [behind_live={behind:.1f}s]")
 
@@ -239,7 +337,9 @@ def main():
         nonlocal booth, placed_end
         placed_end = max(placed_end, t_det + B.NATURAL_LAG_S + est + 0.15)
         lines.append(rec); recent.append(rec['text'])
-        threading.Thread(target=place, args=(rec, t_det, seen_to_decide, chooser_ms),
+        with write_cond:
+            in_flight[id(rec)] = t_det
+        threading.Thread(target=place, args=(rec, t_det, seen_to_decide, chooser_ms, est),
                          daemon=True).start()
         booth = t_now + B.NATURAL_LAG_S + est + gate
 
@@ -287,11 +387,71 @@ def main():
                     real = r; break
             if real:
                 rt = float(real['video_time_s'])
+                # R8: vet the phrase if a high-confidence event overlaps it
+                ev_near = None
+                with VIS_LOCK:
+                    for v in VIS_LIVE:
+                        if abs(v['t_det'] - rt) <= 3.5:
+                            vs = B.vision_signal(v['det'])
+                            if vs.get('event') and vs.get('event_conf') == 'high':
+                                ev_near = vs['event']; break
+                if not stt_sane(real['text'], ev_near or 'the current play'):
+                    print(f"  [ veto ] (soniox) {real['text']!r} — ASR-suspect"
+                          + (f" during {ev_near}" if ev_near else ''))
+                    continue
                 rec = {'src': 'soniox', 'text': real['text'], 'real_phrase': real['text'],
                        'vision': None, 'tracker': None, 'video_time_s': round(rt, 2)}
                 est = real.get('dur') or max(1.4, len(real['text'].split()) / 2.6)
                 emit(rec, t, rt, est, 0.4, t - rt, 0)
                 time.sleep(0.02); continue
+
+            # --- (1.5) R1: HIGH-conf card/goal/penalty preempts pacing — never skipped ---
+            prio = None
+            with VIS_LOCK:
+                goal_sightings = [v2['t_det'] for v2 in VIS_LIVE
+                                  if any(e.get('type') == 'goal' and e.get('confidence') == 'high'
+                                         for e in (v2['det'].get('events') or []))
+                                  and t - v2['t_det'] <= 15.0]
+                for v in VIS_LIVE:
+                    if t - v['t_det'] > STALE_S:
+                        continue
+                    # scan the RAW events list — a card listed behind a foul must
+                    # still be found (vision_signal only surfaces the first event)
+                    for e in (v['det'].get('events') or []):
+                        et, etm = e.get('type'), B.TEAM.get(e.get('team'))
+                        if (et in PRIORITY_EVENTS and e.get('confidence') == 'high'
+                                and t - last_prio.get(et, -99.0) > 30.0):
+                            if et == 'goal':
+                                # R10: adjacent bursts share frames — a goal call needs
+                                # >=3 high-conf sightings SPANNING >=5s (net + celebration
+                                # + aftermath). A 2-burst blip is not a goal.
+                                if len(goal_sightings) < 3 or (max(goal_sightings) - min(goal_sightings)) < 5.0:
+                                    continue
+                            prio = (v, et, etm); break
+                    if prio:
+                        break
+            if prio:
+                v, et, etm = prio
+                last_prio[et] = t
+                last_events[(et, etm)] = {'t': t, 'named': False}
+                # a priority event may be narrated slightly AFTER its moment (the slot
+                # under earlier audio is taken) — real booths call it past-tense
+                slot = max(v['t_det'], placed_end + 0.1)
+                fact = f"event: {et}" + (f" ({etm})" if etm else '')
+                if slot - v['t_det'] > 1.5:
+                    fact += " — happened a few seconds ago; call it now, past tense"
+                c0 = time.monotonic()
+                line = B.chooser(v['t_det'], None, fact, None, recent,
+                                 B.broadcaster_names_near(v['t_det']), 'high', None, False)
+                cms = int((time.monotonic() - c0) * 1000)
+                if line and line.upper() != 'NO_CALL' and len(line.split()) >= 2:
+                    rec = {'src': 'blend', 'text': line, 'real_phrase': None,
+                           'vision': fact, 'tracker': None, 'stage': 'priority',
+                           'vision_latency_ms': v['latency_ms'],
+                           'video_time_s': round(slot, 2)}
+                    emit(rec, t, slot, max(1.4, len(line.split()) / 2.6), 2.0,
+                         t - v['t_det'], cms)
+                    time.sleep(0.02); continue
 
             # --- (2) vision-grounded line from the LATEST ARRIVED detection ---
             if t >= booth:
@@ -312,16 +472,29 @@ def main():
                         if tt <= t - TRK_LAG and abs(tt - t_det) <= 2.0:
                             trk_det = r.get('detection'); break
                     ttruth = B.tracker_truth(trk_det)
+                    if (vsig.get('poss_team') and last_team_spoken
+                            and vsig['poss_team'] != last_team_spoken and vfact):
+                        vfact += (f"  [possession has FLIPPED from {last_team_spoken} to "
+                                  f"{vsig['poss_team']} since your last line — mark the transition explicitly]")
                     subj = (vsig.get('poss_team'), vsig.get('poss_player'))
                     speak, gate, scene = False, 4.0, False
-                    if vsig.get('event') and (vsig['event'] != last_event[0] or t - last_event[1] > K['event_regate']):
+                    ev_key = (vsig.get('event'), vsig.get('event_team'))
+                    prev_ev = last_events.get(ev_key) if vsig.get('event') else None
+                    ev_new_info = bool(vsig.get('poss_player'))
+                    ev_ok = vsig.get('event') and (
+                        prev_ev is None or t - prev_ev['t'] > 25.0            # R3 window
+                        or (ev_new_info and not prev_ev['named']))            # new-info escape
+                    if vsig.get('event') in PRIORITY_EVENTS and t - last_prio.get(vsig['event'], -99.0) <= 30.0:
+                        ev_ok = False   # F5: card/goal-class dedup is TYPE-only (team labels flap)
+                    if ev_ok:
                         speak, gate = True, 2.5
                     elif vsig.get('poss_player'):
                         speak, gate = True, 2.5
                     elif (vsig.get('poss_team') or ttruth) and t - last_lull > K['lull']:
                         speak, gate, last_lull = True, K['poss_gate'], t
-                    elif t - last_scene > K['scene']:
-                        speak, gate, scene, last_scene = True, 4.0, True, t
+                    elif (t - last_scene > K['scene']
+                          and t_det - (lines[-1]['video_time_s'] if lines else -99) >= 15.0):
+                        speak, gate, scene, last_scene = True, 4.0, True, t   # R2: >=15s silence AT PLACEMENT
                     if speak:
                         cur_named = vsig.get('poss_player')
                         received = cur_named if (cur_named and cur_named != last_named) else None
@@ -364,12 +537,44 @@ def main():
                                              B.broadcaster_names_near(t_det),
                                              B.vision_conf(vsig), received, scene)
                         chooser_ms = int((time.monotonic() - c0) * 1000)
+                        # R2 post-check: stock-filler phrasing needs >=15s of real silence
+                        FILLER_RX2 = _re4.compile(r'quiet spell|midfield battle continues|still all square', _re4.I)
+                        if (line and line.upper() != 'NO_CALL' and FILLER_RX2.search(line)
+                                and lines and t_det - lines[-1]['video_time_s'] < 15.0):
+                            print(f"  [ skip ] R2 filler too close: {line!r}")
+                            line = 'NO_CALL'
+                        # R4 post-check: if this line flips the spoken team without a
+                        # transition marker, retry once with an explicit instruction; if
+                        # the retry still violates, skip (silence beats confusion).
+                        if line and line.upper() != 'NO_CALL':
+                            m_new = POSS_RX.search(line)
+                            if (m_new and last_team_spoken and m_new.group(1) != last_team_spoken
+                                    and not TRANS_RX.search(line)):
+                                line2 = B.chooser(t_det, None,
+                                                  (vfact or '') + f" [MUST mark the change of possession from {last_team_spoken} to {m_new.group(1)} — e.g. 'win it back', 'turned over']",
+                                                  ttruth, recent, B.broadcaster_names_near(t_det),
+                                                  B.vision_conf(vsig), received, scene)
+                                m2 = POSS_RX.search(line2 or '')
+                                if line2 and line2.upper() != 'NO_CALL' and (
+                                        not m2 or m2.group(1) == last_team_spoken or TRANS_RX.search(line2)):
+                                    line = line2
+                                else:
+                                    print(f"  [ skip ] R4 unmarked flip suppressed: {line!r}")
+                                    line = 'NO_CALL'
                         if (line and line.upper() != 'NO_CALL' and len(line.split()) >= 2
                                 and not B.too_similar(line, recent[-8:])):
                             if vsig.get('event'):
-                                last_event = (vsig['event'], t)
+                                last_events[(vsig['event'], vsig.get('event_team'))] = {
+                                    't': t, 'named': bool(vsig.get('poss_player'))}
+                                if vsig['event'] in PRIORITY_EVENTS:
+                                    last_prio[vsig['event']] = t
                             if cur_named:
                                 last_subj = (subj, t); last_named = cur_named
+                            mts = POSS_RX.search(line)
+                            if mts:
+                                last_team_spoken = mts.group(1)
+                            elif vsig.get('poss_team'):
+                                last_team_spoken = vsig['poss_team']
                             rec = {'src': 'blend', 'text': line, 'real_phrase': None,
                                    'vision': vfact, 'tracker': ttruth,
                                    'stage': stage,
@@ -401,6 +606,11 @@ def main():
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
             w.writeframes(bytes(audio[lang][:int(B.DURATION_S * SR * 2)]))
 
+    (BASE / f'stt_sanity{SUFFIX}.json').write_text(json.dumps(_SANE_CACHE, indent=1))
+    with VIS_LOCK:
+        (BASE / f'vis_detections{SUFFIX}.jsonl').write_text(
+            '\n'.join(json.dumps({'t_det': v['t_det'], 'latency_ms': v['latency_ms'],
+                                   'det': v['det']}) for v in VIS_LIVE) + '\n')
     kept = [l for l in lines if not l.get('dropped')]
     dropped = [l for l in lines if l.get('dropped')]
     kept.sort(key=lambda l: l['video_time_s'])

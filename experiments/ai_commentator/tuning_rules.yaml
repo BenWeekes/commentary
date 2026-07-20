@@ -4,7 +4,7 @@
 # clip-specific patch), implemented as a prompt clause or code gate, and only
 # ACCEPTED after the regression gate passes (see docs/ai/L2/hitl_tuning_workflow.md).
 #
-# status: candidate -> accepted | rejected (with reason)
+# status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20 -> accepted | rejected (with reason)
 # guarded metrics that may never regress: hallucinations=0, survival>=0.95,
 # desync_shifts=0, first_line<=2s; watched: words +/-15%, judge realism/variety.
 
@@ -17,7 +17,7 @@
     trailing pause of a colour line. Never let a discipline/scoring event pass
     silently while low-value colour is spoken.
   implementation: code-gate (priority preempt for event class in {card, goal, penalty})
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R2
   source: "sheet @0:13 'Safe comment is pointless', @1:10 'Safe sentence means nothing'"
@@ -28,7 +28,7 @@
     ("Midfield battle continues here", "Quiet spell, still all square") is
     only permitted after >=20s of silence and at most once per 60s.
   implementation: prompt clause (both stages) + lull-line rate limiter
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R3
   source: "sheet @0:56 'Repetition, not needed', @2:31 'Repeat sentence', @2:24 'Kind of duplicate'"
@@ -38,7 +38,7 @@
     per 25s unless NEW information is added (a player name, an outcome, a
     location change). Rephrasing the same fact does not qualify as new.
   implementation: code-gate (fact-instance dedup window, currently 8s -> 25s w/ new-info escape)
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R4
   source: "sheet @1:24 'previous sentence says exact opposite'"
@@ -49,7 +49,7 @@
     not be spoken. Never assert the opposite state as if the previous line
     did not exist.
   implementation: prompt clause + post-check (possession flip without transition verb -> regenerate once, else skip)
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R5
   source: "sheet @1:52 '\"it\" refers to what?'"
@@ -59,7 +59,7 @@
     immediately preceding line. When in doubt use the concrete noun
     (the ball, the free kick, the cross).
   implementation: prompt clause (both stages + FR localizer)
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R6
   source: "sheet @1:59 'says long kick, actually short pass', @2:27 'not accurate'"
@@ -69,7 +69,7 @@
     unless the detector explicitly provides it. When evidence is coarse, use
     manner-neutral verbs ("plays it forward", not "launches it long").
   implementation: prompt clause (grounding section, both stages)
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R7
   source: "sheet @1:02, @2:06, @2:23, @2:38, @2:48, @3:16 (French cluster)"
@@ -82,7 +82,7 @@
     celebre; 'sont revenus' for players back in position, ...). Glossary is
     appended by reviewers and versioned with this file.
   implementation: rewrite TRANSLATE_SYSTEM as localizer persona + glossary block
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R8
   source: "sheet @3:20 'substitution, not change of foot - all 4 languages inaccurate'"
@@ -94,7 +94,7 @@
     event line and drop the phrase. Verbatim does not mean unvetted - ASR
     errors must not propagate into two languages.
   implementation: code-gate (STT/vision conflict check) + FR localizer sanity clause
-  status: candidate
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
 
 - id: R9
   source: "sheet @0:13, @1:06, @1:19, @3:18 (eager preferred 4x, safe never)"
@@ -104,3 +104,54 @@
     remains the fallback stage inside the hedge and a debugging baseline.
   implementation: config default BLEND_MODE=eager
   status: accepted   # direct human A/B verdict; hedge already guarantees the safe coverage floor
+
+# ---------------------------------------------------------------------------
+# PROCESS POLICY (adopted 2026-07-20 from cards-process review)
+# ---------------------------------------------------------------------------
+# 1. PIN THE DEFECT: a candidate rule must cite a pinned fixture (timestamp +
+#    machine-checkable condition) reproducing the issue in the baseline BEFORE
+#    implementation. (Validated the hard way: the first R1 gate ACCEPTed while
+#    the yellow card was still unnarrated — the gate never encoded the defect.)
+# 2. PER-RULE FIXTURES: on acceptance each rule keeps a named regression check
+#    in eval_snapshot.run_fixtures. The suite only ever grows.
+# 3. STOCHASTICITY: acceptance decisions gate on worst-of-N (N>=3) live runs;
+#    fixtures must pass in ALL runs; record the spread here.
+# 4. HOLDOUT: the reviewed match is a DEVELOPMENT set. The next reviewed match
+#    is reserved as holdout; the accepted-rule suite re-runs on it before any
+#    customer milestone. (Pending: needs Alex's next review on a new match.)
+# 5. NO SILENT RELAXATION: guarded thresholds (survival>=0.95, first_line<=2s,
+#    hallucinations<=baseline, desync=0) change ONLY via an amendment entry
+#    below: before-evidence, change, after-evidence, commit hash.
+
+fixtures:
+  R1: "every high-conf card/goal/penalty in vis_detections has a line within 8s (auto)"
+  R2: "no filler line within 15s of the previous line (auto)"
+  R3: "same event-fact twice within 25s requires a name in the second (auto)"
+  R4: "adjacent possession flips carry a transition marker (auto-heuristic)"
+  R5: "reviewer-checked (no deterministic oracle)"
+  R6: "reviewer-checked (no deterministic oracle)"
+  R7: "banned French calques never appear in fr fields (auto)"
+  R8: "reviewer-checked; veto events logged in run output"
+
+amendments: []   # threshold changes require an entry here — never a silent edit
+
+acceptance_record_cycle1:
+  verdict: ACCEPT (trio-9, worst-of-3, 2026-07-20)
+  survival_spread: [1.0, 0.974, 0.956]
+  hallucinations: [0, 0, 0]
+  named_blend_lines: [11, 11, 10]   # baseline was 4
+  words: [303, 271, 312]            # baseline 281
+  fixtures_all_runs: {R1: true, R1b: true, R2: true, R3: true, R4: true, R7: true, R10: true}
+  iterations_to_accept: 9 trios/gates; fixes F1-F11 (see docs/ai/L2/review_cycle_1_dispositions.md)
+  new_baseline: m3 snapshot (worst passing run — conservative bar)
+
+- id: R10
+  source: "process discovery 2026-07-20: trio-1 run c2 spoke 'Mainz have scored!' on a
+    2-burst false detection (adjacent bursts share 3/4 frames — not independent)"
+  category: event-corroboration
+  rule: >
+    A GOAL call requires at least 3 high-confidence goal detections spanning at
+    least 5 seconds (net + celebration + aftermath). Adjacent-burst blips are
+    never a goal. Cards/penalties remain immediate (lower blast radius).
+  implementation: code-gate in the R1 preempt + fixture R10 (auto)
+  status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20

@@ -15,7 +15,10 @@ import json, html, shutil
 from pathlib import Path
 
 BASE = Path('/home/ubuntu/commentary/experiments/ai_commentator')
-ROOT = Path('/var/www/html/experiments/ai_commentator/blend')   # served location
+import os
+VERSION = os.environ.get('PAGE_VERSION', '')          # e.g. 'v2' -> serve at blend_v2/
+ROOT = Path('/var/www/html/experiments/ai_commentator/' +
+            ('blend' if not VERSION else f'blend_{VERSION}'))
 ROOT.mkdir(parents=True, exist_ok=True)
 ROW_MERGE_S = 1.2
 
@@ -129,7 +132,7 @@ video{{width:100%;max-width:640px;display:block;margin:0 auto 8px;border-radius:
 .cf.bhigh{{background:#052e16;color:#4ade80}} .cf.bmedium{{background:#3a2e00;color:#fbbf24}}
 </style></head><body>
 <div class='top'>
-  <h1>AI live commentary — Mainz vs Union Berlin</h1>
+  <h1>AI live commentary — Mainz vs Union Berlin{(' · ' + VERSION) if VERSION else ''}</h1>
   <p class='sub'>One commentary track built live over the SRT feed and voiced in English and French.
   <b>STT</b> = short, high-confidence phrases from the broadcast audio. <b>Vision</b> = what the
   system reads from the video frames (possession, events), shown with its own confidence.
