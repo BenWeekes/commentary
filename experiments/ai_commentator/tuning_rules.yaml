@@ -1,0 +1,106 @@
+# Human-in-the-loop tuning rules ledger
+# ======================================
+# Each rule is distilled from reviewer feedback into a GENERIC statement (never a
+# clip-specific patch), implemented as a prompt clause or code gate, and only
+# ACCEPTED after the regression gate passes (see docs/ai/L2/hitl_tuning_workflow.md).
+#
+# status: candidate -> accepted | rejected (with reason)
+# guarded metrics that may never regress: hallucinations=0, survival>=0.95,
+# desync_shifts=0, first_line<=2s; watched: words +/-15%, judge realism/variety.
+
+- id: R1
+  source: "sheet 2026-07-20 @0:06 'Why no mention of the yellow card?'"
+  category: event-priority
+  rule: >
+    A HIGH-confidence card, goal, penalty or red-card event must always be
+    narrated: it preempts pacing gates (like STT does) and may interrupt the
+    trailing pause of a colour line. Never let a discipline/scoring event pass
+    silently while low-value colour is spoken.
+  implementation: code-gate (priority preempt for event class in {card, goal, penalty})
+  status: candidate
+
+- id: R2
+  source: "sheet @0:13 'Safe comment is pointless', @1:10 'Safe sentence means nothing'"
+  category: content-floor
+  rule: >
+    Every line must carry at least one concrete, new piece of information
+    (named player, event, location change, or shape change). Pure filler
+    ("Midfield battle continues here", "Quiet spell, still all square") is
+    only permitted after >=20s of silence and at most once per 60s.
+  implementation: prompt clause (both stages) + lull-line rate limiter
+  status: candidate
+
+- id: R3
+  source: "sheet @0:56 'Repetition, not needed', @2:31 'Repeat sentence', @2:24 'Kind of duplicate'"
+  category: fact-dedup
+  rule: >
+    The same fact instance (event type + team) may be narrated at most once
+    per 25s unless NEW information is added (a player name, an outcome, a
+    location change). Rephrasing the same fact does not qualify as new.
+  implementation: code-gate (fact-instance dedup window, currently 8s -> 25s w/ new-info escape)
+  status: candidate
+
+- id: R4
+  source: "sheet @1:24 'previous sentence says exact opposite'"
+  category: continuity
+  rule: >
+    A line that reverses the previous line's claim (possession flips, momentum
+    reverses) must mark the transition explicitly ("Union win it back...") or
+    not be spoken. Never assert the opposite state as if the previous line
+    did not exist.
+  implementation: prompt clause + post-check (possession flip without transition verb -> regenerate once, else skip)
+  status: candidate
+
+- id: R5
+  source: "sheet @1:52 '\"it\" refers to what?'"
+  category: referential-clarity
+  rule: >
+    No pronoun without an explicit antecedent in the same line or the
+    immediately preceding line. When in doubt use the concrete noun
+    (the ball, the free kick, the cross).
+  implementation: prompt clause (both stages + FR localizer)
+  status: candidate
+
+- id: R6
+  source: "sheet @1:59 'says long kick, actually short pass', @2:27 'not accurate'"
+  category: precision-restraint
+  rule: >
+    Never state the MANNER of an action (long/short, driven/floated, powerful)
+    unless the detector explicitly provides it. When evidence is coarse, use
+    manner-neutral verbs ("plays it forward", not "launches it long").
+  implementation: prompt clause (grounding section, both stages)
+  status: candidate
+
+- id: R7
+  source: "sheet @1:02, @2:06, @2:23, @2:38, @2:48, @3:16 (French cluster)"
+  category: localization
+  rule: >
+    French output is football-French LOCALIZATION, not translation: written as
+    a French TV commentator would say it. Maintain a glossary of banned
+    calques and preferred terms (dernier tiers -> les trente derniers metres;
+    sonder -> tenter/essayer; moment calme -> temps faible; aforementioned !=
+    celebre; 'sont revenus' for players back in position, ...). Glossary is
+    appended by reviewers and versioned with this file.
+  implementation: rewrite TRANSLATE_SYSTEM as localizer persona + glossary block
+  status: candidate
+
+- id: R8
+  source: "sheet @3:20 'substitution, not change of foot - all 4 languages inaccurate'"
+  category: stt-sanity
+  rule: >
+    A verbatim STT phrase is cross-checked against concurrent HIGH-confidence
+    vision events: if the phrase is semantically odd AND a conflicting event
+    is detected (e.g. STT nonsense during a detected substitution), prefer the
+    event line and drop the phrase. Verbatim does not mean unvetted - ASR
+    errors must not propagate into two languages.
+  implementation: code-gate (STT/vision conflict check) + FR localizer sanity clause
+  status: candidate
+
+- id: R9
+  source: "sheet @0:13, @1:06, @1:19, @3:18 (eager preferred 4x, safe never)"
+  category: product-default
+  rule: >
+    The eager (windowed-commentator + hedge) stage is the default voice; safe
+    remains the fallback stage inside the hedge and a debugging baseline.
+  implementation: config default BLEND_MODE=eager
+  status: accepted   # direct human A/B verdict; hedge already guarantees the safe coverage floor

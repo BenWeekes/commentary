@@ -729,6 +729,32 @@ tuning.
 
 ---
 
+## Round 7 — human-in-the-loop tuning process (rules + regression gates)
+
+**Status:** live process, first review cycle distilled. Full deep-dive →
+[L2/hitl_tuning_workflow.md](../L2/hitl_tuning_workflow.md) (also served at
+`https://sa-dev.agora.io/experiments/ai_commentator/docs/hitl_tuning_workflow.md`).
+
+The standing improvement loop: reviewers mark timestamped issues on the page →
+each issue is distilled into a **GENERIC rule** (never a clip-specific patch) in the
+ledger `experiments/ai_commentator/tuning_rules.yaml` → implemented one at a time as a
+prompt clause or code gate → a rerun must pass the **regression gate**
+(`eval_snapshot.py compare`: hallucinations ≤ baseline, survival ≥ 0.95, zero desync
+shifts, first line ≤ 2 s) before acceptance; rules that would regress guarded metrics
+are **rejected and kept in the ledger with the measured reason**. New baselines commit
+with their rule.
+
+**First cycle (reviewer: Alex, 21 comments)** → 9 generic rules: event-priority
+(missed yellow card), content-floor (no pointless filler), fact-dedup (25 s window),
+continuity (mark state reversals), pronoun clarity, precision-restraint (no invented
+action manner), **French localization with versioned glossary** (6 comments — the
+largest cluster), STT-sanity (ASR errors vetted against vision events, e.g.
+"changes of foot" during a detected substitution), and the accepted product verdict:
+**eager is the default voice** (4 explicit preferences vs 0 for safe — R9, accepted
+without a gate run as a direct human A/B result).
+
+---
+
 ## Adding a new experiment
 
 When you run a new experiment:
