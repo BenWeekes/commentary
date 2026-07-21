@@ -43,6 +43,48 @@ for name, src in VIDS:
     if sp.exists():
         shutil.copy2(sp, ROOT / f'{name}.mp4'); have[name] = True
 
+# ---- pre-match data panel (everything the system knows before kickoff) ----
+def prematch_text():
+    sr = json.load(open('/home/ubuntu/commentary/match_data/m05_uni_md33/sr_cache.json'))
+    se = sr['lineups'].get('sport_event', {})
+    ctx = se.get('sport_event_context', {})
+    ven = se.get('venue', {})
+    refs = (se.get('sport_event_conditions', {}) or {}).get('referees', [])
+    comps = {c['qualifier']: c for c in se.get('competitors', [])}
+    L = []
+    A = L.append
+    A("PRE-MATCH DATA (everything known to the system before kickoff)")
+    A("Reviewer: naming/variation advice welcome — what should we call each team,")
+    A("which nicknames are broadcast-appropriate, which player name forms to prefer?")
+    A("=" * 64)
+    A(f"Competition : {ctx.get('competition',{}).get('name','?')} {ctx.get('season',{}).get('year','')} — matchday {ctx.get('round',{}).get('number','?')}")
+    A(f"Kickoff     : {se.get('start_time','?')}")
+    A(f"Venue       : {ven.get('name','?')}, {ven.get('city_name','?')} (capacity {ven.get('capacity','?')})")
+    for r in refs:
+        A(f"Referee     : {r.get('name')}  ({r.get('type','').replace('_',' ')})")
+    A("")
+    A("CLIP CONTEXT (verified from on-screen scoreboard)")
+    A("  second half, ~77th minute, score 1-1, ~13 minutes of normal time left")
+    A("")
+    for q, kit in (('home', 'red shirts/shorts, white numbers'),
+                   ('away', 'olive/dark-green shirts, gold numbers')):
+        c = comps.get(q, {})
+        A(f"{q.upper():5s}: {c.get('name','?')}  [abbrev {c.get('abbreviation','?')}, {c.get('country','')}]")
+        A(f"       kit: {kit}")
+        A( "       naming forms used so far: " + ("Mainz / FSV Mainz" if q=='home' else "Union / Union Berlin"))
+        A("")
+    A("LINEUPS (number, name, position, starter)")
+    for comp in sr['lineups']['lineups']['competitors']:
+        A(f"--- {comp.get('name','?')} ---")
+        players = sorted(comp.get('players', []), key=lambda p: (not p.get('starter'), int(p.get('jersey_number') or 99)))
+        for pl in players:
+            A(f"  #{str(pl.get('jersey_number','?')):>2s} {pl.get('name','?'):28s} {str(pl.get('position') or pl.get('type') or ''):16s}{' (starter)' if pl.get('starter') else ''}")
+        A("")
+    A("FRENCH GLOSSARY IN FORCE (reviewer-extendable in tuning_rules.yaml)")
+    A("  dernier tiers -> les trente derniers metres · sonder -> tenter/essayer")
+    A("  moment calme -> temps faible · returning players -> 'sont revenus' · Mainz -> Mayence ok")
+    return "\n".join(L)
+
 son = load(BASE / 'soniox_live_short.jsonl')   # A
 oai = load(BASE / 'oai_col.jsonl')             # B
 trk = load(BASE / 'tracker_col.jsonl')         # C
@@ -106,7 +148,14 @@ doc = f"""<!DOCTYPE html><html><head><meta charset='utf-8'>
 body{{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#0a0a0a;color:#e5e5e5;padding:14px}}
 h1{{font-size:18px}} .sub{{color:#8a8a8a;font-size:12.5px;margin:3px 0 10px;max-width:1100px}}
 .top{{position:sticky;top:0;background:#0a0a0a;z-index:6;padding-bottom:10px;border-bottom:1px solid #222}}
-video{{width:100%;max-width:640px;display:block;margin:0 auto 8px;border-radius:6px;background:#000}}
+video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#000}}
+.vidrow{{display:flex;gap:12px;justify-content:center;align-items:stretch;margin-bottom:8px;flex-wrap:wrap}}
+.pmwrap{{display:flex;flex-direction:column;width:400px;max-width:95vw}}
+.pmh{{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#fbbf24;padding:2px 2px 6px}}
+.pmh .pmn{{color:#8a8a8a;text-transform:none;font-weight:500;letter-spacing:0}}
+.pm{{flex:1;min-height:280px;background:#0e0e0e;color:#c8c8c8;border:1px solid #262626;border-radius:6px;
+     padding:10px;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5;resize:vertical;
+     overflow-y:auto;white-space:pre}}
 .tabs{{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}}
 .tabs button{{background:#1a1a1a;color:#aaa;border:1px solid #2a2a2a;padding:7px 15px;font-size:12.5px;border-radius:18px;cursor:pointer;font-weight:600}}
 .tabs button.active{{background:#052e16;color:#4ade80;border-color:#166534}}
@@ -139,7 +188,13 @@ video{{width:100%;max-width:640px;display:block;margin:0 auto 8px;border-radius:
   <b>Tracker</b> = objective on-pitch positions and shape. The blend fuses them into one spoken
   line, preferring real phrases and filling the gaps. Holes are where a signal stayed silent.
   Pick an audio track; click any row to seek.</p>
-  <video id='v' controls preload='metadata' src='./blend_en.mp4'></video>
+  <div class='vidrow'>
+    <video id='v' controls preload='metadata' src='./blend_en.mp4'></video>
+    <div class='pmwrap'>
+      <div class='pmh'>Pre-match data <span class='pmn'>— advise on team/player naming variation</span></div>
+      <textarea class='pm' readonly spellcheck='false'>{html.escape(prematch_text())}</textarea>
+    </div>
+  </div>
   <div class='tabs'>{''.join(tabs)}</div>
 </div>
 <div class='wrap'><div class='grid'>
