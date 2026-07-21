@@ -1,14 +1,14 @@
 {
   "file": "commentary_blend_live_eager.jsonl",
-  "lines": 44,
-  "stt_lines": 15,
-  "words": 333,
+  "lines": 45,
+  "stt_lines": 17,
+  "words": 328,
   "survival": 0.957,
   "desync_shifts_gt_1_5": 0,
   "first_line_s": 0.8,
-  "max_gap_s": 20.9,
+  "max_gap_s": 19.8,
   "gaps_ge_15s": 2,
-  "named_blend_lines": 10,
+  "named_blend_lines": 9,
   "fixtures": {
     "R1": true,
     "R2": true,
@@ -17,7 +17,7 @@
     "R7": true,
     "R1b": true,
     "R8": "manual",
-    "R10": true,
+    "R10": false,
     "R11": true,
     "R5": "manual",
     "R6": "manual"

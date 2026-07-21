@@ -5,24 +5,21 @@
   "vision_model": "gpt-5.6",
   "vision_scale": "960:540",
   "workers": 4,
-  "vision_calls": 188,
+  "vision_calls": 221,
   "vision_latency_s": {
-    "median": 5.66,
-    "p90": 8.6,
-    "max": 13.2
+    "median": 4.5,
+    "p90": 7.34,
+    "max": 21.85
   },
-  "lines_kept": 43,
-  "lines_dropped": 2,
-  "survival_rate": 0.956,
+  "lines_kept": 40,
+  "lines_dropped": 0,
+  "survival_rate": 1.0,
   "kept_behind_live_s": {
-    "median": 7.01,
-    "p90": 8.59,
-    "max": 9.81
+    "median": 6.9,
+    "p90": 8.35,
+    "max": 8.89
   },
-  "audio_shifts": 3,
-  "max_audio_shift_s": 0.39,
-  "dropped_texts": [
-    "Union win it back in the final third.",
-    "Juranovic collects it for Union."
-  ]
+  "audio_shifts": 1,
+  "max_audio_shift_s": 0.44,
+  "dropped_texts": []
 }

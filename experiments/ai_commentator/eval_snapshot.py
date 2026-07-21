@@ -52,12 +52,11 @@ def snapshot(jsonl_path, skip_llm=False):
                                      else 'vis_detections.jsonl'))
     if not skip_llm:
         import judge as J
+        from concurrent.futures import ThreadPoolExecutor
         gen = [x for x in b if x['src'] == 'blend']
-        hall = 0
-        for x in gen:
-            v = J.judge_line(x['text'], J.frame_for_time_s(x['video_time_s']))
-            if v and str(v.get('hallucination_likely')).lower() == 'true':
-                hall += 1
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            vs = list(ex.map(lambda x: J.judge_line(x['text'], J.frame_for_time_s(x['video_time_s'])), gen))
+        hall = sum(1 for v in vs if v and str(v.get('hallucination_likely')).lower() == 'true')
         style = J.judge_run_style([x['text'] for x in b])
         snap['hallucinations'] = hall
         snap['judge_realism'] = style.get('realism_1_5')
@@ -169,6 +168,31 @@ def run_fixtures(b, detections_path):
         fx['R10'] = r10
     else:
         fx['R10'] = 'skip'
+    # R11: team-reference variety — no 3 consecutive team-referring blend lines
+    # using the identical form for the same team
+    TEAM_FORMS = {'Mainz': ['FSV Mainz', 'the home side', 'the hosts', 'the reds', 'Mainz'],
+                  'Union': ['Union Berlin', 'the away side', 'the visitors', 'the men in green', 'Union']}
+    r11 = True
+    runs_form = []
+    for x in b:
+        if x['src'] != 'blend':
+            runs_form.append(None); continue
+        found = None
+        for team, forms in TEAM_FORMS.items():
+            for fm in forms:
+                m = re.search(r'\b' + re.escape(fm) + r'\b', x['text'], re.I)
+                if m and (found is None or m.start() < found[2]):
+                    found = (team, fm.lower(), m.start())
+        runs_form.append(found[:2] if found else None)
+    streak = 1
+    for i in range(1, len(runs_form)):
+        if runs_form[i] and runs_form[i] == runs_form[i-1]:
+            streak += 1
+            if streak >= 3:
+                r11 = False
+        else:
+            streak = 1
+    fx['R11'] = r11
     # R5/R6/R8: reviewer/judge-checked (no deterministic oracle)
     fx['R5'] = fx['R6'] = fx['R8'] = 'manual'
     return fx

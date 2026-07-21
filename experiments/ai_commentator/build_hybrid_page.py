@@ -71,7 +71,7 @@ def prematch_text():
         c = comps.get(q, {})
         A(f"{q.upper():5s}: {c.get('name','?')}  [abbrev {c.get('abbreviation','?')}, {c.get('country','')}]")
         A(f"       kit: {kit}")
-        A( "       naming forms used so far: " + ("Mainz / FSV Mainz" if q=='home' else "Union / Union Berlin"))
+        A( "       APPROVED reference forms (R11): " + ("Mainz / FSV Mainz / the hosts / the home side / the reds" if q=='home' else "Union / Union Berlin / the visitors / the away side / the men in green"))
         A("")
     A("LINEUPS (number, name, position, starter)")
     for comp in sr['lineups']['lineups']['competitors']:
@@ -88,6 +88,14 @@ def prematch_text():
 son = load(BASE / 'soniox_live_short.jsonl')   # A
 oai = load(BASE / 'oai_col.jsonl')             # B
 trk = load(BASE / 'tracker_col.jsonl')         # C
+def _rep(name):
+    f = BASE / name
+    return json.loads(f.read_text()) if f.exists() else {}
+rep_e = _rep('latency_report_eager.json')
+rep_s = _rep('latency_report.json')
+DELAY = rep_e.get('fixed_delay_s') or rep_s.get('fixed_delay_s') or 10.0
+SURV = rep_e.get('survival_rate')
+
 blend = load(BASE / 'commentary_blend_live.jsonl')
 eager = load(BASE / 'commentary_blend_live_eager.jsonl')
 
@@ -149,6 +157,9 @@ body{{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#0a0a0a;co
 h1{{font-size:18px}} .sub{{color:#8a8a8a;font-size:12.5px;margin:3px 0 10px;max-width:1100px}}
 .top{{position:sticky;top:0;background:#0a0a0a;z-index:6;padding-bottom:10px;border-bottom:1px solid #222}}
 video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#000}}
+.delaybar{{max-width:1060px;margin:0 auto 8px;padding:7px 12px;border:1px solid #14532d;background:#052e16;
+  color:#86efac;border-radius:6px;font-size:12.5px;text-align:center}}
+.delaybar b{{color:#4ade80}}
 .vidrow{{display:flex;gap:12px;justify-content:center;align-items:stretch;margin-bottom:8px;flex-wrap:wrap}}
 .pmwrap{{display:flex;flex-direction:column;width:400px;max-width:95vw}}
 .pmh{{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#fbbf24;padding:2px 2px 6px}}
@@ -188,6 +199,8 @@ video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#00
   <b>Tracker</b> = objective on-pitch positions and shape. The blend fuses them into one spoken
   line, preferring real phrases and filling the gaps. Holes are where a signal stayed silent.
   Pick an audio track; click any row to seek.</p>
+  <div class='delaybar'>⏱ Generated LIVE with a fixed <b>{DELAY:.0f}-second broadcast delay</b> —
+  every line you hear is spoken about the moment on screen (on-play or dropped, never late){f" · {SURV*100:.0f}% of candidate lines made the window this run" if SURV else ''}.</div>
   <div class='vidrow'>
     <video id='v' controls preload='metadata' src='./blend_en.mp4'></video>
     <div class='pmwrap'>

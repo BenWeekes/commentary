@@ -32,7 +32,7 @@ import run_blend_live as B          # chooser, signals, tts, lineup, SRT plumbin
 import run_events_detector as D     # call_vision, extract_json, validate_shape
 
 BASE = B.BASE
-BUFFER_S = 10.0            # FIXED broadcast delay: every surviving line lands on the play
+BUFFER_S = float(os.environ.get('BLEND_DELAY_S', '10.0'))   # FIXED broadcast delay (deployment knob): every surviving line lands on the play
 STALE_S = BUFFER_S - 3.0   # drop-late: skip detections too old to clear chooser+TTS in time
 STT_LAG = 1.8              # Soniox finalize latency modelled on top of phrase end
 TRK_LAG = 0.5              # tracker runs near-realtime, slightly behind
@@ -109,6 +109,18 @@ REVIEWER RULES (hard requirements):
 - R6 MANNER RESTRAINT: never state HOW an action was performed (long/short, driven,
   floated, calmly, powerfully) unless the facts explicitly provide it. Use
   manner-neutral verbs ("plays it forward", not "launches it long")."""
+TEAM_FORMS = {   # R11 — grounded in pre-match data (kits: Mainz red, Union olive/green)
+    'Mainz': ['Mainz', 'FSV Mainz', 'the hosts', 'the home side', 'the reds'],
+    'Union': ['Union', 'Union Berlin', 'the visitors', 'the away side', 'the men in green'],
+}
+TEAM_VARIETY = """
+
+R11 TEAM-REFERENCE VARIETY: when referring to a team, rotate between its APPROVED forms
+— Mainz: Mainz / FSV Mainz / the hosts / the home side / the reds;
+  Union: Union / Union Berlin / the visitors / the away side / the men in green.
+Never use the identical team reference in consecutive lines about the same team. Use ONLY
+these forms — no invented nicknames. Kit-colour forms ("the reds") are welcome variety."""
+GEN_RULES += TEAM_VARIETY
 EAGER_SYSTEM += GEN_RULES
 B.CHOOSER_SYSTEM += GEN_RULES
 
@@ -255,6 +267,7 @@ def main():
     lines = []; used_son = set(); recent = []
     booth = 0.0                             # pacing in current-time domain
     last_team_spoken = None   # F8/R4: explicit possession-flip signal for the stages
+    last_form_used = {}       # R11: team -> exact reference form used in the last line about them
     last_prio = {}     # R1: event-type -> last narration time (30s, team-agnostic)
     last_events = {}   # R3: (event_type, team) -> {'t':, 'named':} — 25s dedup w/ new-info escape
     last_subj = (None, -99.0)
@@ -268,9 +281,16 @@ def main():
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
         buffer. Sync policy: a line either lands on its play or is never heard."""
         t_tts0 = time.monotonic()
-        en = B.tts(rec['text'], B.EN_VOICE)
-        fr_text = B.translate_fr(rec['text']); rec['fr'] = fr_text
-        frp = B.tts(fr_text, B.FR_VOICE)
+        res = {}
+        def _en():
+            res['en'] = B.tts(rec['text'], B.EN_VOICE)
+        def _fr():
+            res['fr_text'] = B.translate_fr(rec['text'])
+            res['fr'] = B.tts(res['fr_text'], B.FR_VOICE)
+        th_en = threading.Thread(target=_en); th_fr = threading.Thread(target=_fr)
+        th_en.start(); th_fr.start(); th_en.join(timeout=20); th_fr.join(timeout=20)
+        en = res.get('en', b''); frp = res.get('fr', b'')
+        rec['fr'] = res.get('fr_text', '')
         tts_ms = int((time.monotonic() - t_tts0) * 1000)
         behind = (time.monotonic() - wall0) - t_det          # true live latency
         rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
@@ -466,12 +486,22 @@ def main():
                     vis_consumed = cand['t_det']
                     t_det = cand['t_det']
                     vsig = B.vision_signal(cand['det'])
-                    vfact = B.fact_str(vsig)
                     trk_det = None
                     for tt, r in reversed(trk_sorted):
                         if tt <= t - TRK_LAG and abs(tt - t_det) <= 2.0:
                             trk_det = r.get('detection'); break
                     ttruth = B.tracker_truth(trk_det)
+                    # FIX-A: priority-class events (goal/cards/penalty) are ONLY speakable
+                    # via the corroborated priority block — never through this path
+                    if vsig.get('event') in PRIORITY_EVENTS:
+                        vsig = {**vsig, 'event': None, 'event_team': None, 'event_conf': None}
+                    vfact = B.fact_str(vsig)
+                    if vsig.get('poss_team') and vfact:
+                        lf = last_form_used.get(vsig['poss_team'])
+                        if lf:
+                            alts = [f for f in TEAM_FORMS[vsig['poss_team']] if f.lower() != lf.lower()]
+                            vfact += (f"  [vary the team reference — last line said {lf!r}; "
+                                      f"use one of: {', '.join(alts)}]")
                     if (vsig.get('poss_team') and last_team_spoken
                             and vsig['poss_team'] != last_team_spoken and vfact):
                         vfact += (f"  [possession has FLIPPED from {last_team_spoken} to "
@@ -486,6 +516,10 @@ def main():
                         or (ev_new_info and not prev_ev['named']))            # new-info escape
                     if vsig.get('event') in PRIORITY_EVENTS and t - last_prio.get(vsig['event'], -99.0) <= 30.0:
                         ev_ok = False   # F5: card/goal-class dedup is TYPE-only (team labels flap)
+                    if vsig.get('event') and not ev_ok:
+                        # FIX-B: a deduped event must not linger in the fact the stage narrates
+                        vsig = {**vsig, 'event': None, 'event_team': None, 'event_conf': None}
+                        vfact = B.fact_str(vsig)
                     if ev_ok:
                         speak, gate = True, 2.5
                     elif vsig.get('poss_player'):
@@ -509,7 +543,12 @@ def main():
                                 win = [v for v in VIS_LIVE if t_det - 6.0 <= v['t_det'] <= t_det]
                             window = []
                             for v in sorted(win, key=lambda v: v['t_det']):
-                                f = B.fact_str(B.vision_signal(v['det']))
+                                wsig = B.vision_signal(v['det'])
+                                if wsig.get('event') in PRIORITY_EVENTS:
+                                    # FIX-D: goal/card facts are only speakable via the
+                                    # corroborated priority block — never via the window
+                                    wsig = {**wsig, 'event': None, 'event_team': None, 'event_conf': None}
+                                f = B.fact_str(wsig)
                                 if f:
                                     window.append((v['t_det'] - t_det, f))
                             recent_timed = [(l['video_time_s'], l['text']) for l in lines
@@ -537,6 +576,27 @@ def main():
                                              B.broadcaster_names_near(t_det),
                                              B.vision_conf(vsig), received, scene)
                         chooser_ms = int((time.monotonic() - c0) * 1000)
+                        # R11 post-check: if this line LEADS with the same team-form as the
+                        # previous line, swap it for an unused approved alternative
+                        if line and line.upper() != 'NO_CALL':
+                            def lead_form(txt):
+                                best = None
+                                for team, forms in TEAM_FORMS.items():
+                                    for fm in forms:
+                                        m = _re4.search(r'\b' + _re4.escape(fm) + r'\b', txt, _re4.I)
+                                        if m and (best is None or m.start() < best[2]):
+                                            best = (team, fm, m.start())
+                                return best
+                            cur = lead_form(line)
+                            prev_lines = [x for x in lines if x['src'] == 'blend' and not x.get('dropped')]
+                            prv = lead_form(prev_lines[-1]['text']) if prev_lines else None
+                            if cur and prv and cur[0] == prv[0] and cur[1].lower() == prv[1].lower():
+                                alts = [f for f in TEAM_FORMS[cur[0]] if f.lower() != cur[1].lower()]
+                                if alts:
+                                    rep = alts[len(prev_lines) % len(alts)]
+                                    if cur[2] == 0:
+                                        rep = rep[0].upper() + rep[1:]
+                                    line = line[:cur[2]] + rep + line[cur[2] + len(cur[1]):]
                         # R2 post-check: stock-filler phrasing needs >=15s of real silence
                         FILLER_RX2 = _re4.compile(r'quiet spell|midfield battle continues|still all square', _re4.I)
                         if (line and line.upper() != 'NO_CALL' and FILLER_RX2.search(line)
@@ -571,6 +631,11 @@ def main():
                             if cur_named:
                                 last_subj = (subj, t); last_named = cur_named
                             mts = POSS_RX.search(line)
+                            for team, forms in TEAM_FORMS.items():
+                                for fm in sorted(forms, key=len, reverse=True):
+                                    if _re4.search(r'\b' + _re4.escape(fm) + r'\b', line, _re4.I):
+                                        last_form_used[team] = fm
+                                        break
                             if mts:
                                 last_team_spoken = mts.group(1)
                             elif vsig.get('poss_team'):

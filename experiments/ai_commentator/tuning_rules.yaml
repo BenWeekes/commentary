@@ -155,3 +155,34 @@ acceptance_record_cycle1:
     never a goal. Cards/penalties remain immediate (lower blast radius).
   implementation: code-gate in the R1 preempt + fixture R10 (auto)
   status: accepted   # cycle-1, trio-9 worst-of-3 2026-07-20
+
+- id: R11
+  source: "reviewer follow-up 2026-07-21: use pre-match naming forms AND kit colour
+    (e.g. 'the reds') for team-reference variety"
+  category: reference-variety
+  rule: >
+    Rotate team references among the APPROVED forms derived from pre-match data
+    (names, abbreviation-expansions, hosts/visitors, kit-colour forms). Never
+    the identical reference in consecutive lines about the same team; never an
+    invented nickname. Forms are reviewer-extendable here.
+  forms:
+    Mainz: [Mainz, FSV Mainz, the hosts, the home side, the reds]
+    Union: [Union, Union Berlin, the visitors, the away side, the men in green]
+  implementation: prompt rule (both stages) + runtime last-form avoid-note +
+    deterministic leading-form swap + fixture R11 (auto, earliest-position tagging)
+  status: accepted   # trio-12 worst-of-3 2026-07-21
+
+acceptance_record_cycle2:
+  verdict: ACCEPT (trio-12, worst-of-3, 2026-07-21)
+  survival_spread: [0.977, 0.957, 1.0]
+  hallucinations: [0, 0, 0]
+  fixtures_all_runs: all 10 automated fixtures green
+  also_hardened_in_this_cycle:
+    - FIX-A/B/D: priority-class events (goal/cards) speakable ONLY via the
+      corroborated priority block — normal path, deduped facts and the eager
+      WINDOW all strip them (the false goal tried three pathways; the R10
+      fixture caught every one)
+    - F12: parallel EN/FR TTS (~1s off every line's latency)
+    - BLEND_DELAY_S deployment knob + on-page fixed-delay badge
+    - vision-speed finding: original v1 config (mini, direct line) = 1.1-1.5s
+      vs 3.7s structured — two-lane hybrid is the routemap to a ~7s delay
