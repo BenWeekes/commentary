@@ -47,9 +47,8 @@ def snapshot(jsonl_path, skip_llm=False):
     }
     det_path = str(jsonl_path).replace('commentary_blend_live', 'vis_detections').replace('.jsonl', '.jsonl')
     det_path = det_path.replace('vis_detections_eager', 'vis_detections_eager')
-    snap['fixtures'] = run_fixtures(b, Path(str(jsonl_path)).parent /
-                                    ('vis_detections_eager.jsonl' if 'eager' in str(jsonl_path)
-                                     else 'vis_detections.jsonl'))
+    snap['fixtures'] = run_fixtures(b, Path(str(jsonl_path).replace(
+        'commentary_blend_live', 'vis_detections')))
     if not skip_llm:
         import judge as J
         from concurrent.futures import ThreadPoolExecutor

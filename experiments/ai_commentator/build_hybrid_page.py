@@ -35,8 +35,8 @@ def fmt(s):
 VIDS = [('original', 'original_with_human_commentary.mp4'),
         ('blend_en', 'blend_live_en_synced.mp4'),
         ('blend_fr', 'blend_live_fr_synced.mp4'),
-        ('eager_en', 'blend_eager_en_synced.mp4'),
-        ('eager_fr', 'blend_eager_fr_synced.mp4')]
+        ('eager_en', f'blend_eager_en{os.environ.get("BLEND_ARTIFACT_SUFFIX","")}_synced.mp4'),
+        ('eager_fr', f'blend_eager_fr{os.environ.get("BLEND_ARTIFACT_SUFFIX","")}_synced.mp4')]
 have = {}
 for name, src in VIDS:
     sp = BASE / src
@@ -91,13 +91,14 @@ trk = load(BASE / 'tracker_col.jsonl')         # C
 def _rep(name):
     f = BASE / name
     return json.loads(f.read_text()) if f.exists() else {}
-rep_e = _rep('latency_report_eager.json')
+ART = os.environ.get('BLEND_ARTIFACT_SUFFIX', '')   # '' or '_6s'
+rep_e = _rep(f'latency_report_eager{ART}.json')
 rep_s = _rep('latency_report.json')
 DELAY = rep_e.get('fixed_delay_s') or rep_s.get('fixed_delay_s') or 10.0
 SURV = rep_e.get('survival_rate')
 
 blend = load(BASE / 'commentary_blend_live.jsonl')
-eager = load(BASE / 'commentary_blend_live_eager.jsonl')
+eager = load(BASE / f'commentary_blend_live_eager{ART}.jsonl')
 
 items = []   # (t, col_index 0..4, cell_html)
 for r in son:

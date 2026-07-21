@@ -33,18 +33,21 @@ import run_events_detector as D     # call_vision, extract_json, validate_shape
 
 BASE = B.BASE
 BUFFER_S = float(os.environ.get('BLEND_DELAY_S', '10.0'))   # FIXED broadcast delay (deployment knob): every surviving line lands on the play
-STALE_S = BUFFER_S - 3.0   # drop-late: skip detections too old to clear chooser+TTS in time
-STT_LAG = 1.8              # Soniox finalize latency modelled on top of phrase end
+FAST_PROFILE = BUFFER_S <= 7.0
+# 6s fast profile: mini-structured vision (2.4s vs 5.5s) + guards for its known
+# weaknesses (team claims need tracker agreement; naming high-conf only)
+STALE_S = BUFFER_S - (2.4 if FAST_PROFILE else 3.0)
+STT_LAG = 1.5 if FAST_PROFILE else 1.8   # tighter finalize window at 6s; long phrases may drop
 TRK_LAG = 0.5              # tracker runs near-realtime, slightly behind
 VISION_WORKERS = 4   # 540p payloads are light; 4 workers halves burst-skip for brief events
-VISION_MODEL = 'gpt-5.6'
+VISION_MODEL = 'gpt-5.4-mini' if FAST_PROFILE else 'gpt-5.6'
 VISION_SCALE = '960:540'   # benchmark sweet spot: 3.9s median vs 6.3s at 720p, quality holds
 
 # ---- MODE: conservative (default) vs eager — same grounding rules, different pacing/style ----
 MODE = os.environ.get('BLEND_MODE', 'eager')   # R9 (accepted): eager is the default voice
 K = {'conservative': dict(lull=3.0, scene=40.0, event_regate=8.0, poss_gate=3.0, retreat=1.2),
      'eager':        dict(lull=2.0, scene=22.0, event_regate=6.0, poss_gate=2.2, retreat=0.8)}[MODE]
-SUFFIX = '' if MODE == 'conservative' else '_eager'
+SUFFIX = ('' if MODE == 'conservative' else '_eager') + ('_6s' if FAST_PROFILE else '')
 if MODE == 'eager':
     B.CHOOSER_SYSTEM += """
 
@@ -55,7 +58,9 @@ team name. Weave in brief colour (crowd, tension, the clock) sparingly. All fact
 come ONLY from the menu — the style is eager, the grounding is not."""
 
 # grounded opener from the verified scoreboard (76:50, M05 1-1 FCU) — no vision needed
-OPENER = ("Back underway at the Mewa Arena — Mainz and Union level at one apiece, "
+OPENER = ("Mainz and Union, level at one apiece — quarter of an hour to go."
+          if FAST_PROFILE else
+          "Back underway at the Mewa Arena — Mainz and Union level at one apiece, "
           "just over a quarter of an hour to play.")
 
 # ---- EAGER final stage: a COMMENTATOR, not a chooser ----------------------------
@@ -153,7 +158,7 @@ def eager_commentator(t_det, window, ttruth, recent_timed, bnames, received, avo
             f"- broadcaster just named: {', '.join(bnames) if bnames else '(nobody)'}\n"
             f"- AVOID VERBS: {', '.join(avoid) if avoid else '(none yet)'}\n"
             f"YOUR RECENT COMMENTARY:\n{rc}\nLine:")
-    model = EAGER_MODEL if age_s <= 5.0 else 'gpt-5.4-mini'   # protect the 10s window
+    model = 'gpt-5.4-mini' if (FAST_PROFILE or age_s > 5.0) else EAGER_MODEL
     try:
         r = B.client.responses.create(model=model, instructions=EAGER_SYSTEM,
                                       input=[{"role": "user", "content": user}],
@@ -223,6 +228,8 @@ VIS_STATS: list[int] = []   # every call's latency, ok or not
 
 
 def vision_worker(burst_paths, t_det, wall0):
+    if FAST_PROFILE:
+        D.MAX_OUTPUT_TOKENS = 300
     raw, ms, err = D.call_vision(B.client, VISION_MODEL, burst_paths, PROMPT)
     VIS_STATS.append(ms)
     if err:
@@ -278,6 +285,13 @@ def main():
     placed_end = 0.0                        # video-time where the last placed line's audio ends
 
     def place(rec, t_det, seen_to_decide, chooser_ms, est=3.0):
+        try:
+            _place_inner(rec, t_det, seen_to_decide, chooser_ms, est)
+        finally:
+            with write_cond:
+                in_flight.pop(id(rec), None); write_cond.notify_all()
+
+    def _place_inner(rec, t_det, seen_to_decide, chooser_ms, est=3.0):
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
         buffer. Sync policy: a line either lands on its play or is never heard."""
         t_tts0 = time.monotonic()
@@ -475,6 +489,10 @@ def main():
 
             # --- (2) vision-grounded line from the LATEST ARRIVED detection ---
             if t >= booth:
+                if FAST_PROFILE and any(-4.0 <= tt2 - t <= 2.5 and tt2 not in used_son
+                                        for tt2, _ in son_sorted):
+                    # a real phrase started recently / starts soon — keep its slot clear
+                    booth = t + 0.8; time.sleep(0.02); continue
                 with VIS_LOCK:
                     # stale-skip: never speak a detection too old to land within
                     # the buffer after chooser+TTS (~3s pipeline remainder)
@@ -495,6 +513,12 @@ def main():
                     # via the corroborated priority block — never through this path
                     if vsig.get('event') in PRIORITY_EVENTS:
                         vsig = {**vsig, 'event': None, 'event_team': None, 'event_conf': None}
+                    if FAST_PROFILE:
+                        trk_team = B.TEAM.get((trk_det.get('possession') or {}).get('team')) if trk_det else None
+                        if vsig.get('poss_team') and trk_team and vsig['poss_team'] != trk_team:
+                            vsig = {**vsig, 'poss_team': None, 'poss_player': None, 'poss_pos': None}
+                        if vsig.get('poss_player') and vsig.get('poss_conf') != 'high':
+                            vsig = {**vsig, 'poss_player': None, 'poss_pos': None}
                     vfact = B.fact_str(vsig)
                     if vsig.get('poss_team') and vfact:
                         lf = last_form_used.get(vsig['poss_team'])
@@ -553,24 +577,35 @@ def main():
                                     window.append((v['t_det'] - t_det, f))
                             recent_timed = [(l['video_time_s'], l['text']) for l in lines
                                             if not l.get('dropped')]
-                            fe = chooser_pool.submit(
-                                eager_commentator, t_det, window, ttruth, recent_timed,
-                                B.broadcaster_names_near(t_det), received,
-                                B.recent_verbs(recent), t - t_det)
-                            fm = chooser_pool.submit(
-                                B.chooser, t_det, None, vfact, ttruth, recent,
-                                B.broadcaster_names_near(t_det), B.vision_conf(vsig),
-                                received, scene)
-                            # budget: buffer minus age already spent, minus TTS+lag+margin
-                            budget = max(0.8, BUFFER_S - (t - t_det) - 2.5)
-                            try:
-                                line = fe.result(timeout=budget)
-                            except Exception:
-                                stage = 'safe_fallback'
+                            if FAST_PROFILE:
+                                # 6s: single fast MENU chooser (~1.0s) — the windowed
+                                # prompt costs +0.6s on mini and crowds the budget
+                                stage = 'fast'
                                 try:
-                                    line = fm.result(timeout=2.0)
+                                    line = B.chooser(t_det, None, vfact, ttruth, recent,
+                                                     B.broadcaster_names_near(t_det),
+                                                     B.vision_conf(vsig), received, scene)
                                 except Exception:
                                     line = 'NO_CALL'
+                            else:
+                                fe = chooser_pool.submit(
+                                    eager_commentator, t_det, window, ttruth, recent_timed,
+                                    B.broadcaster_names_near(t_det), received,
+                                    B.recent_verbs(recent), t - t_det)
+                                fm = chooser_pool.submit(
+                                    B.chooser, t_det, None, vfact, ttruth, recent,
+                                    B.broadcaster_names_near(t_det), B.vision_conf(vsig),
+                                    received, scene)
+                                # budget: buffer minus age already spent, minus TTS+lag+margin
+                                budget = max(0.8, BUFFER_S - (t - t_det) - 2.5)
+                                try:
+                                    line = fe.result(timeout=budget)
+                                except Exception:
+                                    stage = 'safe_fallback'
+                                    try:
+                                        line = fm.result(timeout=2.0)
+                                    except Exception:
+                                        line = 'NO_CALL'
                         else:
                             line = B.chooser(t_det, None, vfact, ttruth, recent,
                                              B.broadcaster_names_near(t_det),
