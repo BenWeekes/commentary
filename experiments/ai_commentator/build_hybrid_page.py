@@ -196,16 +196,22 @@ fetch('/blend_rounds').then(r=>r.json()).then(j=>{
   }
 }).catch(()=>{});
 const TAGS=['wrong fact','repetition','language','naming','timing','👍 good'];
-document.querySelectorAll('.row .cell').forEach((cell,idx)=>{
+const HEAD=[...document.querySelectorAll('.head>div')].slice(1).map(d=>d.textContent.trim());
+document.querySelectorAll('.row .cell').forEach((cell)=>{
   cell.classList.add('fb-target');
   cell.addEventListener('click', ev=>{
     if(ev.target.closest('.fbbox')) return;
     const open=cell.querySelector('.fbbox'); if(open){open.remove();return;}
     document.querySelectorAll('.fbbox').forEach(b=>b.remove());
     const row=cell.closest('.row'); const t=row?row.dataset.t:'?';
-    const col=[...row.children].indexOf(cell)-1;
+    // capture column + clean cell text NOW, before injecting the box
+    const cells=[...row.querySelectorAll('.cell')];
+    const col=cells.indexOf(cell);                    // 0-based among data columns
+    const colName=HEAD[col]||('col'+col);
+    const cellText=cell.innerText.slice(0,300);       // snapshot, box not yet added
     const box=document.createElement('div'); box.className='fbbox';
-    box.innerHTML=`<textarea placeholder='comment on this cell…'></textarea>
+    box.innerHTML=`<div style='font-size:10px;color:#7dd3fc;margin-bottom:4px'>${colName} @ ${t}s</div>
+      <textarea placeholder='comment on this cell…'></textarea>
       <div class='tags'>${TAGS.map(x=>`<span>${x}</span>`).join('')}</div>
       <div class='row2'><button class='add'>Add</button></div>`;
     box.querySelectorAll('.tags span').forEach(sp=>sp.addEventListener('click',()=>sp.classList.toggle('on')));
@@ -213,7 +219,7 @@ document.querySelectorAll('.row .cell').forEach((cell,idx)=>{
       const txt=box.querySelector('textarea').value.trim();
       const tags=[...box.querySelectorAll('.tags span.on')].map(x=>x.textContent);
       if(!txt&&!tags.length) return;
-      pending.push({t:parseFloat(t), col:col, cell_text:cell.innerText.slice(0,300), tags:tags, comment:txt});
+      pending.push({t:parseFloat(t), col:col, column:colName, cell_text:cellText, tags:tags, comment:txt});
       cell.classList.add('has-fb');
       document.getElementById('fbcnt').textContent=pending.length;
       box.remove();
