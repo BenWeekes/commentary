@@ -3,7 +3,8 @@
 Reviewer: Alex · Sheet: 2026-07-20 · Clip: Mainz vs Union (dev set)
 Contract: **every comment is either addressed by a GENERIC rule (with run evidence)
 or rejected with a stated reason.** Rules live in `experiments/ai_commentator/tuning_rules.yaml`;
-gate evidence in the acceptance-trio snapshots (`e1..e3.json`, committed).
+gate evidence in the committed acceptance-trio snapshots (`m1..m3.json` for the trio-9
+acceptance; `r1..r3.json` for the trio-12 R11 acceptance).
 
 | # | Time | Comment | Disposition | Rule | Evidence |
 |---|---|---|---|---|---|
