@@ -284,6 +284,23 @@ bar.querySelector('#fbtrigger').addEventListener('click',()=>{
 });
 """.replace('__FBV__', FEEDBACK_VERSION).replace('__PROF__', PROFILE).replace('__CLIP__', CLIP)
 
+# ---- left sidebar: how to review + live-timing note (beside the player) ----
+REVIEW_HELP = ("<div class='sbsec'><div class='sbh'>How to review</div>"
+  "<p>Click any cell to leave a comment. <b>📝</b> marks an unsent note — click it again to edit or "
+  "remove; <b>Esc</b> closes it; <b>👍 good</b> saves and closes in one click. Then press "
+  "<b>Submit feedback</b> in the bottom bar.</p>"
+  "<ul class='sbul'>"
+  "<li><b>English</b> — the commentary itself: is it accurate, well-worded, right in tone?</li>"
+  "<li><b>French / Portuguese</b> — the <i>translation</i> of that English line. If the commentary "
+  "itself is wrong, add that on the English column too.</li>"
+  "<li><b>STT · Vision · Tracker</b> — the input signals feeding the blend: mishears, wrong reads, "
+  "bad positions.</li>"
+  "</ul></div>") if FEEDBACK_VERSION else ""
+DELAY_HELP = ("<div class='sbsec sbtime'><div class='sbh'>Live timing</div>"
+  f"<p>⏱ Generated LIVE with a fixed <b>{DELAY:.0f}-second broadcast delay</b> — every line is spoken "
+  "about the moment on screen (on-play or dropped, never late)."
+  + (f" <b>{SURV*100:.0f}%</b> of candidate lines made the window this run." if SURV else "") + "</p></div>")
+
 doc = f"""<!DOCTYPE html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
 <title>AI live commentary — Mainz vs Union</title>
@@ -293,10 +310,17 @@ body{{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#0a0a0a;co
 h1{{font-size:18px}} .sub{{color:#8a8a8a;font-size:12.5px;margin:3px 0 10px;max-width:1100px}}
 .top{{position:sticky;top:0;background:#0a0a0a;z-index:6;padding-bottom:10px;border-bottom:1px solid #222}}
 video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#000}}
-.delaybar{{max-width:1060px;margin:0 auto 8px;padding:7px 12px;border:1px solid #14532d;background:#052e16;
-  color:#86efac;border-radius:6px;font-size:12.5px;text-align:center}}
-.delaybar b{{color:#4ade80}}
 .vidrow{{display:flex;gap:12px;justify-content:center;align-items:stretch;margin-bottom:8px;flex-wrap:wrap}}
+.sidebar{{width:300px;max-width:95vw;display:flex;flex-direction:column;gap:10px}}
+.sbsec{{border:1px solid #1f2937;background:#0e1420;border-radius:6px;padding:9px 11px;font-size:12px;color:#c8c8c8}}
+.sbtime{{border-color:#14532d;background:#052e16;color:#86efac}}
+.sbtime b{{color:#4ade80}}
+.sbh{{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#7dd3fc;margin-bottom:5px}}
+.sbtime .sbh{{color:#4ade80}}
+.sidebar p{{margin:0;line-height:1.5}}
+.sbul{{margin:6px 0 0;padding-left:15px;line-height:1.5}}
+.sbul li{{margin-bottom:4px}}
+.sbul b{{color:#e5e7eb}}
 .pmwrap{{display:flex;flex-direction:column;width:400px;max-width:95vw}}
 .pmh{{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#fbbf24;padding:2px 2px 6px}}
 .pmh .pmn{{color:#8a8a8a;text-transform:none;font-weight:500;letter-spacing:0}}
@@ -355,9 +379,8 @@ video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#00
   <b>Tracker</b> = objective on-pitch positions and shape. The blend fuses them into one spoken
   line, preferring real phrases and filling the gaps. Holes are where a signal stayed silent.
   Pick an audio track; click any row to seek.</p>
-  <div class='delaybar'>⏱ Generated LIVE with a fixed <b>{DELAY:.0f}-second broadcast delay</b> —
-  every line you hear is spoken about the moment on screen (on-play or dropped, never late){f" · {SURV*100:.0f}% of candidate lines made the window this run" if SURV else ''}.</div>
   <div class='vidrow'>
+    <div class='sidebar'>{REVIEW_HELP}{DELAY_HELP}</div>
     <video id='v' controls preload='metadata' src='{'./eager_en.mp4' if V4 else './blend_en.mp4'}'></video>
     <div class='pmwrap'>
       <div class='pmh'>Pre-match data <span class='pmn'>— advise on team/player naming variation</span></div>
