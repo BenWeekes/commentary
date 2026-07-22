@@ -41,6 +41,20 @@ Reviewers no longer use a spreadsheet. Feedback is captured **on the results pag
   internet-reachable, so treat the PIN as low-assurance (throttled, not brute-proof) —
   it gates *ordering*, not secrets.
 
+**Runtime & operations:**
+- The backend runs as a **systemd service** `blend-feedback.service`
+  (`ExecStart=.venv/bin/python submit_server.py`, `Restart=always`, `WantedBy=multi-user.target`)
+  — it survives reboots and auto-restarts if killed (verified: kill -9 → back in <3 s).
+  Manage with `systemctl status|restart blend-feedback`; logs at `/var/log/blend-feedback.log`.
+- **Trigger notification:** pressing "Close round" only writes `feedback/trigger_<version>.json`
+  — nothing runs the next cycle automatically. A file-watcher (`until ls feedback/trigger_*.json`)
+  is used to alert the operator when a round closes; the operator then starts the next cycle
+  by hand. The pipeline is never launched unattended.
+- **Endpoint contract** (all same-origin via nginx): `GET /blend_rounds` → round state;
+  `POST /blend_feedback {reviewer,version,items[]}` → 200 stored / 409 if round closed
+  (archived under `late/`); `POST /blend_trigger {version,pin,triggered_by}` → 403 wrong PIN,
+  409 unless `version==current` and open, 200 closes the round and writes the work order.
+
 **Roles:** the work (rule implementation + gating) is done on this box → **Codex CLI reviews**
 the change (`codex exec --sandbox read-only …`, see the review recipe at the end) → the URLs
 are shared in **Slack** for the three reviewers (Alex EN, Tiago PT, plus you) to comment on

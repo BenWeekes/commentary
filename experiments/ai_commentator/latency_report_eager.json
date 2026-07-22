@@ -5,24 +5,26 @@
   "vision_model": "gpt-5.6",
   "vision_scale": "960:540",
   "workers": 4,
-  "vision_calls": 188,
+  "vision_calls": 216,
   "vision_latency_s": {
-    "median": 5.42,
-    "p90": 8.95,
-    "max": 21.29
+    "median": 4.94,
+    "p90": 8.1,
+    "max": 21.32
   },
-  "lines_kept": 40,
+  "lines_kept": 42,
   "lines_dropped": 2,
-  "survival_rate": 0.952,
+  "survival_rate": 0.955,
   "kept_behind_live_s": {
-    "median": 7.85,
-    "p90": 8.76,
-    "max": 8.92
+    "median": 5.72,
+    "p90": 7.14,
+    "max": 8.63
   },
-  "audio_shifts": 9,
-  "max_audio_shift_s": 1.46,
+  "audio_shifts": 7,
+  "max_audio_shift_s": 1.39,
+  "fr_track_missing": 1,
+  "pt_track_missing": 1,
   "dropped_texts": [
-    "Back underway at the Mewa Arena \u2014 Mainz and Union level at one apiece, just over a quarter of an hour to play.",
-    "There it breaks down."
+    "The hosts keep possession, with numbers back behind the ball.",
+    "Crowd of defenders for Union."
   ]
 }
