@@ -236,14 +236,18 @@ document.querySelectorAll('.row .cell').forEach((cell)=>{
       box.querySelector('textarea').value=existing.comment||'';
       box.querySelectorAll('.tags span').forEach(sp=>{ if((existing.tags||[]).includes(sp.textContent)) sp.classList.add('on'); });
     }
-    box.querySelectorAll('.tags span').forEach(sp=>sp.addEventListener('click',()=>sp.classList.toggle('on')));
-    box.querySelector('.add').addEventListener('click',()=>{
+    const commit=()=>{
       const txt=box.querySelector('textarea').value.trim();
       const tags=[...box.querySelectorAll('.tags span.on')].map(x=>x.textContent);
       if(!txt&&!tags.length) return;
       pendingByCell.set(cell,{t:parseFloat(t), clip:CLIP, col:col, column:colName, profile:PROFILE, cell_text:cellText, tags:tags, comment:txt});
       mark(cell,'unsent'); refreshCount(); closeBoxes();
-    });
+    };
+    box.querySelectorAll('.tags span').forEach(sp=>sp.addEventListener('click',()=>{
+      if(sp.textContent==='👍 good'){ sp.classList.add('on'); commit(); return; }  // one click, no Add
+      sp.classList.toggle('on');
+    }));
+    box.querySelector('.add').addEventListener('click', commit);
     const del=box.querySelector('.del');
     if(del) del.addEventListener('click',()=>{ pendingByCell.delete(cell); mark(cell,null); refreshCount(); closeBoxes(); });
     cell.appendChild(box); box.querySelector('textarea').focus();
