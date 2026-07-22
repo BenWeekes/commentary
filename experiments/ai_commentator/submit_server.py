@@ -50,6 +50,51 @@ def load_rounds():
         return {"current": None, "rounds": {}}
 
 
+# Column -> where feedback on it routes in the build. Mirrors the on-page "How to review":
+# EN = the commentary; FR/PT = the translation of it; STT/Vision/Tracker = the input signals.
+ROUTING = {
+    'English':    'commentary content — chooser/writer prompt + content rules (R1-R6, R9, R10)',
+    'French':     'FR translation — football-French localizer + glossary (R7)',
+    'Portuguese': 'PT translation — Brazilian localizer + glossary',
+    'STT':        'input signal — ASR sanity/veto (R8); rarely a rule target',
+    'Vision':     'input signal — detector/vision prompt; perception limits are roadmap, not rules',
+    'Tracker':    'input signal — tracker corroboration (R10); positions are objective',
+}
+
+
+def digest_round(version):
+    """Group a round's comments by (profile, column) with the build-side routing target,
+    so the trigger work order is actionable along the same axes reviewers used."""
+    cf = FEEDBACK / version / 'comments.jsonl'
+    groups, total = {}, 0
+    if cf.exists():
+        for line in cf.open():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except Exception:
+                continue
+            for it in (rec.get('items') or []):
+                total += 1
+                prof = it.get('profile') or '?'
+                coln = it.get('column') or ('col' + str(it.get('col')))
+                key = f'{prof}|{coln}'
+                g = groups.setdefault(key, {
+                    'profile': prof, 'column': coln,
+                    'routes_to': ROUTING.get(coln, 'unclassified — operator to route'),
+                    'count': 0, 'positive': 0, 'comments': []})
+                g['count'] += 1
+                if '👍 good' in (it.get('tags') or []):
+                    g['positive'] += 1
+                g['comments'].append({'t': it.get('t'), 'clip': it.get('clip'),
+                                      'by': rec.get('reviewer'), 'tags': it.get('tags'),
+                                      'comment': it.get('comment')})
+    return {'total_items': total,
+            'groups': sorted(groups.values(), key=lambda g: (g['profile'], g['column']))}
+
+
 class H(BaseHTTPRequestHandler):
     def _send(self, code, obj):
         body = json.dumps(obj).encode()
@@ -156,12 +201,17 @@ class H(BaseHTTPRequestHandler):
                 tmp.write_text(json.dumps(rounds, indent=1)); os.replace(tmp, ROUNDS)
             cf = FEEDBACK / version / 'comments.jsonl'
             n = sum(1 for _ in open(cf)) if cf.exists() else 0
+            dg = digest_round(version)
             (FEEDBACK / f'trigger_{version}.json').write_text(json.dumps(
                 {'version': version, 'triggered_by': who, 'closed': rr['closed'],
-                 'submissions': n,
+                 'submissions': n, 'items': dg['total_items'],
+                 'by_profile_and_column': dg['groups'],
+                 'routing_note': 'each group lists routes_to = the pipeline target/rule family '
+                                 'per column (matches the on-page How to review); profile scopes '
+                                 'the change to the 6s or 10s pipeline.',
                  'work_order': 'distill feedback -> ledger candidates -> implement -> '
                                'gate (worst-of-3 + fixtures, all clips) -> dispositions '
-                               '-> publish next version'}, indent=1))
+                               '-> publish next version'}, indent=1, ensure_ascii=False))
             print(f"[trigger] {who} closed {version} ({n} submissions)")
             return self._send(200, {'ok': True, 'closed': version, 'submissions': n,
                                     'next': 'work order written; the next version will be built and announced'})

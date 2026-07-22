@@ -48,6 +48,24 @@ Reviewers no longer use a spreadsheet. Feedback is captured **on the results pag
   to git per round — it is the source material for the clip's permanent test cases. Do not
   `>`-truncate it; to drop a stray test entry, filter that one line out, never blank the file.
 
+**Column → build target routing** (what "How to review" on the page means downstream). On
+trigger, `submit_server.digest_round()` groups the round's comments by `(profile, column)` and
+stamps each group with `routes_to`, so the work order (`trigger_<version>.json`) is actionable
+along the same axes reviewers used — not just a raw comment dump:
+
+| Column | Reviewer reviews | Routes to (build side) |
+|---|---|---|
+| English | the commentary itself | chooser/writer prompt + content rules (R1–R6, R9, R10) |
+| French | the *translation* | football-French localizer + glossary (R7) |
+| Portuguese | the *translation* | Brazilian localizer + glossary |
+| STT | the input signal | ASR sanity/veto (R8); rarely a rule target |
+| Vision | the input signal | detector/vision prompt (perception limits are roadmap, not rules) |
+| Tracker | the input signal | tracker corroboration (R10); positions are objective |
+
+`profile` scopes a change to the 6s or 10s pipeline — a 6s-only timing complaint must not mutate
+the 10s build. The digest keeps `positive` (👍 good) counts so good lines are protected, not
+"fixed".
+
 **Per-clip regression corpus** (`clips.yaml`): every reviewed clip becomes a permanent test
 case. Its distilled feedback yields generic rules + deterministic fixtures tagged with the
 clip id, and `eval_snapshot.py` re-runs **all** clips' fixtures on every candidate build — a
