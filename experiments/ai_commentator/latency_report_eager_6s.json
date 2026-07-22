@@ -5,27 +5,25 @@
   "vision_model": "gpt-5.4-mini",
   "vision_scale": "960:540",
   "workers": 4,
-  "vision_calls": 389,
+  "vision_calls": 391,
   "vision_latency_s": {
-    "median": 2.6,
-    "p90": 3.9,
-    "max": 29.93
+    "median": 2.61,
+    "p90": 3.78,
+    "max": 13.84
   },
-  "lines_kept": 38,
-  "lines_dropped": 5,
-  "survival_rate": 0.884,
+  "lines_kept": 42,
+  "lines_dropped": 1,
+  "survival_rate": 0.977,
   "kept_behind_live_s": {
-    "median": 4.51,
-    "p90": 5.34,
-    "max": 5.9
+    "median": 3.17,
+    "p90": 4.24,
+    "max": 5.51
   },
   "audio_shifts": 5,
-  "max_audio_shift_s": 0.58,
+  "max_audio_shift_s": 1.15,
+  "fr_track_missing": 3,
+  "pt_track_missing": 1,
   "dropped_texts": [
-    "Here at the Mewa Arena.",
-    "Crowd of defenders for Union.",
-    "It's Jae-sung Lee and Amiri on the scene.",
-    "And here is the aforementioned Derrick Kohn.",
-    "Yeah, and again, just before seeing a good delivery from Amiri."
+    "Crowd of defenders for Union."
   ]
 }

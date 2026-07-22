@@ -44,6 +44,8 @@ def snapshot(jsonl_path, skip_llm=False):
         'max_gap_s': round(max(gaps), 1) if gaps else None,
         'gaps_ge_15s': sum(1 for g in gaps if g >= 15),
         'named_blend_lines': named,
+        'fr_track_missing': sum(1 for x in b if 'fr' in (x.get('lat', {}).get('missing_tracks') or [])),
+        'pt_track_missing': sum(1 for x in b if 'pt' in (x.get('lat', {}).get('missing_tracks') or [])),
     }
     det_path = str(jsonl_path).replace('commentary_blend_live', 'vis_detections').replace('.jsonl', '.jsonl')
     det_path = det_path.replace('vis_detections_eager', 'vis_detections_eager')
@@ -203,7 +205,7 @@ GUARDED = [   # (key, predicate on (baseline, candidate), description)
     ('desync_shifts_gt_1_5', lambda b, c: c == 0, 'no desync shifts'),
     ('first_line_s', lambda b, c: c is not None and c <= 2.0, 'first line within 2s'),
 ]
-WATCHED = ['words', 'gaps_ge_15s', 'max_gap_s', 'named_blend_lines',
+WATCHED = ['words', 'gaps_ge_15s', 'max_gap_s', 'named_blend_lines', 'fr_track_missing', 'pt_track_missing',
            'judge_realism', 'judge_variety', 'stt_lines', 'lines']
 
 

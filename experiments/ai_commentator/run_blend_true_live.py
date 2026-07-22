@@ -264,6 +264,7 @@ def main():
     wall0 = time.monotonic()
     pool = ThreadPoolExecutor(max_workers=VISION_WORKERS)
     chooser_pool = ThreadPoolExecutor(max_workers=4)   # eager hedge: 2 concurrent final stages
+    tts_pool = ThreadPoolExecutor(max_workers=12)      # per-line EN/FR/PT speech, best-effort
     inflight = threading.Semaphore(VISION_WORKERS)
 
     audio = {L: bytearray(int((B.DURATION_S + 30) * SR * 2)) for L in ('en', 'fr', 'pt')}
@@ -296,35 +297,59 @@ def main():
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
         buffer. Sync policy: a line either lands on its play or is never heard."""
         t_tts0 = time.monotonic()
-        res = {}
         def _en():
-            res['en'] = B.tts(rec['text'], B.EN_VOICE)
+            return B.tts(rec['text'], B.EN_VOICE)
         def _fr():
-            res['fr_text'] = B.translate_fr(rec['text'])
-            res['fr'] = B.tts(res['fr_text'], B.FR_VOICE)
+            txt = B.translate_fr(rec['text']); return txt, B.tts(txt, B.FR_VOICE)
         def _pt():
-            res['pt_text'] = B.translate_pt(rec['text'])
-            res['pt'] = B.tts(res['pt_text'], B.PT_VOICE)
-        ths = [threading.Thread(target=f) for f in (_en, _fr, _pt)]
-        for th in ths: th.start()
-        for th in ths: th.join(timeout=20)
-        en = res.get('en', b''); frp = res.get('fr', b''); ptp = res.get('pt', b'')
-        rec['fr'] = res.get('fr_text', ''); rec['pt'] = res.get('pt_text', '')
+            txt = B.translate_pt(rec['text']); return txt, B.tts(txt, B.PT_VOICE)
+        f_en = tts_pool.submit(_en); f_fr = tts_pool.submit(_fr); f_pt = tts_pool.submit(_pt)
+        # EN is the PRIMARY track and gates placement. FR/PT are best-effort within the
+        # remaining live budget - if they can't keep up they go SILENT for this line
+        # (logged), rather than delaying/dropping an otherwise-good line. This decouples
+        # survival from the slower two languages (fixes the 3-track latency tax) and never
+        # counts a line 'kept' with a mandatory track missing.
+        now_behind = (time.monotonic() - wall0) - t_det
+        en_deadline = max(0.3, BUFFER_S - now_behind - 0.2)
+        try:
+            en = f_en.result(timeout=en_deadline)
+        except Exception:
+            en = b''
+        behind = (time.monotonic() - wall0) - t_det          # measured at EN readiness
+        missing = []
+        grace = max(0.05, BUFFER_S - behind - 0.1)
+        def _side(fut, lang):
+            try:
+                txt, pcm = fut.result(timeout=grace); return txt, pcm
+            except Exception:
+                missing.append(lang); return '', b''
+        rec['fr'], frp = _side(f_fr, 'fr')
+        rec['pt'], ptp = _side(f_pt, 'pt')
         tts_ms = int((time.monotonic() - t_tts0) * 1000)
-        behind = (time.monotonic() - wall0) - t_det          # true live latency
         rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
                       'chooser_ms': chooser_ms, 'tts_ms': tts_ms,
-                      'behind_live_s': round(behind, 2)}
+                      'behind_live_s': round(behind, 2),
+                      'missing_tracks': missing}
+        if not en:                                            # no primary audio -> drop
+            rec['dropped'] = True
+            print(f"  [ drop ] ({rec['src']}) {rec['text']}   [EN TTS missed budget]")
+            with write_cond:
+                in_flight.pop(id(rec), None); write_cond.notify_all()
+            return
         # F11: commit writes in PLACEMENT order — a later-timed line must not raise
         # the floor before an earlier-timed line has written (completion-order race)
         tok = id(rec)
-        deadline = time.monotonic() + 8.0
+        deadline = time.monotonic() + 5.0
         with write_cond:
             while any(vp < t_det - 1e-6 for tk, vp in in_flight.items() if tk != tok):
                 if time.monotonic() > deadline:
-                    print(f"  [ warn ] write-order wait timed out for {rec['text'][:30]!r}")
-                    break
-                write_cond.wait(timeout=0.5)
+                    # an earlier-placed line is stuck; dropping THIS later line preserves
+                    # write order (never write out of sequence)
+                    rec['dropped'] = True
+                    print(f"  [ drop ] write-order stall; dropping later line {rec['text'][:30]!r}")
+                    in_flight.pop(id(rec), None); write_cond.notify_all()
+                    return
+                write_cond.wait(timeout=0.3)
         cap = int((est * 2.5 + 3.0) * SR) * 2   # F7: a TTS blob can never exceed its speech slot
         if len(en) > cap:
             print(f"  [ trunc ] EN audio {len(en)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
@@ -743,6 +768,8 @@ def main():
                                'p90': round(bl[int(len(bl)*0.9)], 2),
                                'max': round(bl[-1], 2)} if bl else None,
         'audio_shifts': len(shifts), 'max_audio_shift_s': max(shifts) if shifts else 0.0,
+        'fr_track_missing': sum(1 for l in kept if 'fr' in (l.get('lat', {}).get('missing_tracks') or [])),
+        'pt_track_missing': sum(1 for l in kept if 'pt' in (l.get('lat', {}).get('missing_tracks') or [])),
         'dropped_texts': [d['text'] for d in dropped],
     }
     (BASE / f'latency_report{SUFFIX}.json').write_text(json.dumps(rep, indent=2))
