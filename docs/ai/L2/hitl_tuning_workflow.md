@@ -6,7 +6,63 @@ works. This is the standing improvement process for the blended commentary syste
 it improves quality with the *current* inputs (STT + vision + tracker) — it is not the
 vehicle for new capabilities (e.g. ReID identity), which remain separate projects.
 
-Last reviewed: 2026-07-20.
+Last reviewed: 2026-07-22.
+
+---
+
+## On-page feedback system (v4, 2026-07-22) — Step 1 is now in the browser
+
+Reviewers no longer use a spreadsheet. Feedback is captured **on the results page itself**:
+
+- **Cell-level comments** — click any cell → inline box with a free-text comment and quick
+  tags (`wrong fact · repetition · language · naming · timing · 👍 good`). Each pins to
+  `(version, row-time, column)` plus a snapshot of the cell text, so it survives into the
+  next version and can be diffed against what replaced it. 👍 marks protect good lines from
+  over-correction.
+- **Bottom bar** — reviewer name (remembered in the browser), an unsent-comment counter, and
+  two deliberately-separated buttons:
+  - **Submit feedback** — any reviewer, any number of times, while the round is open.
+  - **Close round & trigger next version** — PIN-guarded, pressed by **one** operator; it
+    freezes the round and writes `feedback/trigger_<version>.json`, the work order for the
+    next cycle. It does **not** run the pipeline (that stays human-initiated).
+
+**Backend** (`submit_server.py`, 127.0.0.1:8091 behind nginx same-origin; routes
+`/blend_feedback`, `/blend_rounds`, `/blend_trigger`):
+- `feedback/rounds.json` is the round state machine (`{current, rounds:{v: {status}}}`).
+- Comments append to `feedback/<version>/comments.jsonl` (git-committed each round — the
+  feedback history now lives beside the rules it produced).
+- **Late-comment policy:** once the next round opens, posts to a closed round return 409 and
+  are archived under `feedback/<version>/late/` marked rejected — *not destroyed*; a good
+  late observation can be manually promoted. Rejection is about process ordering, not
+  information loss.
+- **Security** (post-Codex-review hardening): path-traversal-safe identifiers (no `.`), a
+  256 KB body cap, per-field length limits, constant-time PIN compare, atomic `rounds.json`
+  writes under a lock, and `version == current` enforcement on trigger. The endpoints are
+  internet-reachable, so treat the PIN as low-assurance (throttled, not brute-proof) —
+  it gates *ordering*, not secrets.
+
+**Roles:** the work (rule implementation + gating) is done on this box → **Codex CLI reviews**
+the change (`codex exec --sandbox read-only …`, see the review recipe at the end) → the URLs
+are shared in **Slack** for the three reviewers (Alex EN, Tiago PT, plus you) to comment on
+the page → one person triggers → repeat.
+
+## Languages & delay profiles (v4)
+
+- **Three languages** now render per line: **English**, **French** (football-French
+  localizer + R7 glossary), **Brazilian Portuguese** (`translate_pt` localizer + its own
+  seeded glossary + the production voice `HR2TRGmi4QbMsO5omv7l`). PT comments feed the PT
+  glossary exactly as Alex's fed the French one — Tiago owns that lane.
+- **Delay is a deployment knob** (`BLEND_DELAY_S`). Two published profiles:
+  - **10 s** (default): gpt-5.6 structured vision (~5.5 s), richest detection.
+  - **6 s fast profile** (`BUFFER_S ≤ 7`): mini-structured vision (~2.4 s, every burst
+    analyzed) with extra guards for mini's weaker calls — team claims require **tracker
+    agreement** (else location-only), player-naming **high-confidence only**, tighter STT
+    finalize window (some long phrases drop), single fast menu chooser (the hedge is wasted
+    at 6 s), STT-slot protection. More lines, faster reactions, plainer reads.
+- ⚠️ **Gate note (open item):** `fixed_delay_s`, vision model, and profile are recorded in
+  each snapshot but the gate does **not yet reject** a candidate compared across a different
+  profile. Until it does, a profile change requires a ledger amendment. Comparing a 6 s
+  candidate against a 10 s baseline is **not** a valid gate.
 
 ---
 

@@ -768,6 +768,28 @@ without a gate run as a direct human A/B result).
 
 ---
 
+## Round 8 — on-page feedback, Portuguese, and delay profiles (v4)
+
+**Status:** live. Review pages carry a browser-native feedback system and three languages.
+Full mechanics → [L2/hitl_tuning_workflow.md](../L2/hitl_tuning_workflow.md).
+
+- **On-page feedback** (`submit_server.py` + injected UI in `build_hybrid_page.py`):
+  click any cell to comment (tags + free text + 👍), a **Submit** button (any reviewer,
+  many times) and a **PIN-guarded trigger** (one operator closes the round → writes the
+  work order). Server-side round state machine (`feedback/rounds.json`); late comments to a
+  closed round are rejected-but-archived. Security-hardened after a Codex review
+  (path-safe ids, body cap, constant-time PIN, atomic writes, `version==current`).
+- **Brazilian Portuguese** added as a third live track (`translate_pt` localizer + glossary
+  + production voice) alongside EN/FR — Tiago's review lane.
+- **Delay profiles** via `BLEND_DELAY_S`: **10 s** (gpt-5.6 structured vision) and a **6 s
+  fast profile** (mini vision, tracker-corroborated team calls, high-conf naming). Published
+  side by side for comparison. Open item: the gate records but does not yet *reject* on a
+  profile mismatch — a profile change needs a ledger amendment for now.
+
+Review URLs (v4 round open): `blend_v4_10s/` and `blend_v4_6s/` on the sa-dev host.
+
+---
+
 ## Adding a new experiment
 
 When you run a new experiment:
