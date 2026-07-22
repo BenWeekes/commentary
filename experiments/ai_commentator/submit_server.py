@@ -1,26 +1,53 @@
 #!/usr/bin/env python3
-"""Tiny submission backend for the vision/tracker eval scoring page.
+"""Reviewer feedback backend for the blend pages (and the legacy tick-score UI).
 
-Receives POSTed reviewer scores and stores ONE file per reviewer (so several
-people can score the same clip and we aggregate). nginx proxies /vte_submit ->
-127.0.0.1:8091 so the page stays same-origin (no CORS / no extra open ports).
+Runs on 127.0.0.1:8091 behind nginx (same-origin; no CORS games, no open ports).
+
+Endpoints (nginx maps /vte_submit, /blend_feedback, /blend_rounds, /blend_trigger):
+  POST /submit          - legacy tick-score payloads (one file per reviewer)
+  POST /blend_feedback  - cell-level comments {reviewer, version, items:[...]}
+                          accepted only while that version's round is OPEN;
+                          late submissions -> 409 + stored under late/ (rejected,
+                          not destroyed - a good late comment can be promoted)
+  GET  /blend_rounds    - round state machine (which version is open)
+  POST /blend_trigger   - {version, pin, triggered_by}: PIN-guarded round close;
+                          writes trigger_<version>.json as the work order for the
+                          next tuning cycle. Exactly one person presses this.
 
 Run (persistent):
-  /home/ubuntu/commentary/.venv/bin/python submit_server.py
-Aggregate:
-  ls experiments/ai_commentator/vte_scores/*.json
+  nohup /home/ubuntu/commentary/.venv/bin/python submit_server.py &
 """
-import json, re, time
+import json, os, re, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-SCORES = Path('/home/ubuntu/commentary/experiments/ai_commentator/vte_scores')
+BASE = Path('/home/ubuntu/commentary/experiments/ai_commentator')
+SCORES = BASE / 'vte_scores'
+FEEDBACK = BASE / 'feedback'
+ROUNDS = FEEDBACK / 'rounds.json'
+PIN_FILE = FEEDBACK / 'pin.txt'
 SCORES.mkdir(parents=True, exist_ok=True)
+FEEDBACK.mkdir(parents=True, exist_ok=True)
 PORT = 8091
 
 
+import hmac, threading
+_LOCK = threading.Lock()          # MEDIUM: serialize round state + appends
+MAX_BODY = 256 * 1024             # HIGH: 256KB request cap
+
 def safe(name):
-    return re.sub(r'[^a-zA-Z0-9_-]', '_', (name or 'anon'))[:40] or 'anon'
+    v = re.sub(r'[^A-Za-z0-9_-]', '_', str(name or ''))[:64]   # no '.', so no '..'
+    return v or 'anon'
+
+def _under(path, root):           # HIGH: destination must stay under its root
+    return Path(os.path.realpath(path)).is_relative_to(os.path.realpath(root))
+
+
+def load_rounds():
+    try:
+        return json.loads(ROUNDS.read_text())
+    except Exception:
+        return {"current": None, "rounds": {}}
 
 
 class H(BaseHTTPRequestHandler):
@@ -28,38 +55,118 @@ class H(BaseHTTPRequestHandler):
         body = json.dumps(obj).encode()
         self.send_response(code)
         self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Content-Length', str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
-    def do_POST(self):
-        try:
-            n = int(self.headers.get('Content-Length', 0))
-            data = json.loads(self.rfile.read(n) or b'{}')
-        except Exception as e:
-            return self._send(400, {'ok': False, 'error': f'bad json: {e}'})
-        rev = safe(data.get('reviewer'))
-        test = safe(data.get('test', 'default'))
-        data['_received_at'] = time.time()
-        # one file per (test, reviewer) — latest wins — + append-only audit log
-        tdir = SCORES / test; tdir.mkdir(parents=True, exist_ok=True)
-        (tdir / f'{rev}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2))
-        with (SCORES / 'submissions.jsonl').open('a') as f:
-            f.write(json.dumps(data, ensure_ascii=False) + '\n')
-        ok = sum(1 for _ in (data.get('ticks') or {}))
-        print(f"[submit] reviewer={rev} ticks={ok}")
-        return self._send(200, {'ok': True, 'reviewer': rev, 'ticks': ok})
+    def _body(self):
+        n = int(self.headers.get('Content-Length', 0) or 0)
+        if n > MAX_BODY:
+            raise ValueError('body too large')
+        return json.loads(self.rfile.read(n) or b'{}')
 
     def do_GET(self):
-        # simple health / listing
+        if self.path.startswith('/blend_rounds'):
+            return self._send(200, load_rounds())
         revs = sorted(p.stem for p in SCORES.glob('*.json'))
         return self._send(200, {'ok': True, 'reviewers': revs})
+
+    def do_POST(self):
+        try:
+            data = self._body()
+        except Exception as e:
+            return self._send(400, {'ok': False, 'error': f'bad json: {e}'})
+
+        if self.path.startswith('/submit'):            # legacy tick-score UI
+            rev = safe(data.get('reviewer'))
+            test = safe(data.get('test', 'default'))
+            data['_received_at'] = time.time()
+            tdir = SCORES / test
+            tdir.mkdir(parents=True, exist_ok=True)
+            (tdir / f'{rev}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2))
+            with (SCORES / 'submissions.jsonl').open('a') as f:
+                f.write(json.dumps(data, ensure_ascii=False) + '\n')
+            return self._send(200, {'ok': True, 'reviewer': rev})
+
+        if self.path.startswith('/blend_feedback'):
+            version = safe(data.get('version', ''))
+            reviewer = safe(data.get('reviewer'))
+            items = data.get('items', [])
+            if not version or not isinstance(items, list) or not items:
+                return self._send(400, {'ok': False, 'error': 'version and items[] required'})
+            def _clean(it):
+                if not isinstance(it, dict): return None
+                return {'t': float(it.get('t', 0) or 0), 'col': int(it.get('col', -1) or -1),
+                        'cell_text': str(it.get('cell_text', ''))[:400],
+                        'tags': [str(x)[:24] for x in (it.get('tags') or [])][:8],
+                        'comment': str(it.get('comment', ''))[:1000]}
+            items = [c for c in (_clean(i) for i in items[:60]) if c]
+            if not items:
+                return self._send(400, {'ok': False, 'error': 'no valid items'})
+            rec = {'reviewer': reviewer, 'version': version,
+                   'ts': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                   'items': items}
+            with _LOCK:
+                rounds = load_rounds()
+                status = (rounds.get('rounds', {}).get(version) or {}).get('status')
+                if status == 'open':
+                    d = FEEDBACK / version; d.mkdir(parents=True, exist_ok=True)
+                    if not _under(d, FEEDBACK):
+                        return self._send(400, {'ok': False, 'error': 'bad version'})
+                    with (d / 'comments.jsonl').open('a') as f:
+                        f.write(json.dumps(rec, ensure_ascii=False) + '\n')
+                    print(f"[feedback] {reviewer} -> {version}: {len(items)} items")
+                    return self._send(200, {'ok': True, 'stored': len(items)})
+            d = FEEDBACK / version / 'late'
+            d.mkdir(parents=True, exist_ok=True)
+            with (d / 'comments.jsonl').open('a') as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + '\n')
+            return self._send(409, {'ok': False, 'error': f'round {version} is closed',
+                                    'hint': f"the open round is {load_rounds().get('current')}",
+                                    'stored': 'late/ (rejected, kept for the record)'})
+
+        if self.path.startswith('/blend_trigger'):
+            raw_version = data.get('version', '')          # validate BEFORE sanitizing
+            version = safe(raw_version)
+            pin = str(data.get('pin', '')).strip()
+            who = safe(data.get('triggered_by'))
+            try:
+                real_pin = PIN_FILE.read_text().strip()
+            except Exception:
+                return self._send(500, {'ok': False, 'error': 'pin not configured on server'})
+            if not pin or not hmac.compare_digest(pin, real_pin):   # constant-time
+                time.sleep(0.5)                                     # crude throttle
+                return self._send(403, {'ok': False, 'error': 'wrong PIN'})
+            with _LOCK:
+                rounds = load_rounds()
+                if raw_version != rounds.get('current'):
+                    return self._send(409, {'ok': False, 'error': 'can only close the current open round'})
+                rr = rounds.setdefault('rounds', {}).setdefault(version, {})
+                if rr.get('status') != 'open':
+                    return self._send(409, {'ok': False, 'error': f'round {version} is not open'})
+                rr['status'] = 'closed'
+                rr['closed'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                rr['triggered_by'] = who
+                tmp = ROUNDS.with_suffix('.tmp')
+                tmp.write_text(json.dumps(rounds, indent=1)); os.replace(tmp, ROUNDS)
+            cf = FEEDBACK / version / 'comments.jsonl'
+            n = sum(1 for _ in open(cf)) if cf.exists() else 0
+            (FEEDBACK / f'trigger_{version}.json').write_text(json.dumps(
+                {'version': version, 'triggered_by': who, 'closed': rr['closed'],
+                 'submissions': n,
+                 'work_order': 'distill feedback -> ledger candidates -> implement -> '
+                               'gate (worst-of-3 + fixtures, all clips) -> dispositions '
+                               '-> publish next version'}, indent=1))
+            print(f"[trigger] {who} closed {version} ({n} submissions)")
+            return self._send(200, {'ok': True, 'closed': version, 'submissions': n,
+                                    'next': 'work order written; the next version will be built and announced'})
+
+        return self._send(404, {'ok': False, 'error': 'not found'})
 
     def log_message(self, *a):
         pass
 
 
 if __name__ == '__main__':
-    print(f"submit_server on 127.0.0.1:{PORT} -> {SCORES}")
+    print(f'feedback server on 127.0.0.1:{PORT}')
     ThreadingHTTPServer(('127.0.0.1', PORT), H).serve_forever()

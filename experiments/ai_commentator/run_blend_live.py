@@ -244,6 +244,30 @@ def chooser(t, real_phrase, vfact, ttruth, recent, bnames=None, vconf=None, rece
         print(f"  chooser err: {e}"); return 'NO_CALL'
 
 FR_VOICE = 'LcKoSBj8CeBInl4bQHtq'
+PT_VOICE = 'HR2TRGmi4QbMsO5omv7l'   # production Brazilian voice (docs/ai/L1/04_conventions.md)
+TRANSLATE_PT_SYSTEM = (
+    "You are the Brazilian Portuguese LOCALIZER for live TV football commentary. "
+    "Rewrite the English line as a Brazilian football commentator would actually SAY it "
+    "on air - natural futebol register, not a literal translation. Same meaning, same "
+    "length or shorter. Keep player and team names exactly.\n\n"
+    "GLOSSARY (reviewer-maintained - preferred forms):\n"
+    "- final third -> 'ultimo terco' is NEVER said -> 'entrada da area' / 'campo de ataque'\n"
+    "- free kick -> 'falta' (cobranca de falta); corner -> 'escanteio'\n"
+    "- possession colour -> 'troca passes', 'toca a bola', 'cadencia o jogo'\n"
+    "- numbers back / compact -> 'fechada atras', 'retranca' (only when truly parked)\n"
+    "- quiet spell -> 'jogo morno' / 'momento de estudo'\n"
+    "- avoid European-PT forms; this is pt-BR broadcast speech.\n"
+    "If the English line is nonsensical as football speech, output the closest sensible "
+    "pt-BR football line rather than a literal rendering. Return only the Portuguese line.")
+
+
+def translate_pt(text):
+    try:
+        r = client.responses.create(model=CHOOSER_MODEL, instructions=TRANSLATE_PT_SYSTEM,
+                                    input=[{"role": "user", "content": text}], max_output_tokens=200)
+        return re.sub(r'\s+', ' ', (r.output_text or text).strip().strip('"')) or text
+    except Exception:
+        return text
 TRANSLATE_SYSTEM = ("Translate this live English football commentary line into natural, idiomatic "
                     "French TV-broadcast commentary. Same length or shorter. Keep player and team "
                     "names exactly. Return only the French line.")

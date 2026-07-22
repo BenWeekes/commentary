@@ -36,7 +36,8 @@ VIDS = [('original', 'original_with_human_commentary.mp4'),
         ('blend_en', 'blend_live_en_synced.mp4'),
         ('blend_fr', 'blend_live_fr_synced.mp4'),
         ('eager_en', f'blend_eager_en{os.environ.get("BLEND_ARTIFACT_SUFFIX","")}_synced.mp4'),
-        ('eager_fr', f'blend_eager_fr{os.environ.get("BLEND_ARTIFACT_SUFFIX","")}_synced.mp4')]
+        ('eager_fr', f'blend_eager_fr{os.environ.get("BLEND_ARTIFACT_SUFFIX","")}_synced.mp4'),
+        ('eager_pt', f'blend_eager_pt{os.environ.get("BLEND_ARTIFACT_SUFFIX","")}_synced.mp4')]
 have = {}
 for name, src in VIDS:
     sp = BASE / src
@@ -92,6 +93,8 @@ def _rep(name):
     f = BASE / name
     return json.loads(f.read_text()) if f.exists() else {}
 ART = os.environ.get('BLEND_ARTIFACT_SUFFIX', '')   # '' or '_6s'
+V4 = os.environ.get('PAGE_LAYOUT', '') == 'v4'        # EN/FR/PT, no legacy safe cols
+FEEDBACK_VERSION = os.environ.get('FEEDBACK_VERSION', '')   # e.g. 'v4' enables the UI
 rep_e = _rep(f'latency_report_eager{ART}.json')
 rep_s = _rep('latency_report.json')
 DELAY = rep_e.get('fixed_delay_s') or rep_s.get('fixed_delay_s') or 10.0
@@ -124,14 +127,29 @@ def add_blend(rows_src, col_en, col_fr):
         fr = r.get('fr') or ''
         if fr:
             items.append((t, col_fr, html.escape(fr)))
-add_blend(blend, 3, 5)
-add_blend(eager, 4, 6)
+if V4:
+    def add_v4(rows_src):
+        for r in rows_src:
+            if r.get('dropped'):
+                continue
+            t = float(r.get('video_time_s', 0))
+            items.append((t, 3, html.escape(r.get('text', ''))))
+            if r.get('fr'):
+                items.append((t, 4, html.escape(r['fr'])))
+            if r.get('pt'):
+                items.append((t, 5, html.escape(r['pt'])))
+    add_v4(eager)
+    NCOLS = 6
+else:
+    add_blend(blend, 3, 5)
+    add_blend(eager, 4, 6)
+    NCOLS = 7
 
 items.sort(key=lambda x: x[0])
 rows = []
 for t, col, cell in items:
     if not rows or t - rows[-1]['t0'] > ROW_MERGE_S:
-        rows.append({'t': t, 't0': t, 'cells': [[], [], [], [], [], [], []]})
+        rows.append({'t': t, 't0': t, 'cells': [[] for _ in range(NCOLS)]})
     rows[-1]['cells'][col].append(cell)
 
 def cell_html(cs):
@@ -139,15 +157,95 @@ def cell_html(cs):
 
 body = ""
 for row in rows:
-    tds = "".join(f"<div class='cell'>{cell_html(row['cells'][i])}</div>" for i in range(7))
+    tds = "".join(f"<div class='cell'>{cell_html(row['cells'][i])}</div>" for i in range(NCOLS))
     body += (f"<div class='row' data-t='{row['t']:.2f}'><div class='tc'>{fmt(row['t'])}</div>{tds}</div>")
 
 tabs = []
 if have.get('original'): tabs.append("<button data-src='./original.mp4'>Original broadcast</button>")
-tabs.append("<button data-src='./blend_en.mp4' class='active'>EN · safe</button>")
-if have.get('eager_en'): tabs.append("<button data-src='./eager_en.mp4'>EN · eager</button>")
-if have.get('blend_fr'): tabs.append("<button data-src='./blend_fr.mp4'>FR · safe</button>")
-if have.get('eager_fr'): tabs.append("<button data-src='./eager_fr.mp4'>FR · eager</button>")
+if V4:
+    tabs.append("<button data-src='./eager_en.mp4' class='active'>AI · English</button>")
+    if have.get('eager_fr'): tabs.append("<button data-src='./eager_fr.mp4'>AI · French</button>")
+    if have.get('eager_pt'): tabs.append("<button data-src='./eager_pt.mp4'>AI · Portuguese</button>")
+else:
+    tabs.append("<button data-src='./blend_en.mp4' class='active'>EN · safe</button>")
+    if have.get('eager_en'): tabs.append("<button data-src='./eager_en.mp4'>EN · eager</button>")
+    if have.get('blend_fr'): tabs.append("<button data-src='./blend_fr.mp4'>FR · safe</button>")
+    if have.get('eager_fr'): tabs.append("<button data-src='./eager_fr.mp4'>FR · eager</button>")
+
+FEEDBACK_JS = """
+// ---------------- cell-level reviewer feedback ----------------
+const FBV = '__FBV__';
+const pending = [];
+const bar = document.createElement('div'); bar.className='fbbar';
+bar.innerHTML = `<span>Reviewer:</span><input id='fbname' placeholder='your name'>
+ <span><span class='cnt' id='fbcnt'>0</span> unsent comments</span>
+ <button id='fbsubmit'>Submit feedback</button>
+ <button id='fbtrigger'>Close round & trigger next version</button>
+ <span id='fbstatus' style='color:#8a8a8a'></span>`;
+document.body.appendChild(bar);
+document.body.style.paddingBottom='54px';
+const nameEl = bar.querySelector('#fbname');
+nameEl.value = localStorage.getItem('fb_reviewer') || '';
+nameEl.addEventListener('change', ()=>localStorage.setItem('fb_reviewer', nameEl.value));
+fetch('/blend_rounds').then(r=>r.json()).then(j=>{
+  const st=(j.rounds&&j.rounds[FBV]||{}).status;
+  if(st!=='open'){
+    const d=document.createElement('div'); d.className='fbclosed';
+    d.textContent=`Round ${FBV} is CLOSED — comments here will be rejected. Open round: ${j.current}`;
+    document.querySelector('.top').appendChild(d);
+  }
+}).catch(()=>{});
+const TAGS=['wrong fact','repetition','language','naming','timing','👍 good'];
+document.querySelectorAll('.row .cell').forEach((cell,idx)=>{
+  cell.classList.add('fb-target');
+  cell.addEventListener('click', ev=>{
+    if(ev.target.closest('.fbbox')) return;
+    const open=cell.querySelector('.fbbox'); if(open){open.remove();return;}
+    document.querySelectorAll('.fbbox').forEach(b=>b.remove());
+    const row=cell.closest('.row'); const t=row?row.dataset.t:'?';
+    const col=[...row.children].indexOf(cell)-1;
+    const box=document.createElement('div'); box.className='fbbox';
+    box.innerHTML=`<textarea placeholder='comment on this cell…'></textarea>
+      <div class='tags'>${TAGS.map(x=>`<span>${x}</span>`).join('')}</div>
+      <div class='row2'><button class='add'>Add</button></div>`;
+    box.querySelectorAll('.tags span').forEach(sp=>sp.addEventListener('click',()=>sp.classList.toggle('on')));
+    box.querySelector('.add').addEventListener('click',()=>{
+      const txt=box.querySelector('textarea').value.trim();
+      const tags=[...box.querySelectorAll('.tags span.on')].map(x=>x.textContent);
+      if(!txt&&!tags.length) return;
+      pending.push({t:parseFloat(t), col:col, cell_text:cell.innerText.slice(0,300), tags:tags, comment:txt});
+      cell.classList.add('has-fb');
+      document.getElementById('fbcnt').textContent=pending.length;
+      box.remove();
+    });
+    cell.appendChild(box); box.querySelector('textarea').focus();
+    ev.stopPropagation();
+  });
+});
+bar.querySelector('#fbsubmit').addEventListener('click',()=>{
+  const who=nameEl.value.trim(); const st=document.getElementById('fbstatus');
+  if(!who){st.textContent='enter your name first';return;}
+  if(!pending.length){st.textContent='nothing to submit';return;}
+  fetch('/blend_feedback',{method:'POST',body:JSON.stringify({reviewer:who,version:FBV,items:pending})})
+    .then(r=>r.json().then(j=>({s:r.status,j})))
+    .then(({s,j})=>{ if(s===200){st.textContent=`✔ ${j.stored} comments submitted — thank you`;pending.length=0;
+                       document.getElementById('fbcnt').textContent='0';}
+                     else st.textContent=`✖ ${j.error||'failed'} ${j.hint||''}`; })
+    .catch(()=>st.textContent='✖ network error');
+});
+bar.querySelector('#fbtrigger').addEventListener('click',()=>{
+  const who=nameEl.value.trim(); const st=document.getElementById('fbstatus');
+  if(!who){st.textContent='enter your name first';return;}
+  if(pending.length){st.textContent='submit your comments first';return;}
+  if(!confirm(`Close review round ${FBV} and trigger the next version?\nOnly ONE person should do this.`)) return;
+  const pin=prompt('Trigger PIN:'); if(!pin) return;
+  fetch('/blend_trigger',{method:'POST',body:JSON.stringify({version:FBV,pin:pin,triggered_by:who})})
+    .then(r=>r.json().then(j=>({s:r.status,j})))
+    .then(({s,j})=>{ st.textContent = s===200? `✔ round ${FBV} closed (${j.submissions} submissions) — next version will be announced`
+                                             : `✖ ${j.error||'failed'}`; })
+    .catch(()=>st.textContent='✖ network error');
+});
+""".replace('__FBV__', FEEDBACK_VERSION)
 
 doc = f"""<!DOCTYPE html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
@@ -173,7 +271,7 @@ video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#00
 .tabs button.active{{background:#052e16;color:#4ade80;border-color:#166534}}
 .wrap{{margin-top:12px;border:1px solid #1f1f1f;border-radius:7px;overflow-x:auto}}
 .grid{{min-width:1240px}}
-.head,.row{{display:grid;grid-template-columns:50px repeat(7,1fr)}}
+.head,.row{{display:grid;grid-template-columns:50px repeat({NCOLS},1fr)}}
 .head{{position:sticky;top:0;background:#141414;z-index:2;border-bottom:1px solid #262626}}
 .head>div{{padding:8px 9px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}}
 .head .h0{{color:#666}} .head .hA{{color:#fbbf24}} .head .hB{{color:#a78bfa}} .head .hC{{color:#38bdf8}}
@@ -191,6 +289,23 @@ video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#00
 .cf{{display:inline-block;font-family:ui-monospace,monospace;font-size:9px;padding:0 4px;border-radius:7px;margin-right:5px;vertical-align:1px}}
 .cf.ahi{{background:#052e16;color:#4ade80}} .cf.amd{{background:#3a2e00;color:#fbbf24}}
 .cf.bhigh{{background:#052e16;color:#4ade80}} .cf.bmedium{{background:#3a2e00;color:#fbbf24}}
+.cell.fb-target:hover{{outline:1px dashed #4ade80;cursor:context-menu}}
+.cell.has-fb{{box-shadow:inset 3px 0 0 #fbbf24}}
+.fbbox{{margin-top:5px;background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:7px}}
+.fbbox textarea{{width:100%;min-height:44px;background:#0a0f18;color:#dbeafe;border:1px solid #1e3a5f;border-radius:4px;padding:5px;font-size:11.5px}}
+.fbbox .tags{{display:flex;gap:5px;flex-wrap:wrap;margin:5px 0}}
+.fbbox .tags span{{border:1px solid #334155;border-radius:10px;padding:1px 8px;font-size:10px;color:#94a3b8;cursor:pointer}}
+.fbbox .tags span.on{{background:#1e3a5f;color:#dbeafe;border-color:#3b82f6}}
+.fbbox .row2{{display:flex;gap:6px;justify-content:flex-end}}
+.fbbox button{{background:#1e3a5f;color:#dbeafe;border:0;border-radius:4px;padding:4px 12px;font-size:11px;cursor:pointer}}
+.fbbar{{position:fixed;bottom:0;left:0;right:0;background:#0d1420;border-top:1px solid #1e3a5f;z-index:20;
+       display:flex;gap:10px;align-items:center;justify-content:center;padding:8px;font-size:12.5px}}
+.fbbar input{{background:#0a0f18;color:#dbeafe;border:1px solid #1e3a5f;border-radius:4px;padding:5px 8px;font-size:12px;width:130px}}
+.fbbar .cnt{{color:#fbbf24;font-weight:700}}
+.fbbar button{{border:0;border-radius:5px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:600}}
+#fbsubmit{{background:#14532d;color:#86efac}}
+#fbtrigger{{background:#450a0a;color:#fca5a5}}
+.fbclosed{{background:#450a0a;color:#fca5a5;text-align:center;padding:6px;border-radius:6px;margin:8px auto;max-width:900px;font-size:12.5px}}
 </style></head><body>
 <div class='top'>
   <h1>AI live commentary — Mainz vs Union Berlin{(' · ' + VERSION) if VERSION else ''}</h1>
@@ -203,7 +318,7 @@ video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#00
   <div class='delaybar'>⏱ Generated LIVE with a fixed <b>{DELAY:.0f}-second broadcast delay</b> —
   every line you hear is spoken about the moment on screen (on-play or dropped, never late){f" · {SURV*100:.0f}% of candidate lines made the window this run" if SURV else ''}.</div>
   <div class='vidrow'>
-    <video id='v' controls preload='metadata' src='./blend_en.mp4'></video>
+    <video id='v' controls preload='metadata' src='{'./eager_en.mp4' if V4 else './blend_en.mp4'}'></video>
     <div class='pmwrap'>
       <div class='pmh'>Pre-match data <span class='pmn'>— advise on team/player naming variation</span></div>
       <textarea class='pm' readonly spellcheck='false'>{html.escape(prematch_text())}</textarea>
@@ -212,7 +327,7 @@ video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#00
   <div class='tabs'>{''.join(tabs)}</div>
 </div>
 <div class='wrap'><div class='grid'>
-  <div class='head'><div class='h0'>time</div><div class='hA'>STT</div><div class='hB'>Vision</div><div class='hC'>Tracker</div><div class='hEN'>EN · safe</div><div class='hEN'>EN · eager</div><div class='hFR'>FR · safe</div><div class='hFR'>FR · eager</div></div>
+  {"<div class='head'><div class='h0'>time</div><div class='hA'>STT</div><div class='hB'>Vision</div><div class='hC'>Tracker</div><div class='hEN'>English</div><div class='hFR'>French</div><div class='hFR'>Portuguese</div></div>" if V4 else "<div class='head'><div class='h0'>time</div><div class='hA'>STT</div><div class='hB'>Vision</div><div class='hC'>Tracker</div><div class='hEN'>EN · safe</div><div class='hEN'>EN · eager</div><div class='hFR'>FR · safe</div><div class='hFR'>FR · eager</div></div>"}
   <div class='scroll' id='sc'>{body}</div>
 </div></div>
 <script>
@@ -231,6 +346,8 @@ v.addEventListener('timeupdate',()=>{{const t=v.currentTime; let a=null;
     const rt=a.getBoundingClientRect(), st=sc.getBoundingClientRect();
     if(rt.top<st.top+40||rt.bottom>st.bottom-20) a.scrollIntoView({{block:'center',behavior:'smooth'}});}}
     cur=a;}}}});
+
+{FEEDBACK_JS if FEEDBACK_VERSION else ''}
 </script></body></html>"""
 (ROOT / 'index.html').write_text(doc)
 print(f"wrote {ROOT/'index.html'}  rows={len(rows)}  A={len(son)} B={len(oai)} C={len(trk)} "

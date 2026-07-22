@@ -25,8 +25,8 @@ def snapshot(jsonl_path, skip_llm=False):
                key=lambda x: x['video_time_s'])
     ts = [x['video_time_s'] for x in b]
     gaps = [ts[i + 1] - ts[i] for i in range(len(ts) - 1)]
-    rep_file = BASE / ('latency_report_eager.json' if 'eager' in str(jsonl_path)
-                       else 'latency_report.json')
+    rep_file = Path(str(jsonl_path).replace('commentary_blend_live', 'latency_report')
+                    .replace('.jsonl', '.json'))
     rep = json.loads(rep_file.read_text()) if rep_file.exists() else {}
     sr = json.load(open('/home/ubuntu/commentary/match_data/m05_uni_md33/sr_cache.json'))
     sur = {p['name'].split(',')[0].strip() for c in sr['lineups']['lineups']['competitors']
@@ -231,15 +231,18 @@ def compare(base, cands):
         print(f"{k:24s} {str(bv):>10s} {str(cv):>12s}  {'PASS' if ok else 'FAIL — ' + desc}{spread}")
         if not ok:
             verdict = 'REJECT'
-    print('--- per-rule fixtures (must pass in ALL runs) ---')
-    rules = sorted({r for c in cands for r in c.get('fixtures', {})})
+    print('--- per-rule fixtures (auto: must be True in ALL runs; manual: reviewer-checked) ---')
+    AUTO = {'R1','R1b','R2','R3','R4','R7','R10','R11'}
+    rules = sorted({r for c in cands for r in c.get('fixtures', {})} | AUTO)
     for r in rules:
         vals = [c.get('fixtures', {}).get(r) for c in cands]
-        if any(v is False for v in vals):
-            verdict = 'REJECT'
-            print(f"{r:24s} {'FAIL':>10s}  {vals}")
+        if r in AUTO:
+            ok = all(v is True for v in vals)          # fail-closed: missing/skip -> FAIL
+            if not ok:
+                verdict = 'REJECT'
+            print(f"{r:24s} {('PASS' if ok else 'FAIL'):>10s}  {vals}")
         else:
-            print(f"{r:24s} {str(vals[0]):>10s}")
+            print(f"{r:24s} {str(vals[0]):>10s}   (manual)")
     print('--- watched (no gate, report only) ---')
     for k in WATCHED:
         vals = [c.get(k) for c in cands]

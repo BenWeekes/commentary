@@ -208,7 +208,9 @@ def prewarm():
     sample = sorted((BASE / 'frames').glob('f_*.jpg'))[:4]
     ths = [threading.Thread(target=lambda: B.tts('Ready.', B.EN_VOICE)),
            threading.Thread(target=lambda: B.tts('Prêt.', B.FR_VOICE)),
-           threading.Thread(target=lambda: B.translate_fr('Ready to go.'))]
+           threading.Thread(target=lambda: B.translate_fr('Ready to go.')),
+           threading.Thread(target=lambda: B.tts('Pronto.', B.PT_VOICE)),
+           threading.Thread(target=lambda: B.translate_pt('Ready to go.'))]
     # R8 with zero in-loop latency: pre-vet every pool phrase now (parallel, cached)
     for _, r in B.SON:
         ths.append(threading.Thread(target=stt_sane, args=(r['text'], 'the current play')))
@@ -264,9 +266,8 @@ def main():
     chooser_pool = ThreadPoolExecutor(max_workers=4)   # eager hedge: 2 concurrent final stages
     inflight = threading.Semaphore(VISION_WORKERS)
 
-    audio = {'en': bytearray(int((B.DURATION_S + 30) * SR * 2)),
-             'fr': bytearray(int((B.DURATION_S + 30) * SR * 2))}
-    audio_end = {'en': 0, 'fr': 0}          # last written byte — no-clobber floor
+    audio = {L: bytearray(int((B.DURATION_S + 30) * SR * 2)) for L in ('en', 'fr', 'pt')}
+    audio_end = {'en': 0, 'fr': 0, 'pt': 0}          # last written byte — no-clobber floor
     audio_lock = threading.Lock()
     write_cond = threading.Condition()
     in_flight = {}                          # token -> v_place; writes commit in v_place order
@@ -301,10 +302,14 @@ def main():
         def _fr():
             res['fr_text'] = B.translate_fr(rec['text'])
             res['fr'] = B.tts(res['fr_text'], B.FR_VOICE)
-        th_en = threading.Thread(target=_en); th_fr = threading.Thread(target=_fr)
-        th_en.start(); th_fr.start(); th_en.join(timeout=20); th_fr.join(timeout=20)
-        en = res.get('en', b''); frp = res.get('fr', b'')
-        rec['fr'] = res.get('fr_text', '')
+        def _pt():
+            res['pt_text'] = B.translate_pt(rec['text'])
+            res['pt'] = B.tts(res['pt_text'], B.PT_VOICE)
+        ths = [threading.Thread(target=f) for f in (_en, _fr, _pt)]
+        for th in ths: th.start()
+        for th in ths: th.join(timeout=20)
+        en = res.get('en', b''); frp = res.get('fr', b''); ptp = res.get('pt', b'')
+        rec['fr'] = res.get('fr_text', ''); rec['pt'] = res.get('pt_text', '')
         tts_ms = int((time.monotonic() - t_tts0) * 1000)
         behind = (time.monotonic() - wall0) - t_det          # true live latency
         rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
@@ -327,6 +332,9 @@ def main():
         if len(frp) > cap:
             print(f"  [ trunc ] FR audio {len(frp)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
             frp = frp[:cap]
+        if len(ptp) > cap:
+            print(f"  [ trunc ] PT audio {len(ptp)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
+            ptp = ptp[:cap]
         rec['lat']['audio_s'] = round(len(en) / (SR * 2), 2)
         rec['lat']['audio_fr_s'] = round(len(frp) / (SR * 2), 2)
         if behind > BUFFER_S:                                 # DROP, never slip
@@ -342,7 +350,7 @@ def main():
             # drop it (also stops one bad write from cascading down the whole track)
             bases = {}
             shift = 0.0
-            for lang in ('en', 'fr'):
+            for lang in ('en', 'fr', 'pt'):
                 b = int((v_place + B.NATURAL_LAG_S) * SR) * 2
                 b -= b % 2
                 bases[lang] = b
@@ -354,7 +362,7 @@ def main():
                 with write_cond:
                     in_flight.pop(id(rec), None); write_cond.notify_all()
                 return
-            for lang, pcm in (('en', en), ('fr', frp)):
+            for lang, pcm in (('en', en), ('fr', frp), ('pt', ptp)):
                 b = max(bases[lang], audio_end[lang]); b -= b % 2
                 u = min(len(pcm), len(audio[lang]) - b)
                 if u > 0:
@@ -701,7 +709,7 @@ def main():
                 p.kill()
     pool.shutdown(wait=True)
     time.sleep(7.0)   # drain TTS threads
-    for lang in ('en', 'fr'):
+    for lang in ('en', 'fr', 'pt'):
         with wave.open(str(BASE / f'ai_blend_live_{lang}{SUFFIX}_track.wav'), 'wb') as w:
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
             w.writeframes(bytes(audio[lang][:int(B.DURATION_S * SR * 2)]))

@@ -5,21 +5,24 @@
   "vision_model": "gpt-5.6",
   "vision_scale": "960:540",
   "workers": 4,
-  "vision_calls": 221,
+  "vision_calls": 188,
   "vision_latency_s": {
-    "median": 4.5,
-    "p90": 7.34,
-    "max": 21.85
+    "median": 5.42,
+    "p90": 8.95,
+    "max": 21.29
   },
   "lines_kept": 40,
-  "lines_dropped": 0,
-  "survival_rate": 1.0,
+  "lines_dropped": 2,
+  "survival_rate": 0.952,
   "kept_behind_live_s": {
-    "median": 6.9,
-    "p90": 8.35,
-    "max": 8.89
+    "median": 7.85,
+    "p90": 8.76,
+    "max": 8.92
   },
-  "audio_shifts": 1,
-  "max_audio_shift_s": 0.44,
-  "dropped_texts": []
+  "audio_shifts": 9,
+  "max_audio_shift_s": 1.46,
+  "dropped_texts": [
+    "Back underway at the Mewa Arena \u2014 Mainz and Union level at one apiece, just over a quarter of an hour to play.",
+    "There it breaks down."
+  ]
 }

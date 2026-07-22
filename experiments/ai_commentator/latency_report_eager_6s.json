@@ -5,24 +5,27 @@
   "vision_model": "gpt-5.4-mini",
   "vision_scale": "960:540",
   "workers": 4,
-  "vision_calls": 453,
+  "vision_calls": 389,
   "vision_latency_s": {
-    "median": 2.12,
-    "p90": 3.14,
-    "max": 6.77
+    "median": 2.6,
+    "p90": 3.9,
+    "max": 29.93
   },
-  "lines_kept": 46,
-  "lines_dropped": 2,
-  "survival_rate": 0.958,
+  "lines_kept": 38,
+  "lines_dropped": 5,
+  "survival_rate": 0.884,
   "kept_behind_live_s": {
-    "median": 4.23,
-    "p90": 5.68,
-    "max": 5.96
+    "median": 4.51,
+    "p90": 5.34,
+    "max": 5.9
   },
-  "audio_shifts": 2,
-  "max_audio_shift_s": 0.49,
+  "audio_shifts": 5,
+  "max_audio_shift_s": 0.58,
   "dropped_texts": [
-    "Mainz free kick in midfield, Union set.",
+    "Here at the Mewa Arena.",
+    "Crowd of defenders for Union.",
+    "It's Jae-sung Lee and Amiri on the scene.",
+    "And here is the aforementioned Derrick Kohn.",
     "Yeah, and again, just before seeing a good delivery from Amiri."
   ]
 }
