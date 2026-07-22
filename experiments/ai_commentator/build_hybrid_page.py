@@ -249,6 +249,9 @@ document.querySelectorAll('.row .cell').forEach((cell)=>{
     cell.appendChild(box); box.querySelector('textarea').focus();
   });
 });
+document.addEventListener('keydown', ev=>{           // Esc exits an open review box (no save)
+  if(ev.key==='Escape' && document.querySelector('.fbbox')){ ev.preventDefault(); closeBoxes(); }
+});
 bar.querySelector('#fbsubmit').addEventListener('click',()=>{
   const who=nameEl.value.trim(); const st=document.getElementById('fbstatus');
   if(!who){st.textContent='enter your name first';return;}
