@@ -94,12 +94,14 @@ class H(BaseHTTPRequestHandler):
             items = data.get('items', [])
             if not version or not isinstance(items, list) or not items:
                 return self._send(400, {'ok': False, 'error': 'version and items[] required'})
+            def _str(v, n):                       # only real strings; missing/objects -> ''
+                return v[:n] if isinstance(v, str) else ''
             def _clean(it):
                 if not isinstance(it, dict): return None
                 return {'t': float(it.get('t', 0) or 0), 'col': int(it.get('col', -1) or -1),
-                        'column': str(it.get('column', ''))[:32],
-                        'profile': str(it.get('profile', ''))[:8],
-                        'clip': str(it.get('clip', ''))[:48],
+                        'column': _str(it.get('column'), 32),
+                        'profile': _str(it.get('profile'), 8),
+                        'clip': _str(it.get('clip'), 48),
                         'cell_text': str(it.get('cell_text', ''))[:400],
                         'tags': [str(x)[:24] for x in (it.get('tags') or [])][:8],
                         'comment': str(it.get('comment', ''))[:1000]}

@@ -94,9 +94,10 @@ def _rep(name):
     return json.loads(f.read_text()) if f.exists() else {}
 ART = os.environ.get('BLEND_ARTIFACT_SUFFIX', '')   # '' or '_6s'
 V4 = os.environ.get('PAGE_LAYOUT', '') == 'v4'        # EN/FR/PT, no legacy safe cols
-FEEDBACK_VERSION = os.environ.get('FEEDBACK_VERSION', '')   # e.g. 'v4' enables the UI
-PROFILE = '6s' if '6s' in (VERSION + ART) else '10s'        # which broadcast-delay page
-CLIP = os.environ.get('CLIP_ID', 'mainz_union_md33_76-81')  # per-clip regression corpus key
+_slug = lambda s, n=48: (''.join(c for c in str(s) if c.isalnum() or c in '_-')[:n])  # JS-literal safe
+FEEDBACK_VERSION = _slug(os.environ.get('FEEDBACK_VERSION', ''), 24)   # e.g. 'v4' enables the UI
+PROFILE = '6s' if '6s' in (VERSION + ART) else '10s'                   # which broadcast-delay page
+CLIP = _slug(os.environ.get('CLIP_ID', 'mainz_union_md33_76-81')) or 'clip'  # per-clip corpus key
 rep_e = _rep(f'latency_report_eager{ART}.json')
 rep_s = _rep('latency_report.json')
 DELAY = rep_e.get('fixed_delay_s') or rep_s.get('fixed_delay_s') or 10.0
@@ -251,12 +252,14 @@ document.querySelectorAll('.row .cell').forEach((cell)=>{
 bar.querySelector('#fbsubmit').addEventListener('click',()=>{
   const who=nameEl.value.trim(); const st=document.getElementById('fbstatus');
   if(!who){st.textContent='enter your name first';return;}
-  const cellsSent=[...pendingByCell.keys()]; const items=[...pendingByCell.values()];
+  const snap=new Map(pendingByCell);                 // freeze what we send
+  const cellsSent=[...snap.keys()]; const items=[...snap.values()];
   if(!items.length){st.textContent='nothing to submit';return;}
   fetch('/blend_feedback',{method:'POST',body:JSON.stringify({reviewer:who,version:FBV,profile:PROFILE,clip:CLIP,items})})
     .then(r=>r.json().then(j=>({s:r.status,j})))
     .then(({s,j})=>{ if(s===200){st.textContent=`✔ ${j.stored} comments submitted — thank you`;
-                       cellsSent.forEach(c=>mark(c,'sent')); pendingByCell.clear(); refreshCount();}
+                       cellsSent.forEach(c=>{ if(pendingByCell.get(c)===snap.get(c)){ mark(c,'sent'); pendingByCell.delete(c); } });
+                       refreshCount();}
                      else st.textContent=`✖ ${j.error||'failed'} ${j.hint||''}`; })
     .catch(()=>st.textContent='✖ network error');
 });
