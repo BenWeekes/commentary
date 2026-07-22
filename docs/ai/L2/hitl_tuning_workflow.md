@@ -16,9 +16,18 @@ Reviewers no longer use a spreadsheet. Feedback is captured **on the results pag
 
 - **Cell-level comments** — click any cell → inline box with a free-text comment and quick
   tags (`wrong fact · repetition · language · naming · timing · 👍 good`). Each pins to
-  `(version, row-time, column)` plus a snapshot of the cell text, so it survives into the
-  next version and can be diffed against what replaced it. 👍 marks protect good lines from
-  over-correction.
+  `(clip, version, profile, row-time, column)` plus a snapshot of the cell text, so it
+  survives into the next version and can be diffed against what replaced it. 👍 marks protect
+  good lines from over-correction.
+  - **`profile`** (`6s` / `10s`) records *which delay page* the comment was made on — the two
+    pages are reviewed in parallel, so without it a comment is untraceable. **`clip`** keys the
+    comment to its match segment for the per-clip corpus (below).
+  - **Editable before submit** — a commented cell shows a 📝 icon; click it again to edit or
+    **Remove** the pending comment. After Submit the icon turns to a green ✓. Nothing is sent
+    until you press Submit.
+  - **No scroll-fighting** — auto-follow freezes while a comment box is open, and any manual
+    scroll (wheel/touch) pauses auto-follow for 6 s, so you can read and comment without the
+    playhead yanking the grid.
 - **Bottom bar** — reviewer name (remembered in the browser), an unsent-comment counter, and
   two deliberately-separated buttons:
   - **Submit feedback** — any reviewer, any number of times, while the round is open.
@@ -35,6 +44,15 @@ Reviewers no longer use a spreadsheet. Feedback is captured **on the results pag
   are archived under `feedback/<version>/late/` marked rejected — *not destroyed*; a good
   late observation can be manually promoted. Rejection is about process ordering, not
   information loss.
+- **Feedback is never deleted or truncated.** `comments.jsonl` is append-only and committed
+  to git per round — it is the source material for the clip's permanent test cases. Do not
+  `>`-truncate it; to drop a stray test entry, filter that one line out, never blank the file.
+
+**Per-clip regression corpus** (`clips.yaml`): every reviewed clip becomes a permanent test
+case. Its distilled feedback yields generic rules + deterministic fixtures tagged with the
+clip id, and `eval_snapshot.py` re-runs **all** clips' fixtures on every candidate build — a
+fix for one clip can never silently regress another. Add a clip by giving it an id in
+`clips.yaml` and running the pipeline with `CLIP_ID=<id>`; clips are never removed.
 - **Security** (post-Codex-review hardening): path-traversal-safe identifiers (no `.`), a
   256 KB body cap, per-field length limits, constant-time PIN compare, atomic `rounds.json`
   writes under a lock, and `version == current` enforcement on trigger. The endpoints are

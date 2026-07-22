@@ -97,6 +97,9 @@ class H(BaseHTTPRequestHandler):
             def _clean(it):
                 if not isinstance(it, dict): return None
                 return {'t': float(it.get('t', 0) or 0), 'col': int(it.get('col', -1) or -1),
+                        'column': str(it.get('column', ''))[:32],
+                        'profile': str(it.get('profile', ''))[:8],
+                        'clip': str(it.get('clip', ''))[:48],
                         'cell_text': str(it.get('cell_text', ''))[:400],
                         'tags': [str(x)[:24] for x in (it.get('tags') or [])][:8],
                         'comment': str(it.get('comment', ''))[:1000]}

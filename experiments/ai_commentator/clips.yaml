@@ -1,0 +1,33 @@
+# Reviewed-clip regression corpus
+# -------------------------------------------------------------------
+# Every clip that reviewers sign off on becomes a PERMANENT test case.
+# On any change we re-run the full gate against ALL clips listed here,
+# so a fix for clip B can never silently regress clip A.
+#
+# Lifecycle per clip:
+#   1. Build the review page(s) for the clip (CLIP_ID baked into the page).
+#   2. Reviewers leave cell-level feedback -> feedback/<round>/comments.jsonl
+#      (append-only, committed to git per round; NEVER truncated).
+#   3. Feedback is distilled into GENERIC rules + per-rule deterministic
+#      fixtures tagged with this clip id (see tuning_rules.yaml).
+#   4. eval_snapshot.py runs every clip's fixtures on every candidate build.
+#      A build ships only if it passes the worst-of-N gate on ALL clips.
+#
+# To add a clip: give it an id here, run the pipeline with CLIP_ID=<id>,
+# collect a review round, then append its fixtures. Do not remove clips.
+
+clips:
+  - id: mainz_union_md33_76-81
+    match: Mainz 05 vs Union Berlin
+    competition: Bundesliga MD33
+    segment: 2nd half ~76:00-81:00 (5-min slice)
+    score_at_start: "1-1"
+    source_video: (dev set)
+    review_rounds: [v1, v2, v3, v4]      # rounds whose comments.jsonl belong to this clip
+    fixtures: R1,R1b,R2,R3,R4,R7,R10,R11 # deterministic guards derived from this clip
+    status: under_review                  # under_review -> accepted once a round closes clean
+    notes: >
+      First clip. Two broadcast-delay profiles reviewed in parallel:
+      10s (structured vision) and 6s (fast profile). Feedback records
+      `profile` (6s/10s) so a comment is always traceable to the page it
+      was made on.

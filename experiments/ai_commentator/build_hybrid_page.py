@@ -95,6 +95,8 @@ def _rep(name):
 ART = os.environ.get('BLEND_ARTIFACT_SUFFIX', '')   # '' or '_6s'
 V4 = os.environ.get('PAGE_LAYOUT', '') == 'v4'        # EN/FR/PT, no legacy safe cols
 FEEDBACK_VERSION = os.environ.get('FEEDBACK_VERSION', '')   # e.g. 'v4' enables the UI
+PROFILE = '6s' if '6s' in (VERSION + ART) else '10s'        # which broadcast-delay page
+CLIP = os.environ.get('CLIP_ID', 'mainz_union_md33_76-81')  # per-clip regression corpus key
 rep_e = _rep(f'latency_report_eager{ART}.json')
 rep_s = _rep('latency_report.json')
 DELAY = rep_e.get('fixed_delay_s') or rep_s.get('fixed_delay_s') or 10.0
@@ -175,10 +177,12 @@ else:
 FEEDBACK_JS = """
 // ---------------- cell-level reviewer feedback ----------------
 const FBV = '__FBV__';
-const pending = [];
+const PROFILE = '__PROF__';
+const CLIP = '__CLIP__';
+const pendingByCell = new Map();          // cell element -> feedback item (editable until sent)
 const bar = document.createElement('div'); bar.className='fbbar';
 bar.innerHTML = `<span>Reviewer:</span><input id='fbname' placeholder='your name'>
- <span><span class='cnt' id='fbcnt'>0</span> unsent comments</span>
+ <span>page <b>${PROFILE}</b> · <span class='cnt' id='fbcnt'>0</span> unsent</span>
  <button id='fbsubmit'>Submit feedback</button>
  <button id='fbtrigger'>Close round & trigger next version</button>
  <span id='fbstatus' style='color:#8a8a8a'></span>`;
@@ -197,52 +201,69 @@ fetch('/blend_rounds').then(r=>r.json()).then(j=>{
 }).catch(()=>{});
 const TAGS=['wrong fact','repetition','language','naming','timing','👍 good'];
 const HEAD=[...document.querySelectorAll('.head>div')].slice(1).map(d=>d.textContent.trim());
+function refreshCount(){document.getElementById('fbcnt').textContent=pendingByCell.size;}
+function closeBoxes(){document.querySelectorAll('.fbbox').forEach(b=>b.remove());window.__fbFrozen=false;}
+function mark(cell,state){                 // state: 'unsent' | 'sent'
+  let b=cell.querySelector('.fbmark');
+  if(state===null){ if(b)b.remove(); cell.classList.remove('has-fb','has-fb-sent'); return; }
+  if(!b){b=document.createElement('span');b.className='fbmark';cell.appendChild(b);}
+  b.textContent = state==='sent' ? '✓' : '📝';
+  b.title = state==='sent' ? 'submitted' : 'unsent review — click to edit';
+  cell.classList.toggle('has-fb', state==='unsent');
+  cell.classList.toggle('has-fb-sent', state==='sent');
+}
 document.querySelectorAll('.row .cell').forEach((cell)=>{
   cell.classList.add('fb-target');
   cell.addEventListener('click', ev=>{
     if(ev.target.closest('.fbbox')) return;
-    const open=cell.querySelector('.fbbox'); if(open){open.remove();return;}
-    document.querySelectorAll('.fbbox').forEach(b=>b.remove());
+    ev.stopPropagation();                             // a cell click never seeks the video
+    const open=cell.querySelector('.fbbox'); if(open){closeBoxes();return;}
+    closeBoxes();
+    window.__fbFrozen=true;                            // freeze auto-scroll while editing
     const row=cell.closest('.row'); const t=row?row.dataset.t:'?';
-    // capture column + clean cell text NOW, before injecting the box
     const cells=[...row.querySelectorAll('.cell')];
     const col=cells.indexOf(cell);                    // 0-based among data columns
     const colName=HEAD[col]||('col'+col);
-    const cellText=cell.innerText.slice(0,300);       // snapshot, box not yet added
+    const cellText=cell.innerText.replace(/[📝✓]\\s*$/,'').slice(0,300);   // snapshot, strip our marker
+    const existing=pendingByCell.get(cell);
     const box=document.createElement('div'); box.className='fbbox';
     box.innerHTML=`<div style='font-size:10px;color:#7dd3fc;margin-bottom:4px'>${colName} @ ${t}s</div>
       <textarea placeholder='comment on this cell…'></textarea>
       <div class='tags'>${TAGS.map(x=>`<span>${x}</span>`).join('')}</div>
-      <div class='row2'><button class='add'>Add</button></div>`;
+      <div class='row2'>${existing?"<button class='del'>Remove</button>":""}<button class='add'>${existing?'Update':'Add'}</button></div>`;
+    if(existing){
+      box.querySelector('textarea').value=existing.comment||'';
+      box.querySelectorAll('.tags span').forEach(sp=>{ if((existing.tags||[]).includes(sp.textContent)) sp.classList.add('on'); });
+    }
     box.querySelectorAll('.tags span').forEach(sp=>sp.addEventListener('click',()=>sp.classList.toggle('on')));
     box.querySelector('.add').addEventListener('click',()=>{
       const txt=box.querySelector('textarea').value.trim();
       const tags=[...box.querySelectorAll('.tags span.on')].map(x=>x.textContent);
       if(!txt&&!tags.length) return;
-      pending.push({t:parseFloat(t), col:col, column:colName, cell_text:cellText, tags:tags, comment:txt});
-      cell.classList.add('has-fb');
-      document.getElementById('fbcnt').textContent=pending.length;
-      box.remove();
+      pendingByCell.set(cell,{t:parseFloat(t), clip:CLIP, col:col, column:colName, profile:PROFILE, cell_text:cellText, tags:tags, comment:txt});
+      mark(cell,'unsent'); refreshCount(); closeBoxes();
     });
+    const del=box.querySelector('.del');
+    if(del) del.addEventListener('click',()=>{ pendingByCell.delete(cell); mark(cell,null); refreshCount(); closeBoxes(); });
     cell.appendChild(box); box.querySelector('textarea').focus();
-    ev.stopPropagation();
   });
 });
 bar.querySelector('#fbsubmit').addEventListener('click',()=>{
   const who=nameEl.value.trim(); const st=document.getElementById('fbstatus');
   if(!who){st.textContent='enter your name first';return;}
-  if(!pending.length){st.textContent='nothing to submit';return;}
-  fetch('/blend_feedback',{method:'POST',body:JSON.stringify({reviewer:who,version:FBV,items:pending})})
+  const cellsSent=[...pendingByCell.keys()]; const items=[...pendingByCell.values()];
+  if(!items.length){st.textContent='nothing to submit';return;}
+  fetch('/blend_feedback',{method:'POST',body:JSON.stringify({reviewer:who,version:FBV,profile:PROFILE,clip:CLIP,items})})
     .then(r=>r.json().then(j=>({s:r.status,j})))
-    .then(({s,j})=>{ if(s===200){st.textContent=`✔ ${j.stored} comments submitted — thank you`;pending.length=0;
-                       document.getElementById('fbcnt').textContent='0';}
+    .then(({s,j})=>{ if(s===200){st.textContent=`✔ ${j.stored} comments submitted — thank you`;
+                       cellsSent.forEach(c=>mark(c,'sent')); pendingByCell.clear(); refreshCount();}
                      else st.textContent=`✖ ${j.error||'failed'} ${j.hint||''}`; })
     .catch(()=>st.textContent='✖ network error');
 });
 bar.querySelector('#fbtrigger').addEventListener('click',()=>{
   const who=nameEl.value.trim(); const st=document.getElementById('fbstatus');
   if(!who){st.textContent='enter your name first';return;}
-  if(pending.length){st.textContent='submit your comments first';return;}
+  if(pendingByCell.size){st.textContent='submit your comments first';return;}
   if(!confirm(`Close review round ${FBV} and trigger the next version?\nOnly ONE person should do this.`)) return;
   const pin=prompt('Trigger PIN:'); if(!pin) return;
   fetch('/blend_trigger',{method:'POST',body:JSON.stringify({version:FBV,pin:pin,triggered_by:who})})
@@ -251,7 +272,7 @@ bar.querySelector('#fbtrigger').addEventListener('click',()=>{
                                              : `✖ ${j.error||'failed'}`; })
     .catch(()=>st.textContent='✖ network error');
 });
-""".replace('__FBV__', FEEDBACK_VERSION)
+""".replace('__FBV__', FEEDBACK_VERSION).replace('__PROF__', PROFILE).replace('__CLIP__', CLIP)
 
 doc = f"""<!DOCTYPE html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
@@ -296,7 +317,10 @@ video{{width:100%;max-width:640px;display:block;border-radius:6px;background:#00
 .cf.ahi{{background:#052e16;color:#4ade80}} .cf.amd{{background:#3a2e00;color:#fbbf24}}
 .cf.bhigh{{background:#052e16;color:#4ade80}} .cf.bmedium{{background:#3a2e00;color:#fbbf24}}
 .cell.fb-target:hover{{outline:1px dashed #4ade80;cursor:context-menu}}
+.cell{{position:relative}}
 .cell.has-fb{{box-shadow:inset 3px 0 0 #fbbf24}}
+.cell.has-fb-sent{{box-shadow:inset 3px 0 0 #22c55e}}
+.fbmark{{position:absolute;top:1px;right:2px;font-size:11px;line-height:1;pointer-events:none}}
 .fbbox{{margin-top:5px;background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:7px}}
 .fbbox textarea{{width:100%;min-height:44px;background:#0a0f18;color:#dbeafe;border:1px solid #1e3a5f;border-radius:4px;padding:5px;font-size:11.5px}}
 .fbbox .tags{{display:flex;gap:5px;flex-wrap:wrap;margin:5px 0}}
@@ -349,9 +373,12 @@ let cur=null;
 v.addEventListener('timeupdate',()=>{{const t=v.currentTime; let a=null;
   for(const r of rows){{if(parseFloat(r.dataset.t)<=t+0.05)a=r;else break;}}
   if(a!==cur){{if(cur)cur.classList.remove('active'); if(a){{a.classList.add('active');
-    const rt=a.getBoundingClientRect(), st=sc.getBoundingClientRect();
-    if(rt.top<st.top+40||rt.bottom>st.bottom-20) a.scrollIntoView({{block:'center',behavior:'smooth'}});}}
+    if(!window.__fbFrozen && Date.now()>(window.__fbPauseUntil||0)){{
+      const rt=a.getBoundingClientRect(), st=sc.getBoundingClientRect();
+      if(rt.top<st.top+40||rt.bottom>st.bottom-20) a.scrollIntoView({{block:'center',behavior:'smooth'}});}}}}
     cur=a;}}}});
+// manual scroll (wheel / touch) pauses auto-follow for 6s so reviewers can read freely
+['wheel','touchmove'].forEach(e=>sc.addEventListener(e,()=>{{window.__fbPauseUntil=Date.now()+6000;}},{{passive:true}}));
 
 {FEEDBACK_JS if FEEDBACK_VERSION else ''}
 </script></body></html>"""
