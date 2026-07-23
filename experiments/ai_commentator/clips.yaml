@@ -26,8 +26,10 @@ clips:
     review_rounds: [v1, v2, v3, v4]      # rounds whose comments.jsonl belong to this clip
     fixtures: R1,R1b,R2,R3,R4,R7,R10,R11 # deterministic guards derived from this clip
     status: under_review                  # under_review -> accepted once a round closes clean
+    profiles: [10s, 6s, 6s_vt]            # 6s_vt = 6s fast profile, vision/tracker only (no STT)
     notes: >
-      First clip. Two broadcast-delay profiles reviewed in parallel:
-      10s (structured vision) and 6s (fast profile). Feedback records
-      `profile` (6s/10s) so a comment is always traceable to the page it
-      was made on.
+      First clip. Broadcast-delay/source profiles reviewed in parallel:
+      10s (structured vision), 6s (fast profile), and 6s_vt (6s with USE_STT=0 —
+      commentary driven only by vision + tracker, no verbatim STT). Feedback records
+      `profile` so a comment is always traceable to the page it was made on.
+      Rebuild 6s_vt with experiments/ai_commentator/build_variant_6s_vt.sh.

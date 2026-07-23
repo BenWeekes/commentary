@@ -96,7 +96,8 @@ ART = os.environ.get('BLEND_ARTIFACT_SUFFIX', '')   # '' or '_6s'
 V4 = os.environ.get('PAGE_LAYOUT', '') == 'v4'        # EN/FR/PT, no legacy safe cols
 _slug = lambda s, n=48: (''.join(c for c in str(s) if c.isalnum() or c in '_-')[:n])  # JS-literal safe
 FEEDBACK_VERSION = _slug(os.environ.get('FEEDBACK_VERSION', ''), 24)   # e.g. 'v4' enables the UI
-PROFILE = '6s' if '6s' in (VERSION + ART) else '10s'                   # which broadcast-delay page
+_pv = VERSION + ART
+PROFILE = ('6s_vt' if 'vt' in _pv else '6s') if '6s' in _pv else '10s'  # which page (vt = vision/tracker-only)
 CLIP = _slug(os.environ.get('CLIP_ID', 'mainz_union_md33_76-81')) or 'clip'  # per-clip corpus key
 rep_e = _rep(f'latency_report_eager{ART}.json')
 rep_s = _rep('latency_report.json')
