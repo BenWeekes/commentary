@@ -147,6 +147,9 @@ SUR2TEAM = {v['name']: v['team'] for v in B.LINEUP.values() if len(v.get('name',
 _CGS_RX = _reatt.compile(r'yellow|red card|\bbooked\b|\bbook\b|sent off|dismissed|'
                          r'\bgoal\b(?!\s*kick)|scored|substitut|\bsub(bed)?\b', _reatt.I)
 
+_EVENT_WORD = (r'(?:yellow|red\s+card|booked|\bbook\b|sent\s+off|dismissed|goal|scored|'
+               r'substitut\w*|subbed|\bsub\b)')
+
 def enforce_attribution(text):
     if not text or not _CGS_RX.search(text):
         return text
@@ -154,10 +157,14 @@ def enforce_attribution(text):
     if not named:
         return text
     for team, forms in TEAM_FORMS.items():
+        if all(SUR2TEAM[s] == team for s in named):
+            continue                          # every named player IS this team — 'for team' ok
         for fm in forms:
-            if (_reatt.search(r'\b(for|pour)\s+' + _reatt.escape(fm) + r'\b', text, _reatt.I)
-                    and any(SUR2TEAM[s] != team for s in named)):
-                text = _reatt.sub(r'\s*\b(for|pour)\s+' + _reatt.escape(fm) + r'\b', '',
+            # only strip when the 'for <team>' directly follows the card/goal/sub keyword in the
+            # SAME clause (no ,.; between) — so 'Kohn booked; free kick for Mainz' is left intact.
+            adj = _EVENT_WORD + r'[^.,;]{0,15}?\s(?:for|pour)\s+' + _reatt.escape(fm) + r'\b'
+            if _reatt.search(adj, text, _reatt.I):
+                text = _reatt.sub(r'\s*\b(?:for|pour)\s+' + _reatt.escape(fm) + r'\b', '',
                                   text, flags=_reatt.I)
     return _reatt.sub(r'\s+([.,;:!?])', r'\1', text).strip()
 
