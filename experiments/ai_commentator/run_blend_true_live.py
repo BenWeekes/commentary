@@ -138,6 +138,29 @@ GEN_RULES += TEAM_VARIETY
 EAGER_SYSTEM += GEN_RULES
 B.CHOOSER_SYSTEM += GEN_RULES
 
+# R12 HARD GUARD (deterministic, roster-grounded): the prompt rule alone is unreliable on
+# the 6s mini model, so we also ENFORCE attribution in code. If a card/goal/substitution
+# line credits an event 'for/pour <team>' that contradicts the named player's roster team,
+# strip that clause. Generic — resolves off the pre-match lineup, no match facts hardcoded.
+import re as _reatt
+SUR2TEAM = {v['name']: v['team'] for v in B.LINEUP.values() if len(v.get('name', '')) >= 3}
+_CGS_RX = _reatt.compile(r'yellow|red card|\bbooked\b|\bbook\b|sent off|dismissed|'
+                         r'\bgoal\b(?!\s*kick)|scored|substitut|\bsub(bed)?\b', _reatt.I)
+
+def enforce_attribution(text):
+    if not text or not _CGS_RX.search(text):
+        return text
+    named = [s for s in SUR2TEAM if _reatt.search(r'\b' + _reatt.escape(s) + r'\b', text)]
+    if not named:
+        return text
+    for team, forms in TEAM_FORMS.items():
+        for fm in forms:
+            if (_reatt.search(r'\b(for|pour)\s+' + _reatt.escape(fm) + r'\b', text, _reatt.I)
+                    and any(SUR2TEAM[s] != team for s in named)):
+                text = _reatt.sub(r'\s*\b(for|pour)\s+' + _reatt.escape(fm) + r'\b', '',
+                                  text, flags=_reatt.I)
+    return _reatt.sub(r'\s+([.,;:!?])', r'\1', text).strip()
+
 # R7: French localizer is the single canonical B.TRANSLATE_SYSTEM (run_blend_live.py) —
 # no override here, so the glossary lives in exactly one place.
 
@@ -291,6 +314,7 @@ def main():
     def _place_inner(rec, t_det, seen_to_decide, chooser_ms, est=3.0):
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
         buffer. Sync policy: a line either lands on its play or is never heard."""
+        rec['text'] = enforce_attribution(rec['text'])   # R12 hard guard before EN/FR/PT
         t_tts0 = time.monotonic()
         def _en():
             return B.tts(rec['text'], B.EN_VOICE)
