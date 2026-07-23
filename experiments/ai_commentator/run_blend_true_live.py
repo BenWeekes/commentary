@@ -48,7 +48,7 @@ VISION_SCALE = '960:540'   # benchmark sweet spot: 3.9s median vs 6.3s at 720p, 
 MODE = os.environ.get('BLEND_MODE', 'eager')   # R9 (accepted): eager is the default voice
 K = {'conservative': dict(lull=3.0, scene=40.0, event_regate=8.0, poss_gate=3.0, retreat=1.2),
      'eager':        dict(lull=2.0, scene=22.0, event_regate=6.0, poss_gate=2.2, retreat=0.8)}[MODE]
-SUFFIX = ('' if MODE == 'conservative' else '_eager') + ('_6s' if FAST_PROFILE else '') + ('' if USE_STT else '_vt')
+SUFFIX = ('' if MODE == 'conservative' else '_eager') + ('_6s' if FAST_PROFILE else '') + ('' if USE_STT else '_vt') + os.environ.get('RUN_TAG', '')
 if MODE == 'eager':
     B.CHOOSER_SYSTEM += """
 
