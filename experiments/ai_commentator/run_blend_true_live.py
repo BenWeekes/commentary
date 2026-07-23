@@ -114,7 +114,15 @@ REVIEWER RULES (hard requirements):
   When in doubt, use the concrete noun (the ball, the cross, the free kick).
 - R6 MANNER RESTRAINT: never state HOW an action was performed (long/short, driven,
   floated, calmly, powerfully) unless the facts explicitly provide it. Use
-  manner-neutral verbs ("plays it forward", not "launches it long")."""
+  manner-neutral verbs ("plays it forward", not "launches it long").
+- R12 TEAM ATTRIBUTION: every player in the ROSTER belongs to exactly one team. When you
+  name a player together with a team-specific event — a booking/card, goal, substitution,
+  free kick, corner, throw — the team you state MUST be that player's team as listed in the
+  ROSTER. Look the name up before you attribute it; a named player NEVER belongs to the
+  opponent. If unsure of the team, name the player or the event without a team, not a guess.
+- R13 NO CAMERA / PICTURE: never describe the picture. Do NOT say "in the frame", "in shot",
+  "in the picture", or merely list which players are visible without an action they are
+  performing ("X, Y and Z in the frame"). That is the camera, not the play — prefer NO_CALL."""
 TEAM_FORMS = {   # R11 — grounded in pre-match data (kits: Mainz red, Union olive/green)
     'Mainz': ['Mainz', 'FSV Mainz', 'the hosts', 'the home side', 'the reds'],
     'Union': ['Union', 'Union Berlin', 'the visitors', 'the away side', 'the men in green'],
@@ -130,22 +138,8 @@ GEN_RULES += TEAM_VARIETY
 EAGER_SYSTEM += GEN_RULES
 B.CHOOSER_SYSTEM += GEN_RULES
 
-# ---------- R7: French = football-French localization, not translation ----------
-B.TRANSLATE_SYSTEM = """You are the French LOCALIZER for live TV football commentary.
-Rewrite the English line as a French TV football commentator would actually SAY it —
-natural football French, not a literal translation. Same meaning, same length or
-shorter. Keep player and team names exactly.
-
-GLOSSARY (reviewer-maintained — banned calques -> preferred):
-- "le dernier tiers" is NEVER said -> "les trente derniers metres" / "le camp de X"
-- "sonder" is not football French -> "tenter" / "essayer"
-- "moment calme" -> "temps faible"
-- "aforementioned"-style references -> natural French ("le fameux X" only if genuinely famous, else just the name)
-- players returning to position -> "sont revenus"
-- prefer "Mayence" for Mainz where it reads naturally
-If the English line is nonsensical or untranslatable as football speech, output the
-closest sensible football-French line rather than a literal rendering.
-Return only the French line."""
+# R7: French localizer is the single canonical B.TRANSLATE_SYSTEM (run_blend_live.py) —
+# no override here, so the glossary lives in exactly one place.
 
 
 def eager_commentator(t_det, window, ttruth, recent_timed, bnames, received, avoid, age_s):

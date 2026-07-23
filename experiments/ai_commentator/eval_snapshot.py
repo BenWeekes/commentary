@@ -13,7 +13,7 @@ desync shifts=0, first line <=2s. Watched (report only): words, gaps>=15s,
 judge realism/variety, named-player lines.
 Full workflow: docs/ai/L2/hitl_tuning_workflow.md
 """
-import json, re, sys
+import json, os, re, sys
 from pathlib import Path
 
 BASE = Path('/home/ubuntu/commentary/experiments/ai_commentator')
@@ -194,39 +194,49 @@ def run_fixtures(b, detections_path):
         else:
             streak = 1
     fx['R11'] = r11
-    # R13: never describe the picture (camera-ban) — any language
-    CAMERA_BAN = ['in the frame', 'in frame', 'in shot', 'in the picture', 'on screen',
-                  'on the screen', 'dans le cadre', 'na imagem', 'no quadro']
-    fx['R13'] = not any(p in (x.get(k) or '').lower()
-                        for x in b for k in ('text', 'fr', 'pt') for p in CAMERA_BAN)
-    # R12: a team-specific event naming a roster player must attribute it to that
-    # player's roster team (generic — resolved off the match's pre-match lineup).
+    # R13: never describe the picture (camera-ban) — any language. Regex so French
+    # "dans le cadre DE cette rencontre" (= 'in the context of') is NOT a false positive.
+    CAMERA_RX = re.compile(
+        r"\bin (the )?(frame|shot|picture)\b"        # EN framing (in shot / in the frame ...)
+        r"|\bon (the )?screen\b"
+        r"|dans le cadre(?!\s+(de|du|des|d['’]))"  # FR camera framing, not "dans le cadre de ..."
+        r"|à l['’]écran"                          # FR on-screen
+        r"|na (tela|imagem)|no quadro",                # PT on-screen / in the image
+        re.I)
+    fx['R13'] = not any(CAMERA_RX.search(x.get(k) or '') for x in b for k in ('text', 'fr', 'pt'))
+    # R12: DIRECT mis-attribution only — a card/goal/substitution that credits a team via
+    # "for/pour <team>" whose team differs from the named player's roster team. Deliberately
+    # NARROW (cards/goals/subs + explicit "for", not "against") to avoid false rejects on
+    # legitimate possession lines. Resolved off the match's pre-match lineup (generic).
     try:
-        _sr = json.load(open('/home/ubuntu/commentary/match_data/m05_uni_md33/sr_cache.json'))
+        _rp = os.environ.get('CLIP_ROSTER',
+                             '/home/ubuntu/commentary/match_data/m05_uni_md33/sr_cache.json')
+        _sr = json.load(open(_rp))
         sur2team = {}
         for _c in _sr['lineups']['lineups']['competitors']:
             _tm = 'Mainz' if 'Mainz' in _c.get('name', '') else 'Union'
             for _p in _c.get('players', []):
                 _nm = _p.get('name', ''); _sur = _nm.split(',')[0].strip() if ',' in _nm else _nm
-                if _sur:
+                if len(_sur) >= 3:                    # skip too-short surnames (collision risk)
                     sur2team[_sur] = _tm
     except Exception:
         sur2team = {}
     if sur2team:
-        EVENT_RX = re.compile(r'yellow|red card|booked|book\b|\bgoal\b|scored|substitut|'
-                              r'\bsub\b|free kick|corner|throw', re.I)
+        CARD_GOAL_SUB = re.compile(r'yellow|red card|\bbooked\b|\bbook\b|sent off|dismissed|'
+                                   r'\bgoal\b(?!\s*kick)|scored|substitut|\bsub(bed)?\b', re.I)
         r12 = True
         for x in b:
-            if x['src'] != 'blend' or not EVENT_RX.search(x['text']):
+            if x['src'] != 'blend' or not CARD_GOAL_SUB.search(x['text']):
                 continue
             named = [s for s in sur2team if re.search(r'\b' + re.escape(s) + r'\b', x['text'])]
             if not named:
                 continue
-            stated = None
+            credited = None                          # the team credited by "for/pour <form>"
             for team, forms in TEAM_FORMS.items():
-                if any(re.search(r'\b' + re.escape(fm) + r'\b', x['text'], re.I) for fm in forms):
-                    stated = team; break
-            if stated and any(sur2team[s] != stated for s in named):
+                if any(re.search(r'\b(for|pour)\b[^.]{0,20}\b' + re.escape(fm) + r'\b',
+                                 x['text'], re.I) for fm in forms):
+                    credited = team; break
+            if credited and any(sur2team[s] != credited for s in named):
                 r12 = False
         fx['R12'] = r12
     else:
