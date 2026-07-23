@@ -38,6 +38,7 @@ FAST_PROFILE = BUFFER_S <= 7.0
 # weaknesses (team claims need tracker agreement; naming high-conf only)
 STALE_S = BUFFER_S - (2.4 if FAST_PROFILE else 3.0)
 STT_LAG = 1.5 if FAST_PROFILE else 1.8   # tighter finalize window at 6s; long phrases may drop
+USE_STT = os.environ.get('USE_STT', '1') != '0'   # Alex's vision/tracker-only variant sets USE_STT=0
 TRK_LAG = 0.5              # tracker runs near-realtime, slightly behind
 VISION_WORKERS = 4   # 540p payloads are light; 4 workers halves burst-skip for brief events
 VISION_MODEL = 'gpt-5.4-mini' if FAST_PROFILE else 'gpt-5.6'
@@ -47,7 +48,7 @@ VISION_SCALE = '960:540'   # benchmark sweet spot: 3.9s median vs 6.3s at 720p, 
 MODE = os.environ.get('BLEND_MODE', 'eager')   # R9 (accepted): eager is the default voice
 K = {'conservative': dict(lull=3.0, scene=40.0, event_regate=8.0, poss_gate=3.0, retreat=1.2),
      'eager':        dict(lull=2.0, scene=22.0, event_regate=6.0, poss_gate=2.2, retreat=0.8)}[MODE]
-SUFFIX = ('' if MODE == 'conservative' else '_eager') + ('_6s' if FAST_PROFILE else '')
+SUFFIX = ('' if MODE == 'conservative' else '_eager') + ('_6s' if FAST_PROFILE else '') + ('' if USE_STT else '_vt')
 if MODE == 'eager':
     B.CHOOSER_SYSTEM += """
 
@@ -443,15 +444,17 @@ def main():
                 time.sleep(0.02); continue
 
             # --- (1) STT phrase, availability-gated (arrives end_s + STT_LAG) ---
+            # USE_STT=0 -> vision/tracker-only variant: skip verbatim STT entirely.
             real = None
-            for tt, r in son_sorted:
-                if tt in used_son:
-                    continue
-                if t >= float(r.get('end_s', tt)) + STT_LAG and t - tt <= 6.0:
-                    used_son.add(tt)
-                    if placed_end - tt > 1.4:
-                        continue          # slot already occupied — would desync, skip
-                    real = r; break
+            if USE_STT:
+                for tt, r in son_sorted:
+                    if tt in used_son:
+                        continue
+                    if t >= float(r.get('end_s', tt)) + STT_LAG and t - tt <= 6.0:
+                        used_son.add(tt)
+                        if placed_end - tt > 1.4:
+                            continue          # slot already occupied — would desync, skip
+                        real = r; break
             if real:
                 rt = float(real['video_time_s'])
                 # R8: vet the phrase if a high-confidence event overlaps it
