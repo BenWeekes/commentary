@@ -130,8 +130,10 @@ fixtures:
   R4: "adjacent possession flips carry a transition marker (auto-heuristic)"
   R5: "reviewer-checked (no deterministic oracle)"
   R6: "reviewer-checked (no deterministic oracle)"
-  R7: "banned French calques never appear in fr fields (auto)"
+  R7: "banned French calques never appear in fr fields (auto); +cycle-3 forms: no 'ça se casse/se termine là', no 'le ballon de X' for a pass"
   R8: "reviewer-checked; veto events logged in run output"
+  R12: "no line attributes a team-specific event to a named player whose roster team differs (auto: name->roster-team vs stated team)"
+  R13: "no output line (any language) contains 'in the frame/in frame/in shot/in the picture/dans le cadre' (auto)"
 
 amendments: []   # threshold changes require an entry here — never a silent edit
 
@@ -186,3 +188,42 @@ acceptance_record_cycle2:
     - BLEND_DELAY_S deployment knob + on-page fixed-delay badge
     - vision-speed finding: original v1 config (mini, direct line) = 1.1-1.5s
       vs 3.7s structured — two-lane hybrid is the routemap to a ~7s delay
+
+# ---------------------------------------------------------------------------
+# CYCLE 3 candidates — distilled from Alex's on-page review (2026-07-23,
+# 108 comments across 10s + 6s; French-heavy). GENERIC + pre-match-data-grounded
+# only — no match-specific facts hardcoded. IMPLEMENTED but NOT yet gated
+# (no live run this cycle yet); acceptance requires a worst-of-N gate later.
+# ---------------------------------------------------------------------------
+- id: R12
+  source: "review @188s 'Kohn yellow for Mainz' (Kohn is an away player), @149/152/244
+    'their own third'->opponent's, @202 wrong sub name — team/entity mis-attribution cluster"
+  category: entity-grounding
+  rule: >
+    Every player in the pre-match ROSTER belongs to exactly one team. When a named
+    player is stated alongside a team-specific event (card, goal, substitution, free
+    kick, corner, throw), the team named MUST equal that player's roster team. A named
+    player never belongs to the opponent; if the team is uncertain, name the player or
+    event without a team rather than guess. Purely generic — resolves off the roster
+    that every match provides.
+  implementation: CHOOSER_SYSTEM 'TEAM ATTRIBUTION' hard rule (roster-grounded)
+  status: implemented-pending-gate   # cycle-3; needs worst-of-N live gate
+
+- id: R13
+  source: "review @68s 'Kohn, Burke et Klaus dans le cadre' / 'all in the frame' (x3) —
+    vacuous camera line describing the picture, not the play"
+  category: content-floor
+  rule: >
+    Never describe the picture itself. Ban 'in the frame / in frame / in shot / in the
+    picture' and lines that merely list which players are visible without an action they
+    are performing. Those are the camera, not the play — output NO_CALL instead.
+  implementation: CHOOSER_SYSTEM camera-ban clause (extended) + fixture R13 (auto)
+  status: implemented-pending-gate   # cycle-3; needs worst-of-N live gate
+
+# R7 GLOSSARY EXTENSION (cycle-3, French localizer) — reviewer-appended, generic idioms:
+#   move breaks down            -> "l'action ne passe pas" / "ça ne passe pas"
+#                                  (NOT "ça se casse", "ça se termine là")
+#   a player's PASS             -> "la passe de X" (not "le ballon de X" for a pass)
+#   naming a player on the ball -> "On retrouve X" (avoid "Et voici tout simplement X")
+#   ball into the box           -> "dans la surface"; six-yard area -> "les six mètres"
+#   translate_fr is now a LOCALIZER persona (was a bare translator) — R7 as designed.

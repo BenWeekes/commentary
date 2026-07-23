@@ -194,6 +194,43 @@ def run_fixtures(b, detections_path):
         else:
             streak = 1
     fx['R11'] = r11
+    # R13: never describe the picture (camera-ban) — any language
+    CAMERA_BAN = ['in the frame', 'in frame', 'in shot', 'in the picture', 'on screen',
+                  'on the screen', 'dans le cadre', 'na imagem', 'no quadro']
+    fx['R13'] = not any(p in (x.get(k) or '').lower()
+                        for x in b for k in ('text', 'fr', 'pt') for p in CAMERA_BAN)
+    # R12: a team-specific event naming a roster player must attribute it to that
+    # player's roster team (generic — resolved off the match's pre-match lineup).
+    try:
+        _sr = json.load(open('/home/ubuntu/commentary/match_data/m05_uni_md33/sr_cache.json'))
+        sur2team = {}
+        for _c in _sr['lineups']['lineups']['competitors']:
+            _tm = 'Mainz' if 'Mainz' in _c.get('name', '') else 'Union'
+            for _p in _c.get('players', []):
+                _nm = _p.get('name', ''); _sur = _nm.split(',')[0].strip() if ',' in _nm else _nm
+                if _sur:
+                    sur2team[_sur] = _tm
+    except Exception:
+        sur2team = {}
+    if sur2team:
+        EVENT_RX = re.compile(r'yellow|red card|booked|book\b|\bgoal\b|scored|substitut|'
+                              r'\bsub\b|free kick|corner|throw', re.I)
+        r12 = True
+        for x in b:
+            if x['src'] != 'blend' or not EVENT_RX.search(x['text']):
+                continue
+            named = [s for s in sur2team if re.search(r'\b' + re.escape(s) + r'\b', x['text'])]
+            if not named:
+                continue
+            stated = None
+            for team, forms in TEAM_FORMS.items():
+                if any(re.search(r'\b' + re.escape(fm) + r'\b', x['text'], re.I) for fm in forms):
+                    stated = team; break
+            if stated and any(sur2team[s] != stated for s in named):
+                r12 = False
+        fx['R12'] = r12
+    else:
+        fx['R12'] = 'skip'
     # R5/R6/R8: reviewer/judge-checked (no deterministic oracle)
     fx['R5'] = fx['R6'] = fx['R8'] = 'manual'
     return fx
@@ -234,7 +271,7 @@ def compare(base, cands):
         if not ok:
             verdict = 'REJECT'
     print('--- per-rule fixtures (auto: must be True in ALL runs; manual: reviewer-checked) ---')
-    AUTO = {'R1','R1b','R2','R3','R4','R7','R10','R11'}
+    AUTO = {'R1','R1b','R2','R3','R4','R7','R10','R11','R12','R13'}
     rules = sorted({r for c in cands for r in c.get('fixtures', {})} | AUTO)
     for r in rules:
         vals = [c.get('fixtures', {}).get(r) for c in cands]
