@@ -117,6 +117,17 @@ class H(BaseHTTPRequestHandler):
         return self._send(200, {'ok': True, 'reviewers': revs})
 
     def do_POST(self):
+        # catch-all: any handler error returns a 500 JSON instead of killing the
+        # request thread (which nginx sees as a 502 / the browser sees as "network error").
+        try:
+            self._do_POST()
+        except Exception as e:
+            try:
+                self._send(500, {'ok': False, 'error': f'server error: {type(e).__name__}'})
+            except Exception:
+                pass
+
+    def _do_POST(self):
         try:
             data = self._body()
         except Exception as e:
@@ -129,7 +140,7 @@ class H(BaseHTTPRequestHandler):
             tdir = SCORES / test
             tdir.mkdir(parents=True, exist_ok=True)
             (tdir / f'{rev}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2))
-            with (SCORES / 'submissions.jsonl').open('a') as f:
+            with (SCORES / 'submissions.jsonl').open('a', encoding='utf-8', errors='replace') as f:
                 f.write(json.dumps(data, ensure_ascii=False) + '\n')
             return self._send(200, {'ok': True, 'reviewer': rev})
 
@@ -139,17 +150,20 @@ class H(BaseHTTPRequestHandler):
             items = data.get('items', [])
             if not version or not isinstance(items, list) or not items:
                 return self._send(400, {'ok': False, 'error': 'version and items[] required'})
+            def _u(s):                            # drop lone surrogates (broken half-emoji) so
+                if not isinstance(s, str): return ''  # UTF-8 file writes can't crash the thread
+                return s.encode('utf-8', 'replace').decode('utf-8')
             def _str(v, n):                       # only real strings; missing/objects -> ''
-                return v[:n] if isinstance(v, str) else ''
+                return _u(v)[:n] if isinstance(v, str) else ''
             def _clean(it):
                 if not isinstance(it, dict): return None
                 return {'t': float(it.get('t', 0) or 0), 'col': int(it.get('col', -1) or -1),
                         'column': _str(it.get('column'), 32),
                         'profile': _str(it.get('profile'), 8),
                         'clip': _str(it.get('clip'), 48),
-                        'cell_text': str(it.get('cell_text', ''))[:400],
-                        'tags': [str(x)[:24] for x in (it.get('tags') or [])][:8],
-                        'comment': str(it.get('comment', ''))[:1000]}
+                        'cell_text': _u(str(it.get('cell_text', '')))[:400],
+                        'tags': [_u(str(x))[:24] for x in (it.get('tags') or [])][:8],
+                        'comment': _u(str(it.get('comment', '')))[:1000]}
             items = [c for c in (_clean(i) for i in items[:60]) if c]
             if not items:
                 return self._send(400, {'ok': False, 'error': 'no valid items'})
@@ -163,13 +177,13 @@ class H(BaseHTTPRequestHandler):
                     d = FEEDBACK / version; d.mkdir(parents=True, exist_ok=True)
                     if not _under(d, FEEDBACK):
                         return self._send(400, {'ok': False, 'error': 'bad version'})
-                    with (d / 'comments.jsonl').open('a') as f:
+                    with (d / 'comments.jsonl').open('a', encoding='utf-8', errors='replace') as f:
                         f.write(json.dumps(rec, ensure_ascii=False) + '\n')
                     print(f"[feedback] {reviewer} -> {version}: {len(items)} items")
                     return self._send(200, {'ok': True, 'stored': len(items)})
             d = FEEDBACK / version / 'late'
             d.mkdir(parents=True, exist_ok=True)
-            with (d / 'comments.jsonl').open('a') as f:
+            with (d / 'comments.jsonl').open('a', encoding='utf-8', errors='replace') as f:
                 f.write(json.dumps(rec, ensure_ascii=False) + '\n')
             return self._send(409, {'ok': False, 'error': f'round {version} is closed',
                                     'hint': f"the open round is {load_rounds().get('current')}",
