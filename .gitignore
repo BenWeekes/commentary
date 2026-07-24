@@ -57,3 +57,4 @@ experiments/ai_commentator/res_test/frames_*/
 experiments/ai_commentator/res_test/*.log
 # reviewer feedback PIN stays out of git (feedback jsonl IS committed per round)
 experiments/ai_commentator/feedback/pin.txt
+experiments/ai_commentator/runs/

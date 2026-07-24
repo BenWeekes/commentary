@@ -254,12 +254,27 @@ def run_fixtures(b, detections_path):
             if not named or len({sur2team[s] for s in named}) != 1:
                 continue                             # no player, or both teams named (ambiguous)
             pteam = sur2team[named[0]]
-            for team, forms in TEAM_FORMS.items():   # any 'for <opposing form>' that isn't an award
+            CGS = re.compile(r'yellow|red card|\bbooked\b|\bbook\b|sent off|dismissed|'
+                             r'\bgoal\b(?!\s*kick)|scored|substitut|\bsub(bed)?\b', re.I)
+            for team, forms in TEAM_FORMS.items():   # opposing-team reference that isn't an award
                 if team == pteam:
                     continue
                 for fm in forms:
+                    # (a) explicit 'for/pour <team>' credit on ANY line
                     for m in re.finditer(r'\b(?:for|pour)\s+' + re.escape(fm) + r'\b', x['text'], re.I):
                         if not re.search(AWARD + r'\W*$', x['text'][:m.start()], re.I):
+                            r12 = False
+                    # (b) broadened (codex-2): on a card/goal/sub line, an opposing-team
+                    # reference in ANY position (when only that team is referenced)
+                    if CGS.search(x['text']):
+                        own_forms = TEAM_FORMS[pteam]
+                        own_ref = any(re.search(r'\b' + re.escape(f2) + r'\b', x['text'], re.I)
+                                      for f2 in own_forms)
+                        for m in re.finditer(r'\b' + re.escape(fm) + r'\b', x['text'], re.I):
+                            if own_ref:
+                                break
+                            if re.search(AWARD + r'\W*(?:for|pour)?\s*$', x['text'][:m.start()], re.I):
+                                continue
                             r12 = False
         fx['R12'] = r12
     else:

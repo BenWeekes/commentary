@@ -30,10 +30,11 @@ check("colliding number needs a team", B.player_by_number(11) is None)
 check("(Mainz, 11) -> Sieb", (B.player_by_number(11, 'Mainz') or {}).get('name') == 'Sieb')
 check("(Union, 11) -> Woo-yeong", (B.player_by_number(11, 'Union') or {}).get('name') == 'Woo-yeong')
 check("within-team duplicate fails closed", B.player_by_number(13, 'Union') is None)
+_unique = [n for n, tms in B.NUM_TEAMS.items()
+           if len(tms) == 1 and (next(iter(tms)), n) not in B._AMBIG]
 check("unique number resolves team-less",
-      all(B.player_by_number(n) is not None
-          for n, tms in B.NUM_TEAMS.items() if len(tms) == 1 and ('Mainz', n) not in B._AMBIG
-          and ('Union', n) not in B._AMBIG) or True)
+      len(_unique) > 0 and all(B.player_by_number(n) is not None for n in _unique),
+      f"{len(_unique)} unique numbers")
 check("guard covers every surname", len(T.SUR2TEAM) == 40, len(T.SUR2TEAM))
 
 print("== enforce_attribution (R12 guard) ==")
@@ -44,6 +45,10 @@ cases = [
     ("Mainz have pushed for ten minutes.", None),                # duration 'for'
     ("Kohn fouls Amiri, free kick for Mainz.", None),            # both teams named
     ("Kohn steps forward for the home side.", "Kohn steps forward for the away side."),
+    # broadened constructions (codex-2 #3): wrong team in ANY position on card/goal/sub lines
+    ("Yellow for Kohn, Mainz booked.", "Yellow for Kohn, Union booked."),
+    ("Kohn is booked and Mainz are down to a nervy spell.", "Kohn is booked and Union are down to a nervy spell."),
+    ("Mainz substitute: Sieb and Weiper involved.", None),   # Sieb IS Mainz — untouched
 ]
 for src, want in cases:
     out = T.enforce_attribution(src)
@@ -77,6 +82,10 @@ b5 = [mk(10.0, "Kohn sees yellow for Mainz.")]
 check("R12 fixture catches wrong team", E.run_fixtures(b5, '/x.jsonl')['R12'] is False)
 b6 = [mk(10.0, "Kohn, Burke and Klaus all in the frame.")]
 check("R13 fixture catches camera line", E.run_fixtures(b6, '/x.jsonl')['R13'] is False)
+b7 = [mk(10.0, "Yellow for Kohn, Mainz booked.")]
+check("R12 fixture catches broadened construction", E.run_fixtures(b7, '/x.jsonl')['R12'] is False)
+b8 = [mk(10.0, "Kohn booked; free kick for Mainz.")]
+check("R12 fixture allows award beneficiary", E.run_fixtures(b8, '/x.jsonl')['R12'] is True)
 
 print("== worst-of-N fail-closed (codex #8) ==")
 check("missing survival counts as 0.0", E.WORST['survival']([0.99, None]) == 0.0)
@@ -86,8 +95,9 @@ print("== localizers fail silent, never English (codex #7) ==")
 import inspect
 src_fr = inspect.getsource(B.translate_fr)
 check("translate_fr returns None on failure", 'return None' in src_fr)
-check("_fr raises on None (missing track)", "raise RuntimeError('fr translate failed')" in
-      open('run_blend_true_live.py').read())
+import pathlib
+_TL_SRC = (pathlib.Path(__file__).parent / 'run_blend_true_live.py').read_text()
+check("_fr raises on None (missing track)", "raise RuntimeError('fr translate failed')" in _TL_SRC)
 
 print()
 if FAILS:

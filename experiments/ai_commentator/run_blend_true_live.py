@@ -23,7 +23,7 @@ Usage: .venv/bin/python run_blend_true_live.py
 """
 from __future__ import annotations
 import json, os, statistics, subprocess, sys, threading, time, wave
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait as cf_wait
 from pathlib import Path
 
 os.environ.setdefault('SONIOX_POOL', 'soniox_live_short.jsonl')
@@ -71,7 +71,8 @@ OPENER = ("Mainz and Union, level at one apiece — quarter of an hour to go."
 EAGER_MODEL = 'gpt-5.5'            # falls back to gpt-5.4-mini when the detection is old
 EAGER_SYSTEM = f"""You are the sole live English TV commentator for this Bundesliga match:
 Mainz (red, home) vs Union Berlin (olive, away) at the Mewa Arena. Referee Florian Exner.
-MATCH CLOCK: {B.MATCH_CLOCK}.
+MATCH CONTEXT: second half, Mainz and Union level at 1-1. The CURRENT match clock is
+supplied with every MOMENT line — use THAT for any time reference, never a remembered one.
 
 Each moment you receive: YOUR RECENT COMMENTARY (timestamped — what the viewer already
 heard), a WINDOW of grounded observations from the last few seconds (vision facts with
@@ -179,6 +180,29 @@ def enforce_attribution(text):
                 return m.group(1) + ' ' + _c
             text = _reatt.sub(r'\b(for|pour)\s+' + _reatt.escape(fm) + r'\b', repl,
                               text, flags=_reatt.I)
+    # broader constructions (codex): a card/goal/sub line that names the wrong team in
+    # ANY syntactic position — 'Yellow for Kohn, Mainz booked', 'Mainz substitute: Sieb on'.
+    # Only when the line carries a card/goal/sub event, exactly one team is referenced,
+    # and it isn't an award beneficiary; the reference is corrected register-matched.
+    if _CGS_RX.search(text):
+        pteam_forms = TEAM_FORMS[pteam]
+        refs = []                             # (team, form, start) of every team reference
+        for wt, forms in TEAM_FORMS.items():
+            for i, fm in enumerate(forms):
+                for m in _reatt.finditer(r'\b' + _reatt.escape(fm) + r'\b', text, _reatt.I):
+                    refs.append((wt, i, m.start(), m.group(0)))
+        # keep only the LONGEST match at each position ('Union Berlin' over 'Union')
+        refs.sort(key=lambda r: (r[2], -len(r[3])))
+        dedup = []
+        for r in refs:
+            if not any(abs(r[2] - d[2]) < 3 for d in dedup):
+                dedup.append(r)
+        wrong = [r for r in dedup if r[0] != pteam]
+        if wrong and not any(r[0] == pteam for r in dedup):   # exactly-one-team lines only
+            for wt, i, start, matched in wrong:
+                if _reatt.search(_AWARD_RX + r'\W*(?:for|pour)?\s*$', text[:start], _reatt.I):
+                    continue                   # 'free kick (for) Mainz' beneficiary clause
+                text = text[:start] + pteam_forms[i] + text[start + len(matched):]
     return text
 
 # R7: French localizer is the single canonical B.TRANSLATE_SYSTEM (run_blend_live.py) —
@@ -448,26 +472,33 @@ def main():
                 slots[lang] = (b, ln)
         rec['lat']['audio_shift_s'] = round(shift, 2)
         rec['video_time_s'] = round(v_place + shift, 2)
+        # feedback: the est-based placed_end underestimates long TTS audio, which shows
+        # up later as shift-desync drops — correct it with the ACTUAL audio extent
+        nonlocal placed_end
+        placed_end = max(placed_end, rec['video_time_s'] + len(en) / (SR * 2) + 0.15)
         # EN is committed -> release the write-order gate for later lines
         with write_cond:
             in_flight.pop(id(rec), None); write_cond.notify_all()
         print(f"  [{rec['video_time_s']:6.1f}s] ({rec['src']}) {rec['text']}"
               f"   [behind_live={behind:.1f}s]")
-        # ---- FR/PT fill their reserved slots on their OWN deadline (per-track) ----
-        for lang, fut in (('fr', f_fr), ('pt', f_pt)):
-            if lang not in slots:
-                missing.append(lang); continue
+        # ---- FR/PT fill their reserved slots against ONE ABSOLUTE deadline ----
+        # (codex: sequential waits could stack two grace timeouts; wait() bounds both
+        # together — EN is already committed, so this can never cost the line)
+        side = {lang: fut for lang, fut in (('fr', f_fr), ('pt', f_pt)) if lang in slots}
+        missing.extend(lang for lang in ('fr', 'pt') if lang not in slots)
+        if side:
             rem = (t_det + BUFFER_S) - (time.monotonic() - wall0)
-            try:
-                txt, pcm = fut.result(timeout=max(0.05, rem))
-            except Exception:
-                missing.append(lang); continue
-            rec[lang] = txt
-            b, ln = slots[lang]
-            if len(pcm) > ln:
-                pcm = pcm[:ln]
-            with audio_lock:
-                audio[lang][b:b + len(pcm)] = pcm
+            cf_wait(list(side.values()), timeout=max(0.05, rem))
+            for lang, fut in side.items():
+                if not fut.done() or fut.exception() is not None:
+                    missing.append(lang); continue
+                txt, pcm = fut.result()
+                rec[lang] = txt
+                b, ln = slots[lang]
+                if len(pcm) > ln:
+                    pcm = pcm[:ln]
+                with audio_lock:
+                    audio[lang][b:b + len(pcm)] = pcm
         rec['lat']['audio_fr_s'] = round((slots.get('fr', (0, 0))[1] if 'fr' not in missing else 0) / (SR * 2), 2)
 
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
@@ -634,7 +665,8 @@ def main():
                         vsig = {**vsig, 'event': None, 'event_team': None, 'event_conf': None}
                     if FAST_PROFILE:
                         trk_team = B.TEAM.get((trk_det.get('possession') or {}).get('team')) if trk_det else None
-                        if vsig.get('poss_team') and trk_team and vsig['poss_team'] != trk_team:
+                        if vsig.get('poss_team') and trk_team != vsig['poss_team']:
+                            # AGREEMENT required at 6s: no tracker read = no team claim
                             vsig = {**vsig, 'poss_team': None, 'poss_player': None, 'poss_pos': None}
                         if vsig.get('poss_player') and vsig.get('poss_conf') != 'high':
                             vsig = {**vsig, 'poss_player': None, 'poss_pos': None}
@@ -844,7 +876,8 @@ def main():
 
     # ---- latency + sync report ----
     vl = sorted(VIS_STATS)
-    bl = sorted(l['lat']['behind_live_s'] for l in kept if 'lat' in l)
+    bl = sorted(l['lat'].get('behind_commit_s', l['lat']['behind_live_s'])
+                for l in kept if l.get('lat'))
     shifts = [l['lat'].get('audio_shift_s', 0) for l in kept
               if l.get('lat', {}).get('audio_shift_s', 0) > 0]
     rep = {
@@ -856,7 +889,7 @@ def main():
                              'max': round(vl[-1]/1000, 2)} if vl else None,
         'lines_kept': len(kept), 'lines_dropped': len(dropped),
         'survival_rate': round(len(kept) / max(1, len(lines)), 3),
-        'kept_behind_live_s': {'median': round(statistics.median(bl), 2),
+        'kept_behind_commit_s': {'median': round(statistics.median(bl), 2),
                                'p90': round(bl[int(len(bl)*0.9)], 2),
                                'max': round(bl[-1], 2)} if bl else None,
         'audio_shifts': len(shifts), 'max_audio_shift_s': max(shifts) if shifts else 0.0,
