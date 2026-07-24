@@ -222,22 +222,23 @@ def run_fixtures(b, detections_path):
     except Exception:
         sur2team = {}
     if sur2team:
-        CARD_GOAL_SUB = re.compile(r'yellow|red card|\bbooked\b|\bbook\b|sent off|dismissed|'
-                                   r'\bgoal\b(?!\s*kick)|scored|substitut|\bsub(bed)?\b', re.I)
+        AWARD = (r'(?:free\s*kick|corner|throw[- ]?in|throw|foul|penalty|goal\s*kick|'
+                 r'set[- ]?piece|spot[- ]?kick)')
         r12 = True
         for x in b:
-            if x['src'] != 'blend' or not CARD_GOAL_SUB.search(x['text']):
+            if x['src'] != 'blend':
                 continue
             named = [s for s in sur2team if re.search(r'\b' + re.escape(s) + r'\b', x['text'])]
-            if not named:
-                continue
-            credited = None                          # the team credited by "for/pour <form>"
-            for team, forms in TEAM_FORMS.items():
-                if any(re.search(r'\b(for|pour)\b[^.]{0,20}\b' + re.escape(fm) + r'\b',
-                                 x['text'], re.I) for fm in forms):
-                    credited = team; break
-            if credited and any(sur2team[s] != credited for s in named):
-                r12 = False
+            if not named or len({sur2team[s] for s in named}) != 1:
+                continue                             # no player, or both teams named (ambiguous)
+            pteam = sur2team[named[0]]
+            for team, forms in TEAM_FORMS.items():   # any 'for <opposing form>' that isn't an award
+                if team == pteam:
+                    continue
+                for fm in forms:
+                    for m in re.finditer(r'\b(?:for|pour)\s+' + re.escape(fm) + r'\b', x['text'], re.I):
+                        if not re.search(AWARD + r'\W*$', x['text'][:m.start()], re.I):
+                            r12 = False
         fx['R12'] = r12
     else:
         fx['R12'] = 'skip'

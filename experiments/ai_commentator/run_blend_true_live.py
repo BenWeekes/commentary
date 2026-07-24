@@ -150,23 +150,36 @@ _CGS_RX = _reatt.compile(r'yellow|red card|\bbooked\b|\bbook\b|sent off|dismisse
 _EVENT_WORD = (r'(?:yellow|red\s+card|booked|\bbook\b|sent\s+off|dismissed|goal|scored|'
                r'substitut\w*|subbed|\bsub\b)')
 
+_AWARD_RX = (r'(?:free\s*kick|corner|throw[- ]?in|throw|foul|penalty|goal\s*kick|'
+             r'set[- ]?piece|spot[- ]?kick)')
+
 def enforce_attribution(text):
-    if not text or not _CGS_RX.search(text):
+    """When a named roster player is credited via 'for/pour <team>' to a team that is NOT
+    theirs, CORRECT the team reference to the player's own team (register-matched), unless it
+    is an award beneficiary ('free kick for X'). Corrects rather than strips, so no commentary
+    is lost. Skips ambiguous lines that name both teams. Generic — resolves off the roster."""
+    if not text:
         return text
     named = [s for s in SUR2TEAM if _reatt.search(r'\b' + _reatt.escape(s) + r'\b', text)]
     if not named:
         return text
-    for team, forms in TEAM_FORMS.items():
-        if all(SUR2TEAM[s] == team for s in named):
-            continue                          # every named player IS this team — 'for team' ok
-        for fm in forms:
-            # only strip when the 'for <team>' directly follows the card/goal/sub keyword in the
-            # SAME clause (no ,.; between) — so 'Kohn booked; free kick for Mainz' is left intact.
-            adj = _EVENT_WORD + r'[^.,;]{0,15}?\s(?:for|pour)\s+' + _reatt.escape(fm) + r'\b'
-            if _reatt.search(adj, text, _reatt.I):
-                text = _reatt.sub(r'\s*\b(?:for|pour)\s+' + _reatt.escape(fm) + r'\b', '',
-                                  text, flags=_reatt.I)
-    return _reatt.sub(r'\s+([.,;:!?])', r'\1', text).strip()
+    teams = {SUR2TEAM[s] for s in named}
+    if len(teams) != 1:                       # both teams named -> ambiguous, leave it
+        return text
+    pteam = next(iter(teams))
+    own = TEAM_FORMS[pteam]
+    for wt, forms in TEAM_FORMS.items():
+        if wt == pteam:
+            continue
+        for i, fm in sorted(enumerate(forms), key=lambda x: len(x[1]), reverse=True):
+            corrected = own[i]                # parallel-register replacement (same index)
+            def repl(m, _c=corrected):
+                if _reatt.search(_AWARD_RX + r'\W*$', text[:m.start()], _reatt.I):
+                    return m.group(0)         # 'free kick for X' = beneficiary, keep
+                return m.group(1) + ' ' + _c
+            text = _reatt.sub(r'\b(for|pour)\s+' + _reatt.escape(fm) + r'\b', repl,
+                              text, flags=_reatt.I)
+    return text
 
 # R7: French localizer is the single canonical B.TRANSLATE_SYSTEM (run_blend_live.py) —
 # no override here, so the glossary lives in exactly one place.
