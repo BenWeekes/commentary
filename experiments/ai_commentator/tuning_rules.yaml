@@ -135,6 +135,19 @@ fixtures:
   R12: "no line attributes a team-specific event to a named player whose roster team differs (auto: name->roster-team vs stated team)"
   R13: "no output line (any language) contains 'in the frame/in frame/in shot/in the picture/dans le cadre' (auto)"
 
+- id: R14
+  source: "judge audit 2026-07-24 (post codex-4 parser fix): 'Klaus makes the save' with
+    vision=None; 'shapes the next free kick' on possession-only; 'takes the free kick'
+    elaboration on a foul-only fact — generated lines inventing event language"
+  category: event-grounding
+  rule: >
+    A generated (non-verbatim) line may use event language — save, free kick, corner,
+    penalty, goal, substitution, card, throw-in, shot, foul — ONLY when the grounding
+    context (vision fact / tracker) provides that event. Verbatim STT lines are exempt
+    (broadcaster truth). Enforced as a deterministic emit-time veto, logged '[ veto ] R14'.
+  implementation: code-gate unsupported_event_language() at emit
+  status: implemented-pending-gate   # cycle-4; formal trio pending
+
 amendments:   # threshold changes require an entry here — never a silent edit
 - date: 2026-07-24
   rule: R1

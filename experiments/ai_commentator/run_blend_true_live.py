@@ -523,8 +523,42 @@ def main():
                     audio[lang][b:b + pl] = pcm[:pl]
                 rec['lat'][f'audio_{lang}_s'] = round(pl / (SR * 2), 2)
 
+    _EVLANG = {   # event-language -> the detector event type that must back it
+        'save': r'\bsave[sd]?\b|\bsmothers\b|\bparr(y|ies|ied)\b',
+        'free_kick': r'\bfree[- ]kick\b',
+        'corner': r'\bcorner\b',
+        'penalty': r'\bpenalt',
+        'goal': r'\bscor(es|ed)\b|\bgoal!|\bwhat a goal\b|\bfinds the net\b',
+        'substitution': r'\bsubstitut|\bfresh legs\b|\bcomes? on\b|\bbrought on\b',
+        'yellow_card': r'\byellow\b|\bbook(ed|ing|s)?\b|\bcaution',
+        'red_card': r'\bred card\b|\bsent off\b|\bdismissed\b',
+        'throw_in': r'\bthrow[- ]in\b',
+        'shot': r'\bshot\b|\bshoots\b|\bfires\b|\bdrills\b|\bheader\b',
+        'foul': r'\bfoul(ed)?\b',
+    }
+
+    def unsupported_event_language(rec):
+        """R14 code gate: generated (non-verbatim) lines may only use event words the
+        grounding provides. Judge-audited inventions: 'Klaus makes the save' (vision:
+        None), 'shapes the next free kick' (possession only). STT lines are verbatim
+        broadcaster truth and exempt."""
+        if rec.get('real_phrase'):
+            return None
+        ctx = (str(rec.get('vision') or '') + ' ' + str(rec.get('tracker') or '')).lower()
+        for ev, rx in _EVLANG.items():
+            if _reatt.search(rx, rec['text'], _reatt.I):
+                if ev == 'shot' and ('shot' in ctx or 'goal' in ctx):
+                    continue
+                if ev not in ctx:
+                    return ev
+        return None
+
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
         nonlocal booth, placed_end
+        bad = unsupported_event_language(rec)
+        if bad:
+            print(f"  [ veto ] R14 unsupported event language {bad!r}: {rec['text']!r}")
+            return
         with audio_lock:
             placed_end = max(placed_end, t_det + B.NATURAL_LAG_S + est + 0.15)
         rec['text'] = enforce_attribution(rec['text'])   # R12 guard BEFORE history/prompts see it
