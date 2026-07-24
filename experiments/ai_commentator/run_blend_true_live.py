@@ -573,8 +573,16 @@ def main():
         # late-stage skip: a slow chooser can outrun the budget AFTER admission (smoke:
         # a 9s eager call -> 13.1s behind at commit). If TTS+placement can no longer
         # land this line, never start it — doomed attempts are skips, not drops.
+        # EXCEPTION — priority events (cards/goals): late is better than never. They are
+        # narrated PAST-TENSE by design, so pull the slot forward to where placement can
+        # still land (a skipped corroborated card cost R1 in the 6s trio).
         _behind_now = (time.monotonic() - wall0) - t_det
-        if _behind_now > BUFFER_S - 1.0:
+        if rec.get('prio_event') is not None:
+            _min_slot = (time.monotonic() - wall0) - BUFFER_S + 1.6
+            if _min_slot > t_det:
+                t_det = round(_min_slot, 2)
+                rec['video_time_s'] = t_det
+        elif _behind_now > BUFFER_S - 1.0:
             print(f"  [ skip ] stage too late ({_behind_now:.1f}s behind): {rec['text'][:44]!r}")
             return
         with audio_lock:
