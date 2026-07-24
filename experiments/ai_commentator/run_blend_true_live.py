@@ -368,7 +368,7 @@ def main():
             en = b''
         behind = (time.monotonic() - wall0) - t_det          # measured at EN readiness
         missing = []
-        grace = max(0.05, BUFFER_S - behind - 0.1)
+        grace = max(0.05, BUFFER_S - behind - 0.6)   # reserve commit margin: slow FR/PT -> missing track, not a dropped line
         def _side(fut, lang):
             try:
                 txt, pcm = fut.result(timeout=grace); return txt, pcm
@@ -391,7 +391,8 @@ def main():
         # F11: commit writes in PLACEMENT order — a later-timed line must not raise
         # the floor before an earlier-timed line has written (completion-order race)
         tok = id(rec)
-        deadline = time.monotonic() + 5.0
+        _rem = BUFFER_S - ((time.monotonic() - wall0) - t_det) - 0.2
+        deadline = time.monotonic() + min(5.0, max(0.2, _rem))
         with write_cond:
             while any(vp < t_det - 1e-6 for tk, vp in in_flight.items() if tk != tok):
                 if time.monotonic() > deadline:
