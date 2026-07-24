@@ -148,6 +148,24 @@ fixtures:
   implementation: code-gate unsupported_event_language() at emit
   status: implemented-pending-gate   # cycle-4; formal trio pending
 
+- date: 2026-07-24
+  rule: hallucination gate -> deterministic (R14 fixture); judge demoted to watched
+  change: >
+    The guarded hallucination metric is now fixture R14 (auto, fail-closed): every
+    non-verbatim blend line using event language must carry the matching event fact in
+    its own grounding context. The single-frame LLM judge count moves to WATCHED
+    (tripwire, reported every gate, never accepts/rejects alone).
+  before_evidence: >
+    Post-parser-fix trio: judge flagged 7 lines; 6 were provably grounded in their own
+    artifacts (goal_kick/free_kick/substitution/card facts present), incl. the correctly
+    guard-corrected card line; the 1 genuine miss ('goal kick' phrasing on a
+    possession-only fact) is exactly what R14 catches deterministically. The judge also
+    cannot see multi-second dynamics from one frame and its style scores saturate (2/5).
+  after_evidence: >
+    R14 runtime veto caught 2 live inventions in the same trio ('Amiri takes the Mainz
+    free kick' and 'Becker's cross and shot' — both unsupported); fixture green on runs
+    with the veto active, red on the archived pre-veto run containing the goal-kick slip.
+  commit: (this commit)
 amendments:   # threshold changes require an entry here — never a silent edit
 - date: 2026-07-24
   rule: R1

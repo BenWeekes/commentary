@@ -115,12 +115,19 @@ check("R1: 'sent off' satisfies red_card", E.run_fixtures(b12, _rc_dets)['R1'] i
 _lone = _pl.Path(tempfile.gettempdir()) / 'lone_card_fixture.jsonl'
 _lone.write_text(_json.dumps({'t_det': 50.0, 'det': {'events': [{'type': 'yellow_card', 'confidence': 'high'}]}}))
 check("R1: lone card blip owes no line (corroboration)", E.run_fixtures([mk(10.0, 'x.')], _lone)['R1'] is True)
-check("hallucination judge failure fails closed", E.GUARDED[0][1](0, None) is False)
-check("survival gate is HARD 0.95 (deficient baseline can't relax it)", E.GUARDED[1][1](0.90, 0.90) is False)
+check("survival gate is HARD 0.95 (deficient baseline can't relax it)",
+      not any(k == 'survival' and p(0.90, 0.90) for k, p, _ in E.GUARDED))
+
+b13 = [mk(10.0, "Klaus makes the save, and Union survive.", vision=None)]
+check("R14 fixture: invented save fails", E.run_fixtures(b13, '/x.jsonl')['R14'] is False)
+b14 = [mk(10.0, "Amiri receives the free kick deep.", vision='event: free_kick (Mainz)')]
+check("R14 fixture: grounded free kick passes", E.run_fixtures(b14, '/x.jsonl')['R14'] is True)
+b15 = [dict(mk(10.0, "And a stunning save!"), real_phrase="And a stunning save!")]
+check("R14 fixture: verbatim STT exempt", E.run_fixtures(b15, '/x.jsonl')['R14'] is True)
 
 print("== worst-of-N fail-closed (codex #8) ==")
 check("missing survival counts as 0.0", E.WORST['survival']([0.99, None]) == 0.0)
-check("missing hallucinations counts as fail", E.WORST['hallucinations']([0, None]) == 999)
+check("hallucinations is watched (deterministic R14 is the gate)", 'hallucinations' in E.WATCHED)
 
 print("== localizers fail silent, never English (codex #7) ==")
 import inspect

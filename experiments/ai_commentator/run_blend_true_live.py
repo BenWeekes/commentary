@@ -533,6 +533,7 @@ def main():
         'yellow_card': r'\byellow\b|\bbook(ed|ing|s)?\b|\bcaution',
         'red_card': r'\bred card\b|\bsent off\b|\bdismissed\b',
         'throw_in': r'\bthrow[- ]in\b',
+        'goal_kick': r'\bgoal[- ]kick\b',
         'shot': r'\bshot\b|\bshoots\b|\bfires\b|\bdrills\b|\bheader\b',
         'foul': r'\bfoul(ed)?\b',
     }
