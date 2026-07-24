@@ -570,6 +570,13 @@ def main():
         if bad:
             print(f"  [ veto ] R14 unsupported event language {bad!r}: {rec['text']!r}")
             return
+        # late-stage skip: a slow chooser can outrun the budget AFTER admission (smoke:
+        # a 9s eager call -> 13.1s behind at commit). If TTS+placement can no longer
+        # land this line, never start it — doomed attempts are skips, not drops.
+        _behind_now = (time.monotonic() - wall0) - t_det
+        if _behind_now > BUFFER_S - 1.0:
+            print(f"  [ skip ] stage too late ({_behind_now:.1f}s behind): {rec['text'][:44]!r}")
+            return
         with audio_lock:
             placed_end = max(placed_end, t_det + B.NATURAL_LAG_S + est + 0.15)
         rec['text'] = enforce_attribution(rec['text'])   # R12 guard BEFORE history/prompts see it
@@ -726,8 +733,15 @@ def main():
                 with VIS_LOCK:
                     # stale-skip: never speak a detection too old to land within
                     # the buffer after chooser+TTS (~3s pipeline remainder)
+                    _now_wall = time.monotonic() - wall0
                     fresh = [v for v in VIS_LIVE
                              if v['t_det'] > vis_consumed and t - v['t_det'] <= STALE_S
+                             # WALL lateness check: frame-derived t lags under CPU
+                             # contention; a detection whose wall lateness cannot beat
+                             # the budget after chooser+TTS (~2.2s) is doomed — skip it
+                             # instead of attempting and dropping (6s trio r2: 2 drops
+                             # at behind 8.0/8.7s were admitted this way)
+                             and _now_wall - v['t_det'] <= BUFFER_S - 2.2
                              and v['t_det'] >= eff_placed_end() - 0.2]
                     cand = max(fresh, key=lambda v: v['t_det']) if fresh else None
                 if cand:

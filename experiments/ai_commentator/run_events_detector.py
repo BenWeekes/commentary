@@ -54,12 +54,12 @@ def call_vision(client, model, burst_paths, prompt):
         })
     t0 = time.monotonic()
     try:
-        resp = client.responses.create(
+        resp = client.with_options(timeout=15.0).responses.create(
             model=model,
             input=[{"role": "user", "content": content}],
             max_output_tokens=MAX_OUTPUT_TOKENS,
             reasoning={"effort": "low"},
-        )
+        )   # hard 15s cap: a 40s-stuck call starved a vision worker in the 6s trio
         return (resp.output_text or '').strip(), int((time.monotonic() - t0) * 1000), None
     except Exception as e:
         return None, int((time.monotonic() - t0) * 1000), f"{type(e).__name__}: {str(e)[:200]}"
