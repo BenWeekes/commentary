@@ -329,6 +329,12 @@ def main():
     write_cond = threading.Condition()
     in_flight = {}                          # token -> v_place; writes commit in v_place order
 
+    def eff_placed_end():
+        # admission control must see the ACTUAL committed audio extent, not only the
+        # est-based placed_end — actual TTS audio can run longer than the estimate and
+        # phrases admitted in that race window die later as shift-desync drops
+        return max(placed_end, audio_end['en'] / (SR * 2) - B.NATURAL_LAG_S)
+
     lines = []; used_son = set(); recent = []
     booth = 0.0                             # pacing in current-time domain
     last_team_spoken = None   # F8/R4: explicit possession-flip signal for the stages
@@ -553,7 +559,7 @@ def main():
                         continue
                     if t >= float(r.get('end_s', tt)) + STT_LAG and t - tt <= 6.0:
                         used_son.add(tt)
-                        if placed_end - tt > 1.4:
+                        if eff_placed_end() - tt > 1.4:
                             continue          # slot already occupied — would desync, skip
                         real = r; break
             if real:
@@ -659,7 +665,7 @@ def main():
                     # the buffer after chooser+TTS (~3s pipeline remainder)
                     fresh = [v for v in VIS_LIVE
                              if v['t_det'] > vis_consumed and t - v['t_det'] <= STALE_S
-                             and v['t_det'] >= placed_end - 0.2]
+                             and v['t_det'] >= eff_placed_end() - 0.2]
                     cand = max(fresh, key=lambda v: v['t_det']) if fresh else None
                 if cand:
                     vis_consumed = cand['t_det']
