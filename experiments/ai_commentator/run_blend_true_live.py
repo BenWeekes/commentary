@@ -500,6 +500,16 @@ def main():
         side = {lang: fut for lang, fut in (('fr', f_fr), ('pt', f_pt)) if lang in slots}
         missing.extend(lang for lang in ('fr', 'pt')
                        if lang not in slots and lang not in missing)
+        # congested tracks still get their TEXT on the page (audio stays silent) —
+        # reviewers flagged empty FR cells; text is cheap even when the slot is gone
+        for lang, fut in (('fr', f_fr), ('pt', f_pt)):
+            if lang in slots:
+                continue
+            try:
+                txt, _pcm = fut.result(timeout=max(0.05, (t_det + BUFFER_S) - (time.monotonic() - wall0)))
+                rec[lang] = txt
+            except Exception:
+                pass
         if side:
             rem = (t_det + BUFFER_S) - (time.monotonic() - wall0)
             cf_wait(list(side.values()), timeout=max(0.05, rem))

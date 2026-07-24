@@ -335,13 +335,30 @@ TRANSLATE_SYSTEM = (
     "closest sensible French football line rather than a literal rendering.\n"
     "Return only the French line.")
 
+# R7 deterministic glossary scrub — the localizer PROMPT bans these but the model can
+# slip (gate caught 'sonder' in a trio run); banned calque -> preferred form, mechanically.
+FR_SCRUB = [
+    (re.compile(r'\bsonder\b', re.I), 'tenter'),
+    (re.compile(r'\bsonde\b', re.I), 'tente'),
+    (re.compile(r'\bsondent\b', re.I), 'tentent'),
+    (re.compile(r'\bdernier tiers\b', re.I), 'les trente derniers mètres'),
+    (re.compile(r'\bmoment calme\b', re.I), 'temps faible'),
+    (re.compile(r'\bça se casse\b', re.I), 'ça ne passe pas'),
+    (re.compile(r'\bça se termine là\b', re.I), 'ça ne passe pas'),
+]
+
+def scrub_fr(text):
+    for rx, rep in FR_SCRUB:
+        text = rx.sub(rep, text)
+    return text
+
 def translate_fr(text):
     """Returns the French line, or None on failure — see translate_pt."""
     try:
         r = client.responses.create(model=CHOOSER_MODEL, instructions=TRANSLATE_SYSTEM,
                                     input=[{"role": "user", "content": text}], max_output_tokens=90)
         out = re.sub(r'\s+', ' ', (r.output_text or '').strip().strip('"'))
-        return out or None
+        return scrub_fr(out) if out else None
     except Exception:
         return None
 

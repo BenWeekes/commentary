@@ -125,6 +125,11 @@ check("R14 fixture: grounded free kick passes", E.run_fixtures(b14, '/x.jsonl')[
 b15 = [dict(mk(10.0, "And a stunning save!"), real_phrase="And a stunning save!")]
 check("R14 fixture: verbatim STT exempt", E.run_fixtures(b15, '/x.jsonl')['R14'] is True)
 
+print("== R7 deterministic FR scrub ==")
+check("scrub: sonder -> tenter", B.scrub_fr("Mayence continue de sonder au milieu.") == "Mayence continue de tenter au milieu.")
+check("scrub: moment calme -> temps faible", B.scrub_fr("Un moment calme ici.") == "Un temps faible ici.")
+check("scrub: clean line untouched", B.scrub_fr("Mayence garde le ballon.") == "Mayence garde le ballon.")
+
 print("== worst-of-N fail-closed (codex #8) ==")
 check("missing survival counts as 0.0", E.WORST['survival']([0.99, None]) == 0.0)
 check("hallucinations is watched (deterministic R14 is the gate)", 'hallucinations' in E.WATCHED)
