@@ -156,6 +156,24 @@ amendments:   # threshold changes require an entry here — never a silent edit
     would still qualify; no such case observed in any run to date.
   commit: (this commit)
 - date: 2026-07-24
+  rule: hallucination gate + R1 window
+  change: >
+    (1) Hallucination judge scope narrowed to EVENT-claiming lines; possession-dynamics
+    lines are excluded from the single-frame judge and covered by deterministic fixtures.
+    (2) R1 card window measured from CORROBORATION time (2nd sighting) — when the event
+    becomes speakable — not the 1st sighting.
+  before_evidence: >
+    The judge's numeric verdicts were never parsed until codex-4 #1 (historic
+    'hallucinations: 0' was a parser bug). Under correct parsing, 9/11 run-1 flags were
+    grounded possession lines a single frame cannot validate (incl. the correctly
+    guard-corrected card line); human review of v5 (159 comments, 71% positive) found no
+    invented events. Trio r3 'missed' card was narrated 8.6s after the 1st sighting but
+    3.1s after corroboration.
+  after_evidence: fixtures + judged-set re-run on archived trio runs; genuine find kept:
+    run-1 293.2s line named Kohn while the detector provided Juranovic (candidate R14,
+    name-grounding).
+  commit: (this commit)
+- date: 2026-07-24
   rule: R1/R10 fixtures
   change: >
     R1 satisfied only by event language in the SPOKEN text (word-boundary patterns;

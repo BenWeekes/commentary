@@ -54,7 +54,15 @@ def snapshot(jsonl_path, skip_llm=False):
     if not skip_llm:
         import judge as J
         from concurrent.futures import ThreadPoolExecutor
-        gen = [x for x in b if x['src'] == 'blend']
+        # judge scope: lines that CLAIM an event (card/goal/sub/save/shot/corner/pen) —
+        # a single-frame judge cannot validate multi-second possession dynamics (9/11
+        # flags on grounded possession lines incl. a correctly-corrected card line);
+        # possession grounding is enforced by the deterministic fixtures instead
+        EVENT_CLAIM_RX = re.compile(
+            r'yellow|red card|book(ed|ing)?\b|sent off|penalt|corner|free kick|\bsub\b|'
+            r'substitut|\bsave[sd]?\b|\bshot\b|\bshoots\b|header|\bscor|\bgoal\b|VAR',
+            re.I)
+        gen = [x for x in b if x['src'] == 'blend' and EVENT_CLAIM_RX.search(x['text'])]
         with ThreadPoolExecutor(max_workers=6) as ex:
             vs = list(ex.map(lambda x: J.judge_line(x['text'], J.frame_for_time_s(x['video_time_s'])), gen))
         def _hval(v):
@@ -146,10 +154,14 @@ def run_fixtures(b, detections_path):
                     near = [g for g in goal_ts if abs(g - d['t_det']) <= 10]
                     if len(near) < 3 or (max(near) - min(near)) < 5.0:
                         continue    # R10-uncorroborated blip — correctly silenced, no line owed
+                speak_t = d['t_det']
                 if et in ('yellow_card', 'red_card'):
-                    near = [g for g in card_ts.get(et, []) if abs(g - d['t_det']) <= 10]
+                    near = sorted(g for g in card_ts.get(et, []) if abs(g - d['t_det']) <= 10)
                     if len(near) < 2:
                         continue    # lone-blip card (e.g. 281.6s trio run2) — correctly silenced
+                    speak_t = near[1]   # corroboration time: the event becomes speakable at the
+                                        # 2nd sighting — the 8s clock starts THERE (trio r3: line
+                                        # at 195.6 was 8.6s after 1st sighting but 3.1s after 2nd)
                 if et in PRIORITY_EVENTS and e.get('confidence') == 'high':
                     bucket = (et, int(d['t_det'] // 30))
                     if bucket in seen:
@@ -157,7 +169,7 @@ def run_fixtures(b, detections_path):
                     seen.add(bucket)
                     # the SPOKEN TEXT must reference the event (word-boundary patterns);
                     # hidden vision metadata no longer satisfies R1 (codex-4 #2)
-                    hit = any(abs(x['video_time_s'] - d['t_det']) <= 8 and
+                    hit = any(-2 <= x['video_time_s'] - speak_t <= 8 and
                               re.search(KW[et], x['text'], re.I)
                               for x in b)
                     if not hit:
