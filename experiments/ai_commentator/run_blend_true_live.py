@@ -355,11 +355,12 @@ def main():
                 raise RuntimeError('pt translate failed')
             return txt, B.tts(txt, B.PT_VOICE)
         f_en = tts_pool.submit(_en); f_fr = tts_pool.submit(_fr); f_pt = tts_pool.submit(_pt)
-        # EN is the PRIMARY track and gates placement. FR/PT are best-effort within the
-        # remaining live budget - if they can't keep up they go SILENT for this line
-        # (logged), rather than delaying/dropping an otherwise-good line. This decouples
-        # survival from the slower two languages (fixes the 3-track latency tax) and never
-        # counts a line 'kept' with a mandatory track missing.
+        # EN is the PRIMARY track: it COMMITS the line the moment it is ready (that is
+        # what a real broadcast would do). FR/PT get RESERVED slots at the same shifted
+        # position and fill in later on their own per-track deadline — a slow
+        # localization costs THAT track (missing, logged), never the line. Lateness is
+        # still measured honestly at the EN commit (codex finding #1); all three
+        # languages share one shift so the tracks stay aligned (finding #2).
         now_behind = (time.monotonic() - wall0) - t_det
         en_deadline = max(0.3, BUFFER_S - now_behind - 0.2)
         try:
@@ -368,17 +369,10 @@ def main():
             en = b''
         behind = (time.monotonic() - wall0) - t_det          # measured at EN readiness
         missing = []
-        grace = max(0.05, BUFFER_S - behind - 0.6)   # reserve commit margin: slow FR/PT -> missing track, not a dropped line
-        def _side(fut, lang):
-            try:
-                txt, pcm = fut.result(timeout=grace); return txt, pcm
-            except Exception:
-                missing.append(lang); return '', b''
-        rec['fr'], frp = _side(f_fr, 'fr')
-        rec['pt'], ptp = _side(f_pt, 'pt')
-        tts_ms = int((time.monotonic() - t_tts0) * 1000)
+        rec['fr'] = rec['pt'] = ''
         rec['lat'] = {'seen_to_decide_s': round(seen_to_decide, 2),
-                      'chooser_ms': chooser_ms, 'tts_ms': tts_ms,
+                      'chooser_ms': chooser_ms,
+                      'tts_ms': int((time.monotonic() - t_tts0) * 1000),
                       'behind_live_s': round(behind, 2),
                       'missing_tracks': missing}
         if not en:                                            # no primary audio -> drop
@@ -389,15 +383,14 @@ def main():
                 in_flight.pop(id(rec), None); write_cond.notify_all()
             return
         # F11: commit writes in PLACEMENT order — a later-timed line must not raise
-        # the floor before an earlier-timed line has written (completion-order race)
+        # the floor before an earlier-timed line has written (completion-order race).
+        # The wait may never outlive the remaining broadcast budget.
         tok = id(rec)
         _rem = BUFFER_S - ((time.monotonic() - wall0) - t_det) - 0.2
         deadline = time.monotonic() + min(5.0, max(0.2, _rem))
         with write_cond:
             while any(vp < t_det - 1e-6 for tk, vp in in_flight.items() if tk != tok):
                 if time.monotonic() > deadline:
-                    # an earlier-placed line is stuck; dropping THIS later line preserves
-                    # write order (never write out of sequence)
                     rec['dropped'] = True
                     _undo_prio(rec)
                     print(f"  [ drop ] write-order stall; dropping later line {rec['text'][:30]!r}")
@@ -408,17 +401,8 @@ def main():
         if len(en) > cap:
             print(f"  [ trunc ] EN audio {len(en)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
             en = en[:cap]
-        if len(frp) > cap:
-            print(f"  [ trunc ] FR audio {len(frp)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
-            frp = frp[:cap]
-        if len(ptp) > cap:
-            print(f"  [ trunc ] PT audio {len(ptp)/(SR*2):.1f}s capped to {cap/(SR*2):.1f}s: {rec['text'][:40]!r}")
-            ptp = ptp[:cap]
         rec['lat']['audio_s'] = round(len(en) / (SR * 2), 2)
-        rec['lat']['audio_fr_s'] = round(len(frp) / (SR * 2), 2)
-        # re-measure lateness NOW: the FR/PT grace wait and the write-order wait above
-        # happen AFTER the EN-readiness measurement — a commit past the budget must
-        # drop even though EN itself was ready in time (codex finding #1)
+        # honest commit-time lateness for the EN COMMIT itself (codex finding #1)
         behind = (time.monotonic() - wall0) - t_det
         rec['lat']['behind_commit_s'] = round(behind, 2)
         if behind > BUFFER_S:                                 # DROP, never slip
@@ -429,10 +413,10 @@ def main():
                 in_flight.pop(id(rec), None); write_cond.notify_all()
             return
         v_place = t_det
+        slots = {}                                            # lang -> (base_byte, slot_len)
         with audio_lock:
-            # decide the shift for BOTH tracks first; a shift is only acceptable if it
-            # stays within a natural speech gap — beyond that the line is DESYNCED, so
-            # drop it (also stops one bad write from cascading down the whole track)
+            # one SHARED shift for all three languages (finding #2); beyond a natural
+            # speech gap the line is desynced -> drop
             bases = {}
             shift = 0.0
             for lang in ('en', 'fr', 'pt'):
@@ -441,26 +425,50 @@ def main():
                 bases[lang] = b
                 if b < audio_end[lang]:
                     shift = max(shift, (audio_end[lang] - b) / (SR * 2))
-            if shift > 1.5:                                   # would desync — drop instead
+            if shift > 1.5:
                 rec['dropped'] = True
                 _undo_prio(rec)
                 print(f"  [ drop ] ({rec['src']}) {rec['text']}   [shift {shift:.1f}s would desync]")
                 with write_cond:
                     in_flight.pop(id(rec), None); write_cond.notify_all()
                 return
-            shift_b = int(shift * SR) * 2                 # SHARED shift: every language
-            for lang, pcm in (('en', en), ('fr', frp), ('pt', ptp)):
+            shift_b = int(shift * SR) * 2
+            # write EN now; RESERVE aligned FR/PT slots (localized speech runs a little
+            # longer than EN — reserve 1.35x, capped by the speech slot)
+            slot_len = min(cap, int(len(en) * 1.35)); slot_len -= slot_len % 2
+            for lang, pcm in (('en', en), ('fr', None), ('pt', None)):
                 b = max(bases[lang] + shift_b, audio_end[lang]); b -= b % 2
-                u = min(len(pcm), len(audio[lang]) - b)
-                if u > 0:
-                    audio[lang][b:b + u] = pcm[:u]
-                    audio_end[lang] = b + u
+                ln = len(en) if lang == 'en' else slot_len
+                ln = min(ln, len(audio[lang]) - b)
+                if ln <= 0:
+                    continue
+                if pcm is not None:
+                    audio[lang][b:b + ln] = pcm[:ln]
+                audio_end[lang] = max(audio_end[lang], b + ln)
+                slots[lang] = (b, ln)
         rec['lat']['audio_shift_s'] = round(shift, 2)
         rec['video_time_s'] = round(v_place + shift, 2)
+        # EN is committed -> release the write-order gate for later lines
         with write_cond:
             in_flight.pop(id(rec), None); write_cond.notify_all()
         print(f"  [{rec['video_time_s']:6.1f}s] ({rec['src']}) {rec['text']}"
               f"   [behind_live={behind:.1f}s]")
+        # ---- FR/PT fill their reserved slots on their OWN deadline (per-track) ----
+        for lang, fut in (('fr', f_fr), ('pt', f_pt)):
+            if lang not in slots:
+                missing.append(lang); continue
+            rem = (t_det + BUFFER_S) - (time.monotonic() - wall0)
+            try:
+                txt, pcm = fut.result(timeout=max(0.05, rem))
+            except Exception:
+                missing.append(lang); continue
+            rec[lang] = txt
+            b, ln = slots[lang]
+            if len(pcm) > ln:
+                pcm = pcm[:ln]
+            with audio_lock:
+                audio[lang][b:b + len(pcm)] = pcm
+        rec['lat']['audio_fr_s'] = round((slots.get('fr', (0, 0))[1] if 'fr' not in missing else 0) / (SR * 2), 2)
 
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
         nonlocal booth, placed_end
