@@ -781,7 +781,10 @@ def main():
                     prev_ev = last_events.get(ev_key) if vsig.get('event') else None
                     ev_new_info = bool(vsig.get('poss_player'))
                     ev_ok = vsig.get('event') and (
-                        prev_ev is None or t - prev_ev['t'] > 25.0            # R3 window
+                        prev_ev is None or t - prev_ev['t'] > 27.0            # R3 window +2s
+                        # guard band: runtime measures loop time, the fixture measures line
+                        # video-time — a 24.75s pair passed runtime (25.5s loop) and failed
+                        # the fixture by 0.25s; 27s runtime guarantees >=25s between lines
                         or (ev_new_info and not prev_ev['named']))            # new-info escape
                     if vsig.get('event') in PRIORITY_EVENTS and t - last_prio.get(vsig['event'], -99.0) <= 30.0:
                         ev_ok = False   # F5: card/goal-class dedup is TYPE-only (team labels flap)
