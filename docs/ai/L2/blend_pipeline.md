@@ -58,10 +58,11 @@ ffmpeg -re (source.mp4) ──SRT──▶ receiver → f_%05d.jpg (0.55s, 960×
 ```
 
 **Sync policy is the core invariant:** every surviving line is spoken about the moment
-on screen. Nothing ever slips late. Survival rate (lines that made the window) is a
-guarded metric (≥ 0.95); v6 runs measured 0.977 (10 s), **0.90 (6 s — below the
-guard; see Open items)**, 1.0 (6 s_vt). Run-to-run variance of ±5 lines is documented;
-marginal fails get one rerun, never best-of-N acceptance.
+on screen. Nothing ever slips late. Lateness is measured at COMMIT (post side-track and
+write-order waits); doomed attempts (detections/stages that can no longer land) are
+skipped, never attempted-and-dropped; priority events are exempt from skips and narrate
+past-tense with a forward slot. Survival is guarded HARD ≥ 0.95; the v7 acceptance
+measured **1.0 in all 9 runs across all three profiles**.
 
 ## Profiles & knobs
 
@@ -76,8 +77,10 @@ so variants never clobber each other.
 
 Other knobs: `BLEND_MODE` (eager default per R9), `RUN_TAG` (version tag, e.g. `_v6`),
 `CLIP_ID` (per-clip corpus key), `CLIP_ROSTER` (roster path for the R12 eval).
-Runners: `build_v6.sh` (all three profiles end-to-end: live run → mux ×3 langs →
-review page → self-check), `build_variant_6s_vt.sh`, `build_v5*.sh`.
+Runner: `build_v7.sh` — unit tests, then per profile 3 live runs → judged snapshots →
+`eval_snapshot.py compare` worst-of-3 (refuses N<3); pages build only on ACCEPT; trio
+artifacts archived under `runs/v7/`. Smoke path for cheap mechanical verification:
+`BLEND_SOURCE_MP4=/tmp/v2v_compare/slice_90s.mp4 BLEND_DURATION_S=90` (~2 min).
 
 ## Deterministic guards & evals
 
@@ -109,10 +112,13 @@ anything with ground truth gets a code guard and a fail-closed eval.
 | R11 | team-reference variety from approved pre-match forms |
 | R12 | no line credits a team-specific event to a named player of the other team (roster-resolved; award-beneficiary + ambiguity exclusions) |
 | R13 | no camera language ("in the frame/shot", "dans le cadre" (non-idiomatic), "na tela") in any language |
+| R14 | event language (save/free kick/corner/goal/sub/card/throw/shot/foul) requires the matching event fact in the line's own grounding context (verbatim STT exempt) — the deterministic hallucination gate |
 | R5/R6/R8 | reviewer-checked (no deterministic oracle) |
 
-Guarded metrics on compare: hallucinations ≤ baseline, survival ≥ 0.95, desync = 0,
-first line ≤ 2 s. Thresholds change only via ledger amendment — never inline.
+Guarded metrics on compare: survival ≥ 0.95 HARD, desync = 0, first line ≤ 2 s; the
+single-frame LLM judge count is a WATCHED tripwire (R14 is the hallucination gate).
+Card corroboration: ≥2 high-conf sightings/10 s (runtime + fixture, window from the
+2nd sighting). Thresholds change only via ledger amendment — never inline.
 
 ## Review & feedback process
 
