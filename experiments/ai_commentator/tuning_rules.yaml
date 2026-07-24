@@ -166,6 +166,30 @@ fixtures:
     free kick' and 'Becker's cross and shot' — both unsupported); fixture green on runs
     with the veto active, red on the archived pre-veto run containing the goal-kick slip.
   commit: (this commit)
+- id: R15
+  source: "reviewer territory cluster (5 items: 'their own third' vs the opponent's) —
+    tracker third is objective ground truth the pipeline was not enforcing"
+  category: territory-grounding
+  rule: >
+    A spatial claim (own third/half vs final/attacking third) must agree with the
+    tracker third for the subject team, resolved in the generic home/away pitch frame.
+    Contradictions are CORRECTED at emit (own<->final swap), never spoken wrong.
+    Verbatim STT exempt. Enforced + auto fixture (trk_third recorded per line).
+  implementation: territory_zone()/fix_territory() at emit + fixture R15 (auto)
+  status: implemented-pending-gate   # cycle-5; trio pending
+
+- id: R16
+  source: "reviewer team-only event errors ('Foul for Union' -> Mainz); card A/B showed
+    all frontier vision models make confident wrong team attributions"
+  category: event-corroboration
+  rule: >
+    An EVENT team claim requires corroboration: tracker possession agreement OR an
+    unambiguous broadcaster-named team (STT) near the moment. Uncorroborated claims
+    keep the event and DROP the team attribution — generic-but-correct over
+    specific-but-wrong. Applies at all profiles (extends the 6s-only tracker rule).
+  implementation: decision-path gate (event_team dropped unless corroborated)
+  status: implemented-pending-gate   # cycle-5; trio pending
+
 acceptance_record_cycle3_4:
   verdict: ACCEPT (worst-of-3 on ALL THREE profiles, 2026-07-24, v7)
   survival_spread: {10s: [1.0, 1.0, 1.0], 6s: [1.0, 1.0, 1.0], 6s_vt: [1.0, 1.0, 1.0]}

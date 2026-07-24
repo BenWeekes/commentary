@@ -125,6 +125,19 @@ check("R14 fixture: grounded free kick passes", E.run_fixtures(b14, '/x.jsonl')[
 b15 = [dict(mk(10.0, "And a stunning save!"), real_phrase="And a stunning save!")]
 check("R14 fixture: verbatim STT exempt", E.run_fixtures(b15, '/x.jsonl')['R14'] is True)
 
+print("== R15 territory (tracker ground truth) ==")
+check("zone: Mainz + home_attacking = final", T.territory_zone('home_attacking', 'Mainz') == 'final')
+check("zone: Mainz + home_defensive = own", T.territory_zone('home_defensive', 'Mainz') == 'own')
+check("zone: Union + home_attacking = own", T.territory_zone('home_attacking', 'Union') == 'own')
+check("zone: Union + home_defensive = final", T.territory_zone('home_defensive', 'Union') == 'final')
+check("zone: middle/unknown -> None", T.territory_zone('middle', 'Mainz') is None)
+b16 = [mk(10.0, "The home side settle in their own third.", trk_third='home_attacking', poss_team_ctx='Mainz')]
+check("R15 fixture flags own-vs-final contradiction", E.run_fixtures(b16, '/x.jsonl')['R15'] is False)
+b17 = [mk(10.0, "Mainz probe in the final third.", trk_third='home_attacking', poss_team_ctx='Mainz')]
+check("R15 fixture passes agreeing claim", E.run_fixtures(b17, '/x.jsonl')['R15'] is True)
+b18 = [mk(10.0, "Union work it in their own third.", trk_third='home_attacking', poss_team_ctx='Union')]
+check("R15 fixture: away own-third at home_attacking OK", E.run_fixtures(b18, '/x.jsonl')['R15'] is True)
+
 print("== R7 deterministic FR scrub ==")
 check("scrub: sonder -> tenter", B.scrub_fr("Mayence continue de sonder au milieu.") == "Mayence continue de tenter au milieu.")
 check("scrub: moment calme -> temps faible", B.scrub_fr("Un moment calme ici.") == "Un temps faible ici.")

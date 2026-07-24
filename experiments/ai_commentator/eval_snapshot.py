@@ -344,6 +344,23 @@ def run_fixtures(b, detections_path):
                 if ev not in ctx:
                     r14 = False
     fx['R14'] = r14
+    # R15: spatial claim must agree with the recorded tracker third for the subject team
+    OWN_RX = re.compile(r"(?:their|its)\s+own\s+(?:third|half)|\bown\s+third\b", re.I)
+    FINAL_RX = re.compile(r"\bthe\s+final\s+third\b|\battacking\s+third\b", re.I)
+    HOME_TEAM, AWAY_TEAM = 'Mainz', 'Union'   # from pre-match data (generic home/away frame)
+    r15 = True
+    for x in b:
+        if x['src'] != 'blend' or x.get('real_phrase'):
+            continue
+        team = x.get('poss_team_ctx'); third = x.get('trk_third')
+        if third not in ('home_defensive', 'home_attacking') or team not in (HOME_TEAM, AWAY_TEAM):
+            continue
+        zone = 'final' if ((team == HOME_TEAM) == (third == 'home_attacking')) else 'own'
+        if zone == 'final' and OWN_RX.search(x['text']) and not FINAL_RX.search(x['text']):
+            r15 = False
+        if zone == 'own' and FINAL_RX.search(x['text']) and not OWN_RX.search(x['text']):
+            r15 = False
+    fx['R15'] = r15
     # R5/R6/R8: reviewer/judge-checked (no deterministic oracle)
     fx['R5'] = fx['R6'] = fx['R8'] = 'manual'
     return fx
@@ -388,7 +405,7 @@ def compare(base, cands):
         if not ok:
             verdict = 'REJECT'
     print('--- per-rule fixtures (auto: must be True in ALL runs; manual: reviewer-checked) ---')
-    AUTO = {'R1','R1b','R2','R3','R4','R7','R10','R11','R12','R13','R14'}
+    AUTO = {'R1','R1b','R2','R3','R4','R7','R10','R11','R12','R13','R14','R15'}
     rules = sorted({r for c in cands for r in c.get('fixtures', {})} | AUTO)
     for r in rules:
         vals = [c.get('fixtures', {}).get(r) for c in cands]

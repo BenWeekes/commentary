@@ -154,6 +154,42 @@ _EVENT_WORD = (r'(?:yellow|red\s+card|booked|\bbook\b|sent\s+off|dismissed|goal|
 _AWARD_RX = (r'(?:free\s*kick|corner|throw[- ]?in|throw|foul|penalty|goal\s*kick|'
              r'set[- ]?piece|spot[- ]?kick)')
 
+def territory_zone(trk_third, team):
+    """R15: objective zone for the possessing TEAM from the home-anchored tracker
+    third. Generic — every match has a home/away frame."""
+    if trk_third not in ('home_defensive', 'home_attacking') or team not in B.TEAM.values():
+        return None
+    home = (team == B.TEAM['home'])
+    attacking_end = (trk_third == 'home_attacking')
+    return 'final' if (home == attacking_end) else 'own'
+
+_OWN_RX = _reatt.compile(r"(?:their|its)\s+own\s+(?:third|half)|\bown\s+third\b", _reatt.I)
+_FINAL_RX = _reatt.compile(r"\bthe\s+final\s+third\b|\battacking\s+third\b", _reatt.I)
+
+def fix_territory(rec):
+    """R15 guard: a spatial claim must agree with the tracker third for the subject
+    team; contradictions are CORRECTED (own<->final), never left wrong. Applies only
+    when the tracker third and subject team are both known; verbatim STT exempt."""
+    if rec.get('real_phrase'):
+        return
+    team = rec.get('poss_team_ctx')
+    zone = territory_zone(rec.get('trk_third'), team)
+    if zone is None:
+        return
+    txt = rec['text']
+    if zone == 'final' and _OWN_RX.search(txt) and not _FINAL_RX.search(txt):
+        rec['text'] = _OWN_RX.sub('the final third', txt)
+        rec['territory_fixed'] = 'own->final'
+    elif zone == 'own' and _FINAL_RX.search(txt) and not _OWN_RX.search(txt):
+        rec['text'] = _FINAL_RX.sub('their own third', txt)
+        rec['territory_fixed'] = 'final->own'
+
+def stt_team_near(t):
+    """R16: the team whose player(s) the human broadcaster named near t — verbatim
+    corroboration for an event-team claim. None unless exactly one team is implied."""
+    teams = {SUR2TEAM[n] for n in B.broadcaster_names_near(t) if n in SUR2TEAM}
+    return next(iter(teams)) if len(teams) == 1 else None
+
 def enforce_attribution(text):
     """When a named roster player is credited via 'for/pour <team>' to a team that is NOT
     theirs, CORRECT the team reference to the player's own team (register-matched), unless it
@@ -570,6 +606,9 @@ def main():
         if bad:
             print(f"  [ veto ] R14 unsupported event language {bad!r}: {rec['text']!r}")
             return
+        fix_territory(rec)                       # R15: correct own<->final vs tracker
+        if rec.get('territory_fixed'):
+            print(f"  [ fix  ] R15 territory {rec['territory_fixed']}: {rec['text']!r}")
         # late-stage skip: a slow chooser can outrun the budget AFTER admission (smoke:
         # a 9s eager call -> 13.1s behind at commit). If TTS+placement can no longer
         # land this line, never start it — doomed attempts are skips, not drops.
@@ -765,11 +804,21 @@ def main():
                     # via the corroborated priority block — never through this path
                     if vsig.get('event') in PRIORITY_EVENTS:
                         vsig = {**vsig, 'event': None, 'event_team': None, 'event_conf': None}
+                    trk_poss = (trk_det.get('possession') or {}) if trk_det else {}
+                    trk_team = B.TEAM.get(trk_poss.get('team'))
+                    trk_third = trk_poss.get('third')
+                    if trk_third in (None, 'unknown') and trk_det:
+                        trk_third = (trk_det.get('tracker') or {}).get('ball_third')
                     if FAST_PROFILE:
-                        trk_team = B.TEAM.get((trk_det.get('possession') or {}).get('team')) if trk_det else None
                         if vsig.get('poss_team') and trk_team != vsig['poss_team']:
                             # AGREEMENT required at 6s: no tracker read = no team claim
                             vsig = {**vsig, 'poss_team': None, 'poss_player': None, 'poss_pos': None}
+                    # R16 (all profiles): an EVENT team claim needs corroboration —
+                    # tracker agreement or an unambiguous broadcaster-named team (STT).
+                    # Uncorroborated -> the event survives, the team attribution drops.
+                    if vsig.get('event_team'):
+                        if trk_team != vsig['event_team'] and stt_team_near(t_det) != vsig['event_team']:
+                            vsig = {**vsig, 'event_team': None}
                         if vsig.get('poss_player') and vsig.get('poss_conf') != 'high':
                             vsig = {**vsig, 'poss_player': None, 'poss_pos': None}
                     vfact = B.fact_str(vsig)
@@ -934,6 +983,8 @@ def main():
                             rec = {'src': 'blend', 'text': line, 'real_phrase': None,
                                    'vision': vfact, 'tracker': ttruth,
                                    'stage': stage,
+                                   'trk_third': trk_third,          # R15 fixture input
+                                   'poss_team_ctx': vsig.get('poss_team') or trk_team,
                                    'vision_latency_ms': cand['latency_ms'],
                                    'video_time_s': round(t_det, 2)}
                             emit(rec, t, t_det, max(1.4, len(line.split()) / 2.6), gate,
