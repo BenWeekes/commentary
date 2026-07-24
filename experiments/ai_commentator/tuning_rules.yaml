@@ -146,7 +146,7 @@ fixtures:
     context (vision fact / tracker) provides that event. Verbatim STT lines are exempt
     (broadcaster truth). Enforced as a deterministic emit-time veto, logged '[ veto ] R14'.
   implementation: code-gate unsupported_event_language() at emit
-  status: implemented-pending-gate   # cycle-4; formal trio pending
+  status: accepted   # cycle-4, worst-of-3 triple-ACCEPT 2026-07-24 (v7)
 
 - date: 2026-07-24
   rule: hallucination gate -> deterministic (R14 fixture); judge demoted to watched
@@ -166,6 +166,21 @@ fixtures:
     free kick' and 'Becker's cross and shot' — both unsupported); fixture green on runs
     with the veto active, red on the archived pre-veto run containing the goal-kick slip.
   commit: (this commit)
+acceptance_record_cycle3_4:
+  verdict: ACCEPT (worst-of-3 on ALL THREE profiles, 2026-07-24, v7)
+  survival_spread: {10s: [1.0, 1.0, 1.0], 6s: [1.0, 1.0, 1.0], 6s_vt: [1.0, 1.0, 1.0]}
+  fixtures_all_runs: all 11 automated fixtures green in all 9 runs (R1-R4, R7, R1b, R10-R14)
+  gate_hardening_this_cycle: >
+    honest commit-time lateness; EN-first commit with side-track slot reservation
+    (side congestion can never drop a line); predictive + late-stage doomed-attempt
+    skips (priority events exempt, slot-forward past-tense); deterministic R14
+    event-grounding veto+fixture replacing the single-frame judge as the
+    hallucination gate; deterministic FR calque scrub; card corroboration (>=2
+    sightings); roster keyed (team,number) fail-closed; R3 27s runtime guard band;
+    15s vision-call cap; worst-of-3 enforced by the runner (N<3 refused).
+  provenance: 8 trio attempts; every rejection root-caused to a distinct defect and
+    converted to a permanent guard (see amendments + git log 8631fa3..59720fa).
+
 amendments:   # threshold changes require an entry here — never a silent edit
 - date: 2026-07-24
   rule: R1
@@ -287,7 +302,7 @@ acceptance_record_cycle2:
     event without a team rather than guess. Purely generic — resolves off the roster
     that every match provides.
   implementation: CHOOSER_SYSTEM 'TEAM ATTRIBUTION' hard rule (roster-grounded)
-  status: implemented-pending-gate   # cycle-3; needs worst-of-N live gate
+  status: accepted   # cycle-3/4, worst-of-3 triple-ACCEPT 2026-07-24 (v7)
 
 - id: R13
   source: "review @68s 'Kohn, Burke et Klaus dans le cadre' / 'all in the frame' (x3) —
@@ -298,7 +313,7 @@ acceptance_record_cycle2:
     picture' and lines that merely list which players are visible without an action they
     are performing. Those are the camera, not the play — output NO_CALL instead.
   implementation: CHOOSER_SYSTEM camera-ban clause (extended) + fixture R13 (auto)
-  status: implemented-pending-gate   # cycle-3; needs worst-of-N live gate
+  status: accepted   # cycle-3/4, worst-of-3 triple-ACCEPT 2026-07-24 (v7)
 
 # R7 GLOSSARY EXTENSION (cycle-3, French localizer) — reviewer-appended, generic idioms:
 #   move breaks down            -> "l'action ne passe pas" / "ça ne passe pas"

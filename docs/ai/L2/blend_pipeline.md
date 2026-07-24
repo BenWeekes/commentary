@@ -1,8 +1,9 @@
 # AI Live Commentary — Blend Pipeline & Improvement Process (current state)
 
-> Written 2026-07-24 for external review. This is the authoritative description of the
-> `experiments/ai_commentator` true-live pipeline and the human-in-the-loop process
-> around it, as of round **v6**. Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
+> Written 2026-07-24 for external review; updated same day after the v7 acceptance.
+> Authoritative description of the `experiments/ai_commentator` true-live pipeline and
+> the HITL process, as of round **v7 (formally ACCEPTED: worst-of-3 on all three profiles,
+> survival 1.0 x 9 runs, all fixtures green — the first formal acceptance)**. Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
 > (the process loop in depth), [review_cycle_1_dispositions.md](review_cycle_1_dispositions.md)
 > (per-comment audit of cycle 1). History/narrative: [../L1/10_experiments.md](../L1/10_experiments.md).
 
