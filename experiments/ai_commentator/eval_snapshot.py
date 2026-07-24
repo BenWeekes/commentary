@@ -69,7 +69,28 @@ PRIORITY_EVENTS = {'yellow_card', 'red_card', 'goal', 'penalty'}
 FILLER_RX = re.compile(r'quiet spell|midfield battle continues|still all square', re.I)
 FR_BANNED = ['sonder', 'dernier tiers', 'moment calme']
 TRANSITION_RX = re.compile(r'win|won|regain|turn|steal|intercept|back|break|rob|force', re.I)
-POSS_RX = re.compile(r'\b(Mainz|Union)\b.{0,30}\b(possess|keep|on the ball|have it|work|circulat|hold)', re.I)
+# team-reference aliases (R11 approved forms) -> canonical team, so R4 sees
+# "the hosts keep it" -> Mainz (codex #8: literal Mainz/Union missed aliases)
+FORM2TEAM = {}
+for _team, _forms in {'Mainz': ['Mainz', 'FSV Mainz', 'the hosts', 'the home side', 'the reds'],
+                      'Union': ['Union', 'Union Berlin', 'the visitors', 'the away side',
+                                'the men in green']}.items():
+    for _f in _forms:
+        FORM2TEAM[_f.lower()] = _team
+_FORMS_ALT = '|'.join(sorted((re.escape(f) for f in FORM2TEAM), key=len, reverse=True))
+POSS_RX = re.compile(r'\b(' + _FORMS_ALT + r')\b.{0,30}\b'
+                     r'(possess|keep|on the ball|have it|work|circulat|hold)', re.I)
+
+def _poss_team(m):
+    return FORM2TEAM.get(m.group(1).lower()) if m else None
+
+# roster surnames for the R3 "named" check (codex #8: a bare capitalized word —
+# including 'Union' — used to count as a player name)
+_sr_names = json.load(open('/home/ubuntu/commentary/match_data/m05_uni_md33/sr_cache.json'))
+_SURNAMES = {p['name'].split(',')[0].strip()
+             for c in _sr_names['lineups']['lineups']['competitors'] for p in c['players']
+             if len(p.get('name', '').split(',')[0].strip()) >= 3}
+_ROSTER_NAME_RX = re.compile(r'\b(' + '|'.join(re.escape(x) for x in sorted(_SURNAMES)) + r')\b')
 
 
 def run_fixtures(b, detections_path):
@@ -128,7 +149,7 @@ def run_fixtures(b, detections_path):
         t2, f2, tx2 = ev_lines[i]
         for t1, f1, _ in ev_lines[:i]:
             if f1.split('—')[0] == f2.split('—')[0] and t2 - t1 < 25:
-                if not (re.search(r'[A-Z][a-z]+', tx2.replace(tx2.split()[0], '', 1))
+                if not (_ROSTER_NAME_RX.search(tx2)
                         or re.search(r'\b(another|second|a further|one more)\b', tx2, re.I)):
                     r3 = False
     fx['R3'] = r3
@@ -138,7 +159,8 @@ def run_fixtures(b, detections_path):
         if b[i]['src'] != 'blend' or b[i]['video_time_s'] - b[i-1]['video_time_s'] > 12:
             continue
         m1, m2 = POSS_RX.search(b[i-1]['text']), POSS_RX.search(b[i]['text'])
-        if m1 and m2 and m1.group(1) != m2.group(1) and not TRANSITION_RX.search(b[i]['text']):
+        t1_, t2_ = _poss_team(m1), _poss_team(m2)
+        if t1_ and t2_ and t1_ != t2_ and not TRANSITION_RX.search(b[i]['text']):
             r4 = False
     fx['R4'] = r4
     # R7: banned French calques never appear
@@ -249,7 +271,7 @@ def run_fixtures(b, detections_path):
 
 GUARDED = [   # (key, predicate on (baseline, candidate), description)
     ('hallucinations', lambda b, c: c <= max(b, 0), 'hallucinations must stay at baseline (target 0)'),
-    ('survival', lambda b, c: c is None or c >= min(b or 1.0, 0.95), 'survival >= 0.95 (or baseline if lower)'),
+    ('survival', lambda b, c: c is not None and c >= min(b or 1.0, 0.95), 'survival >= 0.95 (or baseline if lower); missing = FAIL'),
     ('desync_shifts_gt_1_5', lambda b, c: c == 0, 'no desync shifts'),
     ('first_line_s', lambda b, c: c is not None and c <= 2.0, 'first line within 2s'),
 ]
@@ -257,10 +279,13 @@ WATCHED = ['words', 'gaps_ge_15s', 'max_gap_s', 'named_blend_lines', 'fr_track_m
            'judge_realism', 'judge_variety', 'stt_lines', 'lines']
 
 
-WORST = {'hallucinations': lambda v: max(v),
-         'survival': lambda v: min(x for x in v if x is not None),
-         'desync_shifts_gt_1_5': lambda v: max(v),
-         'first_line_s': lambda v: max(x for x in v if x is not None)}
+def _worst_or_fail(v, agg, fail):
+    # fail-closed: a run with a MISSING guarded metric counts as the failing value
+    return agg([fail if x is None else x for x in v])
+WORST = {'hallucinations': lambda v: _worst_or_fail(v, max, 999),
+         'survival': lambda v: _worst_or_fail(v, min, 0.0),
+         'desync_shifts_gt_1_5': lambda v: _worst_or_fail(v, max, 999),
+         'first_line_s': lambda v: _worst_or_fail(v, max, 999.0)}
 
 
 def compare(base, cands):

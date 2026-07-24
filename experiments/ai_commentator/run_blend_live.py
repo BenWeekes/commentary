@@ -51,6 +51,15 @@ TEAM = {'home': 'Mainz', 'away': 'Union'}
 THIRD = {'home_defensive': 'in their own third', 'middle': 'in midfield', 'home_attacking': 'in the final third'}
 # match clock for THIS slice (read off the broadcast scoreboard: 76:50, M05 1-1 FCU)
 MATCH_CLOCK = "second half, around the 77th minute, level at 1-1, about 13 minutes of normal time left"
+CLOCK_START_MIN = 76 + 50 / 60.0     # scoreboard at video t=0
+
+def match_clock_at(t):
+    """Clock grounded in VIDEO TIME — the static MATCH_CLOCK drifts ~5 min over the
+    slice (reviewer-flagged: '13 minutes left' spoken when ~10 remained)."""
+    m = CLOCK_START_MIN + t / 60.0
+    left = max(0, 90 - m)
+    return (f"second half, {int(m)}th minute, level at 1-1, "
+            f"about {max(1, round(left))} minutes of normal time left")
 
 # ---- grounding inputs (looked up by video-time) ----
 def load(f):
@@ -65,21 +74,49 @@ TRK = by_time([r for r in load('events_tracker.jsonl') if 'detection' in r])
 SON = by_time(load(os.environ.get('SONIOX_POOL', 'soniox_short.jsonl')))
 SON_STARTS = [tt for tt, _ in SON]
 CTX = build_match_context()
-# AUTHORITATIVE player identity from the Sportradar lineup (number -> name/pos/team/starter)
+# AUTHORITATIVE player identity from the Sportradar lineup.
+# Keyed by (team, number) — shirt numbers COLLIDE across teams (11 collisions in this
+# match; a number-only key silently dropped 11 of 40 players and misattributed the
+# rest). Within-team duplicate numbers are AMBIGUOUS and excluded from naming
+# (fail closed). NUM_TEAMS maps a number to the set of teams that use it, so a
+# team-less sighting can still name a player when the number is globally unique.
 _sr = json.load(open('/home/ubuntu/commentary/match_data/m05_uni_md33/sr_cache.json'))
-LINEUP = {}
+LINEUP = {}                 # (team, number) -> {name,pos,team,starter}
+NUM_TEAMS = {}              # number -> set of teams
+_AMBIG = set()              # (team, number) seen more than once -> never name from it
+ALL_PLAYERS = []            # every roster entry (survives number collisions) — for surname grounding
 for _c in _sr['lineups']['lineups']['competitors']:
     _tm = 'Mainz' if 'Mainz' in _c.get('name', '') else 'Union'
     for _p in _c.get('players', []):
         _nm = _p.get('name', ''); _sur = _nm.split(',')[0].strip() if ',' in _nm else _nm
-        LINEUP[str(_p.get('jersey_number'))] = {
+        _k = (_tm, str(_p.get('jersey_number')))
+        if _k in LINEUP:
+            _AMBIG.add(_k)
+        LINEUP[_k] = {
             'name': _sur, 'pos': (_p.get('position') or _p.get('type') or '').replace('_', ' '),
             'team': _tm, 'starter': bool(_p.get('starter'))}
-NAME = {k: v['name'] for k, v in LINEUP.items()}
-POS = {k: v['pos'] for k, v in LINEUP.items()}
-ROSTER_BLOCK = "\n".join(f"  #{k} {v['name']} ({v['team']}, {v['pos']})" for k, v in LINEUP.items())
+        NUM_TEAMS.setdefault(_k[1], set()).add(_tm)
+        ALL_PLAYERS.append({'name': _sur, 'team': _tm})
+
+def player_by_number(num, team=None):
+    """Roster lookup that fails closed: returns the player dict only when the
+    (team, number) pair is unambiguous. team=None resolves only globally-unique numbers."""
+    n = str(num)
+    if team is None:
+        teams = NUM_TEAMS.get(n) or set()
+        if len(teams) != 1:
+            return None
+        team = next(iter(teams))
+    k = (team, n)
+    if k in _AMBIG:
+        return None
+    return LINEUP.get(k)
+
+ROSTER_BLOCK = "\n".join(f"  #{k[1]} {v['name']} ({v['team']}, {v['pos']})"
+                         for k, v in sorted(LINEUP.items(),
+                                            key=lambda kv: (kv[1]['team'], int(kv[0][1]) if kv[0][1].isdigit() else 99)))
 # broadcaster player mentions = ground-truth identity per moment (from the real commentary)
-_SUR = {v['name'] for v in LINEUP.values()}
+_SUR = {p['name'] for p in ALL_PLAYERS}
 MENTIONS = [(float(_g.get('start_s', 0)), _w)
             for _g in load('gold_soniox_5min.jsonl')
             for _w in re.findall(r"[A-Za-z][A-Za-z'-]+", _g.get('text', '')) if _w in _SUR]
@@ -119,11 +156,11 @@ def vision_signal(det):
     if pconf in USE_CONF:
         pteam = TEAM.get(p.get('team'))
         num = p.get('player_shirt_number')
-        li = LINEUP.get(str(num)) if num is not None else None
-        # name a real player whenever the shirt number is READABLE + roster-valid + team-matched.
-        # A filled number already passed the detector's "unambiguously readable" bar, so it is
-        # safe to name even on medium possession; when there's no number we stay team-level.
-        if li and (pteam is None or li['team'] == pteam):
+        # name a real player only when (team, number) resolves UNAMBIGUOUSLY in the roster:
+        # team known -> exact (team, number) lookup; team unknown -> only a globally-unique
+        # number may name. Colliding/duplicate numbers fail closed (stay team-level).
+        li = player_by_number(num, pteam) if num is not None else None
+        if li:
             pname, ppos = li['name'], li['pos']
     return {'event': ev, 'event_team': evteam, 'event_conf': evconf,
             'poss_team': pteam, 'poss_player': pname, 'poss_pos': ppos, 'poss_conf': pconf}
@@ -228,7 +265,7 @@ def chooser(t, real_phrase, vfact, ttruth, recent, bnames=None, vconf=None, rece
             f"- vision: {vfact}  (confidence: {vconf})" if vfact else "- vision: (nothing certain)",
             f"- tracker(truth): {ttruth}" if ttruth else "- tracker(truth): (no read)",
             f"- pass just received by: {received}" if received else "- pass just received by: (nobody new)",
-            f"- match clock: {MATCH_CLOCK}",
+            f"- match clock: {match_clock_at(t)}",
             ("- SCENE: quiet passage — a brief clock/score/atmosphere line is welcome here"
              if scene else "- SCENE: (normal play)"),
             f"- broadcaster just named: {', '.join(bnames)}" if bnames else "- broadcaster just named: (nobody)",
@@ -262,12 +299,15 @@ TRANSLATE_PT_SYSTEM = (
 
 
 def translate_pt(text):
+    """Returns the pt-BR line, or None on failure — the caller must treat None as a
+    MISSING track (silent + logged), never speak the English fallback on the PT track."""
     try:
         r = client.responses.create(model=CHOOSER_MODEL, instructions=TRANSLATE_PT_SYSTEM,
                                     input=[{"role": "user", "content": text}], max_output_tokens=200)
-        return re.sub(r'\s+', ' ', (r.output_text or text).strip().strip('"')) or text
+        out = re.sub(r'\s+', ' ', (r.output_text or '').strip().strip('"'))
+        return out or None
     except Exception:
-        return text
+        return None
 TRANSLATE_SYSTEM = (
     "You are the FRENCH LOCALIZER for live TV football commentary. Rewrite the English line as a "
     "French football commentator would actually SAY it on air — natural broadcast register, not a "
@@ -284,17 +324,25 @@ TRANSLATE_SYSTEM = (
     "- naming a player found on the ball -> 'On retrouve X' / 'Et X' (avoid 'Et voici tout simplement X')\n"
     "- ball played INTO the box -> 'dans la surface'; the six-yard area -> 'les six mètres'\n"
     "- possession colour, keep idiomatic: 'conserve le ballon', 'fait tourner', 'ressort proprement'\n"
+    "- 'X à la place de Y' means a SUBSTITUTION — never use it for a pass; a pass is "
+    "'X pour Y' / 'la passe de X'\n"
+    "- a quiet passage -> 'temps calme' (never bare 'Calme' as an opener)\n"
+    "- introducing a player on the ball -> 'Et voici X' / 'On retrouve X' (not 'C'est aussi X')\n"
+    "- vary attacking-third references: 'les trente derniers metres' / 'le camp adverse' / "
+    "'aux abords de la surface' — never the same form twice in a row\n"
     "- avoid over-literal calques; if the English is nonsensical as football speech, output the "
     "closest sensible French football line rather than a literal rendering.\n"
     "Return only the French line.")
 
 def translate_fr(text):
+    """Returns the French line, or None on failure — see translate_pt."""
     try:
         r = client.responses.create(model=CHOOSER_MODEL, instructions=TRANSLATE_SYSTEM,
                                     input=[{"role": "user", "content": text}], max_output_tokens=90)
-        return re.sub(r'\s+', ' ', (r.output_text or text).strip().strip('"')) or text
+        out = re.sub(r'\s+', ' ', (r.output_text or '').strip().strip('"'))
+        return out or None
     except Exception:
-        return text
+        return None
 
 def tts(text, voice):
     body = json.dumps({"text": text, "model_id": EL_MODEL,

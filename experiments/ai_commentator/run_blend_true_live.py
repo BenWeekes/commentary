@@ -143,7 +143,7 @@ B.CHOOSER_SYSTEM += GEN_RULES
 # line credits an event 'for/pour <team>' that contradicts the named player's roster team,
 # strip that clause. Generic — resolves off the pre-match lineup, no match facts hardcoded.
 import re as _reatt
-SUR2TEAM = {v['name']: v['team'] for v in B.LINEUP.values() if len(v.get('name', '')) >= 3}
+SUR2TEAM = {p['name']: p['team'] for p in B.ALL_PLAYERS if len(p['name']) >= 3}
 _CGS_RX = _reatt.compile(r'yellow|red card|\bbooked\b|\bbook\b|sent off|dismissed|'
                          r'\bgoal\b(?!\s*kick)|scored|substitut|\bsub(bed)?\b', _reatt.I)
 
@@ -189,7 +189,7 @@ def eager_commentator(t_det, window, ttruth, recent_timed, bnames, received, avo
     """The eager final stage. window = [(t_rel, fact_str), ...] oldest->newest."""
     wl = "\n".join(f"  - [{tr:+.1f}s] {f}" for tr, f in window) or "  - (nothing certain)"
     rc = "\n".join(f"  [{tt:6.1f}s] {tx}" for tt, tx in recent_timed[-8:]) or "  (nothing yet)"
-    user = (f"MOMENT t={t_det:.0f}s\n"
+    user = (f"MOMENT t={t_det:.0f}s — match clock: {B.match_clock_at(t_det)}\n"
             f"WINDOW of grounded observations (relative to now):\n{wl}\n"
             f"- tracker(truth): {ttruth or '(no read)'}\n"
             f"- pass just received by: {received or '(nobody new)'}\n"
@@ -331,6 +331,12 @@ def main():
             with write_cond:
                 in_flight.pop(id(rec), None); write_cond.notify_all()
 
+    def _undo_prio(rec):
+        # a dropped priority line must NOT leave its event marked handled (finding #5)
+        pe = rec.get('prio_event')
+        if pe is not None and last_prio.get(pe) == rec.get('prio_t'):
+            last_prio.pop(pe, None)
+
     def _place_inner(rec, t_det, seen_to_decide, chooser_ms, est=3.0):
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
         buffer. Sync policy: a line either lands on its play or is never heard."""
@@ -339,9 +345,15 @@ def main():
         def _en():
             return B.tts(rec['text'], B.EN_VOICE)
         def _fr():
-            txt = B.translate_fr(rec['text']); return txt, B.tts(txt, B.FR_VOICE)
+            txt = B.translate_fr(rec['text'])
+            if txt is None:                      # localization failed -> MISSING, not English
+                raise RuntimeError('fr translate failed')
+            return txt, B.tts(txt, B.FR_VOICE)
         def _pt():
-            txt = B.translate_pt(rec['text']); return txt, B.tts(txt, B.PT_VOICE)
+            txt = B.translate_pt(rec['text'])
+            if txt is None:
+                raise RuntimeError('pt translate failed')
+            return txt, B.tts(txt, B.PT_VOICE)
         f_en = tts_pool.submit(_en); f_fr = tts_pool.submit(_fr); f_pt = tts_pool.submit(_pt)
         # EN is the PRIMARY track and gates placement. FR/PT are best-effort within the
         # remaining live budget - if they can't keep up they go SILENT for this line
@@ -371,6 +383,7 @@ def main():
                       'missing_tracks': missing}
         if not en:                                            # no primary audio -> drop
             rec['dropped'] = True
+            _undo_prio(rec)
             print(f"  [ drop ] ({rec['src']}) {rec['text']}   [EN TTS missed budget]")
             with write_cond:
                 in_flight.pop(id(rec), None); write_cond.notify_all()
@@ -385,6 +398,7 @@ def main():
                     # an earlier-placed line is stuck; dropping THIS later line preserves
                     # write order (never write out of sequence)
                     rec['dropped'] = True
+                    _undo_prio(rec)
                     print(f"  [ drop ] write-order stall; dropping later line {rec['text'][:30]!r}")
                     in_flight.pop(id(rec), None); write_cond.notify_all()
                     return
@@ -401,8 +415,14 @@ def main():
             ptp = ptp[:cap]
         rec['lat']['audio_s'] = round(len(en) / (SR * 2), 2)
         rec['lat']['audio_fr_s'] = round(len(frp) / (SR * 2), 2)
+        # re-measure lateness NOW: the FR/PT grace wait and the write-order wait above
+        # happen AFTER the EN-readiness measurement — a commit past the budget must
+        # drop even though EN itself was ready in time (codex finding #1)
+        behind = (time.monotonic() - wall0) - t_det
+        rec['lat']['behind_commit_s'] = round(behind, 2)
         if behind > BUFFER_S:                                 # DROP, never slip
             rec['dropped'] = True
+            _undo_prio(rec)
             print(f"  [ drop ] ({rec['src']}) {rec['text']}   [behind_live={behind:.1f}s > {BUFFER_S}s]")
             with write_cond:
                 in_flight.pop(id(rec), None); write_cond.notify_all()
@@ -422,12 +442,14 @@ def main():
                     shift = max(shift, (audio_end[lang] - b) / (SR * 2))
             if shift > 1.5:                                   # would desync — drop instead
                 rec['dropped'] = True
+                _undo_prio(rec)
                 print(f"  [ drop ] ({rec['src']}) {rec['text']}   [shift {shift:.1f}s would desync]")
                 with write_cond:
                     in_flight.pop(id(rec), None); write_cond.notify_all()
                 return
+            shift_b = int(shift * SR) * 2                 # SHARED shift: every language
             for lang, pcm in (('en', en), ('fr', frp), ('pt', ptp)):
-                b = max(bases[lang], audio_end[lang]); b -= b % 2
+                b = max(bases[lang] + shift_b, audio_end[lang]); b -= b % 2
                 u = min(len(pcm), len(audio[lang]) - b)
                 if u > 0:
                     audio[lang][b:b + u] = pcm[:u]
@@ -540,8 +562,17 @@ def main():
                         break
             if prio:
                 v, et, etm = prio
-                last_prio[et] = t
-                last_events[(et, etm)] = {'t': t, 'named': False}
+                if FAST_PROFILE and etm:
+                    # 6s profile: an event TEAM claim needs tracker AGREEMENT (not merely
+                    # no-disagreement) — uncorroborated team drops to a team-less call
+                    # (codex finding #6); named players stay covered by enforce_attribution
+                    trk_det6 = None
+                    for tt6, r6 in reversed(trk_sorted):
+                        if tt6 <= t - TRK_LAG and abs(tt6 - v['t_det']) <= 2.0:
+                            trk_det6 = r6.get('detection'); break
+                    trk_team6 = B.TEAM.get((trk_det6.get('possession') or {}).get('team')) if trk_det6 else None
+                    if trk_team6 != etm:
+                        etm = None
                 # a priority event may be narrated slightly AFTER its moment (the slot
                 # under earlier audio is taken) — real booths call it past-tense
                 slot = max(v['t_det'], placed_end + 0.1)
@@ -553,8 +584,13 @@ def main():
                                  B.broadcaster_names_near(v['t_det']), 'high', None, False)
                 cms = int((time.monotonic() - c0) * 1000)
                 if line and line.upper() != 'NO_CALL' and len(line.split()) >= 2:
+                    # mark the event handled ONLY once a line exists (codex finding #5) —
+                    # a NO_CALL/failed chooser leaves the event eligible for the next loop
+                    last_prio[et] = t
+                    last_events[(et, etm)] = {'t': t, 'named': False}
                     rec = {'src': 'blend', 'text': line, 'real_phrase': None,
                            'vision': fact, 'tracker': None, 'stage': 'priority',
+                           'prio_event': et, 'prio_t': t,
                            'vision_latency_ms': v['latency_ms'],
                            'video_time_s': round(slot, 2)}
                     emit(rec, t, slot, max(1.4, len(line.split()) / 2.6), 2.0,
@@ -774,7 +810,13 @@ def main():
             except subprocess.TimeoutExpired:
                 p.kill()
     pool.shutdown(wait=True)
-    time.sleep(7.0)   # drain TTS threads
+    tts_pool.shutdown(wait=True)
+    dl = time.monotonic() + BUFFER_S + 15.0       # drain placement threads (codex finding #1)
+    with write_cond:
+        while in_flight and time.monotonic() < dl:
+            write_cond.wait(timeout=0.5)
+    if in_flight:
+        print(f"  [warn] {len(in_flight)} placement thread(s) still in flight at shutdown")
     for lang in ('en', 'fr', 'pt'):
         with wave.open(str(BASE / f'ai_blend_live_{lang}{SUFFIX}_track.wav'), 'wb') as w:
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
