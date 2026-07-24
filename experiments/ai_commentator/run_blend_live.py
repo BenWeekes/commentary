@@ -40,8 +40,8 @@ SR = 16000
 SAMPLE_INTERVAL_S = 0.55
 CONTEXT_FRAMES = 4
 NATURAL_LAG_S = 0.3
-DURATION_S = 300.0
-SOURCE_MP4 = Path('/tmp/v2v_compare/slice_5min.mp4')
+DURATION_S = float(os.environ.get('BLEND_DURATION_S', '300.0'))   # smoke runs use ~90s
+SOURCE_MP4 = Path(os.environ.get('BLEND_SOURCE_MP4', '/tmp/v2v_compare/slice_5min.mp4'))
 SRT_PORT = 10095
 SRT_URL_SEND = f"srt://127.0.0.1:{SRT_PORT}?mode=listener&latency=200"
 SRT_URL_RECV = f"srt://127.0.0.1:{SRT_PORT}?mode=caller&latency=200"

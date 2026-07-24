@@ -447,16 +447,15 @@ def main():
         v_place = t_det
         slots = {}                                            # lang -> (base_byte, slot_len)
         with audio_lock:
-            # one SHARED shift for all three languages (finding #2); beyond a natural
-            # speech gap the line is desynced -> drop
-            bases = {}
-            shift = 0.0
-            for lang in ('en', 'fr', 'pt'):
-                b = int((v_place + B.NATURAL_LAG_S) * SR) * 2
-                b -= b % 2
-                bases[lang] = b
-                if b < audio_end[lang]:
-                    shift = max(shift, (audio_end[lang] - b) / (SR * 2))
+            # the shift is decided by EN ONLY — EN is the committed broadcast and its
+            # sync guarantee must never pay for side-track congestion (extended FR/PT
+            # slots previously fed back into a shared shift and dropped EN lines).
+            # FR/PT write at the SAME shifted position (tracks stay aligned, codex #2);
+            # if a side track is still busy there, THAT track skips this line (missing,
+            # logged) — the line itself survives.
+            base = int((v_place + B.NATURAL_LAG_S) * SR) * 2
+            base -= base % 2
+            shift = max(0.0, (audio_end['en'] - base) / (SR * 2))
             if shift > 1.5:
                 rec['dropped'] = True
                 _undo_prio(rec)
@@ -465,12 +464,16 @@ def main():
                     in_flight.pop(id(rec), None); write_cond.notify_all()
                 return
             shift_b = int(shift * SR) * 2
-            # write EN now; RESERVE aligned FR/PT slots (localized speech runs a little
-            # longer than EN — reserve 1.35x, capped by the speech slot)
             slot_len = min(cap, int(len(en) * 1.35)); slot_len -= slot_len % 2
             for lang, pcm in (('en', en), ('fr', None), ('pt', None)):
-                b = max(bases[lang] + shift_b, audio_end[lang]); b -= b % 2
-                ln = len(en) if lang == 'en' else slot_len
+                b = base + shift_b; b -= b % 2
+                if lang == 'en':
+                    b = max(b, audio_end['en']); ln = len(en)
+                else:
+                    if b < audio_end[lang]:      # side track congested -> skip THIS track
+                        missing.append(lang)
+                        continue
+                    ln = slot_len
                 ln = min(ln, len(audio[lang]) - b)
                 if ln <= 0:
                     continue
@@ -495,7 +498,8 @@ def main():
         # (codex: sequential waits could stack two grace timeouts; wait() bounds both
         # together — EN is already committed, so this can never cost the line)
         side = {lang: fut for lang, fut in (('fr', f_fr), ('pt', f_pt)) if lang in slots}
-        missing.extend(lang for lang in ('fr', 'pt') if lang not in slots)
+        missing.extend(lang for lang in ('fr', 'pt')
+                       if lang not in slots and lang not in missing)
         if side:
             rem = (t_det + BUFFER_S) - (time.monotonic() - wall0)
             cf_wait(list(side.values()), timeout=max(0.05, rem))
@@ -505,13 +509,19 @@ def main():
                 txt, pcm = fut.result()
                 rec[lang] = txt                       # text kept for the page either way
                 b, ln = slots[lang]
-                if len(pcm) > ln:                     # would be chopped mid-word -> silence
-                    missing.append(lang)
-                    rec['lat'][f'{lang}_overran_slot_s'] = round((len(pcm) - ln) / (SR * 2), 2)
-                    continue
+                pl = len(pcm) - (len(pcm) % 2)
                 with audio_lock:
-                    audio[lang][b:b + len(pcm)] = pcm
-                rec['lat'][f'audio_{lang}_s'] = round(len(pcm) / (SR * 2), 2)
+                    if pl > ln and audio_end[lang] == b + ln and b + pl <= len(audio[lang]):
+                        # slot too small (pt-BR runs long) but nothing has claimed the
+                        # track beyond it yet -> extend the slot instead of going silent
+                        audio_end[lang] = b + pl
+                        ln = pl
+                    if pl > ln:                       # a later line owns the space: never chop
+                        missing.append(lang)
+                        rec['lat'][f'{lang}_overran_slot_s'] = round((pl - ln) / (SR * 2), 2)
+                        continue
+                    audio[lang][b:b + pl] = pcm[:pl]
+                rec['lat'][f'audio_{lang}_s'] = round(pl / (SR * 2), 2)
 
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
         nonlocal booth, placed_end
