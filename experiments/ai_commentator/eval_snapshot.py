@@ -57,8 +57,21 @@ def snapshot(jsonl_path, skip_llm=False):
         gen = [x for x in b if x['src'] == 'blend']
         with ThreadPoolExecutor(max_workers=6) as ex:
             vs = list(ex.map(lambda x: J.judge_line(x['text'], J.frame_for_time_s(x['video_time_s'])), gen))
-        hall = sum(1 for v in vs if v and str(v.get('hallucination_likely')).lower() == 'true')
-        jfail = sum(1 for v in vs if not v)
+        def _hval(v):
+            # judge schema is numeric 0/1; tolerate bool/'true' variants; None = malformed
+            if not isinstance(v, dict) or 'hallucination_likely' not in v:
+                return None
+            raw = v['hallucination_likely']
+            if isinstance(raw, bool):
+                return int(raw)
+            if isinstance(raw, (int, float)):
+                return int(raw != 0)
+            if isinstance(raw, str) and raw.strip().lower() in ('0', '1', 'true', 'false'):
+                return int(raw.strip().lower() in ('1', 'true'))
+            return None
+        hvals = [_hval(v) for v in vs]
+        hall = sum(1 for h in hvals if h == 1)
+        jfail = sum(1 for h in hvals if h is None)
         style = J.judge_run_style([x['text'] for x in b])
         snap['judge_failures'] = jfail
         # fail closed (codex-3): a judge outage must not read as zero hallucinations
@@ -69,6 +82,11 @@ def snapshot(jsonl_path, skip_llm=False):
 
 
 PRIORITY_EVENTS = {'yellow_card', 'red_card', 'goal', 'penalty'}
+# a GOAL CALL is scoring language — not any sentence containing 'goal' ('guards the
+# goal', 'in goal', "Becker's goal" replay refs are not calls) (codex-4 #4)
+GOAL_CALL_RX = re.compile(
+    r'\bscor(?:es|ed)\b|\bgoal!|\bwhat a goal\b|\ba goal for\b|^goal for\b|\bfinds the net\b'
+    r'|\bin the (?:back of the )?net\b|\bmakes it \d|\bhave scored\b', re.I)
 FILLER_RX = re.compile(r'quiet spell|midfield battle continues|still all square', re.I)
 FR_BANNED = ['sonder', 'dernier tiers', 'moment calme']
 TRANSITION_RX = re.compile(r'win|won|regain|turn|steal|intercept|back|break|rob|force', re.I)
@@ -109,8 +127,10 @@ def run_fixtures(b, detections_path):
     if dp.exists():
         dets = [json.loads(l) for l in open(dp) if l.strip()]
         misses, seen = [], set()
-        KW = {'yellow_card': ('yellow', 'card', 'book'), 'red_card': ('red', 'card'),
-              'goal': ('goal',), 'penalty': ('penalty',)}
+        KW = {'yellow_card': r'\byellow\b|\bcard(ed)?\b|\bbook(ed|ing|s)?\b|\bcaution(ed)?\b',
+              'red_card': r'\bred card\b|\bsent off\b|\bdismissed\b|\bsecond yellow\b',
+              'goal': GOAL_CALL_RX,
+              'penalty': r'\bpenalt(y|ies)\b|\bspot[- ]kick\b'}
         goal_ts = [d2['t_det'] for d2 in dets
                    if any(e2.get('type') == 'goal' and e2.get('confidence') == 'high'
                           for e2 in (d2['det'].get('events') or []))]
@@ -135,9 +155,10 @@ def run_fixtures(b, detections_path):
                     if bucket in seen:
                         continue
                     seen.add(bucket)
+                    # the SPOKEN TEXT must reference the event (word-boundary patterns);
+                    # hidden vision metadata no longer satisfies R1 (codex-4 #2)
                     hit = any(abs(x['video_time_s'] - d['t_det']) <= 8 and
-                              (any(k in x['text'].lower() for k in KW[et]) or
-                               et in str(x.get('vision') or ''))
+                              re.search(KW[et], x['text'], re.I)
                               for x in b)
                     if not hit:
                         misses.append((round(d['t_det'], 1), et))
@@ -191,8 +212,7 @@ def run_fixtures(b, detections_path):
     # R10: any goal-call line must be backed by >=3 high-conf goal detections spanning >=5s
     if dp.exists():
         goal_lines = [x for x in b
-                      if re.search(r'\bscored\b|(?<!in )\bgoal\b(?!\s*(kick|keeper|line|mouth))',
-                                   x['text'], re.I) and x['src'] == 'blend']
+                      if GOAL_CALL_RX.search(x['text']) and x['src'] == 'blend']
         r10 = True
         for x in goal_lines:
             gs = [d['t_det'] for d in dets

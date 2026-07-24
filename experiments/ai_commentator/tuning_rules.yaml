@@ -135,7 +135,38 @@ fixtures:
   R12: "no line attributes a team-specific event to a named player whose roster team differs (auto: name->roster-team vs stated team)"
   R13: "no output line (any language) contains 'in the frame/in frame/in shot/in the picture/dans le cadre' (auto)"
 
-amendments: []   # threshold changes require an entry here — never a silent edit
+amendments:   # threshold changes require an entry here — never a silent edit
+- date: 2026-07-24
+  rule: R1
+  change: >
+    Card narration contract amended from 'every high-confidence card detection' to
+    'every CORROBORATED card: >=2 high-conf sightings within 10s' — applied in both
+    the runtime priority block and the R1 fixture.
+  before_evidence: >
+    v7 trio run2 contained a lone single-burst yellow_card detection at 281.6s, 92s
+    after the real card, with no replay markers — a false detection. The old contract
+    demanded a line for it (fixture FAIL) and in an unlucky run the pipeline could
+    have SPOKEN a false card.
+  after_evidence: >
+    Across all observed runs every real card produced 2-5 high-conf sightings; every
+    false blip produced exactly 1. A minimum-SPAN requirement was considered and
+    REJECTED with evidence: one real card (trio-2 run1) had exactly 2 sightings 0.5s
+    apart (adjacent bursts) — any span floor would have missed a real card. Residual
+    risk accepted and documented: a false detection that fires in 2 adjacent bursts
+    would still qualify; no such case observed in any run to date.
+  commit: (this commit)
+- date: 2026-07-24
+  rule: R1/R10 fixtures
+  change: >
+    R1 satisfied only by event language in the SPOKEN text (word-boundary patterns;
+    hidden vision metadata no longer counts). R10 'goal call' narrowed to scoring
+    language ('scores', 'goal for', 'finds the net'...) — 'in goal'/'guards the goal'
+    goalkeeper phrasing no longer triggers it.
+  before_evidence: >
+    'the reds keep possession' satisfied red_card via substring 'red'; 'Zentner has it
+    now for the hosts in goal' was treated as a goal call (trio-2 run1 false REJECT).
+  after_evidence: fixtures re-run green on v6 artifacts and all archived v7 trio runs.
+  commit: (this commit)
 
 acceptance_record_cycle1:
   verdict: ACCEPT (trio-9, worst-of-3, 2026-07-20)

@@ -364,11 +364,15 @@ def main():
         pe = rec.get('prio_event')
         if pe is not None and last_prio.get(pe) == rec.get('prio_t'):
             last_prio.pop(pe, None)
+        # and the viewer never heard it — remove from prompt history (codex-4 #5)
+        try:
+            recent.remove(rec['text'])
+        except ValueError:
+            pass
 
     def _place_inner(rec, t_det, seen_to_decide, chooser_ms, est=3.0):
         """Translate+TTS, then place EXACTLY at t_det — or DROP if it missed the
         buffer. Sync policy: a line either lands on its play or is never heard."""
-        rec['text'] = enforce_attribution(rec['text'])   # R12 hard guard before EN/FR/PT
         t_tts0 = time.monotonic()
         def _en():
             return B.tts(rec['text'], B.EN_VOICE)
@@ -477,9 +481,11 @@ def main():
         rec['lat']['audio_shift_s'] = round(shift, 2)
         rec['video_time_s'] = round(v_place + shift, 2)
         # feedback: the est-based placed_end underestimates long TTS audio, which shows
-        # up later as shift-desync drops — correct it with the ACTUAL audio extent
+        # up later as shift-desync drops — correct it with the ACTUAL audio extent.
+        # audio_lock guards the read-modify-write against the main thread (codex-4 #5).
         nonlocal placed_end
-        placed_end = max(placed_end, rec['video_time_s'] + len(en) / (SR * 2) + 0.15)
+        with audio_lock:
+            placed_end = max(placed_end, rec['video_time_s'] + len(en) / (SR * 2) + 0.15)
         # EN is committed -> release the write-order gate for later lines
         with write_cond:
             in_flight.pop(id(rec), None); write_cond.notify_all()
@@ -509,7 +515,9 @@ def main():
 
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
         nonlocal booth, placed_end
-        placed_end = max(placed_end, t_det + B.NATURAL_LAG_S + est + 0.15)
+        with audio_lock:
+            placed_end = max(placed_end, t_det + B.NATURAL_LAG_S + est + 0.15)
+        rec['text'] = enforce_attribution(rec['text'])   # R12 guard BEFORE history/prompts see it
         lines.append(rec); recent.append(rec['text'])
         with write_cond:
             in_flight[id(rec)] = t_det

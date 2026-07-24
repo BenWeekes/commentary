@@ -91,8 +91,30 @@ b8 = [mk(10.0, "Kohn booked; free kick for Mainz.")]
 check("R12 fixture allows award beneficiary", E.run_fixtures(b8, '/x.jsonl')['R12'] is True)
 b9 = [mk(10.0, "Kohn watches as Mainz make a substitution.")]
 check("R12 fixture allows innocent team mention (codex-3)", E.run_fixtures(b9, '/x.jsonl')['R12'] is True)
+import tempfile, pathlib as _pl
+_empty = _pl.Path(tempfile.gettempdir()) / 'empty_dets_fixture.jsonl'
+_empty.write_text('')                       # EXISTING empty detections -> R10 actually executes
 b10 = [mk(10.0, "Zentner has it now for the hosts in goal.")]
-check("R10 fixture ignores goalkeeper 'in goal' (trio FP)", E.run_fixtures(b10, '/missing.jsonl')['R10'] in (True, 'skip'))
+check("R10 ignores goalkeeper 'in goal' (non-vacuous)", E.run_fixtures(b10, _empty)['R10'] is True)
+b10b = [mk(10.0, "Zentner guards the goal for the hosts.")]
+check("R10 ignores 'guards the goal' (codex-4)", E.run_fixtures(b10b, _empty)['R10'] is True)
+b10c = [mk(10.0, "Mainz have scored! What a goal.")]
+check("R10 catches an uncorroborated goal CALL", E.run_fixtures(b10c, _empty)['R10'] is False)
+check("goal-call regex hits 'scores'", bool(E.GOAL_CALL_RX.search("Amiri scores from the spot")))
+# R1 spoken-text patterns (codex-4 #2): substring 'red' must not satisfy red_card,
+# and vision metadata alone must not satisfy the fixture
+import json as _json
+_rc_dets = _pl.Path(tempfile.gettempdir()) / 'rc_dets_fixture.jsonl'
+_rc_dets.write_text('\n'.join(_json.dumps(
+    {'t_det': t, 'det': {'events': [{'type': 'red_card', 'confidence': 'high'}]}})
+    for t in (50.0, 52.0)))                    # corroborated (2 sightings/10s)
+b11 = [mk(51.0, "The reds keep possession here.", vision='event: red_card')]
+check("R1: 'the reds' + metadata do NOT satisfy red_card", E.run_fixtures(b11, _rc_dets)['R1'] is False)
+b12 = [mk(51.0, "He's been sent off!")]
+check("R1: 'sent off' satisfies red_card", E.run_fixtures(b12, _rc_dets)['R1'] is True)
+_lone = _pl.Path(tempfile.gettempdir()) / 'lone_card_fixture.jsonl'
+_lone.write_text(_json.dumps({'t_det': 50.0, 'det': {'events': [{'type': 'yellow_card', 'confidence': 'high'}]}}))
+check("R1: lone card blip owes no line (corroboration)", E.run_fixtures([mk(10.0, 'x.')], _lone)['R1'] is True)
 check("hallucination judge failure fails closed", E.GUARDED[0][1](0, None) is False)
 check("survival gate is HARD 0.95 (deficient baseline can't relax it)", E.GUARDED[1][1](0.90, 0.90) is False)
 
