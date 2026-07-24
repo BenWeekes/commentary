@@ -215,4 +215,4 @@ Telemetry counters in `LangTelemetry` follow these rules:
 
 ## Related Deep Dives
 
-- [TTS Timeline Format](L2/tts_timeline_format.md) — log analysis format for verifying audio timing
+- [TTS Timeline Format](../L2/tts_timeline_format.md) — log analysis format for verifying audio timing

@@ -613,5 +613,5 @@ Measures per-utterance latency: STT time, translation time, total pipeline laten
 
 ## Related Deep Dives
 
-- [STT Pipeline](L2/stt_pipeline.md) — latency budget breakdown and forced split logic
-- [TTS Timeline Format](L2/tts_timeline_format.md) — log format for analysing playback timing
+- [STT Pipeline](../L2/stt_pipeline.md) — latency budget breakdown and forced split logic
+- [TTS Timeline Format](../L2/tts_timeline_format.md) — log format for analysing playback timing

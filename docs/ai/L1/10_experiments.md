@@ -786,7 +786,54 @@ Full mechanics → [L2/hitl_tuning_workflow.md](../L2/hitl_tuning_workflow.md).
   side by side for comparison. Open item: the gate records but does not yet *reject* on a
   profile mismatch — a profile change needs a ledger amendment for now.
 
-Review URLs (v4 round open): `blend_v4_10s/` and `blend_v4_6s/` on the sa-dev host.
+Review URLs (v4, round now closed): `blend_v4_10s/`, `blend_v4_6s/`, `blend_v4_6s_vt/`
+(the last is the reviewer-requested vision/tracker-only variant, `USE_STT=0`).
+
+---
+
+## Round 9 — reviews → generic rules + evals (v5), 2026-07-23
+
+**Status:** complete. Full current-state write-up →
+[L2/blend_pipeline.md](../L2/blend_pipeline.md).
+
+Alex reviewed all three v4 profiles on-page (141 comments; captured with
+`clip/profile/column` so 6s-vs-10s feedback is never conflated). Distilled into
+cycle-3 rules — all generic, grounded only in pre-match data:
+
+- **R12 entity-grounding**: a card/goal/sub naming a player must credit that player's
+  roster team ("Kohn yellow for Mainz" → Kohn is Union). Prompt rule + deterministic
+  fixture that **failed on the pre-fix snapshot** (pin-the-defect) and flipped green.
+- **R13 camera-ban**: no "in the frame / dans le cadre" picture-description lines.
+- **R7 extension**: `translate_fr` upgraded from bare translator to football-French
+  localizer with a reviewer-maintained glossary (mirroring PT).
+
+v5 verdict from Alex (159 comments): **71% 👍 across all three profiles** (identical
+score for 10s, 6s, and 6s_vt — the STT-free variant holds up), camera lines zero,
+FR calques gone. One leak: attribution errors on non-card lines ("Kohn steps forward
+for the home side") — the guard was scoped too narrowly.
+
+## Round 10 — deterministic attribution guard (v6), 2026-07-24
+
+**Status:** live, round v6 open (`blend_v6_10s/`, `blend_v6_6s/`, `blend_v6_6s_vt/`).
+
+The v5 leak proved prompt rules alone are unreliable on the 6 s mini model, so
+attribution became a **code guard**: `enforce_attribution()` corrects (never strips)
+any "player for \<wrong team\>" reference using the roster, register-matched, with
+award-beneficiary and both-teams-named exclusions. Optimized **offline against Alex's
+actual reviewed lines** before any live run: resolves 2/3 flagged attribution errors,
+alters **0/50** 👍-good lines, touches 2/81 lines total. All fixtures green live on all
+three profiles.
+
+**Honest residual:** ~14 of Alex's ~43 distinct actionable issues are
+perception-layer (wrong player identity, territory direction, team-only event lines)
+— not rule-fixable; ~21 are French-phrasing refinements (R7 glossary growth, the next
+addressable bucket). Ship-vs-park hinges on a **reliability-mode measurement**
+(high-conf naming only + tracker-only spatial claims → hard error count), not yet run.
+
+**Parked side-quests:** Gemini 3.5 Transcribe vs Soniox harness built
+(`test_gemini_transcribe.py`) — the EAP preview models 404 on our key (wrong GCP
+project; needs a key from the allowlisted project). Claude Opus 4.8 vision+chooser A/B
+prepped — blocked on `ANTHROPIC_API_KEY`.
 
 ---
 

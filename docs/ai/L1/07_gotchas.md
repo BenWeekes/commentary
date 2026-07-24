@@ -210,5 +210,5 @@ Viewer tokens are 24h, but the Go media publishers also generate their own publi
 
 ## Related Deep Dives
 
-- [TTSEngine Internals](L2/tts_engine.md) — buffer underrun and interrupt edge cases
-- [STT Pipeline](L2/stt_pipeline.md) — forced split and latency drop details
+- [TTSEngine Internals](../L2/tts_engine.md) — buffer underrun and interrupt edge cases
+- [STT Pipeline](../L2/stt_pipeline.md) — forced split and latency drop details

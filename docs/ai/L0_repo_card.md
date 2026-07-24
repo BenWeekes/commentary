@@ -11,7 +11,7 @@
 | Language | Python 3.10+, Go 1.21+ (video publisher) |
 | Deploy Target | local / demo / production server |
 | Owner | benweekes |
-| Last Reviewed | 2026-05-11 |
+| Last Reviewed | 2026-07-24 |
 
 ## L1 — Summaries
 
@@ -26,12 +26,16 @@
 | [07_gotchas](L1/07_gotchas.md) | Server port conflicts, YAML paths, MP4 offset, zombies, TTS short phrases, go.mod replace | Maintain |
 | [08_security](L1/08_security.md) | API keys, tokens, CORS, network exposure, server security gaps | Maintain |
 | [09_deployment](L1/09_deployment.md) | Ubuntu server deployment: systemd, nginx, TLS, firewall, logs | Use & Maintain |
-| [10_experiments](L1/10_experiments.md) | Side experiments index: V2V provider comparison (Gemini/Soniox v5), BWE/ABR feasibility — what we tried, headline results, where artefacts live | Use & Maintain |
+| [10_experiments](L1/10_experiments.md) | Side experiments index: **AI live commentator (rounds 1–10, current)**, V2V provider comparison, BWE/ABR feasibility — headline results + artefact locations | Use & Maintain |
 
 ## L2 — Deep Dives
 
 | File | Topic |
 |---|---|
-| [tts_engine](L1/L2/tts_engine.md) | TTSEngine threading, buffer, pipe writer (`lib/tts_engine.py`) |
-| [stt_pipeline](L1/L2/stt_pipeline.md) | Deepgram → corrections → multi-lang fan-out pipeline (`lib/stt_pipeline.py`) |
-| [tts_timeline_format](L1/L2/tts_timeline_format.md) | TTS playback log analysis and timing verification |
+| [blend_pipeline](L2/blend_pipeline.md) | **AI live commentator (experiments/ai_commentator)** — pipeline & HITL process, current state (v6) |
+| [hitl_tuning_workflow](L2/hitl_tuning_workflow.md) | Review → distill → gate improvement loop; rule ledger + round history |
+| [review_cycle_1_dispositions](L2/review_cycle_1_dispositions.md) | Per-comment audit of review cycle 1 |
+| [resolution_tracker_eval](L2/resolution_tracker_eval.md) | Resolution/tracker evaluation notes |
+| [tts_engine](L2/tts_engine.md) | TTSEngine threading, buffer, pipe writer (`lib/tts_engine.py`) |
+| [stt_pipeline](L2/stt_pipeline.md) | Deepgram → corrections → multi-lang fan-out pipeline (`lib/stt_pipeline.py`) |
+| [tts_timeline_format](L2/tts_timeline_format.md) | TTS playback log analysis and timing verification |

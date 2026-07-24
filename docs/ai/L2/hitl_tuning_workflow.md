@@ -239,24 +239,37 @@ two implementations, the gate chose between them.
 
 ---
 
-## Current ledger state (from review sheet, 2026-07-20 — reviewer: Alex)
-
-21 comments distilled into **9 generic rules** — see `tuning_rules.yaml` for full text:
+## Current ledger state (updated 2026-07-24 — see `tuning_rules.yaml` for full text)
 
 | ID | Category | One-line rule | Status |
 |---|---|---|---|
-| R1 | event-priority | High-conf cards/goals/penalties always narrated, preempt pacing | candidate |
-| R2 | content-floor | Every line ≥1 concrete new fact; filler rate-limited | candidate |
-| R3 | fact-dedup | Same fact ≤1×/25 s unless new info added | candidate |
-| R4 | continuity | State reversals must mark the transition | candidate |
-| R5 | referential-clarity | No pronouns without antecedent | candidate |
-| R6 | precision-restraint | Never state action *manner* the detector didn't provide | candidate |
-| R7 | localization | FR = football-French localization + versioned glossary | candidate |
-| R8 | stt-sanity | STT phrases vetted against conflicting high-conf vision events | candidate |
-| R9 | product-default | **Eager is the default voice** (4 explicit reviewer preferences, 0 for safe) | **accepted** |
+| R1 | event-priority | High-conf cards/goals/penalties always narrated, preempt pacing | **accepted** (trio-9) |
+| R2 | content-floor | Every line ≥1 concrete new fact; filler code-gated (≥15 s silence) | **accepted** (trio-9) |
+| R3 | fact-dedup | Same fact ≤1×/25 s unless new info added | **accepted** (trio-9) |
+| R4 | continuity | State reversals must mark the transition | **accepted** (trio-9) |
+| R5 | referential-clarity | No pronouns without antecedent | **accepted** (trio-9) |
+| R6 | precision-restraint | Never state action *manner* the detector didn't provide | **accepted** (trio-9) |
+| R7 | localization | FR = football-French localization + versioned glossary (extended cycle-3) | **accepted** (trio-9) |
+| R8 | stt-sanity | STT phrases vetted against conflicting high-conf vision events | **accepted** (trio-9) |
+| R9 | product-default | **Eager is the default voice** (direct human A/B, 4–0) | **accepted** (no gate needed) |
+| R10 | event-corroboration | Goal call needs ≥3 high-conf detections spanning ≥5 s | **accepted** (trio-9) |
+| R11 | reference-variety | Rotate approved pre-match team forms; never identical consecutive refs | **accepted** (trio-12) |
+| R12 | entity-grounding | Team-specific event credits the named player's roster team (prompt + `enforce_attribution()` code guard) | implemented-pending-gate |
+| R13 | content-floor | No camera/picture language in any output language | implemented-pending-gate |
 
-R9 needed no gate run: it is a direct human A/B verdict and the hedge already
-guarantees the safe coverage floor inside eager.
+R12/R13 are live in v5/v6 with per-run fixtures green on all three profiles, but have
+not yet been through a formal worst-of-N acceptance trio.
+
+### Round history
+
+| Round | Date | Profiles | Feedback | Outcome |
+|---|---|---|---|---|
+| v3 | ≤2026-07-21 | sheet-reviewed era | Alex sheet, 21 comments | Cycles 1–2: R1–R11 accepted |
+| v4 | 2026-07-22 | 10s / 6s / 6s_vt | Alex, 141 on-page comments | Distilled → R12/R13 + R7 extension |
+| v5 | 2026-07-23 | 10s / 6s / 6s_vt | Alex, 159 comments, **71% 👍 all profiles** | Attribution leak on non-card lines found |
+| v6 | 2026-07-24 | 10s / 6s / 6s_vt | round open | Broadened corrective guard: 2/3 errors resolved, 0/50 good lines altered |
+
+Full pipeline + current-state write-up: [blend_pipeline.md](blend_pipeline.md).
 
 ---
 

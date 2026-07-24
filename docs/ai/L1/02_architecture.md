@@ -366,5 +366,5 @@ The roster includes: team names, manager names, starting XI, substitutes, venue,
 
 ## Related Deep Dives
 
-- [TTSEngine Internals](L2/tts_engine.md) — threading, buffer strategy, atmosphere mixing
-- [STT Pipeline](L2/stt_pipeline.md) — Deepgram config, forced split, correction system, multi-lang fan-out
+- [TTSEngine Internals](../L2/tts_engine.md) — threading, buffer strategy, atmosphere mixing
+- [STT Pipeline](../L2/stt_pipeline.md) — Deepgram config, forced split, correction system, multi-lang fan-out

@@ -499,4 +499,4 @@ No UID 75 in output — original commentary is replaced by translated TTS.
 
 ## Related Deep Dives
 
-- [TTSEngine Internals](L2/tts_engine.md) — ElevenLabs WebSocket protocol details and buffer strategy
+- [TTSEngine Internals](../L2/tts_engine.md) — ElevenLabs WebSocket protocol details and buffer strategy

@@ -223,5 +223,5 @@ These files are created by `server.match_worker.MatchWorker` and are intended fo
 
 ## Related Deep Dives
 
-- [TTSEngine Internals](L2/tts_engine.md) — detailed breakdown of `TTSEngine` class in `lib/tts_engine.py`
-- [STT Pipeline](L2/stt_pipeline.md) — Deepgram integration, correction system, and multi-lang fan-out in `lib/stt_pipeline.py`
+- [TTSEngine Internals](../L2/tts_engine.md) — detailed breakdown of `TTSEngine` class in `lib/tts_engine.py`
+- [STT Pipeline](../L2/stt_pipeline.md) — Deepgram integration, correction system, and multi-lang fan-out in `lib/stt_pipeline.py`
