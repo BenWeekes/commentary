@@ -180,29 +180,23 @@ def enforce_attribution(text):
                 return m.group(1) + ' ' + _c
             text = _reatt.sub(r'\b(for|pour)\s+' + _reatt.escape(fm) + r'\b', repl,
                               text, flags=_reatt.I)
-    # broader constructions (codex): a card/goal/sub line that names the wrong team in
-    # ANY syntactic position — 'Yellow for Kohn, Mainz booked', 'Mainz substitute: Sieb on'.
-    # Only when the line carries a card/goal/sub event, exactly one team is referenced,
-    # and it isn't an award beneficiary; the reference is corrected register-matched.
-    if _CGS_RX.search(text):
-        pteam_forms = TEAM_FORMS[pteam]
-        refs = []                             # (team, form, start) of every team reference
-        for wt, forms in TEAM_FORMS.items():
-            for i, fm in enumerate(forms):
-                for m in _reatt.finditer(r'\b' + _reatt.escape(fm) + r'\b', text, _reatt.I):
-                    refs.append((wt, i, m.start(), m.group(0)))
-        # keep only the LONGEST match at each position ('Union Berlin' over 'Union')
-        refs.sort(key=lambda r: (r[2], -len(r[3])))
-        dedup = []
-        for r in refs:
-            if not any(abs(r[2] - d[2]) < 3 for d in dedup):
-                dedup.append(r)
-        wrong = [r for r in dedup if r[0] != pteam]
-        if wrong and not any(r[0] == pteam for r in dedup):   # exactly-one-team lines only
-            for wt, i, start, matched in wrong:
-                if _reatt.search(_AWARD_RX + r'\W*(?:for|pour)?\s*$', text[:start], _reatt.I):
-                    continue                   # 'free kick (for) Mainz' beneficiary clause
-                text = text[:start] + pteam_forms[i] + text[start + len(matched):]
+    # tight broadened pass (codex-3): only correct a team reference DIRECTLY attached
+    # to a card verb ('<team> booked' / '<team> is|are booked'). Single regex pass with
+    # longest-form-first alternation — no stale offsets, no nested-alias corruption; a
+    # team doing something else in the same sentence ('Kohn watches as Mainz make a
+    # substitution') is never touched.
+    if _reatt.search(r'\bbook(ed)?\b|\byellow\b|\bsent off\b', text, _reatt.I):
+        opp = {f: (wt, i2) for wt, forms in TEAM_FORMS.items() if wt != pteam
+               for i2, f in enumerate(forms)}
+        alt = '|'.join(_reatt.escape(f) for f in sorted(opp, key=len, reverse=True))
+        def _fix(m):
+            fm = m.group('team')
+            for f, (wt, i2) in opp.items():
+                if f.lower() == fm.lower():
+                    return TEAM_FORMS[pteam][i2] + m.group('verb')
+            return m.group(0)
+        text = _reatt.sub(r'(?P<team>\b(?:' + alt + r')\b)(?P<verb>\s+(?:is\s+|are\s+)?booked\b)',
+                          _fix, text, flags=_reatt.I)
     return text
 
 # R7: French localizer is the single canonical B.TRANSLATE_SYSTEM (run_blend_live.py) —
@@ -348,12 +342,16 @@ def main():
     opener_done = False                     # scripted, scoreboard-grounded opening line
     placed_end = 0.0                        # video-time where the last placed line's audio ends
 
+    active_places = [0]                    # placement threads incl. FR/PT side-fill (codex-3 #5)
+
     def place(rec, t_det, seen_to_decide, chooser_ms, est=3.0):
         try:
             _place_inner(rec, t_det, seen_to_decide, chooser_ms, est)
         finally:
             with write_cond:
-                in_flight.pop(id(rec), None); write_cond.notify_all()
+                in_flight.pop(id(rec), None)
+                active_places[0] -= 1
+                write_cond.notify_all()
 
     def _undo_prio(rec):
         # a dropped priority line must NOT leave its event marked handled (finding #5)
@@ -493,13 +491,15 @@ def main():
                 if not fut.done() or fut.exception() is not None:
                     missing.append(lang); continue
                 txt, pcm = fut.result()
-                rec[lang] = txt
+                rec[lang] = txt                       # text kept for the page either way
                 b, ln = slots[lang]
-                if len(pcm) > ln:
-                    pcm = pcm[:ln]
+                if len(pcm) > ln:                     # would be chopped mid-word -> silence
+                    missing.append(lang)
+                    rec['lat'][f'{lang}_overran_slot_s'] = round((len(pcm) - ln) / (SR * 2), 2)
+                    continue
                 with audio_lock:
                     audio[lang][b:b + len(pcm)] = pcm
-        rec['lat']['audio_fr_s'] = round((slots.get('fr', (0, 0))[1] if 'fr' not in missing else 0) / (SR * 2), 2)
+                rec['lat'][f'audio_{lang}_s'] = round(len(pcm) / (SR * 2), 2)
 
     def emit(rec, t_now, t_det, est, gate, seen_to_decide, chooser_ms):
         nonlocal booth, placed_end
@@ -507,6 +507,7 @@ def main():
         lines.append(rec); recent.append(rec['text'])
         with write_cond:
             in_flight[id(rec)] = t_det
+            active_places[0] += 1
         threading.Thread(target=place, args=(rec, t_det, seen_to_decide, chooser_ms, est),
                          daemon=True).start()
         booth = t_now + B.NATURAL_LAG_S + est + gate
@@ -591,6 +592,16 @@ def main():
                         et, etm = e.get('type'), B.TEAM.get(e.get('team'))
                         if (et in PRIORITY_EVENTS and e.get('confidence') == 'high'
                                 and t - last_prio.get(et, -99.0) > 30.0):
+                            if et in ('yellow_card', 'red_card'):
+                                # corroboration-lite: a card stays on screen for seconds —
+                                # require >=2 high-conf sightings within 10s (a lone blip at
+                                # 281.6s in trio run2 was a false detection, correctly unspoken)
+                                card_sights = [v2['t_det'] for v2 in VIS_LIVE
+                                               if any(e2.get('type') == et and e2.get('confidence') == 'high'
+                                                      for e2 in (v2['det'].get('events') or []))
+                                               and abs(v2['t_det'] - v['t_det']) <= 10.0]
+                                if len(card_sights) < 2:
+                                    continue
                             if et == 'goal':
                                 # R10: adjacent bursts share frames — a goal call needs
                                 # >=3 high-conf sightings SPANNING >=5s (net + celebration
@@ -854,10 +865,10 @@ def main():
     tts_pool.shutdown(wait=True)
     dl = time.monotonic() + BUFFER_S + 15.0       # drain placement threads (codex finding #1)
     with write_cond:
-        while in_flight and time.monotonic() < dl:
+        while (in_flight or active_places[0] > 0) and time.monotonic() < dl:
             write_cond.wait(timeout=0.5)
-    if in_flight:
-        print(f"  [warn] {len(in_flight)} placement thread(s) still in flight at shutdown")
+    if in_flight or active_places[0] > 0:
+        print(f"  [warn] {len(in_flight)} token(s) / {active_places[0]} thread(s) still active at shutdown")
     for lang in ('en', 'fr', 'pt'):
         with wave.open(str(BASE / f'ai_blend_live_{lang}{SUFFIX}_track.wav'), 'wb') as w:
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)

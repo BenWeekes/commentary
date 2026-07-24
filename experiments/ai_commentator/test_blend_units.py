@@ -45,9 +45,12 @@ cases = [
     ("Mainz have pushed for ten minutes.", None),                # duration 'for'
     ("Kohn fouls Amiri, free kick for Mainz.", None),            # both teams named
     ("Kohn steps forward for the home side.", "Kohn steps forward for the away side."),
-    # broadened constructions (codex-2 #3): wrong team in ANY position on card/goal/sub lines
+    # tight broadened constructions (codex-3): only '<team> [is/are] booked' adjacency
     ("Yellow for Kohn, Mainz booked.", "Yellow for Kohn, Union booked."),
-    ("Kohn is booked and Mainz are down to a nervy spell.", "Kohn is booked and Union are down to a nervy spell."),
+    ("Yellow for Kohn, FSV Mainz booked.", "Yellow for Kohn, Union Berlin booked."),  # longest-form, register-matched
+    ("Kohn watches as Mainz make a substitution.", None),    # codex-3 corruption case — untouched
+    ("Kohn booked; free kick for FSV Mainz.", None),         # nested alias beneficiary — untouched
+    ("Kohn is booked and Mainz are down to a nervy spell.", None),  # team not attached to card verb
     ("Mainz substitute: Sieb and Weiper involved.", None),   # Sieb IS Mainz — untouched
 ]
 for src, want in cases:
@@ -86,6 +89,12 @@ b7 = [mk(10.0, "Yellow for Kohn, Mainz booked.")]
 check("R12 fixture catches broadened construction", E.run_fixtures(b7, '/x.jsonl')['R12'] is False)
 b8 = [mk(10.0, "Kohn booked; free kick for Mainz.")]
 check("R12 fixture allows award beneficiary", E.run_fixtures(b8, '/x.jsonl')['R12'] is True)
+b9 = [mk(10.0, "Kohn watches as Mainz make a substitution.")]
+check("R12 fixture allows innocent team mention (codex-3)", E.run_fixtures(b9, '/x.jsonl')['R12'] is True)
+b10 = [mk(10.0, "Zentner has it now for the hosts in goal.")]
+check("R10 fixture ignores goalkeeper 'in goal' (trio FP)", E.run_fixtures(b10, '/missing.jsonl')['R10'] in (True, 'skip'))
+check("hallucination judge failure fails closed", E.GUARDED[0][1](0, None) is False)
+check("survival gate is HARD 0.95 (deficient baseline can't relax it)", E.GUARDED[1][1](0.90, 0.90) is False)
 
 print("== worst-of-N fail-closed (codex #8) ==")
 check("missing survival counts as 0.0", E.WORST['survival']([0.99, None]) == 0.0)

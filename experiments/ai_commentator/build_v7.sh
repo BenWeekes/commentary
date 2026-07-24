@@ -9,6 +9,11 @@ cd /home/ubuntu/commentary/experiments/ai_commentator
 VENV=/home/ubuntu/commentary/.venv/bin/python
 SRC=/tmp/v2v_compare/slice_5min.mp4
 N_RUNS="${N_RUNS:-3}"
+if [ "$N_RUNS" -lt 3 ]; then
+  echo "REFUSED: N_RUNS=$N_RUNS — this runner builds RELEASE pages and the acceptance gate is worst-of-N (N>=3)." >&2
+  echo "For exploration runs use run_blend_true_live.py directly; do not weaken the gate." >&2
+  exit 1
+fi
 
 echo "[gate] unit tests"
 BLEND_DELAY_S=6 "$VENV" test_blend_units.py > /dev/null && echo "   unit tests PASS"

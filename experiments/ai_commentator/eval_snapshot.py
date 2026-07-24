@@ -58,8 +58,11 @@ def snapshot(jsonl_path, skip_llm=False):
         with ThreadPoolExecutor(max_workers=6) as ex:
             vs = list(ex.map(lambda x: J.judge_line(x['text'], J.frame_for_time_s(x['video_time_s'])), gen))
         hall = sum(1 for v in vs if v and str(v.get('hallucination_likely')).lower() == 'true')
+        jfail = sum(1 for v in vs if not v)
         style = J.judge_run_style([x['text'] for x in b])
-        snap['hallucinations'] = hall
+        snap['judge_failures'] = jfail
+        # fail closed (codex-3): a judge outage must not read as zero hallucinations
+        snap['hallucinations'] = None if jfail else hall
         snap['judge_realism'] = style.get('realism_1_5')
         snap['judge_variety'] = style.get('variety_1_5')
     return snap
@@ -111,6 +114,11 @@ def run_fixtures(b, detections_path):
         goal_ts = [d2['t_det'] for d2 in dets
                    if any(e2.get('type') == 'goal' and e2.get('confidence') == 'high'
                           for e2 in (d2['det'].get('events') or []))]
+        card_ts = {}
+        for d2 in dets:
+            for e2 in (d2['det'].get('events') or []):
+                if e2.get('type') in ('yellow_card', 'red_card') and e2.get('confidence') == 'high':
+                    card_ts.setdefault(e2['type'], []).append(d2['t_det'])
         for d in dets:
             for e in (d['det'].get('events') or []):
                 et = e.get('type')
@@ -118,6 +126,10 @@ def run_fixtures(b, detections_path):
                     near = [g for g in goal_ts if abs(g - d['t_det']) <= 10]
                     if len(near) < 3 or (max(near) - min(near)) < 5.0:
                         continue    # R10-uncorroborated blip — correctly silenced, no line owed
+                if et in ('yellow_card', 'red_card'):
+                    near = [g for g in card_ts.get(et, []) if abs(g - d['t_det']) <= 10]
+                    if len(near) < 2:
+                        continue    # lone-blip card (e.g. 281.6s trio run2) — correctly silenced
                 if et in PRIORITY_EVENTS and e.get('confidence') == 'high':
                     bucket = (et, int(d['t_det'] // 30))
                     if bucket in seen:
@@ -178,8 +190,9 @@ def run_fixtures(b, detections_path):
         fx['R8'] = False if bad else True
     # R10: any goal-call line must be backed by >=3 high-conf goal detections spanning >=5s
     if dp.exists():
-        goal_lines = [x for x in b if re.search(r'\bscored\b|\bgoal\b(?!\s*kick)', x['text'], re.I)
-                      and x['src'] == 'blend']
+        goal_lines = [x for x in b
+                      if re.search(r'\bscored\b|(?<!in )\bgoal\b(?!\s*(kick|keeper|line|mouth))',
+                                   x['text'], re.I) and x['src'] == 'blend']
         r10 = True
         for x in goal_lines:
             gs = [d['t_det'] for d in dets
@@ -264,18 +277,11 @@ def run_fixtures(b, detections_path):
                     for m in re.finditer(r'\b(?:for|pour)\s+' + re.escape(fm) + r'\b', x['text'], re.I):
                         if not re.search(AWARD + r'\W*$', x['text'][:m.start()], re.I):
                             r12 = False
-                    # (b) broadened (codex-2): on a card/goal/sub line, an opposing-team
-                    # reference in ANY position (when only that team is referenced)
-                    if CGS.search(x['text']):
-                        own_forms = TEAM_FORMS[pteam]
-                        own_ref = any(re.search(r'\b' + re.escape(f2) + r'\b', x['text'], re.I)
-                                      for f2 in own_forms)
-                        for m in re.finditer(r'\b' + re.escape(fm) + r'\b', x['text'], re.I):
-                            if own_ref:
-                                break
-                            if re.search(AWARD + r'\W*(?:for|pour)?\s*$', x['text'][:m.start()], re.I):
-                                continue
-                            r12 = False
+                    # (b) tight broadened (codex-3): opposing team DIRECTLY attached to a
+                    # card verb — '<team> booked' / '<team> is|are booked'
+                    if re.search(r'\b' + re.escape(fm) + r'\s+(?:is\s+|are\s+)?booked\b',
+                                 x['text'], re.I):
+                        r12 = False
         fx['R12'] = r12
     else:
         fx['R12'] = 'skip'
@@ -285,8 +291,8 @@ def run_fixtures(b, detections_path):
 
 
 GUARDED = [   # (key, predicate on (baseline, candidate), description)
-    ('hallucinations', lambda b, c: c <= max(b, 0), 'hallucinations must stay at baseline (target 0)'),
-    ('survival', lambda b, c: c is not None and c >= min(b or 1.0, 0.95), 'survival >= 0.95 (or baseline if lower); missing = FAIL'),
+    ('hallucinations', lambda b, c: c is not None and c <= max(b or 0, 0), 'hallucinations at baseline (target 0); judge failure = FAIL'),
+    ('survival', lambda b, c: c is not None and c >= 0.95, 'survival >= 0.95 HARD (never relaxed by a deficient baseline); missing = FAIL'),
     ('desync_shifts_gt_1_5', lambda b, c: c == 0, 'no desync shifts'),
     ('first_line_s', lambda b, c: c is not None and c <= 2.0, 'first line within 2s'),
 ]
