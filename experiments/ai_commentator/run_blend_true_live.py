@@ -178,10 +178,16 @@ def fix_territory(rec):
         return
     txt = rec['text']
     if zone == 'final' and _OWN_RX.search(txt) and not _FINAL_RX.search(txt):
-        rec['text'] = _OWN_RX.sub('the final third', txt)
+        # grammar-aware: "their own third" -> "the final third", but a possessive
+        # prefix ("the hosts's own third") keeps its article: -> "final third"
+        out = _reatt.sub(r"(?:their|its)\s+own\s+(?:third|half)", 'the final third', txt, flags=_reatt.I)
+        out = _reatt.sub(r"\bown\s+third\b", 'final third', out, flags=_reatt.I)
+        rec['text'] = out
         rec['territory_fixed'] = 'own->final'
     elif zone == 'own' and _FINAL_RX.search(txt) and not _OWN_RX.search(txt):
-        rec['text'] = _FINAL_RX.sub('their own third', txt)
+        out = _reatt.sub(r"\bthe\s+final\s+third\b", 'their own third', txt, flags=_reatt.I)
+        out = _reatt.sub(r"\b(?:final|attacking)\s+third\b", 'own third', out, flags=_reatt.I)
+        rec['text'] = out
         rec['territory_fixed'] = 'final->own'
 
 def stt_team_near(t):

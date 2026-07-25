@@ -176,7 +176,7 @@ fixtures:
     Contradictions are CORRECTED at emit (own<->final swap), never spoken wrong.
     Verbatim STT exempt. Enforced + auto fixture (trk_third recorded per line).
   implementation: territory_zone()/fix_territory() at emit + fixture R15 (auto)
-  status: implemented-pending-gate   # cycle-5; trio pending
+  status: accepted   # cycle-5, worst-of-3 triple-ACCEPT 2026-07-25 (R15 corrected 8 live territory claims across the 9 runs)
 
 - id: R16
   source: "reviewer team-only event errors ('Foul for Union' -> Mainz); card A/B showed
@@ -188,7 +188,7 @@ fixtures:
     keep the event and DROP the team attribution — generic-but-correct over
     specific-but-wrong. Applies at all profiles (extends the 6s-only tracker rule).
   implementation: decision-path gate (event_team dropped unless corroborated)
-  status: implemented-pending-gate   # cycle-5; trio pending
+  status: accepted   # cycle-5, worst-of-3 triple-ACCEPT 2026-07-25
 
 acceptance_record_cycle3_4:
   verdict: ACCEPT (worst-of-3 on ALL THREE profiles, 2026-07-24, v7)
