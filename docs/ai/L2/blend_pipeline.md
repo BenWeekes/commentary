@@ -1,9 +1,14 @@
-# AI Live Commentary — Blend Pipeline & Improvement Process (current state)
+# AI Football Commentator — Blend Pipeline & Improvement Process (current state)
 
-> Written 2026-07-24 for external review; updated same day after the v7 acceptance.
-> Authoritative description of the `experiments/ai_commentator` true-live pipeline and
-> the HITL process, as of round **v7 (formally ACCEPTED: worst-of-3 on all three profiles,
-> survival 1.0 x 9 runs, all fixtures green — the first formal acceptance)**. Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
+> Updated 2026-07-25. Authoritative description of the **AI Football Commentator**
+> (`experiments/ai_commentator`) true-live pipeline and HITL process, as of round
+> **v7 — formally ACCEPTED and in review**: three consecutive worst-of-3 triple-ACCEPTs
+> (27 consecutive runs at survival 1.0, all 12 auto fixtures green), R1–R16 accepted,
+> review round v7 open (pages `blend_v7_10s/`, `blend_v7_6s/`, `blend_v7_6s_vt/`).
+> Final-output audit: every reviewer-flagged FACTUAL error class measures zero; residual
+> items are omissions/fluency (3 cosmetic instances) + the perception/voice roadmap.
+> NOTE: a separate **tennis commentator** is being developed in this repo by another
+> agent (Codex); it shares no files with the football experiment. Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
 > (the process loop in depth), [review_cycle_1_dispositions.md](review_cycle_1_dispositions.md)
 > (per-comment audit of cycle 1). History/narrative: [../L1/10_experiments.md](../L1/10_experiments.md).
 

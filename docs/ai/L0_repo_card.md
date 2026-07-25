@@ -34,6 +34,7 @@
 |---|---|
 | [blend_pipeline](L2/blend_pipeline.md) | **AI live commentator (experiments/ai_commentator)** — pipeline & HITL process, current state (v6) |
 | [hitl_tuning_workflow](L2/hitl_tuning_workflow.md) | Review → distill → gate improvement loop; rule ledger + round history |
+| [tennis_pipeline](L2/tennis_pipeline.md) | Isolated Glinka–Mayo tennis commentator: score tracking, STT guards, timing gate, review lifecycle |
 | [review_cycle_1_dispositions](L2/review_cycle_1_dispositions.md) | Per-comment audit of review cycle 1 |
 | [resolution_tracker_eval](L2/resolution_tracker_eval.md) | Resolution/tracker evaluation notes |
 | [tts_engine](L2/tts_engine.md) | TTSEngine threading, buffer, pipe writer (`lib/tts_engine.py`) |

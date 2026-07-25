@@ -254,8 +254,11 @@ two implementations, the gate chose between them.
 | R9 | product-default | **Eager is the default voice** (direct human A/B, 4–0) | **accepted** (no gate needed) |
 | R10 | event-corroboration | Goal call needs ≥3 high-conf detections spanning ≥5 s | **accepted** (trio-9) |
 | R11 | reference-variety | Rotate approved pre-match team forms; never identical consecutive refs | **accepted** (trio-12) |
-| R12 | entity-grounding | Team-specific event credits the named player's roster team (prompt + `enforce_attribution()` code guard) | implemented-pending-gate |
-| R13 | content-floor | No camera/picture language in any output language | implemented-pending-gate |
+| R12 | entity-grounding | Team-specific event credits the named player's roster team (prompt + `enforce_attribution()` code guard) | **accepted** (v7) |
+| R13 | content-floor | No camera/picture language in any output language | **accepted** (v7) |
+| R14 | event-grounding | Event language requires an event fact (deterministic veto + fixture — the hallucination gate) | **accepted** (v7) |
+| R15 | territory-grounding | Spatial claims must agree with the tracker third (corrected at emit) | **accepted** (v7) |
+| R16 | event-corroboration | Event team claims need tracker/STT corroboration, else team dropped | **accepted** (v7) |
 
 R12/R13 are live in v5/v6 with per-run fixtures green on all three profiles, but have
 not yet been through a formal worst-of-N acceptance trio.
@@ -267,7 +270,8 @@ not yet been through a formal worst-of-N acceptance trio.
 | v3 | ≤2026-07-21 | sheet-reviewed era | Alex sheet, 21 comments | Cycles 1–2: R1–R11 accepted |
 | v4 | 2026-07-22 | 10s / 6s / 6s_vt | Alex, 141 on-page comments | Distilled → R12/R13 + R7 extension |
 | v5 | 2026-07-23 | 10s / 6s / 6s_vt | Alex, 159 comments, **71% 👍 all profiles** | Attribution leak on non-card lines found |
-| v6 | 2026-07-24 | 10s / 6s / 6s_vt | round open | Broadened corrective guard: 2/3 errors resolved, 0/50 good lines altered |
+| v6 | 2026-07-24 | 10s / 6s / 6s_vt | closed unreviewed (by design) | Broadened corrective guard: 2/3 errors resolved, 0/50 good lines altered |
+| v7 | 2026-07-25 | 10s / 6s / 6s_vt | **round open** | First formal acceptances: 3× worst-of-3 triple-ACCEPT; R12–R16 accepted; factual-error audit = zero residuals |
 
 Full pipeline + current-state write-up: [blend_pipeline.md](blend_pipeline.md).
 

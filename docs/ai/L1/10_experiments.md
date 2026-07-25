@@ -837,6 +837,70 @@ prepped — blocked on `ANTHROPIC_API_KEY`.
 
 ---
 
+## Tennis commentator — Glinka vs Mayo (v2), 2026-07-24
+
+**Status:** v1 review closed; both cadence points accepted. v2 is live for
+review after both profiles passed the worst-of-three gate. Full architecture →
+[L2/tennis_pipeline.md](../L2/tennis_pipeline.md).
+
+This is a sport-specific, isolated five-minute experiment over the Cary
+Challenger source at `02:00:15–02:05:15`. It does not import football runner
+state, use football SRT/frame paths, or share feedback storage. Its build gate
+refuses media/model work whenever an actual football commentary worker is
+active.
+
+Key differences from football:
+
+- The third review signal is a **logical score tracker**, not a spatial player
+  tracker. It accepts only legal tennis transitions with confidence >= 0.86 and
+  two consecutive reads.
+- Glinka starts in blue at the far end, but the mapping flips after the first
+  game; player identity is not permanently tied to court end.
+- The compact graphic can omit sets and blank points. Missing fields carry
+  forward only as candidates; legality/corroboration still gate commitment.
+- Deepgram and Whisper STT are compared. Whisper's first output failed sanity
+  checks (pathological repeated “Oh.” segments plus a prompt echo), so it is
+  retained as rejected evidence and cannot feed commentary.
+- EN/FR/pt-BR use the same voices as football, but audio buffers and media are
+  tennis-only.
+
+The page uses the same six columns as football and a separate append-only
+review round on port 8092. Every feedback item receives a stable ID; the next
+version cannot publish until `check_feedback.py` verifies an exact disposition
+for every ID.
+
+Final v1 result:
+
+| Profile | Attempts passing | Selected survival | Maximum boundary-aware gap | Review page |
+|---|---:|---:|---:|---|
+| 10 s | 3/3 | 12/12 (100%) | 58 s | `v1_10s/` |
+| 6 s | 3/3 | 12/12 (100%) | 58 s | `v1_6s/` |
+
+The 6-second pre-publication run exposed a scheduler defect: it charged natural
+spoken duration against the inference deadline, despite complete TTS being
+ready in under the deadline. The corrected contract gates detector-to-complete-
+TTS readiness and handles spoken duration with no-overlap placement. A fixture
+pins that distinction. Both profiles were then regenerated, re-judged, media-
+probed, and published atomically.
+
+The v1 review found that 12 lines were too sparse and did not identify the
+server often enough. v2 replaces the sparse schedule with deterministic
+server-led score calls plus strictly literal rally, changeover, and service-game
+context. Its immutable clip fixture produces 18 lines, 9 server references,
+4 rally calls, and a 32-second maximum gap. Publication now hard-fails below
+16 lines, below the category coverage minima, or above a 40-second gap.
+
+Final v2 result:
+
+| Profile | Attempts passing | Selected survival | Server / rally calls | Maximum gap | Review page |
+|---|---:|---:|---:|---:|---|
+| 10 s | 3/3 | 18/18 (100%) | 9 / 4 | 32 s | `v2_10s/` |
+| 6 s | 3/3 | 18/18 (100%) | 9 / 4 | 32 s | `v2_6s/` |
+
+Release-title convention: `AI Tennis commentator — vX ready for review`.
+
+---
+
 ## Adding a new experiment
 
 When you run a new experiment:
