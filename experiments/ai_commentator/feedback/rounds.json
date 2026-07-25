@@ -1,2 +1,28 @@
-{"current": "v4", "rounds": {"v3": {"status": "closed", "note": "sheet-reviewed era"},
-                             "v4": {"status": "open", "opened": "2026-07-22"}}}
+{
+ "current": "v7",
+ "rounds": {
+  "v3": {
+   "status": "closed",
+   "note": "sheet-reviewed era"
+  },
+  "v4": {
+   "status": "closed",
+   "opened": "2026-07-22",
+   "closed": "2026-07-23T16:12:51Z"
+  },
+  "v5": {
+   "status": "closed",
+   "opened": "2026-07-23",
+   "closed": "2026-07-24T14:26:11Z"
+  },
+  "v6": {
+   "status": "closed",
+   "opened": "2026-07-24",
+   "closed": "2026-07-25T10:43:14Z"
+  },
+  "v7": {
+   "status": "open",
+   "opened": "2026-07-25"
+  }
+ }
+}
