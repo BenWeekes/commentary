@@ -837,10 +837,12 @@ prepped — blocked on `ANTHROPIC_API_KEY`.
 
 ---
 
-## Tennis commentator — Glinka vs Mayo (v2), 2026-07-24
+## Tennis commentator — Glinka vs Mayo (v3), 2026-07-26
 
-**Status:** v1 review closed; both cadence points accepted. v2 is live for
-review after both profiles passed the worst-of-three gate. Full architecture →
+**Status:** v1 and v2 are closed and preserved for comparison. V2 received no
+submitted items before the user explicitly directed a v3 release; its zero-item
+disposition passed. V3 is live and both profiles pass the worst-of-three,
+placement, media, and rendered-speech gates. Full architecture →
 [L2/tennis_pipeline.md](../L2/tennis_pipeline.md).
 
 This is a sport-specific, isolated five-minute experiment over the Cary
@@ -861,8 +863,9 @@ Key differences from football:
 - Deepgram and Whisper STT are compared. Whisper's first output failed sanity
   checks (pathological repeated “Oh.” segments plus a prompt echo), so it is
   retained as rejected evidence and cannot feed commentary.
-- EN/FR/pt-BR use the same voices as football, but audio buffers and media are
-  tennis-only.
+- English uses the tennis-specific ElevenLabs voice
+  `kfU9VUUMjY4PWNoUfZ45`; FR/pt-BR retain the football voice IDs. Audio buffers
+  and media remain tennis-only.
 
 The page uses the same six columns as football and a separate append-only
 review round on port 8092. Every feedback item receives a stable ID; the next
@@ -897,7 +900,90 @@ Final v2 result:
 | 10 s | 3/3 | 18/18 (100%) | 9 / 4 | 32 s | `v2_10s/` |
 | 6 s | 3/3 | 18/18 (100%) | 9 / 4 | 32 s | `v2_6s/` |
 
+V3 keeps 18 calls but replaces bare score updates with a structured
+score-outcome layer. It derives the point winner, point run, game-point count,
+saved game point, hold/break, and next server from the previous/current
+corroborated scores. Literal rallies add only accepted score/server context.
+Background is blocked at single game point, break point, deuce, advantage, set
+point, match point, or unsupported tiebreak state.
+
+Final v3 result:
+
+| Profile | Attempts | Survival | Outcomes / pressure | Server / rally | Median / P90 | Gap / shift |
+|---|---:|---:|---:|---:|---:|---:|
+| 10 s | 3/3 | 18/18 | 8 / 4 | 10 / 4 | 11 / 15 | 32 s / 0 s |
+| 6 s | 3/3 | 18/18 | 8 / 4 | 10 / 4 | 11 / 15 | 32 s / 0 s |
+
+An independent Deepgram pass over each final AI-only WAV verifies the rendered
+speech rather than only the source text. All six profile/language tracks pass.
+This check caught and drove fixes for a pathological 39–63-second French TTS
+response, an ambiguous French spoken score, Portuguese pluralization, and an
+overlong rally localization before release.
+
 Release-title convention: `AI Tennis commentator — vX ready for review`.
+
+The television benchmark now covers five official WTA full-match sources in
+three fixed five-minute windows each: four real commentary references across
+grass, clay, and hard court (60 minutes), plus a 15-minute clean-world-feed
+doubles control. Two references use official captions; two and the control use
+transient audio-only STT. No source transcript or media is retained. The
+timestamped surrogate transcript stores only timing, word count, consensus
+category/function, and guarded short paraphrases.
+
+The 202 consensus commentator turns average 3.37/minute, slightly below v2's
+3.6 calls/minute. The difference is depth: TV median turn length is 17 words
+(P90 53) versus v2's median 8 (P90 10), with 43% speech occupancy versus about
+16% AI voice. Match narrative/stakes, tactics/patterns, and point
+reaction/outcome account for 119/202 turns; bare score/server is only 23/202.
+
+V3 implements the evidence-backed direction without adding more calls:
+selected 10–18-word lines combine a legal score transition with its known
+point outcome and score significance, plus literal rally evidence joined to
+accepted server/score context. Tactical, technical, emotional, winner/error,
+and shot-quality claims remain out of scope without new grounding. Full method,
+per-source results, and the rerun command are in the L2 deep dive and
+`experiments/tennis_commentator/benchmarks/tv_commentary_playbook.md`.
+
+The implemented v3 contract is in
+`experiments/tennis_commentator/plan_v3.md`. It routes commentary by accepted
+point, game, set, and changeover state rather than wall-clock time alone:
+opening points orient the viewer, developing games build the score story,
+pressure points prioritize consequences, and changeovers permit concise
+context.
+
+---
+
+## Round 11 — Gemini 3.5 Transcribe (EAP) vs Soniox v5, live ASR A/B (2026-07-29)
+
+**Status:** measured; human adjudication pending (page below). EAP feedback due to Google.
+
+Same 5-min clip, both engines real-time streamed with the full roster as biasing context
+(Gemini `adaptation_phrases`, Soniox `context.terms`). "Gold" caveat: the reference IS
+Soniox-derived (lightly corrected) — so results are framed as agreement + human
+adjudication, not absolute truth.
+
+| | Soniox v5 | Gemini 3.5 Transcribe **Live** (adapted) | Gemini 3.5 Transcribe **unary** |
+|---|---|---|---|
+| Words (gold 537) | **540** | 348 (~65% coverage, holes of 14–28 s) | **517 (96%)** |
+| WER vs gold | **6.5%** | 42.8% (deletion-dominated) | 14.9% |
+| Finalize latency | p50 **1.36 s** / p90 3.27 s (exact per-token) | ~2.0 / ~3.2 s (approx) | n/a (5 min in **3.2 s** batch) |
+
+**Key findings:**
+- The unary sibling transcribes 96% of the SAME audio → the live model's holes are a
+  **streaming/VAD finalization defect**, not audibility. (Echo of the v2v
+  `gemini-3.1-flash-live-preview` failure, improved 24%→65% but still disqualifying.)
+- `adaptation_phrases` genuinely works: Maintz/Mapei/Kuhn/Turnbull → 0, roster hits 6→22,
+  WER 50.1%→42.8%. No false forcing observed.
+- Neither engine meets Google's own <1 s P90 finalize target on this material.
+- Live API returns no word timestamps (unary only) — measurement + placement pain.
+- **Soniox v5 remains the production choice.**
+
+**Artefacts:** `test_gemini_asr_live.py`, `asr_adjudication_page.py`,
+scratchpad `gemini_asr/` (runs + unary), adjudication page
+`/experiments/ai_commentator/asr_adjudication.html` (word-aligned disputes with verdict
+buttons -> feedback server version `asrgemini`). Unary needs **v1alpha** REST
+(`audioTranscription` parts are hidden in v1beta). 25-min source media is absent on this
+box — second-window test blocked until restored.
 
 ---
 
