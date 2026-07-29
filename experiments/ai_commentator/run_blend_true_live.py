@@ -926,11 +926,15 @@ def main():
                         # previous line, swap it for an unused approved alternative
                         if line and line.upper() != 'NO_CALL':
                             def lead_form(txt):
+                                # LONGEST form wins at equal position — matching 'Union'
+                                # inside 'Union Berlin' produced 'Union Berlin Berlin'
+                                # when the swap replaced only the short prefix
                                 best = None
                                 for team, forms in TEAM_FORMS.items():
-                                    for fm in forms:
+                                    for fm in sorted(forms, key=len, reverse=True):
                                         m = _re4.search(r'\b' + _re4.escape(fm) + r'\b', txt, _re4.I)
-                                        if m and (best is None or m.start() < best[2]):
+                                        if m and (best is None or m.start() < best[2]
+                                                  or (m.start() == best[2] and len(fm) > len(best[1]))):
                                             best = (team, fm, m.start())
                                 return best
                             cur = lead_form(line)
