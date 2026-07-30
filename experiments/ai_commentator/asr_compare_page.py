@@ -278,8 +278,8 @@ audio end of the sentence to that engine's final transcript.
 Notes: <span style='background:#122a16;color:#86efac;padding:1px 6px;border-radius:4px'>green = Gemini wins</span>
 <span style='background:#2a1212;color:#fca5a5;padding:1px 6px;border-radius:4px'>red = Soniox wins</span>
 <span style='background:#2a2110;color:#fbbf24;padding:1px 6px;border-radius:4px'>orange = transcripts differ — your call</span>.
-On orange rows: click a time to listen, hit <b>Soniox ✓</b> / <b>Gemini ✓</b> (row recolors), optionally edit the
-note text, then <b>Save</b>. {len(rows)} sentences, {n_judge} need your verdict; where both produced output,
+On orange rows: click a time to listen, hit <b>Soniox ✓</b> / <b>Gemini ✓</b> — the row recolors and the verdict
+<b>auto-saves instantly</b> (watch for "verdict auto-saved ✓" bottom right). Note-text edits still need <b>Save</b>. {len(rows)} sentences, {n_judge} need your verdict; where both produced output,
 Soniox was faster on {s_fast}/{len(both)}.</p>
 {params_html}
 <video id=v controls preload=metadata src="{VIDEO_SRC}"></video>
@@ -296,21 +296,25 @@ function changed(){{
  return new Set([...edited,...Object.keys(V)]);}}
 function updateCnt(){{document.getElementById('cnt').textContent=changed().size+' changes';}}
 function seek(t){{const v=document.getElementById('v');v.currentTime=Math.max(0,t-1.0);v.play();}}
+function itemFor(i){{
+ const n=document.querySelector(`.ntext[data-i='${{i}}']`),r=n.closest('tr');
+ return {{t:parseFloat(r.cells[0].innerText.split(':').reduce((m,s)=>60*m+ +s,0)),col:0,column:'ASR',
+  profile:'asr',clip:'{CLIPID}',cell_text:(r.cells[1].innerText+' || '+r.cells[3].innerText).slice(0,250),
+  tags:[V[i]?'verdict_'+V[i]:'note_edit'],comment:n.textContent.slice(0,500)}};}}
+function post(items,ok){{
+ return fetch('/blend_feedback',{{method:'POST',body:JSON.stringify({{reviewer:'ben',version:'asrcompare',items:items}})}})
+  .then(r=>r.json()).then(j=>document.getElementById('st').textContent=j.stored?' '+ok:' save error: '+j.error)
+  .catch(()=>document.getElementById('st').textContent=' network error — click NOT saved');}}
 document.querySelectorAll('.vb').forEach(b=>b.addEventListener('click',()=>{{
  const i=b.dataset.i,v=b.dataset.v;V[i]=v;
  const cell=b.closest('.note');cell.classList.remove('judge','win-s','win-g');
  cell.classList.add(v==='gemini'?'win-g':'win-s');
- cell.querySelectorAll('.vb').forEach(x=>x.classList.toggle('on',x===b));updateCnt();}}));
+ cell.querySelectorAll('.vb').forEach(x=>x.classList.toggle('on',x===b));updateCnt();
+ post([itemFor(i)],'verdict auto-saved ✓');}}));
 function submitN(){{
- const items=[...changed()].map(i=>{{
-  const n=document.querySelector(`.ntext[data-i='${{i}}']`),r=n.closest('tr');
-  return {{t:parseFloat(r.cells[0].innerText.split(':').reduce((m,s)=>60*m+ +s,0)),col:0,column:'ASR',
-   profile:'asr',clip:'{CLIPID}',cell_text:(r.cells[1].innerText+' || '+r.cells[3].innerText).slice(0,250),
-   tags:[V[i]?'verdict_'+V[i]:'note_edit'],comment:n.textContent.slice(0,500)}};}});
+ const items=[...changed()].map(itemFor);
  if(!items.length){{document.getElementById('st').textContent=' nothing to save';return;}}
- fetch('/blend_feedback',{{method:'POST',body:JSON.stringify({{reviewer:'ben',version:'asrcompare',items:items}})}})
-  .then(r=>r.json()).then(j=>document.getElementById('st').textContent=' saved ('+(j.stored||j.error)+')')
-  .catch(()=>document.getElementById('st').textContent=' network error');}}
+ post(items,'saved '+items.length+' ✓');}}
 </script>"""
     out = Path(f'/var/www/html/experiments/asr_compare/{CLIPID}')
     out.mkdir(parents=True, exist_ok=True)
