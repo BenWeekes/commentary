@@ -966,9 +966,17 @@ adjudication, not absolute truth.
 |---|---|---|---|
 | Words (gold 537) | **540** | 348 (~65% coverage, holes of 14–28 s) | **517 (96%)** |
 | WER vs gold | **6.5%** | 42.8% (deletion-dominated) | 14.9% |
-| Finalize latency | p50 **1.36 s** / p90 3.27 s (exact per-token) | ~2.0 / ~3.2 s (approx) | n/a (5 min in **3.2 s** batch) |
+| Finalize latency (audio-anchored) | p50 **1.36 s** / p90 3.27 s (exact per-token) | p50 ~2.7 s / p90 ~5.4 s | n/a (5 min in **3.2 s** batch) |
+
+**Gold-free protocol (2026-07-30 upgrade):** gold demoted to context-only. Accuracy backbone
+= cross-engine word agreement (59.3–59.6% of Soniox words); every divergence is timestamped
+for human verdicts on the adjudication page. Latency for BOTH engines is measured on agreed
+word runs against the same audio moment (Soniox token end-times) — reference-free.
 
 **Key findings:**
+- Coverage holes are **deterministic**: 3 independent live runs (348/347/348 words,
+  WER 42.8/43.2/42.8%) produced the same 9 gaps at the same audio positions ±1 s
+  (incl. a 28 s hole at 56 s). Reproducible defect, not variance.
 - The unary sibling transcribes 96% of the SAME audio → the live model's holes are a
   **streaming/VAD finalization defect**, not audibility. (Echo of the v2v
   `gemini-3.1-flash-live-preview` failure, improved 24%→65% but still disqualifying.)

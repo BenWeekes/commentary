@@ -68,6 +68,21 @@ def main():
     turns = gold_turns()
     unary = (SCR / 'unary_full.txt').read_text() if (SCR / 'unary_full.txt').exists() else ''
     sm = difflib.SequenceMatcher(None, [w[1] for w in gem], [w[1] for w in son])
+    # reference-free latency: on AGREED word runs, both engines are anchored to the
+    # same audio moment (soniox word start_s ~ end of speech for that word run);
+    # gemini lag = its arrival wall-time minus that audio time. No gold involved.
+    gem_lags = []
+    for op, g1, g2, s1, s2 in sm.get_opcodes():
+        if op == 'equal' and (g2 - g1) >= 3:
+            audio_t = son[s2 - 1][2]              # last matched word's audio time
+            arr = gem[g2 - 1][2] + 1.8            # undo display offset -> raw arrival
+            if -1 < arr - audio_t < 15:
+                gem_lags.append(arr - audio_t)
+    gem_lags.sort()
+    lat = None
+    if gem_lags:
+        lat = {'n': len(gem_lags), 'p50': round(gem_lags[len(gem_lags)//2], 2),
+               'p90': round(gem_lags[int(len(gem_lags)*0.9)], 2), 'max': round(gem_lags[-1], 2)}
     disputes, holes, extras = [], [], []
     for op, g1, g2, s1, s2 in sm.get_opcodes():
         if op == 'equal':
@@ -116,6 +131,11 @@ def main():
         hrows += (f"<tr><td><a href='#' onclick=\"seek({h['t']});return false\">{mmss(h['t'])}</a></td>"
                   f"<td>{esc(seg[:220])}</td><td>{esc(u[:180])}</td></tr>\n")
 
+    agree_words = sum(g2 - g1 for op, g1, g2, _, _ in sm.get_opcodes() if op == 'equal')
+    metrics = {'tag': TAG, 'gemini_words': len(gem), 'soniox_words': len(son),
+               'agreement_words': agree_words,
+               'agreement_pct_of_soniox': round(100*agree_words/len(son), 1),
+               'gemini_lag_on_agreed': lat, 'disputes': None, 'holes': None}
     page = f"""<meta charset=utf-8><title>ASR adjudication — Gemini live vs Soniox v5</title>
 <style>body{{background:#0a0a0a;color:#ddd;font:13px system-ui;margin:18px}}
 table{{border-collapse:collapse;width:100%;margin-bottom:22px}}td,th{{border:1px solid #333;padding:5px;vertical-align:top;font-size:12.5px}}
@@ -125,9 +145,14 @@ a{{color:#7dd3fc}}.g{{color:#8a8a8a}}
 .vb.on{{background:#1e3a5f;color:#dbeafe;border-color:#3b82f6}}
 #bar{{position:fixed;bottom:0;left:0;right:0;background:#0d1420;border-top:1px solid #1e3a5f;padding:8px;text-align:center}}
 #bar button{{background:#1e3a5f;color:#dbeafe;border:0;border-radius:4px;padding:6px 16px;cursor:pointer}}</style>
-<h2>ASR adjudication — word-aligned divergences (times from Soniox tokens)</h2>
-<p>Click a time → audio seeks there. Pick who heard it right per row, then <b>Submit verdicts</b>.
-Gold column is Soniox-derived — reference, not truth.</p>
+<h2>ASR A/B (gold-free) — Gemini 3.5 Transcribe Live vs Soniox v5, roster given to both</h2>
+<div style='background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:8px'>
+Soniox {len(son)} words · Gemini {len(gem)} words · <b>agreement {round(100*agree_words/len(son),1)}%</b> of Soniox words
+· Gemini finalize lag on agreed words (audio-anchored, no gold): p50 {lat['p50'] if lat else '?'}s / p90 {lat['p90'] if lat else '?'}s
+· Soniox finalize lag (its own tokens): p50 1.36s / p90 3.27s</div>
+<p>Method: agreement between two independent engines = presumed correct for both.
+Every divergence below is yours to judge — click a time (audio seeks), pick a verdict, then <b>Submit verdicts</b>.
+The gold column is CONTEXT ONLY (it is Soniox-derived, not truth).</p>
 <video id=v controls preload=metadata src="blend_v7_10s/original.mp4"></video>
 <h3>Disputes — both transcribed, differently ({len(merged)})</h3>
 <table><tr><th>time</th><th>Soniox v5</th><th>Gemini live ({TAG})</th><th>gold (context)</th><th>your verdict</th></tr>
@@ -158,7 +183,9 @@ function submitV(){{
 </script>"""
     out = Path('/var/www/html/experiments/ai_commentator/asr_adjudication.html')
     out.write_text(page)
-    print(f"disputes: {len(merged)} | holes: {len(holes)} | gemini-extra: {len(extras)} | -> {out}")
+    metrics['disputes'] = len(merged); metrics['holes'] = len(holes)
+    (SCR / f'{TAG}_ab_metrics.json').write_text(json.dumps(metrics, indent=1))
+    print(json.dumps(metrics, indent=1))
 
 
 if __name__ == '__main__':
