@@ -76,13 +76,37 @@ def sentences(son):
     return [s for s in spans if s[1] > s[0]]
 
 
-def roster_names():
-    try:
-        sys.path.insert(0, str(BASE))
-        import run_blend_live as B
-        return {norm_w(p.split()[-1]) for p in B.ALL_PLAYERS} | {norm_w(p) for p in B.ALL_PLAYERS}
-    except Exception:
-        return set()
+def roster_display():
+    """Player display names from the blend roster (ALL_PLAYERS is a list of dicts)."""
+    sys.path.insert(0, str(BASE))
+    import run_blend_live as B
+    return sorted(p['name'] if isinstance(p, dict) else str(p) for p in B.ALL_PLAYERS)
+
+
+def roster_parts():
+    """All normed name segments — 'Woo-yeong' -> {'wooyeong','woo','yeong'}."""
+    parts = set()
+    for n in roster_display():
+        parts.add(norm_w(n))
+        for seg in re.split(r'[\s-]+', n):
+            if norm_w(seg):
+                parts.add(norm_w(seg))
+    return {p for p in parts if p}
+
+
+def roster_score(word, parts):
+    """Closeness to the roster: 1.0 = exact name, else best fuzzy ratio (>=0.75)
+    against any name part (Jeong~yeong 0.8), 0 = nothing close."""
+    w = norm_w(word)
+    if not w:
+        return 0.0
+    if w in parts:
+        return 1.0
+    if len(w) < 4:
+        return 0.0
+    best = max((difflib.SequenceMatcher(None, w, p).ratio()
+                for p in parts if len(p) >= 4), default=0.0)
+    return best if best >= 0.75 else 0.0
 
 
 def load_saved():
@@ -108,7 +132,7 @@ def main():
     son = soniox_words()
     gem = gemini_words(TAG)
     spans = sentences(son)
-    roster = roster_names()
+    roster = roster_parts()
     saved = load_saved()
 
     # map every gemini word to a soniox word index (insertion point for gemini-only)
@@ -140,7 +164,6 @@ def main():
             verdict = 'soniox' if s_lat <= g_lat else 'gemini'
             notes.append('Transcripts agree — decided on latency.')
         else:
-            verdict = 'judge'
             d = difflib.SequenceMatcher(None, g_norm, s_norm)
             diffs = []
             for op, a1, a2, b1, b2 in d.get_opcodes():
@@ -151,13 +174,36 @@ def main():
                 diffs.append((ss, gs))
             shown = '; '.join(f"S:\u2018{a or '—'}\u2019 vs G:\u2018{b or '—'}\u2019" for a, b in diffs[:3])
             notes.append(f"Differs — {shown}" + (f" (+{len(diffs)-3} more)" if len(diffs) > 3 else ''))
-            s_hits = sum(1 for a, _ in diffs if any(norm_w(x) in roster for x in a.split()))
-            g_hits = sum(1 for _, b in diffs if any(norm_w(x) in roster for x in b.split()))
-            if s_hits > g_hits:
-                notes.append('(hint: roster names side with Soniox)')
-            elif g_hits > s_hits:
-                notes.append('(hint: roster names side with Gemini)')
-            notes.append('Please judge: who heard it right?')
+
+            def roster_call(ss, gs):
+                """'soniox'/'gemini' ONLY for a safe mishearing pair: both sides short,
+                phonetically close (same utterance heard differently, e.g. Jeong/Jung),
+                and one side strictly closer to a roster name. Misaligned fragments,
+                omissions, and first-name mentions (roster is surname-only) stay orange."""
+                if not ss or not gs or len(ss.split()) > 2 or len(gs.split()) > 2:
+                    return None
+                a, b = norm_w(ss.replace(' ', '')), norm_w(gs.replace(' ', ''))
+                if difflib.SequenceMatcher(None, a, b).ratio() < 0.5:
+                    return None
+                s_sc = max((roster_score(x, roster) for x in ss.split()), default=0.0)
+                g_sc = max((roster_score(x, roster) for x in gs.split()), default=0.0)
+                if s_sc > g_sc + 0.02:
+                    return 'soniox'
+                if g_sc > s_sc + 0.02:
+                    return 'gemini'
+                return None
+            calls = [roster_call(ss, gs) for ss, gs in diffs]
+            if all(calls) and len(set(calls)) == 1:
+                verdict = calls[0]
+                who = 'Soniox' if verdict == 'soniox' else 'Gemini'
+                notes.append(f'Roster resolves every diff: {who} right.')
+            else:
+                verdict = 'judge'
+                one_sided = {c for c in calls if c}
+                if len(one_sided) == 1:
+                    who = 'Soniox' if one_sided == {'soniox'} else 'Gemini'
+                    notes.append(f'(hint: roster-decidable diffs side with {who}; the rest need your ear)')
+                notes.append('Please judge: who heard it right?')
         if g_lat is not None:
             faster = 'Soniox' if s_lat <= g_lat else 'Gemini'
             notes.append(f'Fastest: {faster} ({min(s_lat, g_lat):.1f}s vs {max(s_lat, g_lat):.1f}s).')
@@ -179,11 +225,7 @@ def main():
     def mmss(t):
         return f"{int(t // 60)}:{t % 60:04.1f}"
 
-    try:
-        import run_blend_live as B
-        roster_list = sorted(B.ALL_PLAYERS)
-    except Exception:
-        roster_list = []
+    roster_list = roster_display()
     params_html = f"""<details style='background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:10px'>
 <summary style='cursor:pointer'><b>Test setup — roster + engine params</b> (click to unfold)</summary>
 <p><b>Roster passed to BOTH engines</b> ({len(roster_list)} players, Mainz + Union Berlin):<br>
@@ -241,6 +283,7 @@ note text, then <b>Save</b>. {len(rows)} sentences, {n_judge} need your verdict;
 Soniox was faster on {s_fast}/{len(both)}.</p>
 {params_html}
 <video id=v controls preload=metadata src="{VIDEO_SRC}"></video>
+<p><a href="{VIDEO_SRC}" download="{CLIPID}.mp4">⬇ Download video</a></p>
 <table><tr><th>start</th><th>Soniox v5</th><th>final</th><th>Gemini live</th><th>final</th><th>notes</th></tr>
 {trs}</table>
 <div id=bar><span id=cnt>0 changes</span> <button onclick="submitN()">Save verdicts + notes</button> <span id=st></span></div>
