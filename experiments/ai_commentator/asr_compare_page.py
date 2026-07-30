@@ -120,11 +120,13 @@ def load_saved():
             if not line.strip():
                 continue
             rec = json.loads(line)
+            if rec.get('reviewer') == 'selftest':      # API round-trip probes, never applied
+                continue
             for it in rec.get('items', []):
                 if it.get('clip') != CLIPID:
                     continue
-                saved[round(float(it.get('t', 0)), 1)] = {
-                    'tags': it.get('tags', []), 'comment': it.get('comment', '')}
+                saved.setdefault(round(float(it.get('t', 0)), 1), []).append(
+                    {'tags': it.get('tags', []), 'comment': it.get('comment', '')})
     return saved
 
 
@@ -209,15 +211,17 @@ def main():
             notes.append(f'Fastest: {faster} ({min(s_lat, g_lat):.1f}s vs {max(s_lat, g_lat):.1f}s).')
         note = ' '.join(notes)
 
-        # re-apply the reviewer's saved verdict/note (latest wins)
-        sv = saved.get(round(t_start, 1))
-        if sv:
+        # re-apply saved reviews: latest verdict tag wins; note = latest comment that a
+        # human actually wrote (differs from the auto note a click would echo back)
+        for sv in saved.get(round(t_start, 1), []):
             if 'verdict_gemini' in sv['tags']:
                 verdict = 'gemini'
             elif 'verdict_soniox' in sv['tags']:
                 verdict = 'soniox'
-            if sv['comment']:
-                note = sv['comment']
+        human = [sv['comment'] for sv in saved.get(round(t_start, 1), [])
+                 if sv['comment'] and sv['comment'] != note]
+        if human:
+            note = human[-1]
         rows.append({'t': t_start, 'stx': s_text, 'slat': s_lat,
                      'gtx': g_text, 'glat': g_lat, 'note': note,
                      'verdict': verdict, 'was_judge': not g_idx or s_norm != g_norm})
