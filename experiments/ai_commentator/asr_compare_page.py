@@ -3,8 +3,15 @@
 
 URL shape: /experiments/asr_compare/<clipid>/ — video on top, one row per sentence:
 timestamp | soniox sentence | soniox final latency | gemini sentence | gemini final
-latency | notes (auto: fastest + accuracy call; contenteditable so the reviewer can
-overrule — saved to the feedback server, version 'asrcompare').
+latency | notes.
+
+Notes color code (per Ben's spec):
+  GREEN  = sure Gemini wins (transcripts agree, Gemini finalized faster)
+  RED    = sure Soniox wins (transcripts agree + Soniox faster, or Gemini hole)
+  ORANGE = transcripts differ -> reviewer must judge; verdict buttons in the row
+           turn it green/red and the verdict + note are saved (version 'asrcompare').
+Saved verdicts/notes are re-applied when this generator reruns, so the page
+persists reviewer state across regenerations.
 
 Latency is reference-free: both engines were real-time streamed, so each engine's
 sentence-final latency = wall clock when its last token/event finalized minus the
@@ -78,11 +85,31 @@ def roster_names():
         return set()
 
 
+def load_saved():
+    """Reviewer verdicts/notes already stored for this clip: {t_key: {...latest...}}."""
+    saved = {}
+    for src in [BASE / 'feedback/asrcompare/comments.jsonl',
+                BASE / 'feedback/asrcompare/late/comments.jsonl']:
+        if not src.exists():
+            continue
+        for line in open(src, encoding='utf-8'):
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            for it in rec.get('items', []):
+                if it.get('clip') != CLIPID:
+                    continue
+                saved[round(float(it.get('t', 0)), 1)] = {
+                    'tags': it.get('tags', []), 'comment': it.get('comment', '')}
+    return saved
+
+
 def main():
     son = soniox_words()
     gem = gemini_words(TAG)
     spans = sentences(son)
     roster = roster_names()
+    saved = load_saved()
 
     # map every gemini word to a soniox word index (insertion point for gemini-only)
     sm = difflib.SequenceMatcher(None, [w[1] for w in gem], [w[1] for w in son])
@@ -91,7 +118,7 @@ def main():
         for j in range(g1, g2):
             if op == 'equal':
                 g2s[j] = s1 + (j - g1)
-            else:                        # replace/delete: anchor to the soniox span start
+            else:
                 g2s[j] = min(s1 + (j - g1), max(s1, s2 - 1)) if s2 > s1 else s1
     rows = []
     for (i0, i1) in spans:
@@ -107,10 +134,13 @@ def main():
         g_norm = [gem[j][1] for j in g_idx]
         notes = []
         if not g_idx:
+            verdict = 'soniox'
             notes.append('Gemini: NOTHING (coverage hole — same spot all 3 runs). Soniox by default.')
         elif s_norm == g_norm:
-            notes.append('Transcripts agree.')
+            verdict = 'soniox' if s_lat <= g_lat else 'gemini'
+            notes.append('Transcripts agree — decided on latency.')
         else:
+            verdict = 'judge'
             d = difflib.SequenceMatcher(None, g_norm, s_norm)
             diffs = []
             for op, a1, a2, b1, b2 in d.get_opcodes():
@@ -124,16 +154,27 @@ def main():
             s_hits = sum(1 for a, _ in diffs if any(norm_w(x) in roster for x in a.split()))
             g_hits = sum(1 for _, b in diffs if any(norm_w(x) in roster for x in b.split()))
             if s_hits > g_hits:
-                notes.append('Roster names side with Soniox — likely Soniox right.')
+                notes.append('(hint: roster names side with Soniox)')
             elif g_hits > s_hits:
-                notes.append('Roster names side with Gemini — likely Gemini right.')
-            else:
-                notes.append('Accuracy unclear — please judge.')
+                notes.append('(hint: roster names side with Gemini)')
+            notes.append('Please judge: who heard it right?')
         if g_lat is not None:
             faster = 'Soniox' if s_lat <= g_lat else 'Gemini'
             notes.append(f'Fastest: {faster} ({min(s_lat, g_lat):.1f}s vs {max(s_lat, g_lat):.1f}s).')
+        note = ' '.join(notes)
+
+        # re-apply the reviewer's saved verdict/note (latest wins)
+        sv = saved.get(round(t_start, 1))
+        if sv:
+            if 'verdict_gemini' in sv['tags']:
+                verdict = 'gemini'
+            elif 'verdict_soniox' in sv['tags']:
+                verdict = 'soniox'
+            if sv['comment']:
+                note = sv['comment']
         rows.append({'t': t_start, 'stx': s_text, 'slat': s_lat,
-                     'gtx': g_text, 'glat': g_lat, 'note': ' '.join(notes)})
+                     'gtx': g_text, 'glat': g_lat, 'note': note,
+                     'verdict': verdict, 'was_judge': not g_idx or s_norm != g_norm})
 
     def mmss(t):
         return f"{int(t // 60)}:{t % 60:04.1f}"
@@ -143,8 +184,8 @@ def main():
         roster_list = sorted(B.ALL_PLAYERS)
     except Exception:
         roster_list = []
-    params_html = f"""<details open style='background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:10px'>
-<summary style='cursor:pointer'><b>Test setup — roster + engine params</b> (click to fold)</summary>
+    params_html = f"""<details style='background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:10px'>
+<summary style='cursor:pointer'><b>Test setup — roster + engine params</b> (click to unfold)</summary>
 <p><b>Roster passed to BOTH engines</b> ({len(roster_list)} players, Mainz + Union Berlin):<br>
 <span style='color:#94a3b8'>{html.escape(', '.join(roster_list))}</span></p>
 <table style='width:auto'><tr><th></th><th>Soniox</th><th>Gemini</th></tr>
@@ -164,57 +205,76 @@ audio anchor, so the numbers are directly comparable. Anchoring at sentence end 
 penalising long sentences.</p></details>"""
 
     both = [r for r in rows if r['glat'] is not None]
-    n_agree = sum(1 for r in rows if r['note'].startswith('Transcripts agree'))
     s_fast = sum(1 for r in both if r['slat'] <= r['glat'])
+    n_judge = sum(1 for r in rows if r['verdict'] == 'judge')
+    cls_map = {'soniox': 'win-s', 'gemini': 'win-g', 'judge': 'judge'}
     trs = ''
     for i, r in enumerate(rows):
         gl = f"{r['glat']:.1f}s" if r['glat'] is not None else '—'
-        cls = ' class=hole' if r['glat'] is None else ''
-        trs += f"""<tr{cls}><td><a href='#' onclick="seek({r['t']:.1f});return false">{mmss(r['t'])}</a></td>
+        btns = (f"<div class=vbs><span class=vb data-i={i} data-v=soniox>Soniox ✓</span>"
+                f"<span class=vb data-i={i} data-v=gemini>Gemini ✓</span></div>") if r['was_judge'] else ''
+        trs += f"""<tr><td><a href='#' onclick="seek({r['t']:.1f});return false">{mmss(r['t'])}</a></td>
 <td>{html.escape(r['stx'])}</td><td class=lat>{r['slat']:.1f}s</td>
 <td>{html.escape(r['gtx']) or '<i>—</i>'}</td><td class=lat>{gl}</td>
-<td class=note contenteditable data-i={i}>{html.escape(r['note'])}</td></tr>\n"""
+<td class="note {cls_map[r['verdict']]}"><span class=ntext contenteditable data-i={i}>{html.escape(r['note'])}</span>{btns}</td></tr>\n"""
 
     page = f"""<meta charset=utf-8><title>ASR compare — {CLIPID}</title>
 <style>body{{background:#0a0a0a;color:#ddd;font:13px system-ui;margin:18px}}
 table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #333;padding:5px;vertical-align:top;font-size:12.5px}}
-th{{background:#161616;position:sticky;top:365px}}video{{width:640px;display:block;margin:8px 0;position:sticky;top:0;z-index:5;background:#000}}
+th{{background:#161616}}video{{width:640px;display:block;margin:8px 0;position:sticky;top:0;z-index:5;background:#000}}
 a{{color:#7dd3fc}}.lat{{white-space:nowrap;text-align:right;color:#a3e635}}
-.note{{color:#fbbf24;min-width:220px}}.note:focus{{outline:1px solid #3b82f6;background:#111827}}
-tr.hole td{{background:#1a1010}}
+.note{{min-width:240px}}.ntext{{display:block}}.ntext:focus{{outline:1px solid #3b82f6;background:#111827}}
+.note.win-s{{background:#2a1212;color:#fca5a5}}.note.win-g{{background:#122a16;color:#86efac}}
+.note.judge{{background:#2a2110;color:#fbbf24}}
+.vbs{{margin-top:4px}}.vb{{display:inline-block;border:1px solid #334155;border-radius:9px;padding:1px 8px;margin-right:4px;cursor:pointer;font-size:11px;color:#94a3b8}}
+.vb.on{{background:#1e3a5f;color:#dbeafe;border-color:#3b82f6}}
 #bar{{position:fixed;bottom:0;left:0;right:0;background:#0d1420;border-top:1px solid #1e3a5f;padding:8px;text-align:center}}
 #bar button{{background:#1e3a5f;color:#dbeafe;border:0;border-radius:4px;padding:6px 16px;cursor:pointer}}</style>
 <h2>ASR compare — Soniox v5 vs Gemini 3.5 Transcribe Live ({TAG}) — {CLIPID}</h2>
 <p>Both engines streamed real-time with the full roster as biasing context. Latency = seconds from
-audio end of the sentence to that engine's final transcript. Rows in <span style='color:#f87171'>red</span>
-are Gemini coverage holes (deterministic across 3 runs). Sentence summary: {len(rows)} rows,
-{n_agree} agree verbatim; where both produced output, Soniox was faster on {s_fast}/{len(both)}.
-<b>Notes are editable</b> — click into one, correct it, then Save notes.</p>
+audio end of the sentence to that engine's final transcript.
+Notes: <span style='background:#122a16;color:#86efac;padding:1px 6px;border-radius:4px'>green = Gemini wins</span>
+<span style='background:#2a1212;color:#fca5a5;padding:1px 6px;border-radius:4px'>red = Soniox wins</span>
+<span style='background:#2a2110;color:#fbbf24;padding:1px 6px;border-radius:4px'>orange = transcripts differ — your call</span>.
+On orange rows: click a time to listen, hit <b>Soniox ✓</b> / <b>Gemini ✓</b> (row recolors), optionally edit the
+note text, then <b>Save</b>. {len(rows)} sentences, {n_judge} need your verdict; where both produced output,
+Soniox was faster on {s_fast}/{len(both)}.</p>
 {params_html}
 <video id=v controls preload=metadata src="{VIDEO_SRC}"></video>
-<table><tr><th>start</th><th>Soniox v5</th><th>final</th><th>Gemini live</th><th>final</th><th>notes (editable)</th></tr>
+<table><tr><th>start</th><th>Soniox v5</th><th>final</th><th>Gemini live</th><th>final</th><th>notes</th></tr>
 {trs}</table>
-<div id=bar><span id=cnt>0 edited</span> <button onclick="submitN()">Save notes</button> <span id=st></span></div>
+<div id=bar><span id=cnt>0 changes</span> <button onclick="submitN()">Save verdicts + notes</button> <span id=st></span></div>
 <script>
-const ORIG={{}};document.querySelectorAll('.note').forEach(n=>{{ORIG[n.dataset.i]=n.textContent;
- n.addEventListener('input',()=>{{document.getElementById('cnt').textContent=
-   [...document.querySelectorAll('.note')].filter(x=>x.textContent!==ORIG[x.dataset.i]).length+' edited';}});}});
+const V={{}},ORIG={{}};
+document.querySelectorAll('.ntext').forEach(n=>{{ORIG[n.dataset.i]=n.textContent;
+ n.addEventListener('input',updateCnt);}});
+function changed(){{
+ const edited=[...document.querySelectorAll('.ntext')].filter(x=>x.textContent!==ORIG[x.dataset.i]).map(x=>x.dataset.i);
+ return new Set([...edited,...Object.keys(V)]);}}
+function updateCnt(){{document.getElementById('cnt').textContent=changed().size+' changes';}}
 function seek(t){{const v=document.getElementById('v');v.currentTime=Math.max(0,t-1.0);v.play();}}
+document.querySelectorAll('.vb').forEach(b=>b.addEventListener('click',()=>{{
+ const i=b.dataset.i,v=b.dataset.v;V[i]=v;
+ const cell=b.closest('.note');cell.classList.remove('judge','win-s','win-g');
+ cell.classList.add(v==='gemini'?'win-g':'win-s');
+ cell.querySelectorAll('.vb').forEach(x=>x.classList.toggle('on',x===b));updateCnt();}}));
 function submitN(){{
-  const items=[...document.querySelectorAll('.note')].filter(n=>n.textContent!==ORIG[n.dataset.i]).map(n=>{{
-    const r=n.parentElement;
-    return {{t:parseFloat(r.cells[0].innerText.split(':').reduce((m,s)=>60*m+ +s,0)),col:0,column:'ASR',
-      profile:'asr',clip:'{CLIPID}',cell_text:(r.cells[1].innerText+' || '+r.cells[3].innerText).slice(0,250),
-      tags:['note_edit'],comment:n.textContent.slice(0,500)}};}});
-  if(!items.length){{document.getElementById('st').textContent=' nothing edited';return;}}
-  fetch('/blend_feedback',{{method:'POST',body:JSON.stringify({{reviewer:'ben',version:'asrcompare',items:items}})}})
-    .then(r=>r.json()).then(j=>document.getElementById('st').textContent=' saved ('+(j.stored||j.error)+')')
-    .catch(()=>document.getElementById('st').textContent=' network error');}}
+ const items=[...changed()].map(i=>{{
+  const n=document.querySelector(`.ntext[data-i='${{i}}']`),r=n.closest('tr');
+  return {{t:parseFloat(r.cells[0].innerText.split(':').reduce((m,s)=>60*m+ +s,0)),col:0,column:'ASR',
+   profile:'asr',clip:'{CLIPID}',cell_text:(r.cells[1].innerText+' || '+r.cells[3].innerText).slice(0,250),
+   tags:[V[i]?'verdict_'+V[i]:'note_edit'],comment:n.textContent.slice(0,500)}};}});
+ if(!items.length){{document.getElementById('st').textContent=' nothing to save';return;}}
+ fetch('/blend_feedback',{{method:'POST',body:JSON.stringify({{reviewer:'ben',version:'asrcompare',items:items}})}})
+  .then(r=>r.json()).then(j=>document.getElementById('st').textContent=' saved ('+(j.stored||j.error)+')')
+  .catch(()=>document.getElementById('st').textContent=' network error');}}
 </script>"""
     out = Path(f'/var/www/html/experiments/asr_compare/{CLIPID}')
     out.mkdir(parents=True, exist_ok=True)
     (out / 'index.html').write_text(page)
-    print(f"rows={len(rows)} agree={n_agree} soniox_faster={s_fast}/{len(both)} -> {out}/index.html")
+    counts = {v: sum(1 for r in rows if r['verdict'] == v) for v in ('soniox', 'gemini', 'judge')}
+    print(f"rows={len(rows)} verdicts={counts} soniox_faster={s_fast}/{len(both)} "
+          f"saved_applied={len(saved)} -> {out}/index.html")
 
 
 if __name__ == '__main__':

@@ -23,6 +23,11 @@
   "v7": {
    "status": "open",
    "opened": "2026-07-25"
+  },
+  "asrcompare": {
+   "status": "open",
+   "opened": "2026-07-30",
+   "note": "ASR compare notes/verdicts page \u2014 not a blend review round"
   }
  }
 }
