@@ -271,7 +271,12 @@ not yet been through a formal worst-of-N acceptance trio.
 | v4 | 2026-07-22 | 10s / 6s / 6s_vt | Alex, 141 on-page comments | Distilled → R12/R13 + R7 extension |
 | v5 | 2026-07-23 | 10s / 6s / 6s_vt | Alex, 159 comments, **71% 👍 all profiles** | Attribution leak on non-card lines found |
 | v6 | 2026-07-24 | 10s / 6s / 6s_vt | closed unreviewed (by design) | Broadened corrective guard: 2/3 errors resolved, 0/50 good lines altered |
-| v7 | 2026-07-25 | 10s / 6s / 6s_vt | **round open** | First formal acceptances: 3× worst-of-3 triple-ACCEPT; R12–R16 accepted; factual-error audit = zero residuals |
+| v7 | 2026-07-25 | 10s / 6s / 6s_vt | open (partially reviewed) | First formal acceptances: 3× worst-of-3 triple-ACCEPT; R12–R16 accepted; factual-error audit = zero residuals. Alex reviewed 6s_vt (2026-07-29): 32 comments, 14 👍 |
+
+**PROJECT PARKED 2026-08-04** — perception ceiling (ball-end ambiguity, camera cuts,
+slow motion/replays) requires the ReID/tracker roadmap, not further rules. See the
+status header of [blend_pipeline.md](blend_pipeline.md) for what is preserved where and
+how to resume.
 
 Full pipeline + current-state write-up: [blend_pipeline.md](blend_pipeline.md).
 

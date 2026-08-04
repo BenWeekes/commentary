@@ -995,6 +995,18 @@ box — second-window test blocked until restored.
 
 ---
 
+## Round 11 — v7 acceptance, then PARKED (2026-07-25 → 2026-08-04)
+
+v7 became the first formally accepted build (worst-of-3 triple-ACCEPT ×3 profiles, 27
+runs at survival 1.0, R1–R16 accepted; audit: zero factual-error residuals in shipped
+output). Alex partially reviewed (6s_vt: 32 comments, 14 👍). **Parked 2026-08-04**:
+the remaining errors are perception-bound — which end the ball is in, camera shot
+changes, replays/slow-motion — i.e. the ReID/jersey-OCR tracker roadmap, not commentary
+rules. Preservation map + resume steps → [L2/blend_pipeline.md](../L2/blend_pipeline.md)
+status header.
+
+---
+
 ## Adding a new experiment
 
 When you run a new experiment:

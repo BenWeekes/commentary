@@ -1,14 +1,24 @@
 # AI Football Commentator — Blend Pipeline & Improvement Process (current state)
 
-> Updated 2026-07-25. Authoritative description of the **AI Football Commentator**
-> (`experiments/ai_commentator`) true-live pipeline and HITL process, as of round
-> **v7 — formally ACCEPTED and in review**: three consecutive worst-of-3 triple-ACCEPTs
-> (27 consecutive runs at survival 1.0, all 12 auto fixtures green), R1–R16 accepted,
-> review round v7 open (pages `blend_v7_10s/`, `blend_v7_6s/`, `blend_v7_6s_vt/`).
-> Final-output audit: every reviewer-flagged FACTUAL error class measures zero; residual
-> items are omissions/fluency (3 cosmetic instances) + the perception/voice roadmap.
-> NOTE: a separate **tennis commentator** is being developed in this repo by another
-> agent (Codex); it shares no files with the football experiment. Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
+> **STATUS: PARKED (2026-08-04).** The project reached formal acceptance (v7: three
+> consecutive worst-of-3 triple-ACCEPTs, 27 runs at survival 1.0, R1–R16 accepted, every
+> reviewer-flagged factual class audited to zero in shipped output) but was parked on a
+> product decision: the remaining ceiling is **perception, not rules** — the vision stack
+> cannot reliably determine which END of the pitch the ball is in, and mishandles camera
+> shot changes, replays, and slow motion. Fixing that needs the ReID/jersey-OCR tracker
+> roadmap, not more commentary rules.
+>
+> **Preserved for resumption:** review pages stay live (`blend_v7_10s/`, `blend_v7_6s/`,
+> `blend_v7_6s_vt/`; round v7 left open — Alex reviewed 6s_vt on 2026-07-29: 32 comments,
+> 14 👍, in `feedback/v7/`, all feedback rounds now committed to git); source clip at
+> `clips/m05_uni_eval_25min/slice_5min.mp4` (116 MB — exceeds GitHub's 100 MB limit, so
+> LOCAL ONLY, not in the remote); trio evidence in `runs/v7/`; ledger `tuning_rules.yaml`
+> (R1–R16 + amendments). **Deleted to save disk (all regenerable):** local synced MP4s/WAVs
+> (pages keep their copies), `tracker_models/` (Roboflow sports weights:
+> football-{ball,pitch,player}-detection.pt — re-download from the roboflow/sports
+> releases), old round pages v2–v6, res_test. To resume: re-fetch tracker weights, then
+> `build_v7.sh` re-runs the full gated pipeline from the secured clip.
+> NOTE: a separate **tennis commentator** lives in this repo (other agent); no shared files. Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
 > (the process loop in depth), [review_cycle_1_dispositions.md](review_cycle_1_dispositions.md)
 > (per-comment audit of cycle 1). History/narrative: [../L1/10_experiments.md](../L1/10_experiments.md).
 
