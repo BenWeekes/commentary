@@ -35,6 +35,13 @@ Evidence gathered from our side (egress IP **3.9.234.40**, London/AWS):
    this host (verified via UDP DNS), so our NAT/firewall path is not the cause.
 6. Reproduced across multiple freshly created+armed matches, immediately after arm
    and 20+ s after arm, over ~30 minutes.
+7. The `ingest.ffmpeg_url` was used **verbatim** (its only parameters are the issued
+   `streamid` and `pkt_size=1316`, exactly matching the doc's template), from libsrt
+   1.5.4; a second, independent SRT client (`srt-live-transmit`) fails identically.
+8. **TCP port 8890 is also filtered** on the same host while 443 answers — port 8890
+   appears entirely unexposed, consistent with a missing/mis-scoped firewall rule for
+   `udp:8890` (or an allowlist that does not include our IP) rather than anything
+   protocol-level.
 
 **Most likely causes, in order:** (a) an ingest-side firewall/allowlist dropping
 unknown source IPs — if so, please allowlist `3.9.234.40`; (b) the SRT listener on
