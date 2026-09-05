@@ -1,0 +1,72 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match identity, round, and initial server Mayo/near."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "0-0 to 15-0 with near serving implies Mayo won opening point on serve."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "15-0 to 30-0 on near serve supports Mayo winning a second straight point."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "Background fact explicitly verified: Glinka is the third seed in Cary."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "30-0 to 40-0 on near serve supports three straight Mayo points and three game points."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "Protected-ranking entry for Mayo is explicitly verified pre-match."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "40-0 to 40-15 on Mayo serve means Glinka won the point, leaving Mayo with two game points."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "0-0 games 15-40 on near serve to 0-1 games with server far means Mayo held and Glinka serves next."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "First-game change of ends and next server Glinka/far are explicitly supported by accepted score and match rules."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "Glinka left-handed, serving second game, and trailing 0-1 are all verified/supported."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Both Drummondville title facts are explicitly verified pre-match."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "0-0 points on far serve to 15-0 supports Glinka winning opening point of his service game."
+  },
+  {
+    "index": 12,
+    "hallucination_likely": 0,
+    "reason": "15-0 to 15-15 on far serve supports Mayo winning the point to level on return."
+  },
+  {
+    "index": 13,
+    "hallucination_likely": 0,
+    "reason": "15-15 to 30-15 on far serve supports Glinka moving ahead on serve."
+  }
+]

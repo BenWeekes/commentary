@@ -1,0 +1,72 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Pre-match identity, round, and opening server are explicitly verified."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "Tracker moves from 0-0 to near 15 with near serving, so Mayo won the point on serve."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "Glinka being the third seed is explicitly supported by verified pre-match context."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "Tracker moves from near 15 to near 30 on Mayo serve, supporting two straight opening points and 30-love."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "Mayo entering with a protected ranking is explicitly verified pre-match."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "Tracker goes to 40-0 on Mayo serve; that is three straight points and three game points by rule."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "Both Drummondville title facts are explicitly verified pre-match."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "Tracker changes from 40-0 to 40-15 on Mayo serve, so Glinka saved one and two game points remain."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "Games move to near 1-0 with server switching to far, so Mayo held and Glinka serves next at 0-1."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "Opening hold is accepted, change of ends after first game is explicitly verified, and next server is far/Glinka."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Score is 0-1, server is far=Glinka, and Glinka's left-handedness is explicitly verified."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "Tracker moves from 0-0 to far 15 with far serving, so Glinka won the opening point of that game."
+  },
+  {
+    "index": 12,
+    "hallucination_likely": 0,
+    "reason": "Tracker moves from far 15-0 to 15-all with far serving, so receiver Mayo won the point."
+  },
+  {
+    "index": 13,
+    "hallucination_likely": 0,
+    "reason": "Tracker moves from 15-all to 30-15 with far serving, so Glinka moves ahead on serve."
+  }
+]

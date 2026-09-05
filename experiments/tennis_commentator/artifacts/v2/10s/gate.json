@@ -1,0 +1,56 @@
+{
+  "version": "v2",
+  "profile": "10s",
+  "fixed_delay_s": 10.0,
+  "status": "PASS",
+  "policy": "worst-of-three; any missing/malformed artifact fails",
+  "detector_failures": 0,
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "PASS",
+      "candidates": 18,
+      "kept": 18,
+      "survival_rate": 1.0,
+      "max_gap_s": 32.0,
+      "coverage": {
+        "server_calls": 9,
+        "rally_calls": 4,
+        "changeover_calls": 1,
+        "service_context_calls": 1
+      },
+      "faults": []
+    },
+    {
+      "attempt": 2,
+      "status": "PASS",
+      "candidates": 18,
+      "kept": 18,
+      "survival_rate": 1.0,
+      "max_gap_s": 32.0,
+      "coverage": {
+        "server_calls": 9,
+        "rally_calls": 4,
+        "changeover_calls": 1,
+        "service_context_calls": 1
+      },
+      "faults": []
+    },
+    {
+      "attempt": 3,
+      "status": "PASS",
+      "candidates": 18,
+      "kept": 18,
+      "survival_rate": 1.0,
+      "max_gap_s": 32.0,
+      "coverage": {
+        "server_calls": 9,
+        "rally_calls": 4,
+        "changeover_calls": 1,
+        "service_context_calls": 1
+      },
+      "faults": []
+    }
+  ],
+  "faults": []
+}

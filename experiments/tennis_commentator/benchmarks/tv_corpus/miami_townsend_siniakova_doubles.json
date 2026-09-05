@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "source": {
+    "id": "miami_townsend_siniakova_doubles",
+    "publisher": "WTA",
+    "page": "https://www.wtatennis.com/videos/4494643/full-match-replay-townsend-and-siniakova-deliver-a-doubles-masterclass-in-miami",
+    "media_id": "6393994043112",
+    "name": "Full match replay: Townsend and Siniakova deliver a doubles masterclass in Miami",
+    "duration_s": 4426.389,
+    "surface": "hard",
+    "match_type": "doubles",
+    "stage": "final",
+    "transcript_source": "deepgram_transient_audio",
+    "source_window_sha256": "98e2fe2a03316db3c73e990565d3bebdc7153f5a3ce359412c49069daa51dcf5",
+    "benchmark_role": "world_feed_control"
+  },
+  "method": {
+    "sampled_windows": [
+      {
+        "label": "early",
+        "start_s": 600.0,
+        "end_s": 900.0
+      },
+      {
+        "label": "middle",
+        "start_s": 2100.0,
+        "end_s": 2400.0
+      },
+      {
+        "label": "late",
+        "start_s": 3600.0,
+        "end_s": 3900.0
+      }
+    ],
+    "sampled_minutes": 15,
+    "classifier_attempts": 3,
+    "consensus": "at least two of three matching labels",
+    "retention": "source text and media are not retained; this file contains timings, counts, labels, and short guarded paraphrases only",
+    "paraphrase_guard": "maximum 12 words and no four-word source overlap"
+  },
+  "cadence_windows": [
+    {
+      "label": "early",
+      "start_s": 600.0,
+      "end_s": 900.0,
+      "caption_cues": 2,
+      "merged_speech_turns": 2,
+      "turns_per_minute": 0.4,
+      "words": 2,
+      "words_per_minute": 0.4,
+      "captioned_s": 1.2,
+      "caption_occupancy": 0.004,
+      "maximum_caption_silence_s": 248.675
+    },
+    {
+      "label": "middle",
+      "start_s": 2100.0,
+      "end_s": 2400.0,
+      "caption_cues": 2,
+      "merged_speech_turns": 2,
+      "turns_per_minute": 0.4,
+      "words": 3,
+      "words_per_minute": 0.6,
+      "captioned_s": 1.52,
+      "caption_occupancy": 0.0051,
+      "maximum_caption_silence_s": 216.995
+    },
+    {
+      "label": "late",
+      "start_s": 3600.0,
+      "end_s": 3900.0,
+      "caption_cues": 0,
+      "merged_speech_turns": 0,
+      "turns_per_minute": 0.0,
+      "words": 0,
+      "words_per_minute": 0.0,
+      "captioned_s": 0,
+      "caption_occupancy": 0.0,
+      "maximum_caption_silence_s": 300.0
+    }
+  ],
+  "semantic_summary": {
+    "all_speech_turns": 4,
+    "commentator_turns": 0,
+    "commentator_turns_per_minute": 0.0,
+    "median_words_per_turn": null,
+    "p90_words_per_turn": null,
+    "median_interturn_gap_s": null,
+    "p90_interturn_gap_s": null,
+    "maximum_interturn_gap_s": null,
+    "category_counts": {
+      "court_official_or_player": 4
+    },
+    "function_counts": {
+      "non_commentator_audio": 4
+    }
+  },
+  "paraphrase_rows": [
+    {
+      "index": 0,
+      "start_s": 644.845,
+      "end_s": 645.565,
+      "word_count": 1,
+      "category": "court_official_or_player",
+      "category_agreement": 3,
+      "function": "non_commentator_audio",
+      "function_agreement": 3,
+      "paraphrase": null,
+      "paraphrase_guard_status": "withheld_noncommentator",
+      "window": "early"
+    },
+    {
+      "index": 1,
+      "start_s": 650.845,
+      "end_s": 651.325,
+      "word_count": 1,
+      "category": "court_official_or_player",
+      "category_agreement": 3,
+      "function": "non_commentator_audio",
+      "function_agreement": 3,
+      "paraphrase": null,
+      "paraphrase_guard_status": "withheld_noncommentator",
+      "window": "early"
+    },
+    {
+      "index": 2,
+      "start_s": 2181.185,
+      "end_s": 2182.225,
+      "word_count": 2,
+      "category": "court_official_or_player",
+      "category_agreement": 3,
+      "function": "non_commentator_audio",
+      "function_agreement": 3,
+      "paraphrase": null,
+      "paraphrase_guard_status": "withheld_noncommentator",
+      "window": "middle"
+    },
+    {
+      "index": 3,
+      "start_s": 2399.22,
+      "end_s": 2399.7,
+      "word_count": 1,
+      "category": "court_official_or_player",
+      "category_agreement": 3,
+      "function": "non_commentator_audio",
+      "function_agreement": 3,
+      "paraphrase": null,
+      "paraphrase_guard_status": "withheld_noncommentator",
+      "window": "middle"
+    }
+  ]
+}

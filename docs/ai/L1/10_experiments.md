@@ -837,12 +837,12 @@ prepped — blocked on `ANTHROPIC_API_KEY`.
 
 ---
 
-## Tennis commentator — Glinka vs Mayo (v3), 2026-07-26
+## Tennis commentator — Glinka vs Mayo (v4), 2026-08-04
 
-**Status:** v1 and v2 are closed and preserved for comparison. V2 received no
-submitted items before the user explicitly directed a v3 release; its zero-item
-disposition passed. V3 is live and both profiles pass the worst-of-three,
-placement, media, and rendered-speech gates. Full architecture →
+**Status:** v1–v3 are closed and preserved for comparison. V3 received 48
+reviewed cells; all 48 have exact accepted dispositions. V4 is current and its
+5-second and 2-second profiles pass the worst-of-three, placement, media, and
+rendered-speech gates. Full architecture →
 [L2/tennis_pipeline.md](../L2/tennis_pipeline.md).
 
 This is a sport-specific, isolated five-minute experiment over the Cary
@@ -950,6 +950,30 @@ point, game, set, and changeover state rather than wall-clock time alone:
 opening points orient the viewer, developing games build the score story,
 pressure points prioritize consequences, and changeovers permit concise
 context.
+
+V3 review rejected the practical safety of the four live-rally clauses: one
+became stale before it finished, two described rallies that were not present,
+and one called a first serve into the net a returned ball. V4 accepts those
+findings across EN/FR/PT, removes every live-ball sentence, and makes zero such
+calls a release invariant.
+
+To test lower delay without relabeling the old full-frame model, v4 adds a
+fixed-layout local score observer. It samples the Cary score crop at 5 fps,
+self-calibrates from the known 0-0 state, learns only the unique legal next
+glyph, and requires two agreeing frames. Its eight transitions exactly match
+the independent v1 tracker, with 0.402s worst-case readiness. Deterministic
+phrases are prewarmed before playback. This remains a fixed-clip replay
+evaluation, not an SRT/Agora transport measurement.
+
+Final v4 result:
+
+| Profile | Attempts | Survival | Outcomes / pressure | Server / live-ball | Median / P90 | Gap / shift |
+|---|---:|---:|---:|---:|---:|---:|
+| 5 s | 3/3 | 14/14 | 8 / 2 | 9 / 0 | 11 / 14 | 39.8 s / 0 s |
+| 2 s | 3/3 | 14/14 | 8 / 2 | 9 / 0 | 11 / 14 | 35.4 s / 0 s |
+
+Independent rendered-track STT passes all six v4 profile/language tracks;
+aggregate similarity ranges from 0.87 to 0.91 for 5s and 0.88 to 0.89 for 2s.
 
 ---
 

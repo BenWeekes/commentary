@@ -1,0 +1,92 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Round-of-32 in Cary and Mayo serving first are verified; first-round aligns with round-of-32."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "Supported by tracker and vision: Mayo is serving at 15-0."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match source says Glinka is the third seed."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "Vision supports ball in play in a baseline exchange."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "Supported by tracker and scoreboard showing Mayo 30, Glinka 0 with Mayo serving."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match source says Mayo used a protected ranking."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "Tracker shows 40-0 on Mayo serve, and rules confirm three game points."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match source confirms those Drummondville titles in 2024 and 2025."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "Vision supports that the ball is in play from the baseline."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "Tracker shows 40-15 on Mayo serve, and rules confirm two game points."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Vision explicitly shows a baseline rally in progress."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "Tracker shows Mayo up 1-0 and next server far/Glinka, so both claims are supported."
+  },
+  {
+    "index": 12,
+    "hallucination_likely": 0,
+    "reason": "Verified match rules explicitly say players change ends after the first game; Mayo held for 1-0."
+  },
+  {
+    "index": 13,
+    "hallucination_likely": 0,
+    "reason": "Supported by match rules and tracker: Glinka is left-handed, serving the second game, trailing 0-1."
+  },
+  {
+    "index": 14,
+    "hallucination_likely": 0,
+    "reason": "Vision supports that the ball is in play across the net."
+  },
+  {
+    "index": 15,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support Glinka serving at 15-0."
+  },
+  {
+    "index": 16,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support 15-all with Glinka as server."
+  },
+  {
+    "index": 17,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support Glinka serving at 30-15."
+  }
+]

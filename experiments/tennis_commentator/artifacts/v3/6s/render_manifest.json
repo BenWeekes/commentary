@@ -1,0 +1,34 @@
+{
+  "profile": "6s",
+  "voices": {
+    "en": "kfU9VUUMjY4PWNoUfZ45",
+    "fr": "LcKoSBj8CeBInl4bQHtq",
+    "pt": "HR2TRGmi4QbMsO5omv7l"
+  },
+  "files": {
+    "ai_en.wav": {
+      "bytes": 9600044,
+      "sha256": "87ec8240b54264a497b59376824ae7e74214fa1c0f40eb68199558f5e0142084"
+    },
+    "review_en.mp4": {
+      "bytes": 9992298,
+      "sha256": "484075ecd7f69507553e11b092d56cb56bb21cd4f481a8d2ce9c424e0ab6ea68"
+    },
+    "ai_fr.wav": {
+      "bytes": 9600044,
+      "sha256": "01abbdfc5aeaa46a5fb9d33d0b63f29beab7fbba09ceb6771d5af7dad781af59"
+    },
+    "review_fr.mp4": {
+      "bytes": 9937574,
+      "sha256": "c30e7eb22cba7078b60db7d26c8dfc0e9ffb3bc30c2099c9598551b0ceb046af"
+    },
+    "ai_pt.wav": {
+      "bytes": 9600044,
+      "sha256": "b06d2151c13e116cf6265aab3c3b62888b15b656b9eb0789fda283bfb35dc3b2"
+    },
+    "review_pt.mp4": {
+      "bytes": 9959556,
+      "sha256": "b424a85c05b7032f8a97059550af8668891f2d2e4fbbb693c49d9e26034a7c61"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Round-of-32 in Cary and Mayo serving first are verified; first-round aligns with round-of-32."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "Tracker and vision support Mayo serving at 15-love."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match source says Glinka is the third seed."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "Vision shows ball in play between baselines, supporting a baseline exchange."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support Mayo serving at 30-love."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match source supports protected ranking entry for Mayo."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "Tracker shows 40-love on Mayo serve, and rules confirm three game points."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match source supports both Drummondville title claims."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "Vision supports the ball being in play from the baseline."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "Tracker shows 40-15 on Mayo serve, and rules confirm two game points."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Vision shows a baseline rally in progress."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "Scoreboard/tracker show Mayo won the first game and next server is far-row Glinka."
+  },
+  {
+    "index": 12,
+    "hallucination_likely": 0,
+    "reason": "Verified rules/context support end change after the first game and Mayo held serve."
+  },
+  {
+    "index": 13,
+    "hallucination_likely": 0,
+    "reason": "Verified rules/context support Glinka being left-handed, serving second, and trailing 0-1."
+  },
+  {
+    "index": 14,
+    "hallucination_likely": 0,
+    "reason": "Vision supports the ball being back in play across the net."
+  },
+  {
+    "index": 15,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support Glinka serving at 15-love."
+  },
+  {
+    "index": 16,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support 15-all with Glinka as server."
+  },
+  {
+    "index": 17,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support Glinka serving at 30-15."
+  }
+]

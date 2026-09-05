@@ -1,0 +1,47 @@
+{
+  "current": "v4",
+  "rounds": {
+    "v1": {
+      "status": "closed",
+      "opened": "2026-07-24T00:00:00Z",
+      "clip": "glinka_mayo_cary_2026_12015_5m",
+      "profiles": [
+        "10s",
+        "6s"
+      ],
+      "closed": "2026-07-24T23:46:35Z",
+      "triggered_by": "conversation-review"
+    },
+    "v2": {
+      "status": "closed",
+      "opened": "2026-07-25T01:35:51Z",
+      "clip": "glinka_mayo_cary_2026_12015_5m",
+      "profiles": [
+        "10s",
+        "6s"
+      ],
+      "closed": "2026-07-26T20:49:54Z",
+      "triggered_by": "superseded_by_v3_at_user_direction"
+    },
+    "v3": {
+      "status": "closed",
+      "opened": "2026-07-26T20:49:55Z",
+      "clip": "glinka_mayo_cary_2026_12015_5m",
+      "profiles": [
+        "10s",
+        "6s"
+      ],
+      "closed": "2026-08-04T15:04:11Z",
+      "triggered_by": "v4-user-request"
+    },
+    "v4": {
+      "status": "open",
+      "opened": "2026-08-04T15:26:02Z",
+      "clip": "glinka_mayo_cary_2026_12015_5m",
+      "profiles": [
+        "5s",
+        "2s"
+      ]
+    }
+  }
+}

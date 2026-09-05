@@ -1,0 +1,72 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match context: first-round Cary meeting and Mayo initial server."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "Legal 0-0 to 15-0 transition on Mayo serve supports Mayo winning opening point."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match fact that Glinka is the third seed."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "15-0 to 30-0 on Mayo serve supports Mayo winning a second straight point."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match fact that Mayo entered with a protected ranking."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "30-0 to 40-0 on Mayo serve supports three straight points; 40-love means three game points by rule."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match facts about Drummondville titles in 2024 and 2025."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "40-0 to 40-15 on Mayo serve supports Glinka winning the point and leaves two game points."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "40-15 on Mayo serve to 1-0 games with server switching to Glinka supports a hold and Glinka serving next at 0-1."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "Supported by accepted 0-1 game state plus verified rule/context that players change ends after first game and Glinka serves next."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Supported by accepted score 0-1, accepted next server Glinka, and verified handedness."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "0-0 to 15-0 in second game on Glinka serve supports Glinka winning opening point of his service game."
+  },
+  {
+    "index": 12,
+    "hallucination_likely": 0,
+    "reason": "15-0 to 15-all on Glinka serve supports Mayo winning the next point as returner."
+  },
+  {
+    "index": 13,
+    "hallucination_likely": 0,
+    "reason": "15-all to 30-15 on Glinka serve supports Glinka moving ahead; 'midway through' is compatible with third point of game."
+  }
+]

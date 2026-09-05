@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "publisher": "WTA",
+  "brightcove_account": "6041795521001",
+  "brightcove_player": "te01Hqw71",
+  "sources": [
+    {
+      "id": "queens_2025_maria_anisimova",
+      "page": "https://www.wtatennis.com/videos/4515906/full-match-replay-maria-outmaneuvers-anisimova-for-2025-queens-club-title",
+      "media_id": "6397903308112",
+      "surface": "grass",
+      "match_type": "singles",
+      "stage": "final",
+      "benchmark_role": "commentary_reference",
+      "transcript_source": "official_captions",
+      "windows": [
+        {"label": "early", "start_s": 600.0, "end_s": 900.0},
+        {"label": "middle", "start_s": 1800.0, "end_s": 2100.0},
+        {"label": "late", "start_s": 3000.0, "end_s": 3300.0}
+      ]
+    },
+    {
+      "id": "madrid_gauff_swiatek",
+      "page": "https://www.wtatennis.com/videos/4512463/full-match-replay-gauffs-breakthrough-on-clay-over-iga-swiatek-in-madrid",
+      "media_id": "6397221677112",
+      "surface": "clay",
+      "match_type": "singles",
+      "stage": "semifinal",
+      "benchmark_role": "commentary_reference",
+      "transcript_source": "official_captions",
+      "windows": [
+        {"label": "early", "start_s": 600.0, "end_s": 900.0},
+        {"label": "middle", "start_s": 1500.0, "end_s": 1800.0},
+        {"label": "late", "start_s": 2400.0, "end_s": 2700.0}
+      ]
+    },
+    {
+      "id": "toronto_serena_osaka",
+      "page": "https://www.wtatennis.com/videos/4512475/full-match-replay-how-a-dominant-serve-powered-serena-past-osaka-in-toronto",
+      "media_id": "6397222670112",
+      "surface": "hard",
+      "match_type": "singles",
+      "stage": "quarterfinal",
+      "benchmark_role": "commentary_reference",
+      "transcript_source": "official_captions",
+      "windows": [
+        {"label": "early", "start_s": 600.0, "end_s": 900.0},
+        {"label": "middle", "start_s": 1800.0, "end_s": 2100.0},
+        {"label": "late", "start_s": 3000.0, "end_s": 3300.0}
+      ]
+    },
+    {
+      "id": "miami_townsend_siniakova_doubles",
+      "page": "https://www.wtatennis.com/videos/4494643/full-match-replay-townsend-and-siniakova-deliver-a-doubles-masterclass-in-miami",
+      "media_id": "6393994043112",
+      "surface": "hard",
+      "match_type": "doubles",
+      "stage": "final",
+      "benchmark_role": "world_feed_control",
+      "transcript_source": "deepgram_transient_audio",
+      "windows": [
+        {"label": "early", "start_s": 600.0, "end_s": 900.0},
+        {"label": "middle", "start_s": 2100.0, "end_s": 2400.0},
+        {"label": "late", "start_s": 3600.0, "end_s": 3900.0}
+      ]
+    },
+    {
+      "id": "indian_wells_sabalenka_rybakina",
+      "page": "https://www.wtatennis.com/videos/4488305/full-match-replay-sabalenka-saves-championship-point-wins-first-indian-wells",
+      "media_id": "6393155075112",
+      "surface": "hard",
+      "match_type": "singles",
+      "stage": "final",
+      "benchmark_role": "commentary_reference",
+      "transcript_source": "deepgram_transient_audio",
+      "windows": [
+        {"label": "early", "start_s": 900.0, "end_s": 1200.0},
+        {"label": "middle", "start_s": 3600.0, "end_s": 3900.0},
+        {"label": "late", "start_s": 6600.0, "end_s": 6900.0}
+      ]
+    }
+  ]
+}

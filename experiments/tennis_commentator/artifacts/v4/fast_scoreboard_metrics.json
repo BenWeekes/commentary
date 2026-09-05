@@ -1,0 +1,12 @@
+{
+  "observer": "local_fixed_layout_scoreboard_v1",
+  "fps": 5,
+  "confirmation_frames": 2,
+  "frames": 1500,
+  "events": 8,
+  "decode_and_observe_wall_s": 2.9383,
+  "per_frame_processing_s": 0.001959,
+  "worst_case_readiness_s": 0.402,
+  "cross_check": "exact state-sequence match with independent accepted v1 tracker",
+  "scope": "fixed Cary broadcast score graphic; fail closed outside this layout"
+}

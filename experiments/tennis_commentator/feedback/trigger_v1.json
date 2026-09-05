@@ -1,0 +1,79 @@
+{
+  "version": "v1",
+  "closed": "2026-07-24T23:46:35Z",
+  "triggered_by": "conversation-review",
+  "total_items": 2,
+  "all_items": [
+    {
+      "feedback_id": "v1:0:0",
+      "profile": "10s",
+      "column": "English",
+      "t": 0.8,
+      "by": "conversation-review",
+      "tags": [
+        "timing"
+      ],
+      "comment": "Not much commentary. Say who is serving and add other grounded points of interest from the vision; use established tennis-commentary cadence.",
+      "cell_text": "Overall v1 English commentary cadence"
+    },
+    {
+      "feedback_id": "v1:0:1",
+      "profile": "6s",
+      "column": "English",
+      "t": 0.8,
+      "by": "conversation-review",
+      "tags": [
+        "timing"
+      ],
+      "comment": "Not much commentary. Say who is serving and add other grounded points of interest from the vision; use established tennis-commentary cadence.",
+      "cell_text": "Overall v1 English commentary cadence"
+    }
+  ],
+  "groups": [
+    {
+      "profile": "10s",
+      "column": "English",
+      "routes_to": "commentary prompt, grounding, timing, and pacing",
+      "count": 1,
+      "positive": 0,
+      "comments": [
+        {
+          "feedback_id": "v1:0:0",
+          "t": 0.8,
+          "by": "conversation-review",
+          "tags": [
+            "timing"
+          ],
+          "comment": "Not much commentary. Say who is serving and add other grounded points of interest from the vision; use established tennis-commentary cadence.",
+          "cell_text": "Overall v1 English commentary cadence"
+        }
+      ]
+    },
+    {
+      "profile": "6s",
+      "column": "English",
+      "routes_to": "commentary prompt, grounding, timing, and pacing",
+      "count": 1,
+      "positive": 0,
+      "comments": [
+        {
+          "feedback_id": "v1:0:1",
+          "t": 0.8,
+          "by": "conversation-review",
+          "tags": [
+            "timing"
+          ],
+          "comment": "Not much commentary. Say who is serving and add other grounded points of interest from the vision; use established tennis-commentary cadence.",
+          "cell_text": "Overall v1 English commentary cadence"
+        }
+      ]
+    }
+  ],
+  "required_disposition_fields": [
+    "status",
+    "reason",
+    "change",
+    "verification"
+  ],
+  "work_order": "triage every item; record accepted/rejected/duplicate with evidence; implement accepted changes; run all fixtures and worst-of-three; check_feedback.py must pass before publishing the next round"
+}

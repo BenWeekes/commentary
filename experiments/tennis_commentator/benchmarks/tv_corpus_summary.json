@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "source_count": 5,
+  "commentary_reference_count": 4,
+  "world_feed_control_count": 1,
+  "total_sampled_minutes": 75.0,
+  "commentary_reference_sampled_minutes": 60.0,
+  "sources": [
+    {
+      "id": "queens_2025_maria_anisimova",
+      "publisher": "WTA",
+      "page": "https://www.wtatennis.com/videos/4515906/full-match-replay-maria-outmaneuvers-anisimova-for-2025-queens-club-title",
+      "media_id": "6397903308112",
+      "name": "Full match replay: Maria outmaneuvers Anisimova for 2025 Queen's Club title",
+      "duration_s": 4565.184,
+      "surface": "grass",
+      "match_type": "singles",
+      "stage": "final",
+      "transcript_source": "official_captions",
+      "source_window_sha256": "9870f00f7c9d9102ca718dcb6a88ad7895666697b20ed2443ff55ef5d0f828db",
+      "benchmark_role": "commentary_reference"
+    },
+    {
+      "id": "madrid_gauff_swiatek",
+      "publisher": "WTA",
+      "page": "https://www.wtatennis.com/videos/4512463/full-match-replay-gauffs-breakthrough-on-clay-over-iga-swiatek-in-madrid",
+      "media_id": "6397221677112",
+      "name": "Full match replay: Gauff's breakthrough on clay over Iga Swiatek in Madrid",
+      "duration_s": 3263.424,
+      "surface": "clay",
+      "match_type": "singles",
+      "stage": "semifinal",
+      "transcript_source": "official_captions",
+      "source_window_sha256": "cb4696dd5af3acd5bb2361460dec740f0edd43dce3e063ed5b0dab774a5533c0",
+      "benchmark_role": "commentary_reference"
+    },
+    {
+      "id": "toronto_serena_osaka",
+      "publisher": "WTA",
+      "page": "https://www.wtatennis.com/videos/4512475/full-match-replay-how-a-dominant-serve-powered-serena-past-osaka-in-toronto",
+      "media_id": "6397222670112",
+      "name": "Full match replay: How a dominant serve powered Serena past Osaka in Toronto",
+      "duration_s": 4049.216,
+      "surface": "hard",
+      "match_type": "singles",
+      "stage": "quarterfinal",
+      "transcript_source": "official_captions",
+      "source_window_sha256": "ae49a795703019c8e0b88b99fd783ed046aedabf504c2d5b5ca5da179ac9ff29",
+      "benchmark_role": "commentary_reference"
+    },
+    {
+      "id": "miami_townsend_siniakova_doubles",
+      "publisher": "WTA",
+      "page": "https://www.wtatennis.com/videos/4494643/full-match-replay-townsend-and-siniakova-deliver-a-doubles-masterclass-in-miami",
+      "media_id": "6393994043112",
+      "name": "Full match replay: Townsend and Siniakova deliver a doubles masterclass in Miami",
+      "duration_s": 4426.389,
+      "surface": "hard",
+      "match_type": "doubles",
+      "stage": "final",
+      "transcript_source": "deepgram_transient_audio",
+      "source_window_sha256": "98e2fe2a03316db3c73e990565d3bebdc7153f5a3ce359412c49069daa51dcf5",
+      "benchmark_role": "world_feed_control"
+    },
+    {
+      "id": "indian_wells_sabalenka_rybakina",
+      "publisher": "WTA",
+      "page": "https://www.wtatennis.com/videos/4488305/full-match-replay-sabalenka-saves-championship-point-wins-first-indian-wells",
+      "media_id": "6393155075112",
+      "name": "IW Sab Ryb F 2026 16x9 (1)",
+      "duration_s": 8004.672,
+      "surface": "hard",
+      "match_type": "singles",
+      "stage": "final",
+      "transcript_source": "deepgram_transient_audio",
+      "source_window_sha256": "6ca2fccfcc42dd6a6b0bd6bfa696dbdf5ee6d93be444e722c049cdc56e092b11",
+      "benchmark_role": "commentary_reference"
+    }
+  ],
+  "method": {
+    "selection": "official WTA full-match broadcasts spanning surfaces, singles/doubles, stages, and match phases",
+    "three_windows_per_source": true,
+    "retention": "no source transcript, audio, or video retained; timestamped paraphrases are guarded against four-word source overlap"
+  },
+  "speech_cadence": {
+    "mean_turns_per_minute": 3.533,
+    "mean_words_per_minute": 81.6,
+    "mean_caption_occupancy": 0.4302,
+    "maximum_speech_silence_s": 76.1
+  },
+  "commentary_semantics": {
+    "all_speech_turns": 212,
+    "commentator_turns": 202,
+    "commentator_turns_per_minute": 3.367,
+    "median_words_per_turn": 17.0,
+    "p90_words_per_turn": 53.0,
+    "median_interturn_gap_s": 4.7,
+    "p90_interturn_gap_s": 24.235,
+    "maximum_interturn_gap_s": 79.64,
+    "category_counts": {
+      "banter_or_other": 10,
+      "conditions_or_venue": 10,
+      "court_official_or_player": 9,
+      "match_narrative_or_stakes": 44,
+      "player_background": 12,
+      "point_reaction_or_outcome": 36,
+      "score_or_server": 23,
+      "tactics_or_pattern": 39,
+      "technique_or_shot": 28,
+      "uncertain": 1
+    },
+    "function_counts": {
+      "adds_player_context": 12,
+      "banter_or_transition": 10,
+      "calls_live_action": 17,
+      "discusses_conditions_or_venue": 10,
+      "explains_previous_point": 44,
+      "explains_tactics_or_technique": 40,
+      "frames_match_stakes": 42,
+      "non_commentator_audio": 9,
+      "sets_up_next_point": 3,
+      "states_score_or_server": 22,
+      "uncertain": 3
+    }
+  },
+  "world_feed_controls": {
+    "miami_townsend_siniakova_doubles": {
+      "all_speech_turns": 4,
+      "commentator_turns": 0,
+      "commentator_turns_per_minute": 0.0,
+      "median_words_per_turn": null,
+      "p90_words_per_turn": null,
+      "median_interturn_gap_s": null,
+      "p90_interturn_gap_s": null,
+      "maximum_interturn_gap_s": null,
+      "category_counts": {
+        "court_official_or_player": 4
+      },
+      "function_counts": {
+        "non_commentator_audio": 4
+      }
+    }
+  },
+  "per_source": {
+    "queens_2025_maria_anisimova": {
+      "all_speech_turns": 54,
+      "commentator_turns": 52,
+      "commentator_turns_per_minute": 3.467,
+      "median_words_per_turn": 13.0,
+      "p90_words_per_turn": 45.0,
+      "median_interturn_gap_s": 4.84,
+      "p90_interturn_gap_s": 22.0,
+      "maximum_interturn_gap_s": 79.64,
+      "category_counts": {
+        "banter_or_other": 2,
+        "conditions_or_venue": 1,
+        "court_official_or_player": 2,
+        "match_narrative_or_stakes": 14,
+        "player_background": 3,
+        "point_reaction_or_outcome": 10,
+        "score_or_server": 8,
+        "tactics_or_pattern": 9,
+        "technique_or_shot": 5
+      },
+      "function_counts": {
+        "adds_player_context": 3,
+        "banter_or_transition": 2,
+        "calls_live_action": 3,
+        "discusses_conditions_or_venue": 1,
+        "explains_previous_point": 9,
+        "explains_tactics_or_technique": 12,
+        "frames_match_stakes": 14,
+        "non_commentator_audio": 2,
+        "states_score_or_server": 8
+      }
+    },
+    "madrid_gauff_swiatek": {
+      "all_speech_turns": 46,
+      "commentator_turns": 43,
+      "commentator_turns_per_minute": 2.867,
+      "median_words_per_turn": 24.0,
+      "p90_words_per_turn": 52.0,
+      "median_interturn_gap_s": 7.08,
+      "p90_interturn_gap_s": 30.04,
+      "maximum_interturn_gap_s": 49.96,
+      "category_counts": {
+        "banter_or_other": 1,
+        "conditions_or_venue": 2,
+        "court_official_or_player": 2,
+        "match_narrative_or_stakes": 19,
+        "point_reaction_or_outcome": 9,
+        "score_or_server": 1,
+        "tactics_or_pattern": 5,
+        "technique_or_shot": 6,
+        "uncertain": 1
+      },
+      "function_counts": {
+        "banter_or_transition": 1,
+        "calls_live_action": 2,
+        "discusses_conditions_or_venue": 2,
+        "explains_previous_point": 12,
+        "explains_tactics_or_technique": 6,
+        "frames_match_stakes": 18,
+        "non_commentator_audio": 2,
+        "sets_up_next_point": 1,
+        "states_score_or_server": 1,
+        "uncertain": 1
+      }
+    },
+    "toronto_serena_osaka": {
+      "all_speech_turns": 56,
+      "commentator_turns": 53,
+      "commentator_turns_per_minute": 3.533,
+      "median_words_per_turn": 23.0,
+      "p90_words_per_turn": 57.0,
+      "median_interturn_gap_s": 4.7,
+      "p90_interturn_gap_s": 20.78,
+      "maximum_interturn_gap_s": 44.298,
+      "category_counts": {
+        "banter_or_other": 3,
+        "conditions_or_venue": 6,
+        "court_official_or_player": 3,
+        "match_narrative_or_stakes": 4,
+        "player_background": 5,
+        "point_reaction_or_outcome": 6,
+        "score_or_server": 5,
+        "tactics_or_pattern": 18,
+        "technique_or_shot": 6
+      },
+      "function_counts": {
+        "adds_player_context": 5,
+        "banter_or_transition": 3,
+        "calls_live_action": 2,
+        "discusses_conditions_or_venue": 6,
+        "explains_previous_point": 13,
+        "explains_tactics_or_technique": 15,
+        "frames_match_stakes": 3,
+        "non_commentator_audio": 3,
+        "sets_up_next_point": 1,
+        "states_score_or_server": 5
+      }
+    },
+    "miami_townsend_siniakova_doubles": {
+      "all_speech_turns": 4,
+      "commentator_turns": 0,
+      "commentator_turns_per_minute": 0.0,
+      "median_words_per_turn": null,
+      "p90_words_per_turn": null,
+      "median_interturn_gap_s": null,
+      "p90_interturn_gap_s": null,
+      "maximum_interturn_gap_s": null,
+      "category_counts": {
+        "court_official_or_player": 4
+      },
+      "function_counts": {
+        "non_commentator_audio": 4
+      }
+    },
+    "indian_wells_sabalenka_rybakina": {
+      "all_speech_turns": 56,
+      "commentator_turns": 54,
+      "commentator_turns_per_minute": 3.6,
+      "median_words_per_turn": 14.0,
+      "p90_words_per_turn": 56.0,
+      "median_interturn_gap_s": 3.295,
+      "p90_interturn_gap_s": 24.235,
+      "maximum_interturn_gap_s": 61.085,
+      "category_counts": {
+        "banter_or_other": 4,
+        "conditions_or_venue": 1,
+        "court_official_or_player": 2,
+        "match_narrative_or_stakes": 7,
+        "player_background": 4,
+        "point_reaction_or_outcome": 11,
+        "score_or_server": 9,
+        "tactics_or_pattern": 7,
+        "technique_or_shot": 11
+      },
+      "function_counts": {
+        "adds_player_context": 4,
+        "banter_or_transition": 4,
+        "calls_live_action": 10,
+        "discusses_conditions_or_venue": 1,
+        "explains_previous_point": 10,
+        "explains_tactics_or_technique": 7,
+        "frames_match_stakes": 7,
+        "non_commentator_audio": 2,
+        "sets_up_next_point": 1,
+        "states_score_or_server": 8,
+        "uncertain": 2
+      }
+    }
+  }
+}

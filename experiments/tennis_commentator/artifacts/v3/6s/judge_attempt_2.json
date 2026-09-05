@@ -1,0 +1,92 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match identity, round, and initial server=near/Mayo."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "0-0 to 15-0 with near serving legally implies Mayo won opening point on serve."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "Glinka being third seed is explicitly in verified pre-match facts."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "Score state 15-0 on Mayo serve is accepted, and vision explicitly shows a baseline rally."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "15-0 to 30-0 with near serving implies another Mayo point; two straight points supported."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "Mayo entering with a protected ranking is explicit in verified pre-match facts."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "30-0 to 40-0 on near serve implies Mayo won third straight point; 40-love means three game points."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "Both Drummondville title facts are explicitly verified pre-match."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "Accepted score is 40-0 on Mayo serve, which gives three game points, and vision shows live baseline play."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "40-0 to 40-15 on near serve implies far/Glinka won the point; two game points remain at 40-15."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Accepted score 40-15 on Mayo serve supports two game points, and vision shows another baseline rally."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "0-0 games, 15-40 on near serve to 0-1 games with server switching to far implies Mayo held; Glinka serves next."
+  },
+  {
+    "index": 12,
+    "hallucination_likely": 0,
+    "reason": "Change of ends after first game is explicitly verified and score shows Mayo’s opening hold completed."
+  },
+  {
+    "index": 13,
+    "hallucination_likely": 0,
+    "reason": "At 0-1 with server=far, Glinka begins serving; his left-handedness is explicitly verified."
+  },
+  {
+    "index": 14,
+    "hallucination_likely": 0,
+    "reason": "At 0-1 games and 0-0 points, 'love-all' for current game is correct; vision shows ball in play on Glinka serve."
+  },
+  {
+    "index": 15,
+    "hallucination_likely": 0,
+    "reason": "0-0 to 15-0 with far serving implies Glinka won opening point of his service game."
+  },
+  {
+    "index": 16,
+    "hallucination_likely": 0,
+    "reason": "15-0 to 15-15 with far serving implies receiver Mayo won the point."
+  },
+  {
+    "index": 17,
+    "hallucination_likely": 0,
+    "reason": "15-15 to 30-15 with far serving implies Glinka moved ahead on serve."
+  }
+]

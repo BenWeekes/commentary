@@ -1,0 +1,62 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match: Cary round-of-32/first round meeting."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "Accepted tracker shows near player Mayo up 15-0."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match states Glinka is the third seed."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "Supported by tracker and visible scoreboard showing Mayo 30-0."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "Accepted tracker shows Mayo leading 40-0."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match states Mayo won Drummondville in 2024."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "Accepted tracker shows Mayo leading 40-15."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "Scoreboard/tracker show Mayo won game and server switches to Glinka."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "Verified pre-match states Glinka won 2025 Drummondville Challenger."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support Glinka leading 15-0 on his serve."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard show 15-all."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "Tracker and scoreboard support Glinka leading 30-15."
+  }
+]

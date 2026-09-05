@@ -1,0 +1,111 @@
+{
+  "version": "v4",
+  "input_artifacts_version": "v1",
+  "clip": {
+    "id": "glinka_mayo_cary_2026_12015_5m",
+    "source": "/home/ubuntu/tennis_challenger_atp_challenger_cary_usa_men_singles_8960445_512k.mp4",
+    "start": "02:00:15",
+    "start_seconds": 7215,
+    "duration_seconds": 300
+  },
+  "match": {
+    "event": "Cary Tennis Classic",
+    "level": "ATP Challenger 75",
+    "surface": "outdoor hard",
+    "location": "Cary, North Carolina, USA",
+    "date": "2026-06-29",
+    "round": "round of 32",
+    "best_of_sets": 3,
+    "players": {
+      "glinka": {
+        "name": "Daniil Glinka",
+        "country": "Estonia",
+        "shirt": "blue",
+        "initial_end": "far",
+        "hand": "left",
+        "seed": 3
+      },
+      "mayo": {
+        "name": "Aidan Mayo",
+        "country": "United States",
+        "shirt": "grey",
+        "initial_end": "near",
+        "hand": "right",
+        "entry": "protected ranking"
+      }
+    },
+    "initial_score": {
+      "glinka": {"sets": 0, "games": 0, "points": "0"},
+      "mayo": {"sets": 0, "games": 0, "points": "0"},
+      "server": "mayo"
+    }
+  },
+  "timing": {
+    "fixed_delay_profiles_seconds": [5, 2],
+    "analysis_interval_seconds": 2.0,
+    "frame_burst_seconds": 1.5,
+    "fast_scoreboard_fps": 5,
+    "fast_scoreboard_confirmation_frames": 2,
+    "prewarm_tts": true
+  },
+  "quality": {
+    "minimum_lines": 13,
+    "maximum_lines": 18,
+    "minimum_server_calls": 9,
+    "minimum_rally_calls": 0,
+    "maximum_live_ball_calls": 0,
+    "minimum_changeover_calls": 1,
+    "minimum_service_context_calls": 1,
+    "minimum_outcome_calls": 8,
+    "minimum_pressure_calls": 2,
+    "maximum_background_calls": 3,
+    "maximum_gap_seconds": 40,
+    "minimum_survival_rate": 0.85,
+    "minimum_median_words": 10,
+    "maximum_median_words": 16,
+    "maximum_p90_words": 18,
+    "maximum_words_per_line": 20,
+    "maximum_audio_shift_seconds": 1.5
+  },
+  "models": {
+    "vision": "gpt-5.4-mini",
+    "commentary": "gpt-5.4",
+    "translation": "gpt-5.4-mini",
+    "stt": "nova-3"
+  },
+  "pre_match_cutoff": "2026-06-29T00:00:00Z",
+  "sources": [
+    {
+      "label": "ATP Cary 2026 draw",
+      "url": "https://www.atptour.com/en/scores/archive/cary/7316/2026/draws"
+    },
+    {
+      "label": "USTA Cary acceptance list",
+      "url": "https://www.usta.com/content/dam/usta/pro-circuit/2026/20260629_cary_m75/cary-2026-mds-entry-list.pdf"
+    },
+    {
+      "label": "ITF Daniil Glinka profile",
+      "url": "https://www.itftennis.com/en/players/daniil-glinka/800367757/est/mt/S/overview/"
+    },
+    {
+      "label": "ITF Aidan Mayo profile",
+      "url": "https://www.itftennis.com/en/players/aidan-mayo/800512379/usa/mt/S/overview/"
+    },
+    {
+      "label": "ATP Mayo 2024 Drummondville title",
+      "url": "https://www.atptour.com/en/news/blockx-rodionov-kobe-challenger-2024-final"
+    },
+    {
+      "label": "Tennis Canada Glinka 2025 Drummondville title",
+      "url": "https://tenniscanadamediacentre.com/wp-content/uploads/2025/11/Glinka-remporte-son-plus-important-titre-au-Challenger-Banque-Nationale-de-Drummondville.pdf"
+    },
+    {
+      "label": "USTA tennis terms and score language",
+      "url": "https://www.usta.com/en/home/improve/tips-and-instruction/national/tennis-terms-definitions.html"
+    },
+    {
+      "label": "USTA Pro Circuit commentary profile",
+      "url": "https://www.usta.com/en/home/stay-current/southern/air-time--voice-of-the-usta-pro-circuit-puts-fans-in-front-row.html"
+    }
+  ]
+}

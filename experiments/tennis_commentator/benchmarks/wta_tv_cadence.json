@@ -1,0 +1,66 @@
+{
+  "source": {
+    "publisher": "WTA",
+    "page": "https://www.wtatennis.com/videos/4515906/full-match-replay-maria-outmaneuvers-anisimova-for-2025-queens-club-title",
+    "media_id": "6397903308112",
+    "name": "Full match replay: Maria outmaneuvers Anisimova for 2025 Queen's Club title",
+    "duration_s": 4565.184,
+    "continuous_full_match": true,
+    "english_captions": true,
+    "caption_sha256": "9870f00f7c9d9102ca718dcb6a88ad7895666697b20ed2443ff55ef5d0f828db"
+  },
+  "method": {
+    "window_selection": "three fixed five-minute windows at 10, 30, and 50 minutes",
+    "occupancy": "union of caption cue intervals; 0.25s split tolerance",
+    "speech_turn": "caption intervals merged across gaps <= 1.0s",
+    "copyright": "aggregate metrics only; transcript and video are not retained"
+  },
+  "windows": [
+    {
+      "label": "early_match",
+      "start_s": 600.0,
+      "end_s": 900.0,
+      "caption_cues": 35,
+      "merged_speech_turns": 19,
+      "turns_per_minute": 3.8,
+      "words": 343,
+      "words_per_minute": 68.6,
+      "captioned_s": 106.986,
+      "caption_occupancy": 0.3566,
+      "maximum_caption_silence_s": 28.88
+    },
+    {
+      "label": "middle_match",
+      "start_s": 1800.0,
+      "end_s": 2100.0,
+      "caption_cues": 38,
+      "merged_speech_turns": 20,
+      "turns_per_minute": 4.0,
+      "words": 401,
+      "words_per_minute": 80.2,
+      "captioned_s": 134.165,
+      "caption_occupancy": 0.4472,
+      "maximum_caption_silence_s": 29.971
+    },
+    {
+      "label": "late_match",
+      "start_s": 3000.0,
+      "end_s": 3300.0,
+      "caption_cues": 30,
+      "merged_speech_turns": 15,
+      "turns_per_minute": 3.0,
+      "words": 287,
+      "words_per_minute": 57.4,
+      "captioned_s": 87.806,
+      "caption_occupancy": 0.2927,
+      "maximum_caption_silence_s": 76.1
+    }
+  ],
+  "aggregate": {
+    "sampled_minutes": 15,
+    "mean_turns_per_minute": 3.6,
+    "mean_words_per_minute": 68.733,
+    "mean_caption_occupancy": 0.3655,
+    "maximum_caption_silence_s": 76.1
+  }
+}

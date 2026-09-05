@@ -14,19 +14,22 @@
 - Preserved v2 comparison URLs:
   `/experiments/tennis_commentator/v2_10s/` and
   `/experiments/tennis_commentator/v2_6s/`
-- Live v3 review URLs:
+- Closed v3 review URLs:
   `/experiments/tennis_commentator/v3_10s/` and
   `/experiments/tennis_commentator/v3_6s/`
-- The pipeline contains separately gated 10-second and 6-second fixed-delay
+- Current v4 review URLs:
+  `/experiments/tennis_commentator/v4_5s/` and
+  `/experiments/tennis_commentator/v4_2s/`
+- The pipeline contains separately gated 5-second and 2-second fixed-delay
   replay/evaluation profiles, not an SRT transport test.
 - Final v1 gate: both profiles PASS on all three attempts, with 12/12 selected
   lines surviving and a 58-second maximum boundary-aware gap.
 - v1 review is closed. Both cadence comments were accepted for v2. Both v2
   profiles passed 3/3 with 18/18 lines surviving and a 32-second maximum gap.
-- V2 received no submitted comments before the user explicitly directed a v3
-  release; its zero-item disposition passed before v3 opened. V3 is the only
-  writable round and passes 3/3 in both profiles with 18/18 lines, state-aware
-  outcomes/stakes, zero final audio shift, and independent rendered-track STT.
+- V3 closed with 48 reviewed cells. All 48 have exact accepted dispositions.
+  V4 removes the reported stale/incorrect live-rally clauses and is the only
+  writable round. Both v4 profiles pass 3/3 with 14/14 lines, zero live-ball
+  calls, zero final audio shift, and independent rendered-track STT.
 - It is deliberately isolated from `experiments/ai_commentator/`.
 
 The pipeline must refuse model/media work while an actual football
@@ -53,7 +56,8 @@ exact five-minute clip
   │                                      ├─ sanity/dedup merge ─► STT column
   │                    Whisper compare ──┘
   │
-  └─ 1 fps frames ─► 3-frame bursts ─► conservative vision observer
+  └─ video ─┬─ 1 fps frames ─► 3-frame bursts ─► conservative phase observer
+            └─ 5 fps fixed score crop ─► local glyph learner (2-frame confirm)
                                             │
                                             ├─ literal phase/observation
                                             └─ raw named-row scoreboard
@@ -64,14 +68,14 @@ exact five-minute clip
                                                       │
                           pure outcome / pressure derivation + policy
                                                       │
-                       structured intent + verified context + literal vision
+                       structured intent + verified between-point context
                                                       │
                               EN call + FR / pt-BR localizations
                                                       │
-                       tennis EN voice + retained football FR/PT voices
+                       prewarmed tennis EN + retained football FR/PT voices
                                       isolated audio tracks
                                                       │
-                     separate 10 s / 6 s gates: on-time or dropped, never late
+                     separate 5 s / 2 s gates: on-time or dropped, never late
 ```
 
 The review page exposes the same columns as football: STT, Vision, Tracker,
@@ -79,7 +83,7 @@ English, French, Portuguese.
 
 ### Disk-safe media deployment
 
-The six v1/v2/v3 review pages remain fully available without keeping a second
+The v1/v2/v3/v4 review pages remain fully available without keeping a second
 physical copy of every MP4. `dedupe_review_media.py` verifies source and
 deployment size plus SHA-256, then replaces same-filesystem copies with hard
 links. The July 26 cleanup deduplicated 24 files and removed 229.3 MiB of
@@ -126,7 +130,7 @@ the score tracker.
 
 ## Commentary and timing
 
-V3 derives point winner, point streak, pressure count, saved game points,
+V4 retains v3's derivation of point winner, point streak, pressure count, saved game points,
 hold/break, and next server from each corroborated transition before creating
 language. Every spoken row retains the previous/current tracker, structured
 intent, evidence, state phase, and policy reason. EN, FR, and pt-BR render from
@@ -139,17 +143,23 @@ deuce, advantage, set point, match point, and unsupported score state. Multiple
 server game points can leave one safe between-point context window after the
 stakes have already been stated.
 
-Vision-rally calls use a closed set of conservative phrases and require literal
-detector text such as “ball in play between the two baselines”, “baseline rally”,
-or “ball in play across the net”. V3 combines that evidence with the last
-accepted server, score, or game-point count. Vision still never infers shot
-type, point winner, error, tactic, or physical-end identity. The first accepted
-game also permits one grounded changeover call and one first-service-game
-context call.
+V3 human review found that all four live-rally clauses were too weakly grounded:
+one became stale before it finished, two described rallies that were not
+present, and one mistook a first serve into the net for a returned ball. V4
+therefore emits zero live-ball prose in every language and its gate rejects any
+`vision_live_ball` evidence. Completed score outcomes, server state,
+changeovers, first-service-game context, and verified pre-match facts remain.
 
-Each candidate records provider latency. The selected attempt adds real
-ElevenLabs latency and no-clobber placement. A line that cannot finish within
-its detector-to-complete-TTS readiness budget of 10 or 6 seconds is marked
+The low-latency score path is deliberately broadcast-layout-specific. It reads
+the grayscale point cells at 5 fps, self-calibrates from the known 0-0 state,
+learns a new glyph only when it is the unique legal next tennis value, and
+requires two agreeing frames. All eight state changes exactly match the
+independent v1 tracker; measured worst-case readiness is 0.402s. A layout
+change, ambiguous state, or sequence mismatch fails closed.
+
+Each candidate records observer latency. Deterministic EN/FR/pt-BR phrases are
+prewarmed before match playback, then no-clobber placement is applied. A line
+that cannot finish within its observer readiness budget of 5 or 2 seconds is marked
 dropped and is neither voiced nor shown as heard commentary. Natural spoken
 duration is not inference latency: after synthesis is ready it may extend
 beyond that interval on the delayed timeline, while no-overlap placement still
@@ -162,25 +172,25 @@ worst-of-three policy: any missing/malformed artifact, positive hallucination
 judge result, missing language, low survival, excessive gap, detector failure,
 or failed fixture stops the build.
 
-For v3, every attempt must retain 16–22 lines, at least 8 outcome calls, 4
-pressure calls, 9 explicit server calls, 3 literal rally calls, 1 changeover
+For v4, every attempt must retain 13–18 lines, at least 8 outcome calls, 2
+score-derived pressure calls, 9 explicit server calls, zero live-ball calls, 1 changeover
 call, and 1 service-context call, with at most 3 background calls and no
 boundary-aware gap above 40 seconds. English median length must be 10–16 words,
 P90 at most 18, and every line at most 20. Background/pressure policy,
 structured-intent agreement, language rendering, TTS duration, and placement
 shift are programmatically checked.
 
-Final v3 result:
+Final v4 result:
 
 | Profile | Attempts | Survival | Outcome / pressure | Server / rally | Median / P90 | Max gap / shift |
 |---|---:|---:|---:|---:|---:|---:|
-| 10 s | 3/3 | 18/18 | 8 / 4 | 10 / 4 | 11 / 15 words | 32 s / 0 s |
-| 6 s | 3/3 | 18/18 | 8 / 4 | 10 / 4 | 11 / 15 words | 32 s / 0 s |
+| 5 s | 3/3 | 14/14 | 8 / 2 | 9 / 0 | 11 / 14 words | 39.8 s / 0 s |
+| 2 s | 3/3 | 14/14 | 8 / 2 | 9 / 0 | 11 / 14 words | 35.4 s / 0 s |
 
 `audit_rendered_tracks.py` independently transcribes the final AI-only WAVs.
-All six profile/language tracks pass: aggregate script-to-speech similarity is
-0.83–0.91 for 10 s and 0.84–0.92 for 6 s, with every opener heard near 1.7 s
-and every final outcome heard by 294.1 s. This audit caught and led to fixes for
+All six v4 profile/language tracks pass: aggregate script-to-speech similarity
+is 0.87–0.91 for 5s and 0.88–0.89 for 2s, with every opener heard near 1.7s
+and every final outcome heard by 295.0s. Earlier versions of this audit caught and led to fixes for
 one pathological 39–63-second French synthesis, one ambiguous French spoken
 score, Portuguese pluralization, and a long rally localization before release.
 
@@ -285,9 +295,9 @@ Future review-page and Slack release titles use the exact format
 
 ```bash
 cd /home/ubuntu/commentary/experiments/tennis_commentator
-./build_v3.sh
-TENNIS_PROFILE=10s /home/ubuntu/commentary/.venv/bin/python audit_rendered_tracks.py
-TENNIS_PROFILE=6s /home/ubuntu/commentary/.venv/bin/python audit_rendered_tracks.py
+./build_v4.sh
+TENNIS_PROFILE=5s /home/ubuntu/commentary/.venv/bin/python audit_rendered_tracks.py
+TENNIS_PROFILE=2s /home/ubuntu/commentary/.venv/bin/python audit_rendered_tracks.py
 ```
 
 The build stops if football becomes active between stages. Resume only after

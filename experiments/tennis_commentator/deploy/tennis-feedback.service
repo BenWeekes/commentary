@@ -1,0 +1,16 @@
+[Unit]
+Description=Tennis commentary reviewer-feedback backend
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/commentary/experiments/tennis_commentator
+ExecStart=/home/ubuntu/commentary/.venv/bin/python feedback_server.py
+Restart=always
+RestartSec=2
+StandardOutput=append:/var/log/tennis-feedback.log
+StandardError=append:/var/log/tennis-feedback.log
+
+[Install]
+WantedBy=multi-user.target

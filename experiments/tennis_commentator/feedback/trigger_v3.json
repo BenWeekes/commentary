@@ -1,0 +1,1094 @@
+{
+  "version": "v3",
+  "closed": "2026-08-04T15:04:11Z",
+  "triggered_by": "v4-user-request",
+  "total_items": 48,
+  "all_items": [
+    {
+      "feedback_id": "v3:0:0",
+      "profile": "6s",
+      "column": "English",
+      "t": 41.0,
+      "by": "alex",
+      "tags": [
+        "repetition"
+      ],
+      "comment": "",
+      "cell_text": "Mayo leads 15-love on serve. The point settles into a baseline exchange.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:1",
+      "profile": "6s",
+      "column": "English",
+      "t": 81.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo takes the first three points on serve — three game points at 40-love.\nintent=game_points; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:2",
+      "profile": "6s",
+      "column": "English",
+      "t": 101.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo won Drummondville in 2024; Glinka took the title there in 2025.\nintent=background; phase=background; policy=multiple_server_game_points_leave_background_window; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:3",
+      "profile": "6s",
+      "column": "English",
+      "t": 129.0,
+      "by": "alex",
+      "tags": [
+        "timing"
+      ],
+      "comment": "not appropriate as Mayo loses the point half a second later",
+      "cell_text": "Mayo has three game points at 40-love. The ball is back in play from the baseline.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:4",
+      "profile": "6s",
+      "column": "English",
+      "t": 141.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka saves one, but Mayo still has two game points on serve at 40-15.\nintent=game_point_saved; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:5",
+      "profile": "6s",
+      "column": "English",
+      "t": 153.0,
+      "by": "alex",
+      "tags": [
+        "wrong fact"
+      ],
+      "comment": "same as previously, the reference to the baseline rally is not appropriate",
+      "cell_text": "Mayo has two game points at 40-15. Another baseline rally develops.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:6",
+      "profile": "6s",
+      "column": "English",
+      "t": 161.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo holds in the opening game. Glinka will serve at 0-1.\nintent=hold; phase=game_complete; policy=accepted_game_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:7",
+      "profile": "6s",
+      "column": "English",
+      "t": 169.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "The players change ends after Mayo's opening hold.\nintent=changeover; phase=changeover; policy=first_game_complete_and_visual_changeover; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:8",
+      "profile": "6s",
+      "column": "English",
+      "t": 195.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "The left-handed Glinka begins his first service game, trailing 0-1.\nintent=serve_context; phase=serve_context; policy=new_server_setup_after_changeover; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:9",
+      "profile": "6s",
+      "column": "English",
+      "t": 219.0,
+      "by": "alex",
+      "tags": [
+        "wrong fact"
+      ],
+      "comment": "Glinka's first serve is stopped by the net",
+      "cell_text": "Glinka serves at love-all. The ball is back in play across the net.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:10",
+      "profile": "6s",
+      "column": "English",
+      "t": 237.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka wins the opening point of his first service game, 15-love.\nintent=opening_point; phase=opening_point; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:11",
+      "profile": "6s",
+      "column": "English",
+      "t": 257.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo answers to make it 15-all on Glinka's serve.\nintent=receiver_answers; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:12",
+      "profile": "6s",
+      "column": "English",
+      "t": 289.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka moves ahead 30-15 on serve.\nintent=server_ahead; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:0:13",
+      "profile": "6s",
+      "column": "French",
+      "t": 13.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo remporte le premier point au service, 15-0."
+    },
+    {
+      "feedback_id": "v3:0:14",
+      "profile": "6s",
+      "column": "French",
+      "t": 31.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka est tête de série numéro trois ici à Cary."
+    },
+    {
+      "feedback_id": "v3:0:15",
+      "profile": "6s",
+      "column": "French",
+      "t": 41.0,
+      "by": "alex",
+      "tags": [
+        "language"
+      ],
+      "comment": "Le point s'est joué dans un echange de fond de court",
+      "cell_text": "Mayo mène 15-0 au service. Le point s'installe dans un échange de fond de court."
+    },
+    {
+      "feedback_id": "v3:0:16",
+      "profile": "6s",
+      "column": "French",
+      "t": 49.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Deux points de suite pour Mayo au service, 30-0."
+    },
+    {
+      "feedback_id": "v3:0:17",
+      "profile": "6s",
+      "column": "French",
+      "t": 67.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo est entré dans le tableau avec un classement protégé."
+    },
+    {
+      "feedback_id": "v3:0:18",
+      "profile": "6s",
+      "column": "French",
+      "t": 81.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo remporte les trois premiers points au service — trois balles de jeu à 40-0."
+    },
+    {
+      "feedback_id": "v3:0:19",
+      "profile": "6s",
+      "column": "French",
+      "t": 101.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo a gagné à Drummondville en 2024 ; Glinka y a remporté le titre en 2025."
+    },
+    {
+      "feedback_id": "v3:0:20",
+      "profile": "6s",
+      "column": "French",
+      "t": 129.0,
+      "by": "alex",
+      "tags": [
+        "wrong fact",
+        "repetition"
+      ],
+      "comment": "",
+      "cell_text": "Mayo a trois balles de jeu à 40-0. La balle est remise en jeu depuis la ligne de fond."
+    },
+    {
+      "feedback_id": "v3:0:21",
+      "profile": "6s",
+      "column": "French",
+      "t": 141.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka en sauve une, mais Mayo a encore deux balles de jeu au service à 40-15."
+    },
+    {
+      "feedback_id": "v3:0:22",
+      "profile": "6s",
+      "column": "French",
+      "t": 153.0,
+      "by": "alex",
+      "tags": [],
+      "comment": "the second sentence is not correct.",
+      "cell_text": "Mayo a deux balles de jeu à 40-15. Un nouvel échange de fond de court se développe."
+    },
+    {
+      "feedback_id": "v3:0:23",
+      "profile": "6s",
+      "column": "French",
+      "t": 161.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo tient son service dans le premier jeu. Glinka servira à 0-1."
+    },
+    {
+      "feedback_id": "v3:0:24",
+      "profile": "6s",
+      "column": "French",
+      "t": 169.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Les joueurs changent de côté après le jeu de service remporté par Mayo en ouverture."
+    },
+    {
+      "feedback_id": "v3:0:25",
+      "profile": "6s",
+      "column": "French",
+      "t": 195.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Le gaucher Glinka commence son premier jeu de service, mené 0-1."
+    },
+    {
+      "feedback_id": "v3:0:26",
+      "profile": "6s",
+      "column": "French",
+      "t": 219.0,
+      "by": "alex",
+      "tags": [
+        "wrong fact"
+      ],
+      "comment": "the ball hits the net. does not go above it",
+      "cell_text": "Glinka sert à 0 partout. La balle est de nouveau en jeu au-dessus du filet."
+    },
+    {
+      "feedback_id": "v3:0:27",
+      "profile": "6s",
+      "column": "French",
+      "t": 237.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka remporte le premier point de son premier jeu de service, 15-0."
+    },
+    {
+      "feedback_id": "v3:0:28",
+      "profile": "6s",
+      "column": "French",
+      "t": 257.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo réplique : 15 partout sur le service de Glinka."
+    },
+    {
+      "feedback_id": "v3:0:29",
+      "profile": "6s",
+      "column": "French",
+      "t": 289.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka prend l'avantage, trente à quinze, sur son service."
+    },
+    {
+      "feedback_id": "v3:1:0",
+      "profile": "10s",
+      "column": "English",
+      "t": 0.8,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Daniil Glinka and Aidan Mayo begin their first-round meeting in Cary, with Mayo serving first.\nintent=pre_match; phase=pre_match; policy=opening_orientation_before_first_point; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:1",
+      "profile": "10s",
+      "column": "English",
+      "t": 13.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo wins the opening point on serve, 15-love.\nintent=opening_point; phase=opening_point; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:2",
+      "profile": "10s",
+      "column": "English",
+      "t": 31.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka is the third seed here in Cary.\nintent=background; phase=background; policy=ordinary_between_points_window; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:3",
+      "profile": "10s",
+      "column": "English",
+      "t": 41.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo leads 15-love on serve. The point settles into a baseline exchange.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:4",
+      "profile": "10s",
+      "column": "English",
+      "t": 49.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Two straight points for Mayo on serve, 30-love.\nintent=server_run; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:5",
+      "profile": "10s",
+      "column": "English",
+      "t": 67.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo entered the draw with a protected ranking.\nintent=background; phase=background; policy=ordinary_between_points_window; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:6",
+      "profile": "10s",
+      "column": "English",
+      "t": 81.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo takes the first three points on serve — three game points at 40-love.\nintent=game_points; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:7",
+      "profile": "10s",
+      "column": "English",
+      "t": 101.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo won Drummondville in 2024; Glinka took the title there in 2025.\nintent=background; phase=background; policy=multiple_server_game_points_leave_background_window; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:8",
+      "profile": "10s",
+      "column": "English",
+      "t": 129.0,
+      "by": "alex",
+      "tags": [],
+      "comment": "by the time sentence is said the situation in the game has changed. stop at 1st sentence",
+      "cell_text": "Mayo has three game points at 40-love. The ball is back in play from the baseline.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:9",
+      "profile": "10s",
+      "column": "English",
+      "t": 141.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka saves one, but Mayo still has two game points on serve at 40-15.\nintent=game_point_saved; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:10",
+      "profile": "10s",
+      "column": "English",
+      "t": 153.0,
+      "by": "alex",
+      "tags": [
+        "wrong fact"
+      ],
+      "comment": "there is no baseline rally",
+      "cell_text": "Mayo has two game points at 40-15. Another baseline rally develops.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:11",
+      "profile": "10s",
+      "column": "English",
+      "t": 161.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo holds in the opening game. Glinka will serve at 0-1.\nintent=hold; phase=game_complete; policy=accepted_game_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:12",
+      "profile": "10s",
+      "column": "English",
+      "t": 169.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "The players change ends after Mayo's opening hold.\nintent=changeover; phase=changeover; policy=first_game_complete_and_visual_changeover; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:13",
+      "profile": "10s",
+      "column": "English",
+      "t": 195.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "The left-handed Glinka begins his first service game, trailing 0-1.\nintent=serve_context; phase=serve_context; policy=new_server_setup_after_changeover; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:14",
+      "profile": "10s",
+      "column": "English",
+      "t": 219.0,
+      "by": "alex",
+      "tags": [
+        "wrong fact"
+      ],
+      "comment": "Glinka misses his first serve, the ball IS NOT back in play accross the net",
+      "cell_text": "Glinka serves at love-all. The ball is back in play across the net.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:15",
+      "profile": "10s",
+      "column": "English",
+      "t": 237.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka wins the opening point of his first service game, 15-love.\nintent=opening_point; phase=opening_point; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:16",
+      "profile": "10s",
+      "column": "English",
+      "t": 257.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Mayo answers to make it 15-all on Glinka's serve.\nintent=receiver_answers; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+    },
+    {
+      "feedback_id": "v3:1:17",
+      "profile": "10s",
+      "column": "English",
+      "t": 289.0,
+      "by": "alex",
+      "tags": [
+        "👍 good"
+      ],
+      "comment": "",
+      "cell_text": "Glinka moves ahead 30-15 on serve.\nintent=server_ahead; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+    }
+  ],
+  "groups": [
+    {
+      "profile": "10s",
+      "column": "English",
+      "routes_to": "commentary prompt, grounding, timing, and pacing",
+      "count": 18,
+      "positive": 15,
+      "comments": [
+        {
+          "feedback_id": "v3:1:0",
+          "t": 0.8,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Daniil Glinka and Aidan Mayo begin their first-round meeting in Cary, with Mayo serving first.\nintent=pre_match; phase=pre_match; policy=opening_orientation_before_first_point; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:1",
+          "t": 13.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo wins the opening point on serve, 15-love.\nintent=opening_point; phase=opening_point; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:2",
+          "t": 31.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka is the third seed here in Cary.\nintent=background; phase=background; policy=ordinary_between_points_window; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:3",
+          "t": 41.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo leads 15-love on serve. The point settles into a baseline exchange.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:4",
+          "t": 49.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Two straight points for Mayo on serve, 30-love.\nintent=server_run; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:5",
+          "t": 67.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo entered the draw with a protected ranking.\nintent=background; phase=background; policy=ordinary_between_points_window; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:6",
+          "t": 81.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo takes the first three points on serve — three game points at 40-love.\nintent=game_points; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:7",
+          "t": 101.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo won Drummondville in 2024; Glinka took the title there in 2025.\nintent=background; phase=background; policy=multiple_server_game_points_leave_background_window; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:8",
+          "t": 129.0,
+          "by": "alex",
+          "tags": [],
+          "comment": "by the time sentence is said the situation in the game has changed. stop at 1st sentence",
+          "cell_text": "Mayo has three game points at 40-love. The ball is back in play from the baseline.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:9",
+          "t": 141.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka saves one, but Mayo still has two game points on serve at 40-15.\nintent=game_point_saved; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:10",
+          "t": 153.0,
+          "by": "alex",
+          "tags": [
+            "wrong fact"
+          ],
+          "comment": "there is no baseline rally",
+          "cell_text": "Mayo has two game points at 40-15. Another baseline rally develops.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:11",
+          "t": 161.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo holds in the opening game. Glinka will serve at 0-1.\nintent=hold; phase=game_complete; policy=accepted_game_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:12",
+          "t": 169.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "The players change ends after Mayo's opening hold.\nintent=changeover; phase=changeover; policy=first_game_complete_and_visual_changeover; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:13",
+          "t": 195.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "The left-handed Glinka begins his first service game, trailing 0-1.\nintent=serve_context; phase=serve_context; policy=new_server_setup_after_changeover; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:14",
+          "t": 219.0,
+          "by": "alex",
+          "tags": [
+            "wrong fact"
+          ],
+          "comment": "Glinka misses his first serve, the ball IS NOT back in play accross the net",
+          "cell_text": "Glinka serves at love-all. The ball is back in play across the net.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:15",
+          "t": 237.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka wins the opening point of his first service game, 15-love.\nintent=opening_point; phase=opening_point; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:16",
+          "t": 257.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo answers to make it 15-all on Glinka's serve.\nintent=receiver_answers; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:1:17",
+          "t": 289.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka moves ahead 30-15 on serve.\nintent=server_ahead; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+        }
+      ]
+    },
+    {
+      "profile": "6s",
+      "column": "English",
+      "routes_to": "commentary prompt, grounding, timing, and pacing",
+      "count": 13,
+      "positive": 9,
+      "comments": [
+        {
+          "feedback_id": "v3:0:0",
+          "t": 41.0,
+          "by": "alex",
+          "tags": [
+            "repetition"
+          ],
+          "comment": "",
+          "cell_text": "Mayo leads 15-love on serve. The point settles into a baseline exchange.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:1",
+          "t": 81.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo takes the first three points on serve — three game points at 40-love.\nintent=game_points; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:2",
+          "t": 101.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo won Drummondville in 2024; Glinka took the title there in 2025.\nintent=background; phase=background; policy=multiple_server_game_points_leave_background_window; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:3",
+          "t": 129.0,
+          "by": "alex",
+          "tags": [
+            "timing"
+          ],
+          "comment": "not appropriate as Mayo loses the point half a second later",
+          "cell_text": "Mayo has three game points at 40-love. The ball is back in play from the baseline.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:4",
+          "t": 141.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka saves one, but Mayo still has two game points on serve at 40-15.\nintent=game_point_saved; phase=pressure; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:5",
+          "t": 153.0,
+          "by": "alex",
+          "tags": [
+            "wrong fact"
+          ],
+          "comment": "same as previously, the reference to the baseline rally is not appropriate",
+          "cell_text": "Mayo has two game points at 40-15. Another baseline rally develops.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:6",
+          "t": 161.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo holds in the opening game. Glinka will serve at 0-1.\nintent=hold; phase=game_complete; policy=accepted_game_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:7",
+          "t": 169.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "The players change ends after Mayo's opening hold.\nintent=changeover; phase=changeover; policy=first_game_complete_and_visual_changeover; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:8",
+          "t": 195.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "The left-handed Glinka begins his first service game, trailing 0-1.\nintent=serve_context; phase=serve_context; policy=new_server_setup_after_changeover; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:9",
+          "t": 219.0,
+          "by": "alex",
+          "tags": [
+            "wrong fact"
+          ],
+          "comment": "Glinka's first serve is stopped by the net",
+          "cell_text": "Glinka serves at love-all. The ball is back in play across the net.\nintent=rally; phase=rally; policy=literal_live_ball_evidence_with_current_score_context; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:10",
+          "t": 237.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka wins the opening point of his first service game, 15-love.\nintent=opening_point; phase=opening_point; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:11",
+          "t": 257.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo answers to make it 15-all on Glinka's serve.\nintent=receiver_answers; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+        },
+        {
+          "feedback_id": "v3:0:12",
+          "t": 289.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka moves ahead 30-15 on serve.\nintent=server_ahead; phase=developing_game; policy=accepted_point_outcome; audio shift=0.0s"
+        }
+      ]
+    },
+    {
+      "profile": "6s",
+      "column": "French",
+      "routes_to": "French tennis localization prompt",
+      "count": 17,
+      "positive": 13,
+      "comments": [
+        {
+          "feedback_id": "v3:0:13",
+          "t": 13.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo remporte le premier point au service, 15-0."
+        },
+        {
+          "feedback_id": "v3:0:14",
+          "t": 31.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka est tête de série numéro trois ici à Cary."
+        },
+        {
+          "feedback_id": "v3:0:15",
+          "t": 41.0,
+          "by": "alex",
+          "tags": [
+            "language"
+          ],
+          "comment": "Le point s'est joué dans un echange de fond de court",
+          "cell_text": "Mayo mène 15-0 au service. Le point s'installe dans un échange de fond de court."
+        },
+        {
+          "feedback_id": "v3:0:16",
+          "t": 49.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Deux points de suite pour Mayo au service, 30-0."
+        },
+        {
+          "feedback_id": "v3:0:17",
+          "t": 67.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo est entré dans le tableau avec un classement protégé."
+        },
+        {
+          "feedback_id": "v3:0:18",
+          "t": 81.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo remporte les trois premiers points au service — trois balles de jeu à 40-0."
+        },
+        {
+          "feedback_id": "v3:0:19",
+          "t": 101.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo a gagné à Drummondville en 2024 ; Glinka y a remporté le titre en 2025."
+        },
+        {
+          "feedback_id": "v3:0:20",
+          "t": 129.0,
+          "by": "alex",
+          "tags": [
+            "wrong fact",
+            "repetition"
+          ],
+          "comment": "",
+          "cell_text": "Mayo a trois balles de jeu à 40-0. La balle est remise en jeu depuis la ligne de fond."
+        },
+        {
+          "feedback_id": "v3:0:21",
+          "t": 141.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka en sauve une, mais Mayo a encore deux balles de jeu au service à 40-15."
+        },
+        {
+          "feedback_id": "v3:0:22",
+          "t": 153.0,
+          "by": "alex",
+          "tags": [],
+          "comment": "the second sentence is not correct.",
+          "cell_text": "Mayo a deux balles de jeu à 40-15. Un nouvel échange de fond de court se développe."
+        },
+        {
+          "feedback_id": "v3:0:23",
+          "t": 161.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo tient son service dans le premier jeu. Glinka servira à 0-1."
+        },
+        {
+          "feedback_id": "v3:0:24",
+          "t": 169.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Les joueurs changent de côté après le jeu de service remporté par Mayo en ouverture."
+        },
+        {
+          "feedback_id": "v3:0:25",
+          "t": 195.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Le gaucher Glinka commence son premier jeu de service, mené 0-1."
+        },
+        {
+          "feedback_id": "v3:0:26",
+          "t": 219.0,
+          "by": "alex",
+          "tags": [
+            "wrong fact"
+          ],
+          "comment": "the ball hits the net. does not go above it",
+          "cell_text": "Glinka sert à 0 partout. La balle est de nouveau en jeu au-dessus du filet."
+        },
+        {
+          "feedback_id": "v3:0:27",
+          "t": 237.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka remporte le premier point de son premier jeu de service, 15-0."
+        },
+        {
+          "feedback_id": "v3:0:28",
+          "t": 257.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Mayo réplique : 15 partout sur le service de Glinka."
+        },
+        {
+          "feedback_id": "v3:0:29",
+          "t": 289.0,
+          "by": "alex",
+          "tags": [
+            "👍 good"
+          ],
+          "comment": "",
+          "cell_text": "Glinka prend l'avantage, trente à quinze, sur son service."
+        }
+      ]
+    }
+  ],
+  "required_disposition_fields": [
+    "status",
+    "reason",
+    "change",
+    "verification"
+  ],
+  "work_order": "triage every item; record accepted/rejected/duplicate with evidence; implement accepted changes; run all fixtures and worst-of-three; check_feedback.py must pass before publishing the next round"
+}

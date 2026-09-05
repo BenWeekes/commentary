@@ -6,6 +6,7 @@ matches_live.yaml
 # Large media files (frames, WAV, MP4) stay local and served via URLs
 # (see docs/ai/L1/10_experiments.md for the URL list).
 experiments/**/frames/
+experiments/**/frames_*/
 experiments/**/*.wav
 experiments/**/*.mp4
 experiments/**/*.log

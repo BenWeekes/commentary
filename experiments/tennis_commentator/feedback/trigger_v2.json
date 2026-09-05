@@ -1,0 +1,15 @@
+{
+  "version": "v2",
+  "closed": "2026-07-26T20:49:54Z",
+  "triggered_by": "superseded_by_v3_at_user_direction",
+  "total_items": 0,
+  "all_items": [],
+  "groups": [],
+  "required_disposition_fields": [
+    "status",
+    "reason",
+    "change",
+    "verification"
+  ],
+  "work_order": "triage every item; record accepted/rejected/duplicate with evidence; implement accepted changes; run all fixtures and worst-of-three; check_feedback.py must pass before publishing the next round"
+}

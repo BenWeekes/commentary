@@ -1,0 +1,16 @@
+{
+  "version": "v2",
+  "input_artifacts_version": "v1",
+  "duration_s": 300.0,
+  "detections": 150,
+  "detector_failures": 0,
+  "sha256": {
+    "clip.mp4": "eea428765e1ecd9c7b2b9a6f369500d262f4a2f757510706c71a94489d4c39d7",
+    "stt.jsonl": "792b14a6fad9fde1251eada444631cb466346218e85c54142c3a3c6e1816044a",
+    "stt_whisper.jsonl": "4277467d41e81f79b0ceab971bceab7161a003debfd988ce6bf35b68d4ce88ba",
+    "stt_merged.jsonl": "792b14a6fad9fde1251eada444631cb466346218e85c54142c3a3c6e1816044a",
+    "stt_rejected.jsonl": "bef9ebe7fa2d333b5654213c56d0d08517956e82ac1d66e489177ad73e2080c2",
+    "detections.jsonl": "5f41ce547db9175ca110da59fd93e39e14a4545fc96144388c364c5e5c7f0ccb",
+    "detector_failures.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

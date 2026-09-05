@@ -1,0 +1,77 @@
+{
+  "version": "v3",
+  "profile": "10s",
+  "fixed_delay_s": 10.0,
+  "status": "PASS",
+  "policy": "worst-of-three; any missing/malformed artifact fails",
+  "detector_failures": 0,
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "PASS",
+      "candidates": 18,
+      "kept": 18,
+      "survival_rate": 1.0,
+      "max_gap_s": 32.0,
+      "median_words": 11.0,
+      "p90_words": 15,
+      "maximum_words": 16,
+      "maximum_audio_shift_s": 0.0,
+      "coverage": {
+        "server_calls": 10,
+        "rally_calls": 4,
+        "changeover_calls": 1,
+        "service_context_calls": 1,
+        "outcome_calls": 8,
+        "pressure_calls": 4,
+        "background_calls": 3
+      },
+      "faults": []
+    },
+    {
+      "attempt": 2,
+      "status": "PASS",
+      "candidates": 18,
+      "kept": 18,
+      "survival_rate": 1.0,
+      "max_gap_s": 32.0,
+      "median_words": 11.0,
+      "p90_words": 15,
+      "maximum_words": 16,
+      "maximum_audio_shift_s": null,
+      "coverage": {
+        "server_calls": 10,
+        "rally_calls": 4,
+        "changeover_calls": 1,
+        "service_context_calls": 1,
+        "outcome_calls": 8,
+        "pressure_calls": 4,
+        "background_calls": 3
+      },
+      "faults": []
+    },
+    {
+      "attempt": 3,
+      "status": "PASS",
+      "candidates": 18,
+      "kept": 18,
+      "survival_rate": 1.0,
+      "max_gap_s": 32.0,
+      "median_words": 11.0,
+      "p90_words": 15,
+      "maximum_words": 16,
+      "maximum_audio_shift_s": null,
+      "coverage": {
+        "server_calls": 10,
+        "rally_calls": 4,
+        "changeover_calls": 1,
+        "service_context_calls": 1,
+        "outcome_calls": 8,
+        "pressure_calls": 4,
+        "background_calls": 3
+      },
+      "faults": []
+    }
+  ],
+  "faults": []
+}

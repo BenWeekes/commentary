@@ -1,0 +1,20 @@
+{
+  "version": "v1",
+  "next_version": "v2",
+  "items": [
+    {
+      "feedback_id": "v1:0:0",
+      "status": "accepted",
+      "reason": "The 10-second profile had only 12 lines, a 58-second maximum gap, no vision-rally calls, and too little explicit server context.",
+      "change": "Use accepted tracker state for server-led score calls, add only literal grounded rally calls, and add deterministic changeover and service-game context. Make sparse coverage fail publication.",
+      "verification": "The live 10-second profile passed all three hallucination judges and the worst-of-three media/latency gate with 18/18 lines surviving, 9 server calls, 4 literal rally calls, 1 changeover call, 1 service-context call, and a 32-second maximum gap; 34 unit checks pass."
+    },
+    {
+      "feedback_id": "v1:0:1",
+      "status": "accepted",
+      "reason": "The 6-second profile used the same sparse 12-line schedule and therefore had the same cadence and server-context defect.",
+      "change": "Apply the same grounded deterministic cadence and minimum-coverage gates to the 6-second profile, while retaining its stricter end-to-end deadline.",
+      "verification": "The live 6-second profile passed all three hallucination judges and the worst-of-three media/latency gate with 18/18 lines surviving, 9 server calls, 4 literal rally calls, 1 changeover call, 1 service-context call, and a 32-second maximum gap."
+    }
+  ]
+}

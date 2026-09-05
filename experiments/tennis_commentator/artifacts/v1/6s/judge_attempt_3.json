@@ -1,0 +1,62 @@
+[
+  {
+    "index": 0,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match: Cary round-of-32/first-round meeting."
+  },
+  {
+    "index": 1,
+    "hallucination_likely": 0,
+    "reason": "Supported by accepted tracker: near player Mayo leads 15-0."
+  },
+  {
+    "index": 2,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match: Glinka is the third seed."
+  },
+  {
+    "index": 3,
+    "hallucination_likely": 0,
+    "reason": "Supported by vision and accepted tracker: Mayo leads 30-0."
+  },
+  {
+    "index": 4,
+    "hallucination_likely": 0,
+    "reason": "Supported by accepted tracker: Mayo leads 40-0."
+  },
+  {
+    "index": 5,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match: Mayo won Drummondville in 2024."
+  },
+  {
+    "index": 6,
+    "hallucination_likely": 0,
+    "reason": "Supported by accepted tracker: Mayo leads 40-15."
+  },
+  {
+    "index": 7,
+    "hallucination_likely": 0,
+    "reason": "Supported by scoreboard and tracker: Mayo won game, server switches to Glinka."
+  },
+  {
+    "index": 8,
+    "hallucination_likely": 0,
+    "reason": "Supported by verified pre-match: Glinka won Drummondville in 2025."
+  },
+  {
+    "index": 9,
+    "hallucination_likely": 0,
+    "reason": "Supported by vision and accepted tracker: Glinka leads 15-0 on serve."
+  },
+  {
+    "index": 10,
+    "hallucination_likely": 0,
+    "reason": "Supported by vision and accepted tracker: score is 15-all."
+  },
+  {
+    "index": 11,
+    "hallucination_likely": 0,
+    "reason": "Supported by vision and accepted tracker: Glinka leads 30-15."
+  }
+]

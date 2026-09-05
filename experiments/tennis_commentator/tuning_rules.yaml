@@ -1,0 +1,97 @@
+version: 1
+sport: tennis
+policy:
+  pre_match_cutoff: "2026-06-29T00:00:00Z"
+  publish_gate: "worst-of-three; fail if any attempt fails"
+  feedback: "every item requires an explicit disposition before the next publish"
+rules:
+  T1:
+    name: literal visual grounding
+    rule: "Commentary may use only literal observations; unclear views and replays stay silent."
+  T2:
+    name: accepted score only
+    rule: "Only the logical tracker may supply spoken score or server state."
+  T3:
+    name: legal transition
+    rule: "Reject skipped, reversed, or otherwise illegal tennis score transitions."
+  T4:
+    name: scoreboard corroboration
+    rule: "A changed score needs two consecutive reads at confidence >= 0.86."
+  T5:
+    name: STT is auxiliary
+    rule: "ASR text cannot override vision or tracker and is never quoted as fact."
+  T6:
+    name: fixed delay
+    rule: "A line not ready before its profile's 5-second or 2-second playback deadline is dropped; v4 deterministic speech is prewarmed before the match and spoken duration is governed by no-overlap placement."
+  T7:
+    name: multilingual integrity
+    rule: "Missing FR or pt-BR localization is a failed artifact, never English fallback."
+  T8:
+    name: no camera narration
+    rule: "Do not narrate the frame, camera, picture, graphic, or mere visibility."
+  T9:
+    name: cutoff-safe pre-match
+    rule: "No result or information after the June 29, 2026 cutoff may enter context."
+  T10:
+    name: fail-closed review
+    rule: "Malformed/missing judge output, fixtures, tracks, or review dispositions fail publishing."
+  T11:
+    name: deterministic score localization
+    rule: "Deterministic score and verified pre-match calls use reviewed fixed FR/pt-BR localizations; generative translation is reserved for generative commentary."
+  T12:
+    name: opener spacing
+    rule: "The verified opener starts the commentary cooldown; a second line may not overlap it at clip start."
+  T13:
+    name: server-led score cadence
+    rule: "The opener and every accepted score transition name the accepted server or the player who serves next."
+  T14:
+    name: no live-ball prose
+    rule: "V4 emits no rally or ball-in-play prose; the release gate rejects any live-ball intent or evidence after v3 human review showed single-burst claims could be stale or wrong."
+  T15:
+    name: score outcome intent
+    rule: "Every accepted score transition is converted to a structured, programmatically verified winner/outcome intent before any language is rendered."
+  T16:
+    name: score-derived stakes
+    rule: "Game, break, set, and match points may be spoken only when derived mechanically from accepted points/games/sets and verified best-of-three format; tiebreak state is unsupported and fails closed."
+  T17:
+    name: pressure-aware background
+    rule: "Background is suppressed at a single game point, break point, deuce, advantage, set point, match point, or unsupported score state."
+  T18:
+    name: audio placement integrity
+    rule: "Implausible TTS duration gets one bounded retry; any remaining outlier, buffer overrun, or placement shift above 1.5 seconds fails publishing."
+  T19:
+    name: rendered-speech audit
+    rule: "Before activation, independently transcribe every rendered EN/FR/pt-BR AI-only track and fail on a missing, badly mismatched, or mistimed line."
+  T20:
+    name: fixed-layout fast score path
+    rule: "The local score observer must learn only the unique legal next glyph from the known initial state, require two agreeing 5 fps frames, and exactly match the independent accepted tracker sequence."
+  T21:
+    name: low-priority score-change veto
+    rule: "A background fact is suppressed when a confirmed score change occurs within the following eight seconds, so outcome audio cannot be shifted by low-priority speech."
+amendments:
+  v2:
+    date: "2026-07-24"
+    feedback_round: "v1"
+    before: "Both profiles produced 12 lines, a 58-second maximum gap, no vision-rally calls, and only occasional server context."
+    after: "Require at least 16 lines, 9 server calls, 3 literal rally calls, 1 changeover call, 1 service-context call, and no gap above 40 seconds."
+    evidence: "The immutable clip fixture produces 18 lines, 9 server calls, 4 literal rally calls, 1 changeover call, 1 service-context call, and a 32-second maximum gap."
+    residual_risk: "Generic rally language is deliberately conservative; unclear shot type, point winner, and player identity remain unspoken."
+  v3:
+    date: "2026-07-26"
+    feedback_round: "v2 (zero submitted items; superseded at explicit user direction)"
+    before: "V2 used eight bare score/server calls, generic rally wording, a median of 8 words, and no programmatic outcome, stakes, placement-shift, or rendered-speech gate."
+    after: "V3 derives point winner, point run, saved game point, hold/break, next server, and pressure from accepted score transitions; renders one audited intent in EN/FR/pt-BR; adds score context to literal rallies; and suppresses background during high pressure."
+    evidence: "Both 10-second and 6-second profiles pass 3/3 with 18/18 lines, 8 outcome calls, 4 pressure calls, 10 server calls, 4 literal rallies, median 11 words, P90 15, a 32-second maximum gap, and zero final audio shift. Independent rendered-track STT passes all six profile/language tracks."
+    residual_risk: "Vision still cannot ground stroke type, tactical pattern, winner/error, emotion, or momentum; numeric tiebreak tracking remains unsupported and fails closed."
+  v3_english_voice:
+    date: "2026-07-26"
+    change: "Replace only the English tennis voice with ElevenLabs voice kfU9VUUMjY4PWNoUfZ45; keep commentary text, URLs, and FR/pt-BR voice IDs unchanged."
+    evidence: "Both profiles were regenerated and pass with 18/18 lines and zero audio shift. Independent rendered English STT similarity is 0.9108 for 10 seconds and 0.9157 for 6 seconds."
+    release_action: "Refresh the existing v3 media in place; do not create another review round or Slack announcement."
+  v4:
+    date: "2026-08-04"
+    feedback_round: "v3 (48 items; all accepted with exact dispositions)"
+    before: "V3 used four single-burst live-rally clauses and 10-second/6-second fixed-delay profiles; review found stale rally wording, nonexistent baseline exchanges, and a first serve into the net described as a returned ball."
+    after: "V4 removes live-ball prose in every language, adds a self-calibrating two-frame local score observer, prewarms deterministic speech, vetoes low-priority background near confirmed score changes, and evaluates 5-second/2-second profiles."
+    evidence: "Both profiles pass 3/3 with 14/14 lines, 8 outcomes, 2 score-derived pressure calls, 9 server calls, zero live-ball calls, median 11 words, P90 14, and zero audio shift. The local observer's eight transitions exactly match the independent tracker at 0.402-second worst-case readiness. All six rendered-track audits pass."
+    residual_risk: "The 2-second result is a fixed-layout replay evaluation with prewarmed phrases, not a live SRT/Agora transport proof. Score-graphic layout changes fail closed; shot, tactic, emotion, winner/error, and tiebreak claims remain unsupported."

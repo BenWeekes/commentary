@@ -1,0 +1,18 @@
+clips:
+  - id: glinka_mayo_cary_2026_12015_5m
+    source: /home/ubuntu/tennis_challenger_atp_challenger_cary_usa_men_singles_8960445_512k.mp4
+    start: "02:00:15"
+    duration_seconds: 300
+    date: "2026-06-29"
+    players:
+      far: "Daniil Glinka"
+      near: "Aidan Mayo"
+    initial_state:
+      score: "0 sets, 0 games, 0 points"
+      server: "Aidan Mayo"
+    identity:
+      initial_far: "Daniil Glinka, blue shirt"
+      initial_near: "Aidan Mayo, grey shirt"
+      changeover: "ends reverse after the opening game"
+    review_columns: [STT, Vision, Tracker, English, French, Portuguese]
+    delay_profiles: [10s, 6s]

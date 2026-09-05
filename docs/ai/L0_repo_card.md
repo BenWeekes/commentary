@@ -11,7 +11,7 @@
 | Language | Python 3.10+, Go 1.21+ (video publisher) |
 | Deploy Target | local / demo / production server |
 | Owner | benweekes |
-| Last Reviewed | 2026-07-26 |
+| Last Reviewed | 2026-08-04 |
 
 ## L1 — Summaries
 

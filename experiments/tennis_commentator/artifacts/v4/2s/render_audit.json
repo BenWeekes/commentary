@@ -1,0 +1,288 @@
+{
+  "version": "v4",
+  "profile": "2s",
+  "status": "PASS",
+  "method": "independent STT of the rendered AI-only WAV tracks",
+  "reports": [
+    {
+      "language": "en",
+      "aggregate_similarity": 0.8876,
+      "first_word_s": 1.5999999,
+      "last_word_s": 292.01492,
+      "transcript": "Daniel Glinker and Aiden Mayo begin their first round meeting in Cary with Mayo serving first. Mayo wins the opening point of the match on serve 15 love. Mayo takes two straight points on serve to open the game. 30 love. Glinker is the third seed in this challenger event here in Cary. Mayo takes the first three points on serve, three game points at 40 love. Mayo entered the carry challenger draw with a protected ranking. Glinker saves one, but Mayo still has two game points on serve at forty fifteen. Maio holds in the opening game. Glinka will serve at o one. The player's change ends after Mayo's opening hold. Glinker serves next. The left handed glinker begins his first service game, TrailLink j o one. Mayo won Drummondville in 2024. Glinker took the title there in 2025. Glinker wins the opening point of his first service game, 15 love. Mayo answers to make it 15 all on Glinker's serve. Glinker moves ahead thirty fifteen on serve midway through his opening game.",
+      "lines": [
+        {
+          "video_time_s": 0.8,
+          "expected": "Daniil Glinka and Aidan Mayo begin their first-round meeting in Cary, with Mayo serving first.",
+          "heard": "Daniel Glinker and Aiden Mayo begin their first round meeting in Cary with Mayo serving first.",
+          "similarity": 0.8125
+        },
+        {
+          "video_time_s": 12.4,
+          "expected": "Mayo wins the opening point of the match on serve, 15-love.",
+          "heard": "Mayo wins the opening point of the match on serve 15 love.",
+          "similarity": 1.0
+        },
+        {
+          "video_time_s": 47.8,
+          "expected": "Mayo takes two straight points on serve to open the game, 30-love.",
+          "heard": "Mayo takes two straight points on serve to open the game. 30 love.",
+          "similarity": 1.0
+        },
+        {
+          "video_time_s": 67.0,
+          "expected": "Glinka is the third seed in this Challenger event here in Cary.",
+          "heard": "Glinker is the third seed in this challenger event here in Cary.",
+          "similarity": 0.9167
+        },
+        {
+          "video_time_s": 80.6,
+          "expected": "Mayo takes the first three points on serve — three game points at 40-love.",
+          "heard": "Mayo takes the first three points on serve, three game points at 40 love.",
+          "similarity": 1.0
+        },
+        {
+          "video_time_s": 103.0,
+          "expected": "Mayo entered the Cary Challenger draw with a protected ranking.",
+          "heard": "Mayo entered the carry challenger draw with a protected ranking.",
+          "similarity": 0.9
+        },
+        {
+          "video_time_s": 135.8,
+          "expected": "Glinka saves one, but Mayo still has two game points on serve at 40-15.",
+          "heard": "Glinker saves one, but Mayo still has two game points on serve at forty fifteen.",
+          "similarity": 0.9333
+        },
+        {
+          "video_time_s": 160.2,
+          "expected": "Mayo holds in the opening game. Glinka will serve at 0-1.",
+          "heard": "Maio holds in the opening game. Glinka will serve at o one.",
+          "similarity": 0.75
+        },
+        {
+          "video_time_s": 181.0,
+          "expected": "The players change ends after Mayo's opening hold; Glinka serves next.",
+          "heard": "The player's change ends after Mayo's opening hold. Glinker serves next.",
+          "similarity": 0.8182
+        },
+        {
+          "video_time_s": 195.0,
+          "expected": "The left-handed Glinka begins his first service game, trailing 0-1.",
+          "heard": "The left handed glinker begins his first service game, TrailLink j o one.",
+          "similarity": 0.64
+        },
+        {
+          "video_time_s": 213.0,
+          "expected": "Mayo won Drummondville in 2024; Glinka took the title there in 2025.",
+          "heard": "Mayo won Drummondville in 2024. Glinker took the title there in 2025.",
+          "similarity": 0.9167
+        },
+        {
+          "video_time_s": 234.8,
+          "expected": "Glinka wins the opening point of his first service game, 15-love.",
+          "heard": "Glinker wins the opening point of his first service game, 15 love.",
+          "similarity": 0.9167
+        },
+        {
+          "video_time_s": 255.0,
+          "expected": "Mayo answers to make it 15-all on Glinka's serve.",
+          "heard": "Mayo answers to make it 15 all on Glinker's serve.",
+          "similarity": 0.9
+        },
+        {
+          "video_time_s": 287.8,
+          "expected": "Glinka moves ahead 30-15 on serve midway through his opening game.",
+          "heard": "Glinker moves ahead thirty fifteen on serve midway through his opening game.",
+          "similarity": 0.9167
+        }
+      ]
+    },
+    {
+      "language": "fr",
+      "aggregate_similarity": 0.8853,
+      "first_word_s": 1.68,
+      "last_word_s": 292.33502,
+      "transcript": "1er tour à Cari entre Daniel Glinka et Haydon Mayo. Mayo sert en 1er. Maillot remporte le 1er point au service, 15 0. 2 points de su suite pour maillot au service 30 0. Glinca est tête de série numéro 3 de ce challenger Akari. Maillot remporte les 3 premiers points au service. 3 balles de jeu à 40 zéros. Mayo est entré dans le tableau du challenger de carry avec un classement protégé. Glinca en sauve une, mais Mayo a encore 2 balles de jeu au service à 40 15. Maillot tient son service dans le 1er jeu. Glinka servira à 0 1. Les joueurs changent de côté après le jeu de service remporté par Mayo en ouverture. Glinka sera au service. Le gaucher Glinka commence en Cossens. Son 1er jeu de service menait 0 à un. Maillot a gagné à Dremontville en 2024. Glinca y a remporté le titre en 2025. Ginka remporte le 1er point de son 1er jeu de service 15 0. Maillot réplique, 15 partout sur le service de Glinka. Glinka prend l'avantage 30 à 15 au milieu de son 1er jeu de service.",
+      "lines": [
+        {
+          "video_time_s": 0.8,
+          "expected": "Premier tour à Cary entre Daniil Glinka et Aidan Mayo. Mayo sert en premier.",
+          "heard": "1er tour à Cari entre Daniel Glinka et Haydon Mayo. Mayo sert en 1er.",
+          "similarity": 0.7857
+        },
+        {
+          "video_time_s": 12.4,
+          "expected": "Mayo remporte le premier point au service, 15-0.",
+          "heard": "Maillot remporte le 1er point au service, 15 0.",
+          "similarity": 0.8889
+        },
+        {
+          "video_time_s": 47.8,
+          "expected": "Deux points de suite pour Mayo au service, 30-0.",
+          "heard": "2 points de su suite pour maillot au service 30 0.",
+          "similarity": 0.8571
+        },
+        {
+          "video_time_s": 67.0,
+          "expected": "Glinka est tête de série numéro trois de ce Challenger à Cary.",
+          "heard": "Glinca est tête de série numéro 3 de ce challenger Akari.",
+          "similarity": 0.7826
+        },
+        {
+          "video_time_s": 80.6,
+          "expected": "Mayo remporte les trois premiers points au service — trois balles de jeu à 40-0.",
+          "heard": "Maillot remporte les 3 premiers points au service. 3 balles de jeu à 40 zéros.",
+          "similarity": 0.8667
+        },
+        {
+          "video_time_s": 103.0,
+          "expected": "Mayo est entré dans le tableau du Challenger de Cary avec un classement protégé.",
+          "heard": "Mayo est entré dans le tableau du challenger de carry avec un classement protégé.",
+          "similarity": 0.9286
+        },
+        {
+          "video_time_s": 135.8,
+          "expected": "Glinka en sauve une, mais Mayo a encore deux balles de jeu au service à 40-15.",
+          "heard": "Glinca en sauve une, mais Mayo a encore 2 balles de jeu au service à 40 15.",
+          "similarity": 0.9412
+        },
+        {
+          "video_time_s": 160.2,
+          "expected": "Mayo tient son service dans le premier jeu. Glinka servira à 0-1.",
+          "heard": "Maillot tient son service dans le 1er jeu. Glinka servira à 0 1.",
+          "similarity": 0.9231
+        },
+        {
+          "video_time_s": 181.0,
+          "expected": "Les joueurs changent de côté après le jeu de service remporté par Mayo en ouverture ; Glinka sera au service.",
+          "heard": "Les joueurs changent de côté après le jeu de service remporté par Mayo en ouverture. Glinka sera au service.",
+          "similarity": 1.0
+        },
+        {
+          "video_time_s": 195.0,
+          "expected": "Le gaucher Glinka commence son premier jeu de service, mené 0-1.",
+          "heard": "Le gaucher Glinka commence en Cossens. Son 1er jeu de service menait 0 à un.",
+          "similarity": 0.7407
+        },
+        {
+          "video_time_s": 213.0,
+          "expected": "Mayo a gagné à Drummondville en 2024 ; Glinka y a remporté le titre en 2025.",
+          "heard": "Maillot a gagné à Dremontville en 2024. Glinca y a remporté le titre en 2025.",
+          "similarity": 0.8
+        },
+        {
+          "video_time_s": 234.8,
+          "expected": "Glinka remporte le premier point de son premier jeu de service, 15-0.",
+          "heard": "Ginka remporte le 1er point de son 1er jeu de service 15 0.",
+          "similarity": 0.9231
+        },
+        {
+          "video_time_s": 255.0,
+          "expected": "Mayo réplique : 15 partout sur le service de Glinka.",
+          "heard": "Maillot réplique, 15 partout sur le service de Glinka.",
+          "similarity": 0.8889
+        },
+        {
+          "video_time_s": 287.8,
+          "expected": "Glinka prend l'avantage, trente à quinze, au milieu de son premier jeu de service.",
+          "heard": "Glinka prend l'avantage 30 à 15 au milieu de son 1er jeu de service.",
+          "similarity": 1.0
+        }
+      ]
+    },
+    {
+      "language": "pt",
+      "aggregate_similarity": 0.8877,
+      "first_word_s": 1.68,
+      "last_word_s": 294.49503,
+      "transcript": "Daniel Glinka e Aydan Maio iniciam a 1º rodada em Carrie com o Mayô no saque. Maio vence o 1º ponto no saque, 15 a 0. 2 pontos seguidos para maio no saque 30 0. Glinka é o 3º cabeça de chave neste challenger em Carrey. Maio vence os primeiros 3 pontos no saque, 3 pontos para fechar o game em 40 0. Maio entrou na chave do Challenger de Carrie com ranking protegido. Glinka salva 1, mas Maio ainda tem 2 pontos para fechar o game no saque em 40 15. Maio confirma o saque no game inicial, Glinka saca em 0 a 1. Os jogadores trocam de lado após maio confirmar o saque no game inicial. Saca em seguida. O canhoto começa seu 1º game de saque, perdendo por 0 a 1. Maio venceu em Drummondville em 2024, Glinka conquistou o título lá em 2025. Glinka vence o 1º ponto do seu 1º game de saque 15 a 0. Maio responde e deixa 15 iguais no saque de Glinka. Glinka lidera por 30 a 15 no meio do seu 1º game de saque.",
+      "lines": [
+        {
+          "video_time_s": 0.8,
+          "expected": "Daniil Glinka e Aidan Mayo iniciam a primeira rodada em Cary, com Mayo no saque.",
+          "heard": "Daniel Glinka e Aydan Maio iniciam a 1º rodada em Carrie com o Mayô no saque.",
+          "similarity": 0.6452
+        },
+        {
+          "video_time_s": 12.4,
+          "expected": "Mayo vence o primeiro ponto no saque, 15 a 0.",
+          "heard": "Maio vence o 1º ponto no saque, 15 a 0.",
+          "similarity": 0.9
+        },
+        {
+          "video_time_s": 47.8,
+          "expected": "Dois pontos seguidos para Mayo no saque, 30 a 0.",
+          "heard": "2 pontos seguidos para maio no saque 30 0.",
+          "similarity": 0.8421
+        },
+        {
+          "video_time_s": 67.0,
+          "expected": "Glinka é o terceiro cabeça de chave neste Challenger em Cary.",
+          "heard": "Glinka é o 3º cabeça de chave neste challenger em Carrey.",
+          "similarity": 0.8182
+        },
+        {
+          "video_time_s": 80.6,
+          "expected": "Mayo vence os primeiros três pontos no saque — três pontos para fechar o game em 40 a 0.",
+          "heard": "Maio vence os primeiros 3 pontos no saque, 3 pontos para fechar o game em 40 0.",
+          "similarity": 0.9143
+        },
+        {
+          "video_time_s": 103.0,
+          "expected": "Mayo entrou na chave do Challenger de Cary com ranking protegido.",
+          "heard": "Maio entrou na chave do Challenger de Carrie com ranking protegido.",
+          "similarity": 0.8182
+        },
+        {
+          "video_time_s": 135.8,
+          "expected": "Glinka salva um, mas Mayo ainda tem dois pontos para fechar o game no saque em 40 a 15.",
+          "heard": "Glinka salva 1, mas Maio ainda tem 2 pontos para fechar o game no saque em 40 15.",
+          "similarity": 0.8649
+        },
+        {
+          "video_time_s": 160.2,
+          "expected": "Mayo confirma o saque no game inicial. Glinka saca em 0 a 1.",
+          "heard": "Maio confirma o saque no game inicial, Glinka saca em 0 a 1.",
+          "similarity": 0.9231
+        },
+        {
+          "video_time_s": 181.0,
+          "expected": "Os jogadores trocam de lado após Mayo confirmar o saque no game inicial; Glinka saca em seguida.",
+          "heard": "Os jogadores trocam de lado após maio confirmar o saque no game inicial. Saca em seguida.",
+          "similarity": 0.9091
+        },
+        {
+          "video_time_s": 195.0,
+          "expected": "O canhoto Glinka começa seu primeiro game de saque, perdendo por 0 a 1.",
+          "heard": "O canhoto começa seu 1º game de saque, perdendo por 0 a 1.",
+          "similarity": 0.963
+        },
+        {
+          "video_time_s": 213.0,
+          "expected": "Mayo venceu em Drummondville em 2024; Glinka conquistou o título lá em 2025.",
+          "heard": "Maio venceu em Drummondville em 2024, Glinka conquistou o título lá em 2025.",
+          "similarity": 0.9231
+        },
+        {
+          "video_time_s": 234.8,
+          "expected": "Glinka vence o primeiro ponto do seu primeiro game de saque, 15 a 0.",
+          "heard": "Glinka vence o 1º ponto do seu 1º game de saque 15 a 0.",
+          "similarity": 1.0
+        },
+        {
+          "video_time_s": 255.0,
+          "expected": "Mayo responde e deixa 15 iguais no saque de Glinka.",
+          "heard": "Maio responde e deixa 15 iguais no saque de Glinka.",
+          "similarity": 0.9
+        },
+        {
+          "video_time_s": 287.8,
+          "expected": "Glinka lidera por trinta a quinze no meio do seu primeiro game de saque.",
+          "heard": "Glinka lidera por 30 a 15 no meio do seu 1º game de saque.",
+          "similarity": 1.0
+        }
+      ]
+    }
+  ],
+  "faults": []
+}

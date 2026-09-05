@@ -1,0 +1,481 @@
+{
+  "source": {
+    "publisher": "WTA",
+    "page": "https://www.wtatennis.com/videos/4515906/full-match-replay-maria-outmaneuvers-anisimova-for-2025-queens-club-title",
+    "media_id": "6397903308112",
+    "name": "Full match replay: Maria outmaneuvers Anisimova for 2025 Queen's Club title"
+  },
+  "method": {
+    "sampled_windows": [
+      {
+        "label": "early_match",
+        "start_s": 600.0,
+        "end_s": 900.0
+      },
+      {
+        "label": "middle_match",
+        "start_s": 1800.0,
+        "end_s": 2100.0
+      },
+      {
+        "label": "late_match",
+        "start_s": 3000.0,
+        "end_s": 3300.0
+      }
+    ],
+    "classifier_attempts": 3,
+    "consensus": "at least two of three identical primary categories",
+    "transcript_retention": "none"
+  },
+  "turns": {
+    "all_captioned": 54,
+    "commentator_consensus": 52,
+    "court_official_or_player": 2,
+    "uncertain": 0,
+    "commentator_turns_per_minute": 3.467
+  },
+  "commentator_category_counts": {
+    "score_or_server": 2,
+    "point_reaction_or_outcome": 11,
+    "tactics_or_pattern": 11,
+    "technique_or_shot": 3,
+    "player_background": 4,
+    "match_narrative_or_stakes": 18,
+    "conditions_or_venue": 2,
+    "banter_or_other": 1
+  },
+  "consensus_rows": [
+    {
+      "index": 0,
+      "window": "early_match",
+      "start_s": 607.78,
+      "end_s": 615.11,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 1,
+      "window": "early_match",
+      "start_s": 624.85,
+      "end_s": 626.71,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 2,
+      "window": "early_match",
+      "start_s": 643.89,
+      "end_s": 644.89,
+      "category": "court_official_or_player",
+      "agreement": 3
+    },
+    {
+      "index": 3,
+      "window": "early_match",
+      "start_s": 664.77,
+      "end_s": 677.57,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 4,
+      "window": "early_match",
+      "start_s": 706.45,
+      "end_s": 708.03,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 5,
+      "window": "early_match",
+      "start_s": 709.63,
+      "end_s": 713.61,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 6,
+      "window": "early_match",
+      "start_s": 716.03,
+      "end_s": 733.426,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 7,
+      "window": "early_match",
+      "start_s": 740.7,
+      "end_s": 745.3,
+      "category": "conditions_or_venue",
+      "agreement": 2
+    },
+    {
+      "index": 8,
+      "window": "early_match",
+      "start_s": 750.14,
+      "end_s": 751.9,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 9,
+      "window": "early_match",
+      "start_s": 755.3,
+      "end_s": 759.4,
+      "category": "player_background",
+      "agreement": 3
+    },
+    {
+      "index": 10,
+      "window": "early_match",
+      "start_s": 760.84,
+      "end_s": 768.66,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 11,
+      "window": "early_match",
+      "start_s": 790.66,
+      "end_s": 793.0,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 12,
+      "window": "early_match",
+      "start_s": 794.98,
+      "end_s": 798.78,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 13,
+      "window": "early_match",
+      "start_s": 800.32,
+      "end_s": 804.6,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 14,
+      "window": "early_match",
+      "start_s": 818.74,
+      "end_s": 824.76,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 15,
+      "window": "early_match",
+      "start_s": 829.52,
+      "end_s": 836.26,
+      "category": "player_background",
+      "agreement": 3
+    },
+    {
+      "index": 16,
+      "window": "early_match",
+      "start_s": 854.18,
+      "end_s": 858.6,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 17,
+      "window": "early_match",
+      "start_s": 861.52,
+      "end_s": 876.6,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 18,
+      "window": "early_match",
+      "start_s": 898.8,
+      "end_s": 900.0,
+      "category": "tactics_or_pattern",
+      "agreement": 2
+    },
+    {
+      "index": 19,
+      "window": "middle_match",
+      "start_s": 1807.804,
+      "end_s": 1815.004,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 20,
+      "window": "middle_match",
+      "start_s": 1819.704,
+      "end_s": 1822.584,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 21,
+      "window": "middle_match",
+      "start_s": 1838.744,
+      "end_s": 1841.124,
+      "category": "score_or_server",
+      "agreement": 3
+    },
+    {
+      "index": 22,
+      "window": "middle_match",
+      "start_s": 1842.264,
+      "end_s": 1844.424,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 23,
+      "window": "middle_match",
+      "start_s": 1845.484,
+      "end_s": 1850.364,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 24,
+      "window": "middle_match",
+      "start_s": 1852.224,
+      "end_s": 1873.904,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 25,
+      "window": "middle_match",
+      "start_s": 1875.424,
+      "end_s": 1877.254,
+      "category": "match_narrative_or_stakes",
+      "agreement": 2
+    },
+    {
+      "index": 26,
+      "window": "middle_match",
+      "start_s": 1879.764,
+      "end_s": 1891.344,
+      "category": "player_background",
+      "agreement": 3
+    },
+    {
+      "index": 27,
+      "window": "middle_match",
+      "start_s": 1893.424,
+      "end_s": 1897.319,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 28,
+      "window": "middle_match",
+      "start_s": 1916.284,
+      "end_s": 1922.624,
+      "category": "conditions_or_venue",
+      "agreement": 3
+    },
+    {
+      "index": 29,
+      "window": "middle_match",
+      "start_s": 1934.464,
+      "end_s": 1937.224,
+      "category": "technique_or_shot",
+      "agreement": 3
+    },
+    {
+      "index": 30,
+      "window": "middle_match",
+      "start_s": 1946.864,
+      "end_s": 1950.644,
+      "category": "player_background",
+      "agreement": 3
+    },
+    {
+      "index": 31,
+      "window": "middle_match",
+      "start_s": 1952.724,
+      "end_s": 1955.284,
+      "category": "banter_or_other",
+      "agreement": 3
+    },
+    {
+      "index": 32,
+      "window": "middle_match",
+      "start_s": 1959.924,
+      "end_s": 1964.364,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 33,
+      "window": "middle_match",
+      "start_s": 1968.424,
+      "end_s": 1977.404,
+      "category": "technique_or_shot",
+      "agreement": 3
+    },
+    {
+      "index": 34,
+      "window": "middle_match",
+      "start_s": 1991.974,
+      "end_s": 2001.48,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 35,
+      "window": "middle_match",
+      "start_s": 2026.184,
+      "end_s": 2029.624,
+      "category": "match_narrative_or_stakes",
+      "agreement": 2
+    },
+    {
+      "index": 36,
+      "window": "middle_match",
+      "start_s": 2031.544,
+      "end_s": 2046.824,
+      "category": "tactics_or_pattern",
+      "agreement": 2
+    },
+    {
+      "index": 37,
+      "window": "middle_match",
+      "start_s": 2047.954,
+      "end_s": 2059.404,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 38,
+      "window": "middle_match",
+      "start_s": 2060.744,
+      "end_s": 2070.029,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 39,
+      "window": "late_match",
+      "start_s": 3000.0,
+      "end_s": 3018.086,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 40,
+      "window": "late_match",
+      "start_s": 3037.116,
+      "end_s": 3043.186,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 41,
+      "window": "late_match",
+      "start_s": 3045.586,
+      "end_s": 3053.286,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 42,
+      "window": "late_match",
+      "start_s": 3070.726,
+      "end_s": 3074.946,
+      "category": "tactics_or_pattern",
+      "agreement": 3
+    },
+    {
+      "index": 43,
+      "window": "late_match",
+      "start_s": 3104.486,
+      "end_s": 3106.406,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 44,
+      "window": "late_match",
+      "start_s": 3108.446,
+      "end_s": 3128.866,
+      "category": "technique_or_shot",
+      "agreement": 3
+    },
+    {
+      "index": 45,
+      "window": "late_match",
+      "start_s": 3134.946,
+      "end_s": 3141.426,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 46,
+      "window": "late_match",
+      "start_s": 3144.626,
+      "end_s": 3145.666,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 47,
+      "window": "late_match",
+      "start_s": 3147.026,
+      "end_s": 3149.426,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 48,
+      "window": "late_match",
+      "start_s": 3151.966,
+      "end_s": 3152.966,
+      "category": "court_official_or_player",
+      "agreement": 3
+    },
+    {
+      "index": 49,
+      "window": "late_match",
+      "start_s": 3229.066,
+      "end_s": 3232.006,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 50,
+      "window": "late_match",
+      "start_s": 3237.266,
+      "end_s": 3245.806,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    },
+    {
+      "index": 51,
+      "window": "late_match",
+      "start_s": 3255.246,
+      "end_s": 3257.066,
+      "category": "match_narrative_or_stakes",
+      "agreement": 3
+    },
+    {
+      "index": 52,
+      "window": "late_match",
+      "start_s": 3258.826,
+      "end_s": 3259.826,
+      "category": "score_or_server",
+      "agreement": 2
+    },
+    {
+      "index": 53,
+      "window": "late_match",
+      "start_s": 3272.546,
+      "end_s": 3279.246,
+      "category": "point_reaction_or_outcome",
+      "agreement": 3
+    }
+  ]
+}

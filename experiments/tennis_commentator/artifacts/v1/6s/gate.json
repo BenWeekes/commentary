@@ -1,0 +1,38 @@
+{
+  "version": "v1",
+  "profile": "6s",
+  "fixed_delay_s": 6.0,
+  "status": "PASS",
+  "policy": "worst-of-three; any missing/malformed artifact fails",
+  "detector_failures": 0,
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "PASS",
+      "candidates": 12,
+      "kept": 12,
+      "survival_rate": 1.0,
+      "max_gap_s": 58.0,
+      "faults": []
+    },
+    {
+      "attempt": 2,
+      "status": "PASS",
+      "candidates": 12,
+      "kept": 12,
+      "survival_rate": 1.0,
+      "max_gap_s": 58.0,
+      "faults": []
+    },
+    {
+      "attempt": 3,
+      "status": "PASS",
+      "candidates": 12,
+      "kept": 12,
+      "survival_rate": 1.0,
+      "max_gap_s": 58.0,
+      "faults": []
+    }
+  ],
+  "faults": []
+}
