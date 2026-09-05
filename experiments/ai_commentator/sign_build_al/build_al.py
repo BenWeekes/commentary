@@ -3,7 +3,7 @@ import json, re, subprocess, urllib.request, pathlib, time, sys
 HERE=pathlib.Path(__file__).parent
 ENV=dict(l.strip().split('=',1) for l in open('/home/ubuntu/commentary/.env') if '=' in l)
 BASE=str(pathlib.Path.home()/'al.mp4')
-IDLE='/home/ubuntu/sign-video-client/public/signer-overlay/idle-jay-asl-green.mp4'
+IDLE='/home/ubuntu/commentary/experiments/ai_commentator/sign_build/assets/idle-jay-asl-green.mp4'
 signs=HERE/'signs'; signs.mkdir(exist_ok=True)
 def sh(*a,**k):
     a=list(a)

@@ -10,8 +10,8 @@
 
 Signapse cannot return browser/ffmpeg-friendly alpha video (transparency only ships as
 ProRes 4444). So we request each signing clip on a **solid green background** and key it out
-ourselves. Same idea as the live web overlay in `github.com/BenWeekes/sign-video-client`
-(`signer-overlay/README.md`), done offline in ffmpeg here.
+ourselves. (The live web overlay in `github.com/BenWeekes/sign-video-client` uses the same idea in
+WebGL; that repo is NOT needed here — the pipeline is self-contained in `sign_build*/`.)
 
 1. **Generate clips green**: `POST https://ai.api.production.signapsesolutions.com/v2/generate`
    with `X-API-KEY` and body
@@ -38,12 +38,11 @@ ourselves. Same idea as the live web overlay in `github.com/BenWeekes/sign-video
 - Transient 408/503 waves: retry each chunk up to ~10× with 8–15 s sleeps, sequentially (a
   parallel burst makes their rate limiting worse).
 - Replacing `—` with `,` avoids odd renders; identical text is served from their cache (fast).
-- Key lives in `.env` as `SIGNAPSE_API_KEY` (also in `sign-video-client/.env.local`).
+- Key lives in `.env` as `SIGNAPSE_API_KEY`.
 
 ## The idle signer + the ghost-arms bug
 
-A pre-baked green-background idle loop (`sign-video-client/public/signer-overlay/
-idle-jay-asl-green.mp4`) keeps the signer on screen between lines. **Never leave the idle
+A pre-baked green-background idle loop (`sign_build/assets/idle-jay-asl-green.mp4`) keeps the signer on screen between lines. **Never leave the idle
 layer enabled underneath an active signing clip** — the keyed clip is transparent, so the
 idle's static arms show through behind the moving ones. The idle overlay gets
 `enable='if(<sum of between(t,start,end) for every signing window>,0,1)'`.

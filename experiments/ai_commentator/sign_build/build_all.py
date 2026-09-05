@@ -5,9 +5,9 @@ SR=16000
 HERE=pathlib.Path(__file__).parent
 ENV=dict(l.strip().split('=',1) for l in open('/home/ubuntu/commentary/.env') if '=' in l)
 BASE='/var/www/html/experiments/ai_commentator/blend_v7_10s/eager_en.mp4'
-IDLE='/home/ubuntu/sign-video-client/public/signer-overlay/idle-jay-asl-green.mp4'
+IDLE='/home/ubuntu/commentary/experiments/ai_commentator/sign_build/assets/idle-jay-asl-green.mp4'
 ATMOS='/home/ubuntu/commentary/clips/bmg_fch_demo_5min/atmosphere.wav'
-lines=json.load(open('/home/ubuntu/sign-video-client/public/signer-overlay/mainz-union-en.json'))
+lines=json.load(open('/home/ubuntu/commentary/experiments/ai_commentator/sign_build/assets/mainz-union-en.json'))
 signs=HERE/'signs'; tdir=HERE/'tts'; signs.mkdir(exist_ok=True); tdir.mkdir(exist_ok=True)
 def sh(*a,**k):
     a=list(a)
