@@ -1,6 +1,12 @@
 # Eros (nextmoment.ai) vendor commentary — evaluation setup
 
-> Added 2026-09-05, ahead of credentials. Vendor "Eros Live" implements a variant of the
+> Updated 2026-09-05 after credentials arrived (m2.md): tokens in `.env` (EROS_MATCH_TOKEN /
+> EROS_STREAM_TOKEN; no event token issued — and therefore NO goal announcements, their
+> safety gate). **Live test BLOCKED: SRT ingest unreachable** (handshake unanswered; API on
+> same IP fine; our UDP path verified) — full evidence + two API bugs/questions in
+> `experiments/ai_commentator/eros_test/VENDOR_REPORT.md`, sent to vendor. Control-plane
+> (create/arm/list/poll/end) all verified working.
+> Originally added 2026-09-05, ahead of credentials. Vendor "Eros Live" implements a variant of the
 > protocol we proposed in `github.com/BenWeekes/ai-commentary`; their delivered spec is
 > `~/moment.md` (v2026-09-04, subtitle mode). Everything below is built and verified except
 > the live run, which is blocked ONLY on tokens.
