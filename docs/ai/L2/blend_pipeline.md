@@ -20,7 +20,8 @@
 > `build_v7.sh` re-runs the full gated pipeline from the secured clip.
 > NOTE: a separate **tennis commentator** lives in this repo (other agent); no shared files.
 > **Post-park addition (2026-09):** transparent ASL signer burn-in over any video —
-> [sign_overlay_pipeline.md](sign_overlay_pipeline.md). Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
+> [sign_overlay_pipeline.md](sign_overlay_pipeline.md). Vendor commentary evaluation
+> (Eros/nextmoment.ai): [eros_vendor_test.md](eros_vendor_test.md). Companion docs: [hitl_tuning_workflow.md](hitl_tuning_workflow.md)
 > (the process loop in depth), [review_cycle_1_dispositions.md](review_cycle_1_dispositions.md)
 > (per-comment audit of cycle 1). History/narrative: [../L1/10_experiments.md](../L1/10_experiments.md).
 

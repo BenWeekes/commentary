@@ -1,0 +1,53 @@
+# Eros (nextmoment.ai) vendor commentary — evaluation setup
+
+> Added 2026-09-05, ahead of credentials. Vendor "Eros Live" implements a variant of the
+> protocol we proposed in `github.com/BenWeekes/ai-commentary`; their delivered spec is
+> `~/moment.md` (v2026-09-04, subtitle mode). Everything below is built and verified except
+> the live run, which is blocked ONLY on tokens.
+
+## Verdict on their API vs our proposal
+
+Adopted (and improved) from our spec/review: PTS-anchored timestamps (`source_pts_ms` on the
+source media timeline), a latency contract (claimed p50 5.1 s / p95 7 s, plus per-line
+`latency_ms`), drop-late via `deadline_ms` (matches our sync philosophy), and an official
+events channel (`/v1/events`, revision/retract) so goals/cards become facts.
+
+Divergences to code around:
+- **Priority 0–3, lower = MORE important** (0 = official event) — inverted vs our 1–3.
+  Their interruption rule: fade the current line when a numerically lower priority arrives.
+- Read model is **poll or WS pull per language** with one shared sequence space; no
+  `pts_end`, no `sentiment`.
+- **zh-CN is the native channel** — safety gates run on Chinese; EN is a post-gate
+  translation that can fail silently (sequence gaps, do NOT retry). EN gap-rate is a key
+  test metric.
+- Languages are frozen at match creation; 4 separate credentials (control / stream /
+  event tokens provisioned out-of-band; only the SRT publish URL is issued by `arm`).
+- `match_package` schema is UNDOCUMENTED ("supplied separately") — the main open question.
+- For our TTS product: their 5–7 s text + our synthesis ⇒ **~10 s broadcast delay** (their
+  own doc: 6–9 s picture trail if video is not delayed). Matches our 10 s profile.
+
+Verified empirically: API live at `live.nextmoment.ai` = 34.85.178.237 (GCP; same IP as SRT
+ingest), all routes 401 without a valid bearer — no anonymous path.
+
+## Test harness (`experiments/ai_commentator/eros_test/`)
+
+- `run_test.py` — create match (`subtitle`, `["en","zh-CN"]`, deadline 8000; match_package
+  built from `match_data/m05_uni_md33/sr_cache.json`: squads with numbers/positions/starters,
+  kit hex colours, formations, referee, kickoff state 76:50 @ 1-1) → arm → `ffmpeg -re`
+  publish of `clips/m05_uni_eval_25min/slice_5min.mp4` (720p, within their guidance) →
+  poll both languages, save `subs_en.jsonl` / `subs_zh_CN.jsonl` + latency stats.
+  Run: `EROS_CONTROL_TOKEN=… EROS_STREAM_TOKEN=… python3 run_test.py`
+- `post_events.py` — posts the window's two real official moments live (Kohn yellow
+  ~188.1 s; Sieb+Weiper double sub ~202.4 s) to test their events-improve-accuracy claim.
+  Needs `EROS_EVENT_TOKEN` + `EROS_MATCH_ID`; run alongside the publish.
+- `build_page.py` — results page at
+  `https://sa-dev.agora.io/experiments/ai_commentator/eros_test/`: click-to-seek clip +
+  four aligned columns (human broadcaster STT · our v7 AI · Eros EN with priority/latency ·
+  Eros zh-CN), header stats (line counts, EN translation-gap count, measured latency
+  percentiles vs claimed, priority distribution). `--mock` renders a layout preview
+  (currently deployed with a MOCK banner until the live run).
+
+## What we asked the vendor for
+
+Control + stream tokens (event token optional), the `match_package` schema, environment/
+billing status, ingest IP allowlisting (our egress 3.9.234.40), expected EN gap-rate.
