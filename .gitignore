@@ -58,3 +58,11 @@ experiments/ai_commentator/res_test/*.log
 # reviewer feedback PIN stays out of git (feedback jsonl IS committed per round)
 experiments/ai_commentator/feedback/pin.txt
 experiments/ai_commentator/runs/
+
+# signer overlay build dirs: keep scripts/timelines, not media
+experiments/ai_commentator/sign_build*/signs/
+experiments/ai_commentator/sign_build*/tts/
+experiments/ai_commentator/sign_build*/*.mp4
+experiments/ai_commentator/sign_build*/*.pcm
+experiments/ai_commentator/sign_build*/*.wav
+experiments/ai_commentator/sign_build*/*.jpg
