@@ -61,6 +61,25 @@ ingest), all routes 401 without a valid bearer — no anonymous path.
   percentiles vs claimed, priority distribution). `--mock` renders a layout preview
   (currently deployed with a MOCK banner until the live run).
 
+## Trial pipeline (repeatable per clip) — `experiments/ai_commentator/eros_trial/`
+
+The production shape (Sportradar SRT → forward to Eros → text+pts → sync onto the clip →
+record → publish) is dummied end-to-end for review:
+
+- `trial.py --id N --clip <mp4> --pkg <match_package.json>` — creates/arms an Eros match,
+  publishes the clip in real time, captures en+zh-CN, voices the EN lines with our
+  ElevenLabs commentator at `source_pts_ms` (overlap lines shift later, never earlier),
+  muxes over the crowd bed (`mux_with_crowd.py`), and builds the review page. Work dirs
+  `eros_trial/work_<N>/` cache everything (`--skip-eros` rebuilds page/voice only).
+- `build_trial_page.py` — review page in the house style: voiced video, collapsible
+  **pre-match data actually sent**, line table (click-seek, auto-follow, priority/latency
+  chips, overlap-shift notes), per-line comments POSTing to the shared feedback store as
+  version `eros<id>` (unknown versions store normally; only closed rounds are late-archived).
+- Trial 1 (5-min Mainz–Union): `https://sa-dev.agora.io/experiments/ai_commentator/eros_trial1/`
+  — announced on Slack per the standing title convention.
+- New clips need: the mp4 + a match_package json (build from Sportradar lineups as in
+  `eros_test/run_test.py`); full-match media pending (MD33 zip upload in progress).
+
 ## What we asked the vendor for
 
 Control + stream tokens (event token optional), the `match_package` schema, environment/

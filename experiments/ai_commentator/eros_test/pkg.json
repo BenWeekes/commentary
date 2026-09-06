@@ -1,0 +1,318 @@
+{
+ "competition": "Bundesliga",
+ "venue": "Mewa Arena, Mainz",
+ "kickoff_state": {
+  "period": "2",
+  "clock": "76:50",
+  "home_score": 1,
+  "away_score": 1
+ },
+ "referee": "Exner, Florian",
+ "home_team": {
+  "team_id": "M05",
+  "name": "FSV Mainz",
+  "qualifier": "home",
+  "formation": "3-3-2-2",
+  "kit": {
+   "base": "ff0000",
+   "sleeve": "ff0000",
+   "number": "ffffff"
+  },
+  "players": [
+   {
+    "player_id": "M05:27",
+    "name": "Zentner, Robin",
+    "number": 27,
+    "position": "goalkeeper",
+    "starter": true
+   },
+   {
+    "player_id": "M05:21",
+    "name": "da Costa, Danny",
+    "number": 21,
+    "position": "right_back",
+    "starter": true
+   },
+   {
+    "player_id": "M05:4",
+    "name": "Posch, Stefan",
+    "number": 4,
+    "position": "central_defender",
+    "starter": true
+   },
+   {
+    "player_id": "M05:31",
+    "name": "Kohr, Dominik",
+    "number": 31,
+    "position": "left_back",
+    "starter": true
+   },
+   {
+    "player_id": "M05:19",
+    "name": "Caci, Anthony",
+    "number": 19,
+    "position": "right_winger",
+    "starter": true
+   },
+   {
+    "player_id": "M05:6",
+    "name": "Sano, Kaishu",
+    "number": 6,
+    "position": "central_midfielder",
+    "starter": true
+   },
+   {
+    "player_id": "M05:2",
+    "name": "Mwene, Philipp",
+    "number": 2,
+    "position": "left_winger",
+    "starter": true
+   },
+   {
+    "player_id": "M05:8",
+    "name": "Nebel, Paul",
+    "number": 8,
+    "position": "central_midfielder",
+    "starter": true
+   },
+   {
+    "player_id": "M05:10",
+    "name": "Amiri, Nadiem",
+    "number": 10,
+    "position": "left_winger",
+    "starter": true
+   },
+   {
+    "player_id": "M05:20",
+    "name": "Tietz, Phillip",
+    "number": 20,
+    "position": "striker",
+    "starter": true
+   },
+   {
+    "player_id": "M05:23",
+    "name": "Becker, Sheraldo",
+    "number": 23,
+    "position": "striker",
+    "starter": true
+   },
+   {
+    "player_id": "M05:44",
+    "name": "Weiper, Nelson",
+    "number": 44,
+    "position": "forward",
+    "starter": false
+   },
+   {
+    "player_id": "M05:48",
+    "name": "Potulski, Kacper",
+    "number": 48,
+    "position": "defender",
+    "starter": false
+   },
+   {
+    "player_id": "M05:22",
+    "name": "Veratschnig, Nikolas",
+    "number": 22,
+    "position": "midfielder",
+    "starter": false
+   },
+   {
+    "player_id": "M05:24",
+    "name": "Kawasaki, Sota",
+    "number": 24,
+    "position": "midfielder",
+    "starter": false
+   },
+   {
+    "player_id": "M05:11",
+    "name": "Sieb, Armindo",
+    "number": 11,
+    "position": "forward",
+    "starter": false
+   },
+   {
+    "player_id": "M05:15",
+    "name": "Maloney, Lennard",
+    "number": 15,
+    "position": "midfielder",
+    "starter": false
+   },
+   {
+    "player_id": "M05:7",
+    "name": "Jae-sung, Lee",
+    "number": 7,
+    "position": "midfielder",
+    "starter": false
+   },
+   {
+    "player_id": "M05:30",
+    "name": "Widmer, Silvan",
+    "number": 30,
+    "position": "defender",
+    "starter": false
+   },
+   {
+    "player_id": "M05:33",
+    "name": "Batz, Daniel",
+    "number": 33,
+    "position": "goalkeeper",
+    "starter": false
+   }
+  ]
+ },
+ "away_team": {
+  "team_id": "UNI",
+  "name": "Union Berlin",
+  "qualifier": "away",
+  "formation": "4-2-3-1",
+  "kit": {
+   "base": "494b3f",
+   "sleeve": "494b3f",
+   "number": "d0c690"
+  },
+  "players": [
+   {
+    "player_id": "UNI:25",
+    "name": "Klaus, Carl",
+    "number": 25,
+    "position": "goalkeeper",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:28",
+    "name": "Trimmel, Christopher",
+    "number": 28,
+    "position": "right_back",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:4",
+    "name": "Leite, Diogo",
+    "number": 4,
+    "position": "central_defender",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:5",
+    "name": "Doekhi, Danilho",
+    "number": 5,
+    "position": "central_defender",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:15",
+    "name": "Rothe, Tom",
+    "number": 15,
+    "position": "left_back",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:13",
+    "name": "Khedira, Rani",
+    "number": 13,
+    "position": "central_midfielder",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:6",
+    "name": "Kemlein, Aljoscha",
+    "number": 6,
+    "position": "central_midfielder",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:7",
+    "name": "Burke, Oliver",
+    "number": 7,
+    "position": "right_winger",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:10",
+    "name": "Ansah, Ilyas",
+    "number": 10,
+    "position": "central_midfielder",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:9",
+    "name": "Burcu, Livan",
+    "number": 9,
+    "position": "left_winger",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:23",
+    "name": "Ilic, Andrej",
+    "number": 23,
+    "position": "striker",
+    "starter": true
+   },
+   {
+    "player_id": "UNI:48",
+    "name": "Wisbereit, Tom",
+    "number": 48,
+    "position": "goalkeeper",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:13",
+    "name": "Schafer, Andras",
+    "number": 13,
+    "position": "midfielder",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:14",
+    "name": "Querfeld, Leopold",
+    "number": 14,
+    "position": "defender",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:11",
+    "name": "Woo-yeong, Jeong",
+    "number": 11,
+    "position": "midfielder",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:39",
+    "name": "Kohn, Derrick",
+    "number": 39,
+    "position": "defender",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:34",
+    "name": "Nsoki, Stanley",
+    "number": 34,
+    "position": "defender",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:21",
+    "name": "Skarke, Tim",
+    "number": 21,
+    "position": "midfielder",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:18",
+    "name": "Juranovic, Josip",
+    "number": 18,
+    "position": "defender",
+    "starter": false
+   },
+   {
+    "player_id": "UNI:33",
+    "name": "Kral, Alex",
+    "number": 33,
+    "position": "midfielder",
+    "starter": false
+   }
+  ]
+ },
+ "note": "5-minute live slice starting at 76:50, score 1-1"
+}
