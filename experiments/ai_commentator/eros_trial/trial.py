@@ -13,10 +13,11 @@ crowd bed -> review page + video at /experiments/ai_commentator/eros_trial<id>/.
 import argparse, json, os, pathlib, subprocess, sys, threading, time, urllib.request
 AIC=pathlib.Path('/home/ubuntu/commentary/experiments/ai_commentator')
 ENV=dict(l.strip().split('=',1) for l in open('/home/ubuntu/commentary/.env') if '=' in l)
-BASE='https://live.nextmoment.ai'; SR=16000
+BASE=ENV.get('EROS_API_BASE',''); SR=16000
 ap=argparse.ArgumentParser(); ap.add_argument('--id',required=True); ap.add_argument('--clip',required=True)
 ap.add_argument('--pkg',required=True); ap.add_argument('--skip-eros',action='store_true')
 ap.add_argument('--langs',default='en,zh-CN')
+ap.add_argument('--deadline',type=int,default=6000)   # 7s-delay budget: text<=6s + TTS ~0.7s + margin
 a=ap.parse_args()
 WORK=AIC/f'eros_trial/work_{a.id}'; WORK.mkdir(parents=True, exist_ok=True)
 WWW=pathlib.Path(f'/var/www/html/experiments/ai_commentator/eros_trial{a.id}'); WWW.mkdir(exist_ok=True)
@@ -30,19 +31,26 @@ if not a.skip_eros:
     MID=f"trial{a.id}-{int(time.time())}"
     pkg=json.load(open(a.pkg))
     api('/v1/matches', ENV['EROS_MATCH_TOKEN'], {'match_id':MID,'match_package':pkg,
-        'output':{'mode':'subtitle','languages':langs,'deadline_ms':8000}})
+        'output':{'mode':'subtitle','languages':langs,'deadline_ms':a.deadline}})
     arm=api(f'/v1/matches/{MID}/arm', ENV['EROS_MATCH_TOKEN'], {'buffer_ms':8000})
     (WORK/'arm.json').write_text(json.dumps(arm)); print('armed', MID, flush=True)
     subs={l:[] for l in langs}; done=False
-    def poll(lang):
-        cur=0
-        while not done:
-            try:
-                r=api(f"/v1/matches/{MID}/subtitles?after_sequence={cur}&language={lang}", ENV['EROS_STREAM_TOKEN'])
-                for s in r.get('subtitles',[]): subs[lang].append(s); cur=max(cur,s['sequence'])
-            except Exception as e: print('poll',lang,str(e)[:60],flush=True)
-            time.sleep(2)
-    th=[threading.Thread(target=poll,args=(l,),daemon=True) for l in langs]
+    def ws_read(lang):   # WebSocket: lines arrive ~170ms after emit (vs ~1s polling)
+        import asyncio, websockets
+        async def go():
+            cur=0
+            while not done:
+                try:
+                    async with websockets.connect(
+                        f"{BASE.replace(chr(104)+chr(116)+chr(116)+chr(112)+chr(115),chr(119)+chr(115)+chr(115))}/v1/matches/{MID}/subtitles/stream?after_sequence={cur}&language={lang}",
+                        additional_headers={'Authorization':f"Bearer {ENV['EROS_STREAM_TOKEN']}"}) as w:
+                        async for m in w:
+                            l=json.loads(m); l['recv_unix_ms']=int(time.time()*1000)
+                            subs[lang].append(l); cur=max(cur,l['sequence'])
+                except Exception as e:
+                    if not done: print('ws',lang,str(e)[:60],flush=True); await asyncio.sleep(2)
+        asyncio.run(go())
+    th=[threading.Thread(target=ws_read,args=(l,),daemon=True) for l in langs]
     for t in th: t.start()
     r=subprocess.run(['ffmpeg','-re','-i',a.clip,'-map','0:v:0','-map','0:a?','-c','copy','-f','mpegts',
                       arm['ingest']['ffmpeg_url']],capture_output=True,text=True)

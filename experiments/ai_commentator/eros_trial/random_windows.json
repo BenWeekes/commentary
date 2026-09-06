@@ -1,0 +1,42 @@
+[
+ {
+  "file_s": 2805,
+  "period": "1",
+  "clock": "16:48",
+  "home": 0,
+  "away": 0,
+  "name": "r1_clock16m48.mp4"
+ },
+ {
+  "file_s": 3911,
+  "period": "1",
+  "clock": "35:14",
+  "home": 0,
+  "away": 0,
+  "name": "r2_clock35m14.mp4"
+ },
+ {
+  "file_s": 6415,
+  "period": "2",
+  "clock": "48:57",
+  "home": 1,
+  "away": 1,
+  "name": "r3_clock48m57.mp4"
+ },
+ {
+  "file_s": 7355,
+  "period": "2",
+  "clock": "64:37",
+  "home": 1,
+  "away": 1,
+  "name": "r4_clock64m37.mp4"
+ },
+ {
+  "file_s": 8161,
+  "period": "2",
+  "clock": "78:03",
+  "home": 1,
+  "away": 1,
+  "name": "r5_clock78m03.mp4"
+ }
+]

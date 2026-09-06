@@ -6,8 +6,8 @@ Phases (resumable-ish): create -> arm -> publish (ffmpeg -re) while polling en+z
 -> save subtitles jsonl -> stats. Webpage built separately by build_page.py.
 """
 import json, os, subprocess, sys, threading, time, urllib.request, pathlib
-BASE='https://live.nextmoment.ai'
-CTRL=os.environ.get('EROS_CONTROL_TOKEN'); READ=os.environ.get('EROS_STREAM_TOKEN')
+BASE=ENV.get('EROS_API_BASE','')
+CTRL=os.environ.get('EROS_MATCH_TOKEN') or os.environ.get('EROS_CONTROL_TOKEN'); READ=os.environ.get('EROS_STREAM_TOKEN')
 assert CTRL and READ, "set EROS_CONTROL_TOKEN and EROS_STREAM_TOKEN"
 CLIP='/home/ubuntu/commentary/clips/m05_uni_eval_25min/slice_5min.mp4'
 MID=(sys.argv[sys.argv.index('--match-id')+1] if '--match-id' in sys.argv
@@ -68,6 +68,8 @@ r=subprocess.run(['ffmpeg','-re','-i',CLIP,'-map','0:v:0','-map','0:a?','-c','co
 print('   ffmpeg rc', r.returncode, r.stderr[-200:] if r.returncode else '')
 time.sleep(20)   # let the tail drain
 done=True; time.sleep(3)
+try: api(f'/v1/matches/{MID}/end', CTRL, {})
+except Exception as e: print('end:', str(e)[:80])
 for l,v in subs.items():
     (HERE/f"subs_{l.replace('-','_')}.jsonl").write_text('\n'.join(json.dumps(s) for s in v))
     lat=sorted(s.get('latency_ms',0) for s in v)

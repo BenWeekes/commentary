@@ -17,7 +17,7 @@ for i,l in enumerate(subs):
       f"<td class=p{l['priority']}>p{l['priority']}</td><td class=tx>{html.escape(l['text'])}"
       f"<span class=m> {l.get('latency_ms','?')}ms{spoke}</span></td>"
       f"<td class=fb data-i={i}>💬</td></tr>\n")
-page=f"""<meta charset=utf-8><title>Eros trial {tid} — review</title>
+page=f"""<meta charset=utf-8><title>Model E trial {tid} — review</title>
 <style>body{{background:#0a0a0a;color:#ddd;font:13.5px system-ui;margin:16px;padding-bottom:70px}}
 table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #262626;padding:5px 8px;vertical-align:top}}
 th{{background:#161616;position:sticky;top:0}}a{{color:#7dd3fc}}video{{width:720px;max-width:100%;display:block;margin:8px 0}}
@@ -33,14 +33,14 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 .tag{{display:inline-block;border:1px solid #334155;border-radius:9px;padding:1px 8px;margin:2px;cursor:pointer;font-size:11px;color:#94a3b8}}
 .tag.on{{background:#1e3a5f;color:#dbeafe;border-color:#3b82f6}}
 #st{{background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:8px}}</style>
-<h2>Eros (nextmoment.ai) trial <b>{tid}</b> — English, voiced with our ElevenLabs commentator</h2>
+<h2>Model E trial <b>{tid}</b> — English, voiced with our ElevenLabs commentator</h2>
 <div id=st>{len(subs)} lines · latency p50 {pct(.5)} / p95 {pct(.95)} ms · priorities:
 {'/'.join(str(sum(1 for s in subs if s['priority']==p)) for p in (0,1,2,3))} (p0/p1/p2/p3) ·
 lines placed at their <code>source_pts_ms</code>; "spoken" notes show overlap shifts</div>
-<video id=v src="eros_en.mp4" controls preload=metadata></video>
-<details><summary><b>Pre-match data sent to Eros</b> (match_package)</summary><pre>{html.escape(json.dumps(pkg,indent=1))}</pre></details>
+<video id=v src="modelE_en.mp4" controls preload=metadata></video>
+<details><summary><b>Pre-match data sent to Model E</b> (match_package)</summary><pre>{html.escape(json.dumps(pkg,indent=1))}</pre></details>
 <p>Click a time to seek · click 💬 to comment a line · playing row highlights (scroll pauses follow 6s) · Submit sends to the shared feedback store.</p>
-<table><tr><th style=width:52px>t</th><th style=width:34px>pri</th><th>Eros commentary (EN)</th><th style=width:34px></th></tr>
+<table><tr><th style=width:52px>t</th><th style=width:34px>pri</th><th>Model E commentary (EN)</th><th style=width:34px></th></tr>
 {rows}</table>
 <div id=box><div id=bt style="margin-bottom:6px;color:#9fb6c9"></div><textarea id=bc placeholder="comment…"></textarea>
 <div id=tags>{''.join(f"<span class=tag>{t}</span>" for t in ('wrong fact','repetition','language','naming','timing','👍 good'))}</div>
@@ -70,10 +70,10 @@ if(bc.value.trim()||tags.length){{pend[i]={{comment:bc.value.trim(),tags:tags}};
 document.querySelector(`.fb[data-i="${{i}}"]`).classList.add('has');}}else delete pend[i];
 cnt.textContent=Object.keys(pend).length+' unsent';box.style.display='none';}}
 function submitAll(){{const w=who.value.trim();if(!w){{msg.textContent='enter reviewer name';return;}}
-const items=Object.entries(pend).map(([i,c])=>({{t:LINES[i].t,col:3,column:'Eros EN',profile:'eros',
+const items=Object.entries(pend).map(([i,c])=>({{t:LINES[i].t,col:3,column:'Model E EN',profile:'modelE',
 clip:TID,cell_text:LINES[i].text,tags:c.tags,comment:c.comment}}));
 if(!items.length){{msg.textContent='nothing to send';return;}}
-fetch('/blend_feedback',{{method:'POST',body:JSON.stringify({{reviewer:w,version:'eros'+TID,items:items}})}})
+fetch('/blend_feedback',{{method:'POST',body:JSON.stringify({{reviewer:w,version:'modelE'+TID,items:items}})}})
 .then(r=>r.json()).then(j=>{{msg.textContent=j.ok?'sent ✓':'error: '+(j.error||'');if(j.ok){{pend={{}};cnt.textContent='0 unsent';
 document.querySelectorAll('.fb.has').forEach(e=>e.classList.remove('has'));}}}})
 .catch(()=>msg.textContent='network error');}}

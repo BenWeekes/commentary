@@ -61,6 +61,34 @@ ingest), all routes 401 without a valid bearer — no anonymous path.
   percentiles vs claimed, priority distribution). `--mock` renders a layout preview
   (currently deployed with a MOCK banner until the live run).
 
+## Naming: "Model E" in ALL reviewer-facing surfaces
+
+Per user instruction (2026-09-06): review pages, Slack posts and anything shareable say
+**Model E**, never the vendor's name. Vendor identity + API base live in `.env`
+(`EROS_API_BASE`); repo code and pages carry no vendor branding. (This file keeps the
+`eros_` path names — they predate the rule and URLs were already shared.)
+
+## Round 2 findings (2026-09-06): WebSocket, 7 s budget, five random windows
+
+- **WebSocket works**: lines arrive median **168 ms** after emit (vs ~1 s polling);
+  `trial.py` now reads WS with auto-reconnect from last sequence. `deadline_ms` default
+  lowered to **6000** → full chain (text ≤6 s + WS ~0.2 s + flash TTS ~0.3 s, measured)
+  fits a **7 s broadcast delay** with slack; measured TTS: 16-word line synthesises in
+  0.29 s.
+- **Full Mainz–Union broadcast** now on disk (`clips/md33_full/`, 2h35m; other two MD33
+  games + zip deleted to reclaim 16 G). Clock↔file calibration: 1H = clock+1797 s,
+  2H = clock+3478 s. Goals 37' 48' 88' 90'. Sportradar key EXPIRED (renewal needed for
+  other fixtures); OpenLigaDB (free) provides fixtures/goals for all of MD33.
+- **Trials r1–r5** (random in-play windows, `make_random_clips.py` + `run_all_trials.sh`):
+  35–43 lines per window, latency p50 4.2–4.6 s, 1 translation gap in 191 lines (a p3
+  filler). Goal window (r2, Ilic 37'): build-up and "Union Berlin are celebrating wildly!"
+  but no goal call — gate works; one error ("goalkeeper catches") on the goal moment.
+- **Rating**: ~6.5/10 as commentary, ~8/10 as the safe subtitle product it claims to be.
+  Weakest: naming specificity, coverage (~39% airtime), zh-origin phrasing
+  ("frontcourt"). Strongest: grounding (zero fabrications in 226 lines), timing honesty.
+  Next lever: their event token (turns missed cards/goals/subs into p0 facts) + a
+  football-glossary pass like our R7 loop.
+
 ## Trial pipeline (repeatable per clip) — `experiments/ai_commentator/eros_trial/`
 
 The production shape (Sportradar SRT → forward to Eros → text+pts → sync onto the clip →
