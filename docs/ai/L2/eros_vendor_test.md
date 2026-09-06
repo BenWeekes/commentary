@@ -1,5 +1,13 @@
 # Eros (nextmoment.ai) vendor commentary — evaluation setup
 
+> **TEST RAN 2026-09-06** (vendor allowlisted our IP; they also fixed the GET-by-id 404 and
+> confirmed pre-live polling). Results — 5-min clip, en+zh-CN: **35 lines per language, 0
+> translation gaps; latency p50 4.34 s / p95 4.99 s** (beats published 5.1/7.0); priorities
+> 3×p1, 10×p2, 22×p3 (no p0 — no event feed). Quality spot-check: opening injury scene,
+> keeper actions, and the Juranovic-for-Trimmel sub (with names, from vision alone) all
+> correct; missed the Kohn yellow (~188 s), left the Sieb/Weiper double sub unnamed, and did
+> not call the Posch header wide (~261 s, biggest chance). No fabricated facts observed.
+> Results page: sa-dev `/experiments/ai_commentator/eros_test/`.
 > Updated 2026-09-05 after credentials arrived (m2.md): tokens in `.env` (EROS_MATCH_TOKEN /
 > EROS_STREAM_TOKEN; no event token issued — and therefore NO goal announcements, their
 > safety gate). **Live test BLOCKED: SRT ingest unreachable** (handshake unanswered; API on

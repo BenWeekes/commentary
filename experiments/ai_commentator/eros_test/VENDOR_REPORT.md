@@ -1,3 +1,9 @@
+**RESOLVED 2026-09-06** — ingest allowlisted, full test ran successfully.
+Results: https://sa-dev.agora.io/experiments/ai_commentator/eros_test/
+Measured: 35 lines/language, 0 translation gaps, latency p50 4.34 s / p95 4.99 s (beats the published p50 5.1 / p95 7.0). Report below kept for the record.
+
+---
+
 # Eros Live integration test — findings report
 
 **From:** Agora integration test (Bundesliga 5-min clip, subtitle mode)
