@@ -99,7 +99,7 @@ record → publish) is dummied end-to-end for review:
   ElevenLabs commentator at `source_pts_ms` (overlap lines shift later, never earlier),
   muxes over the crowd bed (`mux_with_crowd.py`), and builds the review page. Work dirs
   `eros_trial/work_<N>/` cache everything (`--skip-eros` rebuilds page/voice only).
-- `build_trial_page.py` — review page in the house style: voiced video, collapsible
+- `build_trial_page2.py` — TABBED multi-language review page (one tab per declared language; comments tagged with the active language; missing translations shown greyed). Languages verified flowing: en, fr, pt-BR, es, tr (+native zh-CN); creation accepts ANY tag unvalidated (bogus tags 201) — support is proven only by delivery. `build_trial_page.py` — original single-language page in the house style: voiced video, collapsible
   **pre-match data actually sent**, line table (click-seek, auto-follow, priority/latency
   chips, overlap-shift notes), per-line comments POSTing to the shared feedback store as
   version `eros<id>` (unknown versions store normally; only closed rounds are late-archived).
