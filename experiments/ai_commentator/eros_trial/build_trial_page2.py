@@ -9,6 +9,7 @@ for f in sorted(work.glob('subs_*.jsonl')):
     code=f.stem.replace('subs_','').replace('_','-')
     langs[code]={json.loads(x)['sequence']:json.loads(x) for x in open(f)}
 order=[c for c in ('en','fr','pt-BR','es','tr','zh-CN') if c in langs]+[c for c in langs if c not in ('en','fr','pt-BR','es','tr','zh-CN')]
+voiced=[c for c in order if (pathlib.Path(www)/f"modelE_{c.replace('-','_')}.mp4").exists()]
 base=langs.get('en') or langs[order[0]]
 allseq=sorted(set().union(*[set(s) for s in langs.values()]))
 meta={}
@@ -47,7 +48,7 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 .tag{{display:inline-block;border:1px solid #334155;border-radius:9px;padding:1px 8px;margin:2px;cursor:pointer;font-size:11px;color:#94a3b8}}
 .tag.on{{background:#1e3a5f;color:#dbeafe;border-color:#3b82f6}}
 #st{{background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:8px}}</style>
-<h2>Model E trial <b>{tid}</b> — multi-language (video voiced in EN)</h2>
+<h2>Model E trial <b>{tid}</b> — multi-language (tab switches text AND voice)</h2>
 <div id=st>{len(allseq)} lines · latency p50 {pct(.5)} / p95 {pct(.95)} ms · {gapinfo} · a missing row under a tab = that language's translation failed (by design, not an error)</div>
 <div id=tabs>{''.join(f"<span class=tab data-l='{c}'>{c}</span>" for c in order)}</div>
 <video id=v src="modelE_en.mp4" controls preload=metadata></video>
@@ -60,13 +61,15 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 <div id=bar><span>Reviewer:</span><input id=who placeholder=name><span id=cnt>0 unsent</span>
 <button onclick=submitAll()>Submit feedback</button><span id=msg></span></div>
 <script>
-const TID={json.dumps(tid)}, LT={json.dumps(LT)}, META={json.dumps(meta)};
+const TID={json.dumps(tid)}, LT={json.dumps(LT)}, META={json.dumps(meta)}, VOICED={json.dumps(voiced)};
 const v=document.getElementById('v'), box=document.getElementById('box');
 let LANG='en', pend={{}}, cur=-1, noFollow=0;
 who.value=localStorage.getItem('reviewer')||''; who.onchange=()=>localStorage.setItem('reviewer',who.value);
 function render(){{
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.l===LANG));
   document.getElementById('curlang').textContent='('+LANG+')';
+  const vf='modelE_'+LANG.replace('-','_')+'.mp4';
+  if(VOICED.includes(LANG) && !v.src.endsWith(vf)){{const t=v.currentTime,play=!v.paused;v.src=vf;v.currentTime=t;if(play)v.play();}}
   for(const q in META){{
     const c=document.getElementById('c'+q);
     const txt=(LT[LANG]||{{}})[q];

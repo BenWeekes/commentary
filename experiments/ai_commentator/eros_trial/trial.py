@@ -61,26 +61,34 @@ if not a.skip_eros:
     for l in langs:
         (WORK/f"subs_{l.replace('-','_')}.jsonl").write_text('\n'.join(json.dumps(s) for s in subs[l]))
         print(l, len(subs[l]), 'lines', flush=True)
-# voice EN at pts
-lines=[json.loads(x) for x in open(WORK/'subs_en.jsonl')]; lines.sort(key=lambda l:l['source_pts_ms'])
-td=WORK/'tts'; td.mkdir(exist_ok=True)
-track=bytearray(int(dur)*SR*2); prev=0.0; placed=[]
-for i,l in enumerate(lines):
-    f=td/f"{i:02d}.pcm"
-    if not (f.exists() and f.stat().st_size>4000):
-        body=json.dumps({"text":l['text'],"model_id":"eleven_flash_v2_5",
-            "voice_settings":{"stability":0.5,"similarity_boost":0.8}}).encode()
-        req=urllib.request.Request("https://api.elevenlabs.io/v1/text-to-speech/gU0LNdkMOQCOrPrwtbee?output_format=pcm_16000",
-            data=body,headers={"xi-api-key":ENV['ELEVENLABS_API_KEY'],"Content-Type":"application/json"})
-        f.write_bytes(urllib.request.urlopen(req,timeout=60).read())
-    d=f.stat().st_size/2/SR; t=max(l['source_pts_ms']/1000, prev+0.2)
-    if t+d>dur: break
-    p=int(t*SR)*2; pcm=f.read_bytes(); track[p:p+len(pcm)]=pcm
-    prev=t+d; placed.append({'i':i,'t':round(t,2),'pts':l['source_pts_ms']/1000,'dur':round(d,2)})
-(WORK/'track.pcm').write_bytes(bytes(track))
-json.dump(placed, open(WORK/'placement.json','w'))
-subprocess.run(['ffmpeg','-y','-v','error','-f','s16le','-ar',str(SR),'-ac','1','-i',str(WORK/'track.pcm'),str(WORK/'track.wav')],check=True)
-subprocess.run(['python3',str(AIC/'mux_with_crowd.py'),a.clip,str(WORK/'track.wav'),str(WWW/'modelE_en.mp4')],check=True)
-subprocess.run(['python3',str(AIC/'eros_trial/build_trial_page.py'),a.id,str(WORK/'subs_en.jsonl'),
-                str(WORK/'placement.json'),a.pkg,str(WWW)],check=True)
+# voice every captured language at pts (flash v2_5 is multilingual)
+VOICE={'en':'gU0LNdkMOQCOrPrwtbee','fr':'LcKoSBj8CeBInl4bQHtq','pt-BR':'HR2TRGmi4QbMsO5omv7l'}
+DEFAULT_VOICE='gU0LNdkMOQCOrPrwtbee'
+for lang in langs:
+    sf=WORK/f"subs_{lang.replace('-','_')}.jsonl"
+    if not sf.exists(): continue
+    lines=[json.loads(x) for x in open(sf)]; lines.sort(key=lambda l:l['source_pts_ms'])
+    td=WORK/f"tts_{lang.replace('-','_')}"; td.mkdir(exist_ok=True)
+    voice=VOICE.get(lang, DEFAULT_VOICE)
+    track=bytearray(int(dur)*SR*2); prev=0.0; placed=[]
+    for i,l in enumerate(lines):
+        f=td/f"{i:02d}.pcm"
+        if not (f.exists() and f.stat().st_size>4000):
+            body=json.dumps({"text":l['text'],"model_id":"eleven_flash_v2_5",
+                "voice_settings":{"stability":0.5,"similarity_boost":0.8}}).encode()
+            req=urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{voice}?output_format=pcm_16000",
+                data=body,headers={"xi-api-key":ENV['ELEVENLABS_API_KEY'],"Content-Type":"application/json"})
+            f.write_bytes(urllib.request.urlopen(req,timeout=60).read())
+        d=f.stat().st_size/2/SR; t=max(l['source_pts_ms']/1000, prev+0.2)
+        if t+d>dur: break
+        p=int(t*SR)*2; pcm=f.read_bytes(); track[p:p+len(pcm)]=pcm
+        prev=t+d; placed.append({'i':i,'t':round(t,2),'pts':l['source_pts_ms']/1000,'dur':round(d,2)})
+    (WORK/f'track_{lang}.pcm').write_bytes(bytes(track))
+    if lang=='en': json.dump(placed, open(WORK/'placement.json','w'))
+    subprocess.run(['ffmpeg','-y','-v','error','-f','s16le','-ar',str(SR),'-ac','1',
+        '-i',str(WORK/f'track_{lang}.pcm'),str(WORK/f'track_{lang}.wav')],check=True)
+    subprocess.run(['python3',str(AIC/'mux_with_crowd.py'),a.clip,str(WORK/f'track_{lang}.wav'),
+        str(WWW/f"modelE_{lang.replace('-','_')}.mp4")],check=True)
+    print('voiced', lang, len(placed), 'lines', flush=True)
+subprocess.run(['python3',str(AIC/'eros_trial/build_trial_page2.py'),a.id,str(WORK),a.pkg,str(WWW)],check=True)
 print(f"READY: https://sa-dev.agora.io/experiments/ai_commentator/modelE_trial{a.id}/")
