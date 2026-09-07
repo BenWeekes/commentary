@@ -10,6 +10,8 @@ for f in sorted(work.glob('subs_*.jsonl')):
     langs[code]={json.loads(x)['sequence']:json.loads(x) for x in open(f)}
 order=[c for c in ('en','fr','pt-BR','es','tr','zh-CN') if c in langs]+[c for c in langs if c not in ('en','fr','pt-BR','es','tr','zh-CN')]
 voiced=[c for c in order if (pathlib.Path(www)/f"modelE_{c.replace('-','_')}.mp4").exists()]
+if (pathlib.Path(www)/'modelE_asl.mp4').exists() and 'en' in langs:
+    order.append('asl'); voiced.append('asl')
 base=langs.get('en') or langs[order[0]]
 allseq=sorted(set().union(*[set(s) for s in langs.values()]))
 meta={}
@@ -21,14 +23,15 @@ pkg=json.load(open(pkgf))
 lats=sorted(l['latency_ms'] for l in base.values())
 def pct(p): return lats[min(len(lats)-1,int(len(lats)*p))] if lats else '—'
 def mmss(t): return f"{int(t//60)}:{int(t%60):02d}"
-gapinfo=' · '.join(f"{c}:{len(allseq)-len(s)} gaps" for c,s in ((c,langs[c]) for c in order))
+gapinfo=' · '.join(f"{c}:{len(allseq)-len(langs[c])} gaps" for c in order if c in langs)
 rows=''
 for q in allseq:
     m=meta[q]
     rows+=(f"<tr data-t={m['t']} data-q={q}><td><a href='#' onclick=\"v.currentTime={m['t']};return false\">{mmss(m['t'])}</a></td>"
            f"<td class=p{m['p']}>p{m['p']}</td><td class=tx id=c{q}></td>"
            f"<td class=fb data-q={q}>💬</td></tr>\n")
-LT={c:{q:langs[c][q]['text'] for q in langs[c]} for c in order}
+LT={c:{q:langs[c][q]['text'] for q in langs[c]} for c in order if c!='asl'}
+if 'asl' in order: LT['asl']=dict(LT['en'])   # ASL tab: EN text + live-signed video
 page=f"""<meta charset=utf-8><title>Model E trial {tid} — multi-language review</title>
 <style>body{{background:#0a0a0a;color:#ddd;font:13.5px system-ui;margin:16px;padding-bottom:70px}}
 table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #262626;padding:5px 8px;vertical-align:top}}
