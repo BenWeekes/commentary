@@ -20,7 +20,7 @@ ap.add_argument('--langs',default='en,zh-CN')
 ap.add_argument('--deadline',type=int,default=6000)   # 7s-delay budget: text<=6s + TTS ~0.7s + margin
 a=ap.parse_args()
 WORK=AIC/f'eros_trial/work_{a.id}'; WORK.mkdir(parents=True, exist_ok=True)
-WWW=pathlib.Path(f'/var/www/html/experiments/ai_commentator/eros_trial{a.id}'); WWW.mkdir(exist_ok=True)
+WWW=pathlib.Path(f'/var/www/html/experiments/ai_commentator/modelE_trial{a.id}'); WWW.mkdir(exist_ok=True)
 dur=float(subprocess.run(['ffprobe','-v','error','-show_entries','format=duration','-of','csv=p=0',a.clip],capture_output=True,text=True).stdout.strip())
 def api(path, tok, body=None):
     req=urllib.request.Request(BASE+path, data=json.dumps(body).encode() if body is not None else None,
@@ -80,7 +80,7 @@ for i,l in enumerate(lines):
 (WORK/'track.pcm').write_bytes(bytes(track))
 json.dump(placed, open(WORK/'placement.json','w'))
 subprocess.run(['ffmpeg','-y','-v','error','-f','s16le','-ar',str(SR),'-ac','1','-i',str(WORK/'track.pcm'),str(WORK/'track.wav')],check=True)
-subprocess.run(['python3',str(AIC/'mux_with_crowd.py'),a.clip,str(WORK/'track.wav'),str(WWW/'eros_en.mp4')],check=True)
+subprocess.run(['python3',str(AIC/'mux_with_crowd.py'),a.clip,str(WORK/'track.wav'),str(WWW/'modelE_en.mp4')],check=True)
 subprocess.run(['python3',str(AIC/'eros_trial/build_trial_page.py'),a.id,str(WORK/'subs_en.jsonl'),
                 str(WORK/'placement.json'),a.pkg,str(WWW)],check=True)
-print(f"READY: https://sa-dev.agora.io/experiments/ai_commentator/eros_trial{a.id}/")
+print(f"READY: https://sa-dev.agora.io/experiments/ai_commentator/modelE_trial{a.id}/")

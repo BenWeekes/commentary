@@ -7,7 +7,7 @@
 > keeper actions, and the Juranovic-for-Trimmel sub (with names, from vision alone) all
 > correct; missed the Kohn yellow (~188 s), left the Sieb/Weiper double sub unnamed, and did
 > not call the Posch header wide (~261 s, biggest chance). No fabricated facts observed.
-> Results page: sa-dev `/experiments/ai_commentator/eros_test/`.
+> Results page: sa-dev `/experiments/ai_commentator/modelE_test/`.
 > Updated 2026-09-05 after credentials arrived (m2.md): tokens in `.env` (EROS_MATCH_TOKEN /
 > EROS_STREAM_TOKEN; no event token issued — and therefore NO goal announcements, their
 > safety gate). **Live test BLOCKED: SRT ingest unreachable** (handshake unanswered; API on
@@ -103,7 +103,7 @@ record → publish) is dummied end-to-end for review:
   **pre-match data actually sent**, line table (click-seek, auto-follow, priority/latency
   chips, overlap-shift notes), per-line comments POSTing to the shared feedback store as
   version `eros<id>` (unknown versions store normally; only closed rounds are late-archived).
-- Trial 1 (5-min Mainz–Union): `https://sa-dev.agora.io/experiments/ai_commentator/eros_trial1/`
+- Trial 1 (5-min Mainz–Union): `https://sa-dev.agora.io/experiments/ai_commentator/modelE_trial1/`
   — announced on Slack per the standing title convention.
 - New clips need: the mp4 + a match_package json (build from Sportradar lineups as in
   `eros_test/run_test.py`); full-match media pending (MD33 zip upload in progress).

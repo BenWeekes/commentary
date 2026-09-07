@@ -20,7 +20,7 @@ for i in 1 2 3 4 5; do
   echo "=== trial r$i ($N) ==="
   /home/ubuntu/commentary/.venv/bin/python trial.py --id "r$i" \
     --clip "/var/www/html/experiments/ai_commentator/md33_clips/$N" --pkg "pkg_r$i.json" || { echo "trial r$i FAILED"; continue; }
-  URLS="$URLS\n• r$i (kickoff $(python3 -c "import json;w=json.load(open('random_windows.json'))[$i-1];print(w['clock'],str(w['home'])+'-'+str(w['away']))")): https://sa-dev.agora.io/experiments/ai_commentator/eros_trialr$i/"
+  URLS="$URLS\n• r$i (kickoff $(python3 -c "import json;w=json.load(open('random_windows.json'))[$i-1];print(w['clock'],str(w['home'])+'-'+str(w['away']))")): https://sa-dev.agora.io/experiments/ai_commentator/modelE_trialr$i/"
   sleep 10
 done
 curl -s -X POST $SLACK_WEBHOOK \
