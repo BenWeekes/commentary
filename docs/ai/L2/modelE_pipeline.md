@@ -57,7 +57,7 @@ Broadcast-grade determinism, per language:
    (`played` / `cut`+cut_at / `dropped`+reason / `tts_failed`), rendered as chips
    (✓ / ✂ / ✖) on the review page per language tab.
 
-Voices: dedicated EN/FR/pt-BR voices (blend-pipeline conventions); other languages use the
+Delivery speeds (ElevenLabs native `voice_settings.speed`): fr 1.15 (sped-up fr reviewer-approved: "french sounds ok"), pt-BR 1.08, es 1.05, rest 1.0. Voices: dedicated EN/FR/pt-BR voices (blend-pipeline conventions); other languages use the
 EN commentator voice — flash v2_5 is multilingual, pronunciation follows the text language.
 
 ## Runbook
@@ -90,6 +90,8 @@ cd experiments/ai_commentator/eros_trial
 - Full findings & ratings: [eros_vendor_test.md](eros_vendor_test.md). Headlines: zero
   fabricated facts in 226 lines; naming specificity is the weak spot (1.8% of lines name a
   player); ~39% airtime; zh-origin calques in EN.
+- Vendor comms policy: do NOT tell them their latency beats the published figures — we
+  want continued reduction; the feedback page omits latency entirely.
 - Vendor asks outstanding: event token (turns goals/cards/subs into p0 facts),
   `match_package` schema, sentiment field (their v1 dropped it; needed for TTS emotion).
 - Signapse (sign-language leg) latency swings 5→45s per clip with waves of 408/503 at a
