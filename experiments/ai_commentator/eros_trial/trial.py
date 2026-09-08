@@ -61,34 +61,74 @@ if not a.skip_eros:
     for l in langs:
         (WORK/f"subs_{l.replace('-','_')}.jsonl").write_text('\n'.join(json.dumps(s) for s in subs[l]))
         print(l, len(subs[l]), 'lines', flush=True)
-# voice every captured language at pts (flash v2_5 is multilingual)
+# ---- PRECISE VOICING ENGINE ----------------------------------------------
+# Every utterance starts at its source_pts sample-exactly (PCM placement, <<50ms).
+# Preemption: a HIGHER-priority line (lower number) cuts the running utterance
+# (60ms fade, status=cut); a lower/equal-priority line arriving mid-utterance is
+# dropped (status=dropped). Full disclosure per line in placement_<lang>.json.
 VOICE={'en':'gU0LNdkMOQCOrPrwtbee','fr':'LcKoSBj8CeBInl4bQHtq','pt-BR':'HR2TRGmi4QbMsO5omv7l'}
 DEFAULT_VOICE='gU0LNdkMOQCOrPrwtbee'
+def tts_fetch(text, voice, f):
+    if f.exists() and f.stat().st_size>4000: return
+    body=json.dumps({"text":text,"model_id":"eleven_flash_v2_5",
+        "voice_settings":{"stability":0.5,"similarity_boost":0.8}}).encode()
+    req=urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{voice}?output_format=pcm_16000",
+        data=body,headers={"xi-api-key":ENV['ELEVENLABS_API_KEY'],"Content-Type":"application/json"})
+    f.write_bytes(urllib.request.urlopen(req,timeout=60).read())
 for lang in langs:
     sf=WORK/f"subs_{lang.replace('-','_')}.jsonl"
     if not sf.exists(): continue
     lines=[json.loads(x) for x in open(sf)]; lines.sort(key=lambda l:l['source_pts_ms'])
     td=WORK/f"tts_{lang.replace('-','_')}"; td.mkdir(exist_ok=True)
     voice=VOICE.get(lang, DEFAULT_VOICE)
-    track=bytearray(int(dur)*SR*2); prev=0.0; placed=[]
+    import concurrent.futures as cf
+    with cf.ThreadPoolExecutor(4) as ex:
+        list(ex.map(lambda t: tts_fetch(t[1]['text'], voice, td/f"{t[0]:02d}.pcm"), enumerate(lines)))
+    track=bytearray(int(dur)*SR*2)
+    cur=None   # {'i','end_sample','prio'}
+    report=[]
     for i,l in enumerate(lines):
+        pts=l['source_pts_ms']/1000; prio=l.get('priority',3)
         f=td/f"{i:02d}.pcm"
-        if not (f.exists() and f.stat().st_size>4000):
-            body=json.dumps({"text":l['text'],"model_id":"eleven_flash_v2_5",
-                "voice_settings":{"stability":0.5,"similarity_boost":0.8}}).encode()
-            req=urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{voice}?output_format=pcm_16000",
-                data=body,headers={"xi-api-key":ENV['ELEVENLABS_API_KEY'],"Content-Type":"application/json"})
-            f.write_bytes(urllib.request.urlopen(req,timeout=60).read())
-        d=f.stat().st_size/2/SR; t=max(l['source_pts_ms']/1000, prev+0.2)
-        if t+d>dur: break
-        p=int(t*SR)*2; pcm=f.read_bytes(); track[p:p+len(pcm)]=pcm
-        prev=t+d; placed.append({'i':i,'t':round(t,2),'pts':l['source_pts_ms']/1000,'dur':round(d,2)})
+        if not f.exists() or f.stat().st_size<4000:
+            report.append({'i':i,'seq':l['sequence'],'pts':round(pts,2),'prio':prio,'status':'tts_failed'}); continue
+        pcm=f.read_bytes(); dsamp=len(pcm)//2
+        p0=int(round(pts*SR))
+        if p0+16 >= int(dur)*SR:
+            report.append({'i':i,'seq':l['sequence'],'pts':round(pts,2),'prio':prio,'status':'dropped','reason':'beyond clip'}); continue
+        if cur and p0 < cur['end_sample']:
+            if prio < cur['prio']:
+                # cut the running utterance NOW with a 60ms fade
+                fs=max(p0-int(0.06*SR), 0)
+                for k in range(fs, p0):
+                    idx=k*2
+                    v=int.from_bytes(track[idx:idx+2],'little',signed=True)
+                    g=1.0-(k-fs)/max(p0-fs,1)
+                    track[idx:idx+2]=int(v*g).to_bytes(2,'little',signed=True)
+                track[p0*2:cur['end_sample']*2]=b'\x00'*((cur['end_sample']-p0)*2)
+                for r in report:
+                    if r['i']==cur['i']:
+                        r['status']='cut'; r['cut_at']=round(p0/SR,2); break
+                cur=None
+            else:
+                report.append({'i':i,'seq':l['sequence'],'pts':round(pts,2),'prio':prio,'status':'dropped',
+                               'reason':f"p{cur['prio']} line still speaking"}); continue
+        ends=min(p0+dsamp, len(track)//2)
+        track[p0*2:ends*2]=pcm[:(ends-p0)*2]
+        cur={'i':i,'end_sample':ends,'prio':prio}
+        report.append({'i':i,'seq':l['sequence'],'pts':round(pts,2),'prio':prio,'status':'played',
+                       't':round(pts,2),'dur':round(dsamp/SR,2)})
     (WORK/f'track_{lang}.pcm').write_bytes(bytes(track))
-    if lang=='en': json.dump(placed, open(WORK/'placement.json','w'))
+    json.dump(report, open(WORK/f"placement_{lang.replace('-','_')}.json",'w'))
+    if lang=='en':
+        json.dump([r for r in report if r['status'] in ('played','cut')], open(WORK/'placement.json','w'))
     subprocess.run(['ffmpeg','-y','-v','error','-f','s16le','-ar',str(SR),'-ac','1',
         '-i',str(WORK/f'track_{lang}.pcm'),str(WORK/f'track_{lang}.wav')],check=True)
     subprocess.run(['python3',str(AIC/'mux_with_crowd.py'),a.clip,str(WORK/f'track_{lang}.wav'),
         str(WWW/f"modelE_{lang.replace('-','_')}.mp4")],check=True)
-    print('voiced', lang, len(placed), 'lines', flush=True)
+    st={r['status'] for r in report}
+    print('voiced',lang,'played',sum(1 for r in report if r['status']=='played'),
+          'cut',sum(1 for r in report if r['status']=='cut'),
+          'dropped',sum(1 for r in report if r['status']=='dropped'),flush=True)
 subprocess.run(['python3',str(AIC/'eros_trial/build_trial_page2.py'),a.id,str(WORK),a.pkg,str(WWW)],check=True)
 print(f"READY: https://sa-dev.agora.io/experiments/ai_commentator/modelE_trial{a.id}/")

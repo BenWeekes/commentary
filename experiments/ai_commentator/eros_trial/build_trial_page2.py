@@ -31,11 +31,18 @@ for q in allseq:
            f"<td class=p{m['p']}>p{m['p']}</td><td class=tx id=c{q}></td>"
            f"<td class=fb data-q={q}>💬</td></tr>\n")
 LT={c:{q:langs[c][q]['text'] for q in langs[c]} for c in order if c!='asl'}
+STATUS={}
+for c in order:
+    pf=pathlib.Path(work)/f"placement_{c.replace('-','_')}.json"
+    if pf.exists():
+        import json as _j
+        STATUS[c]={r['seq']:{'s':r['status'],'cut':r.get('cut_at'),'why':r.get('reason','')} for r in _j.load(open(pf))}
 if 'asl' in order: LT['asl']=dict(LT['en'])   # ASL tab: EN text + live-signed video
 page=f"""<meta charset=utf-8><title>Model E trial {tid} — multi-language review</title>
 <style>body{{background:#0a0a0a;color:#ddd;font:13.5px system-ui;margin:16px;padding-bottom:70px}}
 table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #262626;padding:5px 8px;vertical-align:top}}
 th{{background:#161616;position:sticky;top:44px}}a{{color:#7dd3fc}}video{{width:720px;max-width:100%;display:block;margin:8px 0}}
+.stc{{font-size:10px;border-radius:8px;padding:0 6px;margin-left:6px}}.stc.ok{{color:#6ee7a8}}.stc.cut{{color:#ffc96f}}.stc.drop{{color:#f87171}}
 .p0{{color:#ff8d8d}}.p1{{color:#ffc96f}}.p2{{color:#9ecbff}}.p3{{color:#8a8a8a}}
 tr.now td{{background:#12222e}}.fb{{cursor:pointer;text-align:center;opacity:.45}}.fb.has{{opacity:1}}
 details{{background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin:10px 0}}
@@ -52,7 +59,7 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 .tag.on{{background:#1e3a5f;color:#dbeafe;border-color:#3b82f6}}
 #st{{background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:8px}}</style>
 <h2>Model E trial <b>{tid}</b> — multi-language (tab switches text AND voice)</h2>
-<div id=st>{len(allseq)} lines · latency p50 {pct(.5)} / p95 {pct(.95)} ms · {gapinfo} · a missing row under a tab = that language's translation failed (by design, not an error)</div>
+<div id=st>{len(allseq)} lines · latency p50 {pct(.5)} / p95 {pct(.95)} ms · {gapinfo} · chips: ✓ TTS played · ✂ cut by a higher-priority line · ✖ dropped (would have started >an utterance already speaking at its precise time)</div>
 <div id=tabs>{''.join(f"<span class=tab data-l='{c}'>{c}</span>" for c in order)}</div>
 <video id=v src="modelE_en.mp4" controls preload=metadata></video>
 <details><summary><b>Pre-match data sent to Model E</b></summary><pre>{html.escape(json.dumps(pkg,indent=1))}</pre></details>
@@ -64,7 +71,7 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 <div id=bar><span>Reviewer:</span><input id=who placeholder=name><span id=cnt>0 unsent</span>
 <button onclick=submitAll()>Submit feedback</button><span id=msg></span></div>
 <script>
-const TID={json.dumps(tid)}, LT={json.dumps(LT)}, META={json.dumps(meta)}, VOICED={json.dumps(voiced)};
+const TID={json.dumps(tid)}, LT={json.dumps(LT)}, META={json.dumps(meta)}, VOICED={json.dumps(voiced)}, STATUS={json.dumps(STATUS)};
 const v=document.getElementById('v'), box=document.getElementById('box');
 let LANG='en', pend={{}}, cur=-1, noFollow=0;
 who.value=localStorage.getItem('reviewer')||''; who.onchange=()=>localStorage.setItem('reviewer',who.value);
@@ -76,8 +83,15 @@ function render(){{
   for(const q in META){{
     const c=document.getElementById('c'+q);
     const txt=(LT[LANG]||{{}})[q];
-    c.textContent = txt===undefined ? '— (not delivered in '+LANG+')' : txt;
-    c.style.opacity = txt===undefined ? .35 : 1;
+    const st=((STATUS[LANG]||{{}})[q])||null;
+    let chip='';
+    if(st){{ if(st.s==='played') chip=' <span class="stc ok">✓ played</span>';
+      else if(st.s==='cut') chip=' <span class="stc cut">✂ cut at '+st.cut+'s</span>';
+      else if(st.s==='dropped') chip=' <span class="stc drop">✖ dropped'+(st.why?(' — '+st.why):'')+'</span>';
+      else chip=' <span class="stc drop">'+st.s+'</span>'; }}
+    if(txt===undefined){{ c.textContent='— (not delivered in '+LANG+')'; c.style.opacity=.35; }}
+    else {{ c.innerHTML=''; c.appendChild(document.createTextNode(txt));
+      if(chip) c.insertAdjacentHTML('beforeend', chip); c.style.opacity = (st&&st.s==='dropped')? .55 : 1; }}
   }}
 }}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{{LANG=t.dataset.l;render();}});

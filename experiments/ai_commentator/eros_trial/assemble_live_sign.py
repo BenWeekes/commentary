@@ -22,6 +22,7 @@ for i in sorted(ev):
     if not f.exists() or 'tts_ready' not in e: continue
     d=f.stat().st_size/2/SR
     t=max(e['pts'], e['tts_ready']-DELAY, prev+0.2)
+    if t-e['pts']>3.0: continue      # drop-late, don't cascade
     if t+d>dur: break
     p=int(t*SR)*2; pcm=f.read_bytes(); track[p:p+len(pcm)]=pcm
     prev=t+d; placed.append({'i':i,'t':round(t,2),'pts':e['pts'],'dur':round(d,2)})
