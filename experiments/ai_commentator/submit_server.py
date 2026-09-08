@@ -173,6 +173,10 @@ class H(BaseHTTPRequestHandler):
             with _LOCK:
                 rounds = load_rounds()
                 status = (rounds.get('rounds', {}).get(version) or {}).get('status')
+                # experimental side-channels (vendor trials, ASR pages) are always open:
+                # they are not build rounds and must never bounce reviewer feedback
+                if version.startswith(('modelE', 'asr')):
+                    status = 'open'
                 if status == 'open':
                     d = FEEDBACK / version; d.mkdir(parents=True, exist_ok=True)
                     if not _under(d, FEEDBACK):
