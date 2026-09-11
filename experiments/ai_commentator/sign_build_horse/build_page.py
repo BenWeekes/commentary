@@ -31,6 +31,7 @@ th{{background:#161616;position:sticky;top:0}}a{{color:#7dd3fc}}video{{width:720
 <div id=st>{len(lines)} commentary lines (STT) · signed live {signed} · dropped by backlog {dropped}
 · Signapse generation p50 {gens[len(gens)//2] if gens else '?'}s · signer appears at its TRUE ready time
 (STT finalize + generation + worker queue, 3 workers)</div>
+<div style="margin:6px 0"><span class=vtab data-s="horse_asl.mp4" style="border:1px solid #334155;border-radius:6px;padding:4px 14px;margin-right:6px;cursor:pointer;background:#1e3a5f;color:#dbeafe">live latency</span><span class=vtab data-s="horse_asl_sync.mp4" style="border:1px solid #334155;border-radius:6px;padding:4px 14px;cursor:pointer;color:#94a3b8">synced</span></div>
 <video id=v src="horse_asl.mp4" controls preload=metadata></video>
 <table><tr><th style=width:52px>t</th><th>Commentary (Soniox STT) + signing fate</th><th style=width:34px></th></tr>
 {rows}</table>
@@ -43,10 +44,12 @@ const LINES={json.dumps([{'t':round(l['t'],1),'text':l['text']} for l in lines])
 const v=document.getElementById('v'); let pend={{}},cur=-1,noFollow=0;
 who.value=localStorage.getItem('reviewer')||''; who.onchange=()=>localStorage.setItem('reviewer',who.value);
 addEventListener('wheel',()=>noFollow=Date.now()+6000);
+document.querySelectorAll('.vtab').forEach(t=>t.onclick=()=>{{const tt=v.currentTime,pl=!v.paused;v.src=t.dataset.s;v.currentTime=tt;if(pl)v.play();
+document.querySelectorAll('.vtab').forEach(x=>{{x.style.background=x===t?'#1e3a5f':'';x.style.color=x===t?'#dbeafe':'#94a3b8';}});}});
 v.addEventListener('timeupdate',()=>{{const t=v.currentTime;let best=null;
 document.querySelectorAll('tr[data-t]').forEach(r=>{{if(parseFloat(r.dataset.t)<=t)best=r;}});
 if(best&&best!==cur){{cur&&cur.classList&&cur.classList.remove('now');cur=best;best.classList.add('now');
-if(Date.now()>noFollow)best.scrollIntoView({{block:'center',behavior:'smooth'}});}}}});
+}}}});
 document.querySelectorAll('.fb').forEach(c=>c.onclick=()=>{{const i=+c.dataset.i;box.dataset.i=i;
 bt.textContent=LINES[i].t+'s — '+LINES[i].text.slice(0,60);bc.value=(pend[i]||{{}}).comment||'';box.style.display='block';}});
 function saveC(){{const i=+box.dataset.i;
