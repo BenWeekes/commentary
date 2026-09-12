@@ -60,7 +60,7 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 #st{{background:#101826;border:1px solid #1e3a5f;border-radius:6px;padding:8px 12px;margin-bottom:8px}}</style>
 <h2>Model E trial <b>{tid}</b> — multi-language (tab switches text AND voice)</h2>
 <div id=st>{len(allseq)} lines · latency p50 {pct(.5)} / p95 {pct(.95)} ms · {gapinfo} · chips: ✓ TTS played · ✂ cut by a higher-priority line · ✖ dropped (would have started >an utterance already speaking at its precise time)</div>
-<div id=tabs>{''.join(f"<span class=tab data-l='{c}'>{c}</span>" for c in order)}<span class=tab data-l='__comments'>comments</span></div>
+<div id=tabs>{''.join(f"<span class=tab data-l='{c}'>{c}</span>" for c in order)}</div>
 <video id=v src="modelE_en.mp4" controls preload=metadata></video>
 <details><summary><b>Pre-match data sent to Model E</b></summary><pre>{html.escape(json.dumps(pkg,indent=1))}</pre></details>
 <table><tr><th style=width:52px>t</th><th style=width:34px>pri</th><th>Model E commentary <span id=curlang>(en)</span></th><th style=width:34px></th></tr>
@@ -70,7 +70,8 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 <div id=tags>{''.join(f"<span class=tag>{t}</span>" for t in ('wrong fact','repetition','language','naming','timing','👍 good'))}</div>
 <div style="margin-top:6px"><button onclick=saveC()>Save</button> <button onclick="box.style.display='none'">Close</button></div></div>
 <div id=bar><span>Reviewer:</span><input id=who placeholder=name><span id=cnt>0 unsent</span>
-<button onclick=submitAll()>Submit feedback</button><span id=msg></span></div>
+<button onclick=submitAll()>Submit feedback</button>
+<button onclick=showComments() style="background:#14532d">Comments</button><span id=msg></span></div>
 <script>
 const TID={json.dumps(tid)}, LT={json.dumps(LT)}, META={json.dumps(meta)}, VOICED={json.dumps(voiced)}, STATUS={json.dumps(STATUS)};
 const v=document.getElementById('v'), box=document.getElementById('box');
@@ -95,14 +96,11 @@ function render(){{
       if(chip) c.insertAdjacentHTML('beforeend', chip); c.style.opacity = (st&&st.s==='dropped')? .55 : 1; }}
   }}
 }}
-let cLoaded=false;
 function showComments(){{
   document.querySelector('table').style.display='none';
   const cv=document.getElementById('cview'); cv.style.display='block';
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.l==='__comments'));
-  if(cLoaded) return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
   fetch('/blend_comments?version=modelE'+TID).then(r=>r.json()).then(j=>{{
-    cLoaded=true;
     const seen=new Set(); const rows=[];
     for(const s of j.submissions) for(const it of s.items){{
       const k=s.reviewer+'|'+it.t+'|'+(it.column||'')+'|'+(it.comment||'')+'|'+(it.tags||[]).join(',');
@@ -147,7 +145,8 @@ clip:TID,cell_text:(LT[c.lang]||{{}})[c.q]||'',tags:c.tags,comment:c.comment}}))
 if(!items.length){{msg.textContent='nothing to send';return;}}
 fetch('/blend_feedback',{{method:'POST',body:JSON.stringify({{reviewer:w,version:'modelE'+TID,items:items}})}})
 .then(r=>r.json()).then(j=>{{msg.textContent=j.ok?'sent ✓':'error: '+(j.error||'');if(j.ok){{pend={{}};cnt.textContent='0 unsent';
-document.querySelectorAll('.fb.has').forEach(e=>e.classList.remove('has'));}}}})
+document.querySelectorAll('.fb.has').forEach(e=>e.classList.remove('has'));
+if(document.getElementById('cview').style.display==='block') showComments();}}}})
 .catch(()=>msg.textContent='network error');}}
 </script>"""
 w=pathlib.Path(www); w.mkdir(parents=True, exist_ok=True)
