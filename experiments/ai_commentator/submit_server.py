@@ -111,6 +111,21 @@ class H(BaseHTTPRequestHandler):
         return json.loads(self.rfile.read(n) or b'{}')
 
     def do_GET(self):
+        if self.path.startswith('/blend_comments'):
+            from urllib.parse import urlparse, parse_qs
+            q=parse_qs(urlparse(self.path).query)
+            version=safe((q.get('version') or [''])[0])
+            f=FEEDBACK/version/'comments.jsonl'
+            subs=[]
+            if version and _under(FEEDBACK/version, FEEDBACK) and f.exists():
+                for line in f.read_text(errors='replace').splitlines():
+                    if not line.strip(): continue
+                    try: r=json.loads(line)
+                    except Exception: continue
+                    if r.get('reviewer')=='selftest': continue
+                    subs.append(r)
+            return self._send(200, {'version': version, 'submissions': subs})
+
         if self.path.startswith('/blend_rounds'):
             return self._send(200, load_rounds())
         revs = sorted(p.stem for p in SCORES.glob('*.json'))
