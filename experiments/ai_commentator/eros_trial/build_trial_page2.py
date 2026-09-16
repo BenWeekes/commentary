@@ -62,7 +62,7 @@ pre{{max-height:340px;overflow:auto;font-size:11.5px;color:#9fb6c9}}
 <div id=st>{len(allseq)} lines · latency p50 {pct(.5)} / p95 {pct(.95)} ms · {gapinfo} · chips: ✓ TTS played · ✂ cut by a higher-priority line · ✖ dropped (would have started >an utterance already speaking at its precise time)</div>
 <div id=tabs>{''.join(f"<span class=tab data-l='{c}'>{c}</span>" for c in order)}</div>
 <video id=v src="modelE_en.mp4" controls preload=metadata></video>
-<details><summary><b>Pre-match data sent to Model E</b></summary><pre>{html.escape(json.dumps(pkg,indent=1))}</pre></details>
+<details open><summary><b>Pre-match data sent to Model E</b> (as delivered, verbatim — click to collapse)</summary><pre>{html.escape(json.dumps(pkg,indent=1))}</pre></details>
 <table><tr><th style=width:52px>t</th><th style=width:34px>pri</th><th>Model E commentary <span id=curlang>(en)</span></th><th style=width:34px></th></tr>
 {rows}</table>
 <div id=cview style="display:none"></div>
