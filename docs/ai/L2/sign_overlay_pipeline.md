@@ -69,6 +69,24 @@ mux audio (`-c:v copy`). Run everything `nice -n 15` with `-threads 2`, strictly
 at a time. Trim/concat of one input inside the same graph needs `split` — simpler to do the
 silence-cut as its own first pass (`select='between(t,a,b)+...',setpts=N/25/TB`).
 
+## Live signing trials (2026-09-07/11) — the latency verdict
+
+- **Live pipeline exists**: `eros_trial/live_sign_trial.py` (Model E text signed DURING the
+  stream; signer composited at TRUE wall-clock ready times behind a 7s delay) and
+  `sign_build_horse/build_horse.py` (Soniox STT → live-SIMULATED signing: real measured
+  generation times, 3 workers, queue cap 4 drop-oldest).
+- **Horse racing** (`/experiments/ai_commentator/horse_asl/`, live/synced toggle on one
+  page): 69 lines in 6:31 → 33 signed live / 36 dropped; signing trailed speech by
+  min 18s / p50 39s / p90 75s. Decomposition: STT 1.5s + Signapse gen p50 24s + queue
+  wait the rest. The synced tab (all 69 lines at their spoken moment) is the
+  what-if-generation-were-instant comparison.
+- **Football live** (modelE_trialLS1): 14/49 signed on a bad Signapse day (pure gen p50
+  43s / p90 98s / max 105s; timestamped worst-cases emailed to Signapse).
+- **Verdict**: Signapse latency swings 5→45s+ in waves; median workable, variance is the
+  production blocker. Dense formats (racing) additionally need digest-then-sign or
+  provisioned capacity. Per-line evidence: `sign_build_horse/sim.json`,
+  `eros_trial/work_LS1/live_events.json`.
+
 ## Ops lessons
 
 - Keep build dirs OUT of /tmp — a session scratchpad wipe cost a full regeneration. The
