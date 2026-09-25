@@ -85,6 +85,17 @@ cd experiments/ai_commentator/eros_trial
 - Media naming: `modelE_<lang>.mp4` — the page template and the writer MUST agree (a
   mismatch once 404'd every video).
 
+## Model update results (std2 -> std3, 2026-09-25; same clip, same full v2 package)
+
+Their September model update, tested clean: naming 0% -> 31% (all three subs correctly
+paired as p0 lines, Kohn yellow finally detected AND retro-attributed), zero
+fabrications, replays labelled, correct scoreboard/minute lines. Cost: coverage
+collapsed to 16 lines/5min with 40-60s silences; our 10 verified_context lines are
+still unused (their own docs say these fill quiet passages — top feedback item now);
+Posch header still uncalled. Package schema learnings: create-with-package works and
+is stored (the LIST endpoint strips match_package — GET by id to verify); broadcast
+scoreboard codes M05/FCU matter for their goal confirmation.
+
 ## Known limits / open items
 
 - Full findings & ratings: [eros_vendor_test.md](eros_vendor_test.md). Headlines: zero

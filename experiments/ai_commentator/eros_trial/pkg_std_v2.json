@@ -1,0 +1,465 @@
+{
+ "schema_version": "eros.match-package.v1",
+ "competition": "Bundesliga",
+ "venue": "Mewa Arena, Mainz",
+ "phase": "下半場",
+ "score_at_clip_start": [
+  1,
+  1
+ ],
+ "kickoff_clock": "76:50",
+ "team_sides": {
+  "M05": "home",
+  "FCU": "away"
+ },
+ "teams": {
+  "M05": {
+   "name_zh": "美因茨",
+   "name": "FSV Mainz 05",
+   "name_fr": "Mayence",
+   "name_es": "Maguncia",
+   "name_pt-br": "Mainz",
+   "name_tr": "Mainz",
+   "kit": "红色",
+   "goalkeeper_kit": "青绿色",
+   "goalkeeper_kit_terms": [
+    "青绿色",
+    "湖蓝色",
+    "浅绿色",
+    "蓝绿色"
+   ],
+   "coach": "Urs Fischer"
+  },
+  "FCU": {
+   "name_zh": "柏林联合",
+   "name": "Union Berlin",
+   "name_fr": "Union Berlin",
+   "name_es": "Union Berlin",
+   "name_pt-br": "Union Berlin",
+   "name_tr": "Union Berlin",
+   "kit": "墨绿色",
+   "goalkeeper_kit": "亮黄色",
+   "goalkeeper_kit_terms": [
+    "亮黄色",
+    "黄色",
+    "荧光黄"
+   ],
+   "coach": "Marie-Louise Eta"
+  }
+ },
+ "roster_entities": [
+  {
+   "team": "M05",
+   "number": 27,
+   "name_zh": "岑特纳",
+   "name": "Robin Zentner",
+   "name_fr": "Robin Zentner",
+   "name_es": "Robin Zentner",
+   "name_pt-br": "Robin Zentner",
+   "name_tr": "Robin Zentner"
+  },
+  {
+   "team": "M05",
+   "number": 21,
+   "name_zh": "达科斯塔",
+   "name": "Danny da Costa",
+   "name_fr": "Danny da Costa",
+   "name_es": "Danny da Costa",
+   "name_pt-br": "Danny da Costa",
+   "name_tr": "Danny da Costa"
+  },
+  {
+   "team": "M05",
+   "number": 4,
+   "name_zh": "波施",
+   "name": "Stefan Posch",
+   "name_fr": "Stefan Posch",
+   "name_es": "Stefan Posch",
+   "name_pt-br": "Stefan Posch",
+   "name_tr": "Stefan Posch"
+  },
+  {
+   "team": "M05",
+   "number": 31,
+   "name_zh": "科尔",
+   "name": "Dominik Kohr",
+   "name_fr": "Dominik Kohr",
+   "name_es": "Dominik Kohr",
+   "name_pt-br": "Dominik Kohr",
+   "name_tr": "Dominik Kohr"
+  },
+  {
+   "team": "M05",
+   "number": 19,
+   "name_zh": "卡奇",
+   "name": "Anthony Caci",
+   "name_fr": "Anthony Caci",
+   "name_es": "Anthony Caci",
+   "name_pt-br": "Anthony Caci",
+   "name_tr": "Anthony Caci"
+  },
+  {
+   "team": "M05",
+   "number": 6,
+   "name_zh": "佐野海舟",
+   "name": "Kaishu Sano",
+   "name_fr": "Kaishu Sano",
+   "name_es": "Kaishu Sano",
+   "name_pt-br": "Kaishu Sano",
+   "name_tr": "Kaishu Sano"
+  },
+  {
+   "team": "M05",
+   "number": 2,
+   "name_zh": "姆韦内",
+   "name": "Philipp Mwene",
+   "name_fr": "Philipp Mwene",
+   "name_es": "Philipp Mwene",
+   "name_pt-br": "Philipp Mwene",
+   "name_tr": "Philipp Mwene"
+  },
+  {
+   "team": "M05",
+   "number": 8,
+   "name_zh": "内贝尔",
+   "name": "Paul Nebel",
+   "name_fr": "Paul Nebel",
+   "name_es": "Paul Nebel",
+   "name_pt-br": "Paul Nebel",
+   "name_tr": "Paul Nebel"
+  },
+  {
+   "team": "M05",
+   "number": 10,
+   "name_zh": "阿米里",
+   "name": "Nadiem Amiri",
+   "name_fr": "Nadiem Amiri",
+   "name_es": "Nadiem Amiri",
+   "name_pt-br": "Nadiem Amiri",
+   "name_tr": "Nadiem Amiri"
+  },
+  {
+   "team": "M05",
+   "number": 20,
+   "name_zh": "蒂茨",
+   "name": "Phillip Tietz",
+   "name_fr": "Phillip Tietz",
+   "name_es": "Phillip Tietz",
+   "name_pt-br": "Phillip Tietz",
+   "name_tr": "Phillip Tietz"
+  },
+  {
+   "team": "M05",
+   "number": 23,
+   "name_zh": "贝克尔",
+   "name": "Sheraldo Becker",
+   "name_fr": "Sheraldo Becker",
+   "name_es": "Sheraldo Becker",
+   "name_pt-br": "Sheraldo Becker",
+   "name_tr": "Sheraldo Becker"
+  },
+  {
+   "team": "M05",
+   "number": 44,
+   "name_zh": "魏佩尔",
+   "name": "Nelson Weiper",
+   "name_fr": "Nelson Weiper",
+   "name_es": "Nelson Weiper",
+   "name_pt-br": "Nelson Weiper",
+   "name_tr": "Nelson Weiper"
+  },
+  {
+   "team": "M05",
+   "number": 48,
+   "name_zh": "波图尔斯基",
+   "name": "Kacper Potulski",
+   "name_fr": "Kacper Potulski",
+   "name_es": "Kacper Potulski",
+   "name_pt-br": "Kacper Potulski",
+   "name_tr": "Kacper Potulski"
+  },
+  {
+   "team": "M05",
+   "number": 22,
+   "name_zh": "韦拉奇尼格",
+   "name": "Nikolas Veratschnig",
+   "name_fr": "Nikolas Veratschnig",
+   "name_es": "Nikolas Veratschnig",
+   "name_pt-br": "Nikolas Veratschnig",
+   "name_tr": "Nikolas Veratschnig"
+  },
+  {
+   "team": "M05",
+   "number": 24,
+   "name_zh": "川崎飒太",
+   "name": "Sota Kawasaki",
+   "name_fr": "Sota Kawasaki",
+   "name_es": "Sota Kawasaki",
+   "name_pt-br": "Sota Kawasaki",
+   "name_tr": "Sota Kawasaki"
+  },
+  {
+   "team": "M05",
+   "number": 11,
+   "name_zh": "西布",
+   "name": "Armindo Sieb",
+   "name_fr": "Armindo Sieb",
+   "name_es": "Armindo Sieb",
+   "name_pt-br": "Armindo Sieb",
+   "name_tr": "Armindo Sieb"
+  },
+  {
+   "team": "M05",
+   "number": 15,
+   "name_zh": "马洛尼",
+   "name": "Lennard Maloney",
+   "name_fr": "Lennard Maloney",
+   "name_es": "Lennard Maloney",
+   "name_pt-br": "Lennard Maloney",
+   "name_tr": "Lennard Maloney"
+  },
+  {
+   "team": "M05",
+   "number": 7,
+   "name_zh": "李在城",
+   "name": "Lee Jae-sung",
+   "name_fr": "Lee Jae-sung",
+   "name_es": "Lee Jae-sung",
+   "name_pt-br": "Lee Jae-sung",
+   "name_tr": "Lee Jae-sung"
+  },
+  {
+   "team": "M05",
+   "number": 30,
+   "name_zh": "维德默",
+   "name": "Silvan Widmer",
+   "name_fr": "Silvan Widmer",
+   "name_es": "Silvan Widmer",
+   "name_pt-br": "Silvan Widmer",
+   "name_tr": "Silvan Widmer"
+  },
+  {
+   "team": "M05",
+   "number": 33,
+   "name_zh": "巴茨",
+   "name": "Daniel Batz",
+   "name_fr": "Daniel Batz",
+   "name_es": "Daniel Batz",
+   "name_pt-br": "Daniel Batz",
+   "name_tr": "Daniel Batz"
+  },
+  {
+   "team": "FCU",
+   "number": 25,
+   "name_zh": "克劳斯",
+   "name": "Carl Klaus",
+   "name_fr": "Carl Klaus",
+   "name_es": "Carl Klaus",
+   "name_pt-br": "Carl Klaus",
+   "name_tr": "Carl Klaus"
+  },
+  {
+   "team": "FCU",
+   "number": 28,
+   "name_zh": "特里梅尔",
+   "name": "Christopher Trimmel",
+   "name_fr": "Christopher Trimmel",
+   "name_es": "Christopher Trimmel",
+   "name_pt-br": "Christopher Trimmel",
+   "name_tr": "Christopher Trimmel"
+  },
+  {
+   "team": "FCU",
+   "number": 4,
+   "name_zh": "莱特",
+   "name": "Diogo Leite",
+   "name_fr": "Diogo Leite",
+   "name_es": "Diogo Leite",
+   "name_pt-br": "Diogo Leite",
+   "name_tr": "Diogo Leite"
+  },
+  {
+   "team": "FCU",
+   "number": 5,
+   "name_zh": "杜基",
+   "name": "Danilho Doekhi",
+   "name_fr": "Danilho Doekhi",
+   "name_es": "Danilho Doekhi",
+   "name_pt-br": "Danilho Doekhi",
+   "name_tr": "Danilho Doekhi"
+  },
+  {
+   "team": "FCU",
+   "number": 15,
+   "name_zh": "罗特",
+   "name": "Tom Rothe",
+   "name_fr": "Tom Rothe",
+   "name_es": "Tom Rothe",
+   "name_pt-br": "Tom Rothe",
+   "name_tr": "Tom Rothe"
+  },
+  {
+   "team": "FCU",
+   "number": 13,
+   "name_zh": "赫迪拉",
+   "name": "Rani Khedira",
+   "name_fr": "Rani Khedira",
+   "name_es": "Rani Khedira",
+   "name_pt-br": "Rani Khedira",
+   "name_tr": "Rani Khedira"
+  },
+  {
+   "team": "FCU",
+   "number": 6,
+   "name_zh": "凯姆莱因",
+   "name": "Aljoscha Kemlein",
+   "name_fr": "Aljoscha Kemlein",
+   "name_es": "Aljoscha Kemlein",
+   "name_pt-br": "Aljoscha Kemlein",
+   "name_tr": "Aljoscha Kemlein"
+  },
+  {
+   "team": "FCU",
+   "number": 7,
+   "name_zh": "伯克",
+   "name": "Oliver Burke",
+   "name_fr": "Oliver Burke",
+   "name_es": "Oliver Burke",
+   "name_pt-br": "Oliver Burke",
+   "name_tr": "Oliver Burke"
+  },
+  {
+   "team": "FCU",
+   "number": 10,
+   "name_zh": "安萨",
+   "name": "Ilyas Ansah",
+   "name_fr": "Ilyas Ansah",
+   "name_es": "Ilyas Ansah",
+   "name_pt-br": "Ilyas Ansah",
+   "name_tr": "Ilyas Ansah"
+  },
+  {
+   "team": "FCU",
+   "number": 9,
+   "name_zh": "布尔库",
+   "name": "Livan Burcu",
+   "name_fr": "Livan Burcu",
+   "name_es": "Livan Burcu",
+   "name_pt-br": "Livan Burcu",
+   "name_tr": "Livan Burcu"
+  },
+  {
+   "team": "FCU",
+   "number": 23,
+   "name_zh": "伊利奇",
+   "name": "Andrej Ilic",
+   "name_fr": "Andrej Ilic",
+   "name_es": "Andrej Ilic",
+   "name_pt-br": "Andrej Ilic",
+   "name_tr": "Andrej Ilic"
+  },
+  {
+   "team": "FCU",
+   "number": 48,
+   "name_zh": "维斯贝赖特",
+   "name": "Tom Wisbereit",
+   "name_fr": "Tom Wisbereit",
+   "name_es": "Tom Wisbereit",
+   "name_pt-br": "Tom Wisbereit",
+   "name_tr": "Tom Wisbereit"
+  },
+  {
+   "team": "FCU",
+   "number": 13,
+   "name_zh": "舍费尔",
+   "name": "Andras Schafer",
+   "name_fr": "Andras Schafer",
+   "name_es": "Andras Schafer",
+   "name_pt-br": "Andras Schafer",
+   "name_tr": "Andras Schafer"
+  },
+  {
+   "team": "FCU",
+   "number": 14,
+   "name_zh": "奎尔费尔德",
+   "name": "Leopold Querfeld",
+   "name_fr": "Leopold Querfeld",
+   "name_es": "Leopold Querfeld",
+   "name_pt-br": "Leopold Querfeld",
+   "name_tr": "Leopold Querfeld"
+  },
+  {
+   "team": "FCU",
+   "number": 11,
+   "name_zh": "郑优营",
+   "name": "Jeong Woo-yeong",
+   "name_fr": "Jeong Woo-yeong",
+   "name_es": "Jeong Woo-yeong",
+   "name_pt-br": "Jeong Woo-yeong",
+   "name_tr": "Jeong Woo-yeong"
+  },
+  {
+   "team": "FCU",
+   "number": 39,
+   "name_zh": "科恩",
+   "name": "Derrick Kohn",
+   "name_fr": "Derrick Kohn",
+   "name_es": "Derrick Kohn",
+   "name_pt-br": "Derrick Kohn",
+   "name_tr": "Derrick Kohn"
+  },
+  {
+   "team": "FCU",
+   "number": 34,
+   "name_zh": "恩索基",
+   "name": "Stanley Nsoki",
+   "name_fr": "Stanley Nsoki",
+   "name_es": "Stanley Nsoki",
+   "name_pt-br": "Stanley Nsoki",
+   "name_tr": "Stanley Nsoki"
+  },
+  {
+   "team": "FCU",
+   "number": 21,
+   "name_zh": "斯卡尔克",
+   "name": "Tim Skarke",
+   "name_fr": "Tim Skarke",
+   "name_es": "Tim Skarke",
+   "name_pt-br": "Tim Skarke",
+   "name_tr": "Tim Skarke"
+  },
+  {
+   "team": "FCU",
+   "number": 18,
+   "name_zh": "尤拉诺维奇",
+   "name": "Josip Juranovic",
+   "name_fr": "Josip Juranovic",
+   "name_es": "Josip Juranovic",
+   "name_pt-br": "Josip Juranovic",
+   "name_tr": "Josip Juranovic"
+  },
+  {
+   "team": "FCU",
+   "number": 33,
+   "name_zh": "克拉尔",
+   "name": "Alex Kral",
+   "name_fr": "Alex Kral",
+   "name_es": "Alex Kral",
+   "name_pt-br": "Alex Kral",
+   "name_tr": "Alex Kral"
+  }
+ ],
+ "verified_context": [
+  "两队在该片段开始时战成1比1。",
+  "柏林联合近9场德甲对阵美因茨保持不败，这是他们德甲面对单一对手的最长不败纪录。",
+  "2026年1月的首回合，美因茨一度2比0领先，柏林联合在最后15分钟连进两球追成2比2。",
+  "美因茨主帅费舍尔2018至2023年执教柏林联合，带队从德乙升入德甲并一路进入欧冠。",
+  "两队都在上一个比赛日提前完成保级，本场是赛季倒数第二轮，也是美因茨本赛季最后一个主场。",
+  "费舍尔2025年12月接手美因茨时球队排名垫底，本场前已经提前两轮完成保级。",
+  "柏林联合目前由玛丽-路易丝·埃塔以临时主帅身份带队至赛季结束。",
+  "美因茨上轮客场2比1击败圣保利，并凭借这场胜利提前两轮保级。",
+  "费舍尔赛前特别提醒美因茨避免送给柏林联合过多定位球机会，后者本赛季多次依靠定位球得分。",
+  "费舍尔赛前认为柏林联合锋线速度突出，攻防转换尤其危险。"
+ ],
+ "forbidden_topics": []
+}
