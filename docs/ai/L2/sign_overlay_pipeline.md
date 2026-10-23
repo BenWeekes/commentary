@@ -94,3 +94,31 @@ silence-cut as its own first pass (`select='between(t,a,b)+...',setpts=N/25/TB`)
 - `pkill -f <pattern>` from an agent shell can match its own wrapper command line and
   self-kill (exit 144): kill by PID, or use a `[b]racketed` pattern.
 - Killing a python parent does not kill its ffmpeg child — sweep both.
+
+## Round 2 (2026-09-07..11): live generation, honest latency, sync toggle
+
+- **Live sign trials** (`eros_trial/live_sign_trial.py` + `assemble_live_sign.py`, page
+  `modelE_trialLS1`; horse racing: `sign_build_horse/build_horse.py`): Signapse clips are
+  generated DURING the stream (3 workers, chunked ≤8 words, queue cap 4 drop-oldest),
+  wall-clock stamped, and composited at their TRUE ready time behind the broadcast delay.
+- **Measured Signapse reality**: generation swings 5→45 s/clip in waves (p50 43 s on a bad
+  day, p90 98 s). Football window: 14/49 lines signed live. Racing pace (line per ~6 s):
+  33/69 signed, signer 18–80 s behind (p50 39 s). Verdict: live line-by-line signing needs
+  an SLA/provisioned capacity or digest-then-sign; evidence in `work_LS1/live_events.json`
+  and `sign_build_horse/sim.json`.
+- **Review pages** (`horse_asl/`): per-line fate table (✓ signed at +Ns with real gen time /
+  ✖ dropped by backlog) + a **live-latency vs synced toggle** — same page, two videos, the
+  product argument in one view. Auto-scroll removed at reviewer request.
+
+## Voice isolation toolkit (2026-10-16, `experiments/ai_commentator/slickback/`)
+
+Any clip → isolated per-speaker voice tracks:
+1. Soniox `stt-rt-v5` with `enable_speaker_diarization: true` → per-token speaker labels
+   + timestamps (`diarize.py`).
+2. Merge same-speaker tokens into intervals (≤0.8 s gaps bridged, ~0.2 s padding); cut
+   per speaker from the ORIGINAL 48 kHz audio and concat (ffmpeg -ss/-t per segment —
+   note: `aselect` between() silently passed everything; use explicit cuts).
+3. Optional: Demucs `htdemucs --two-stems=vocals` (CPU venv `~/demucsenv`, ~0.8× realtime)
+   strips background music from a speaker track.
+Diarization quality on a 4-voice cartoon scene: clean separation, one single-line bleed
+caught by ear. Output pattern: speaker_N.wav on a public URL under the experiments root.
