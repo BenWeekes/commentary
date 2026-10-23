@@ -96,6 +96,28 @@ Posch header still uncalled. Package schema learnings: create-with-package works
 is stored (the LIST endpoint strips match_package — GET by id to verify); broadcast
 scoreboard codes M05/FCU matter for their goal confirmation.
 
+## r7 release and the v4/v5 batches (2026-09-25 .. 2026-10-19)
+
+Vendor guide saved verbatim at `~/moment_guide.md`. Key changes wired into `trial.py`:
+- `output.commentary_profile`: `betting` (service default, sparse event-only) vs `tv`
+  (fuller account; the ONLY mode that uses our `verified_context` background lines).
+  Flag: `--profile tv`. URL convention carries version+mode: `modelE_trial<win>_<v>[_tv]`.
+- Subtitle schema v2 adds per-line `emotion` (Calm/Tension/Nervous/Drama/Excited) —
+  shown on pages and mapped to ElevenLabs stability (Calm 0.55 .. Excited 0.28).
+- Packages gained `short_name` ("Mainz" — kills the "FSV Mainz 05" complaint),
+  `starter`, `player_id`. OPEN: FCU #13 duplicated (Khedira/Schafer) in Sportradar
+  source — vendor wants our confirmation.
+- **MILESTONE (v4, 2026-09-30): first correct goal call with NO event feed** —
+  "Goal for Union Berlin! It's 0-1." p0/Excited, right team/score, ~8s after the ball
+  crossed, from scoreboard confirmation; held identically in v5 with better build-up.
+  The lone Excited label in 400+ TV lines sits exactly on the goal — no false positives.
+- Coverage trajectory per 5-min window: betting 6-15 lines; v4 TV 20-48; v5 TV 10-33
+  (v5 trimmed TV ~35%, hitting quiet windows hardest — open question to vendor whether
+  the cut lines were the filler reviewers mocked or wanted play description).
+- Reviewer feedback loop: pages have per-language comment tabs + public comments view
+  (`/blend_comments`); Alex has ~250 comments across versions; vendor demonstrably acts
+  on them (their r7 guide answers his 38 std-window comments row by row).
+
 ## Known limits / open items
 
 - Full findings & ratings: [eros_vendor_test.md](eros_vendor_test.md). Headlines: zero
