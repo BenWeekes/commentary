@@ -8,8 +8,9 @@
 > shot changes, replays, and slow motion. Fixing that needs the ReID/jersey-OCR tracker
 > roadmap, not more commentary rules.
 >
-> **Preserved for resumption:** review pages stay live (`blend_v7_10s/`, `blend_v7_6s/`,
-> `blend_v7_6s_vt/`; round v7 left open — Alex reviewed 6s_vt on 2026-07-29: 32 comments,
+> **Preserved for resumption:** review page HTML/transcripts kept; the v7 page VIDEOS were
+> deleted 2026-11-04 to reclaim disk (regenerable via `build_v7.sh` from the secured clip)
+> (`blend_v7_10s/`, `blend_v7_6s/`, `blend_v7_6s_vt/`; round v7 left open — Alex reviewed 6s_vt on 2026-07-29: 32 comments,
 > 14 👍, in `feedback/v7/`, all feedback rounds now committed to git); source clip at
 > `clips/m05_uni_eval_25min/slice_5min.mp4` (116 MB — exceeds GitHub's 100 MB limit, so
 > LOCAL ONLY, not in the remote); trio evidence in `runs/v7/`; ledger `tuning_rules.yaml`

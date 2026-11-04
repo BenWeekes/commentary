@@ -118,6 +118,15 @@ Vendor guide saved verbatim at `~/moment_guide.md`. Key changes wired into `tria
   (`/blend_comments`); Alex has ~250 comments across versions; vendor demonstrably acts
   on them (their r7 guide answers his 38 std-window comments row by row).
 
+## Disk policy (2026-11-04)
+
+Only the MOST RECENT trial generation keeps its rendered videos (currently `*_5_tv`);
+older trial pages keep index.html + captures/configs but their mp4s are deleted on each
+new batch. Always kept: source media (`clips/md33_full` full match, the std slice,
+`md33_clips/` window cuts), gold STT, packages, captured subs/placements. TTS caches
+are deleted freely (regenerate in seconds); Signapse sign-clip caches are kept (slow
+to regenerate).
+
 ## Known limits / open items
 
 - Full findings & ratings: [eros_vendor_test.md](eros_vendor_test.md). Headlines: zero
