@@ -17,7 +17,8 @@ allseq=sorted(set().union(*[set(s) for s in langs.values()]))
 meta={}
 for q in allseq:
     src=next(s[q] for s in langs.values() if q in s)
-    meta[q]={'t':round(src['source_pts_ms']/1000,1),'p':src['priority']}
+    _sp=(src.get('delivery') or {}).get('speaker') or src.get('speaker') or ''
+    meta[q]={'t':round(src['source_pts_ms']/1000,1),'p':src['priority'],'e':src.get('emotion',''),'sp':_sp}
 place={p['i']:p for p in json.load(open(work/'placement.json'))} if (work/'placement.json').exists() else {}
 pkg=json.load(open(pkgf))
 lats=sorted(l['latency_ms'] for l in base.values())
@@ -28,7 +29,7 @@ rows=''
 for q in allseq:
     m=meta[q]
     rows+=(f"<tr data-t={m['t']} data-q={q}><td><a href='#' onclick=\"v.currentTime={m['t']};return false\">{mmss(m['t'])}</a></td>"
-           f"<td class=p{m['p']}>p{m['p']}</td><td class=tx id=c{q}></td>"
+           f"<td class=p{m['p']}>p{m['p']}<div class=m>{m['e']}</div><div class=m style='color:{'#f0abfc' if m['sp']=='guest' else '#7dd3fc'}'>{'analyst' if m['sp']=='guest' else ('commentator' if m['sp'] else '')}</div></td><td class=tx id=c{q}></td>"
            f"<td class=fb data-q={q}>💬</td></tr>\n")
 LT={c:{q:langs[c][q]['text'] for q in langs[c]} for c in order if c!='asl'}
 STATUS={}

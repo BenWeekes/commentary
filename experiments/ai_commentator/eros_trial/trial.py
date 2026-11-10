@@ -17,7 +17,9 @@ BASE=ENV.get('EROS_API_BASE',''); SR=16000
 ap=argparse.ArgumentParser(); ap.add_argument('--id',required=True); ap.add_argument('--clip',required=True)
 ap.add_argument('--pkg',required=True); ap.add_argument('--skip-eros',action='store_true')
 ap.add_argument('--langs',default='en,zh-CN')
-ap.add_argument('--deadline',type=int,default=6000)   # 7s-delay budget: text<=6s + TTS ~0.7s + margin
+ap.add_argument('--deadline',type=int,default=6000)
+ap.add_argument('--mid',default='')   # pre-created match id: skip create, go straight to arm
+ap.add_argument('--profile',default='betting')   # commentary_profile: betting | tv   # 7s-delay budget: text<=6s + TTS ~0.7s + margin
 a=ap.parse_args()
 WORK=AIC/f'eros_trial/work_{a.id}'; WORK.mkdir(parents=True, exist_ok=True)
 WWW=pathlib.Path(f'/var/www/html/experiments/ai_commentator/modelE_trial{a.id}'); WWW.mkdir(exist_ok=True)
@@ -28,10 +30,13 @@ def api(path, tok, body=None):
     with urllib.request.urlopen(req, timeout=30) as r: return json.loads(r.read() or b'{}')
 langs=a.langs.split(',')
 if not a.skip_eros:
-    MID=f"trial{a.id}-{int(time.time())}"
-    pkg=json.load(open(a.pkg))
-    api('/v1/matches', ENV['EROS_MATCH_TOKEN'], {'match_id':MID,'match_package':pkg,
-        'output':{'mode':'subtitle','languages':langs,'deadline_ms':a.deadline}})
+    if a.mid:
+        MID=a.mid
+    else:
+        MID=f"trial{a.id}-{int(time.time())}"
+        pkg=json.load(open(a.pkg))
+        api('/v1/matches', ENV['EROS_MATCH_TOKEN'], {'match_id':MID,'match_package':pkg,
+            'output':{'mode':'subtitle','languages':langs,'deadline_ms':a.deadline,'commentary_profile':a.profile}})
     arm=api(f'/v1/matches/{MID}/arm', ENV['EROS_MATCH_TOKEN'], {'buffer_ms':8000})
     (WORK/'arm.json').write_text(json.dumps(arm)); print('armed', MID, flush=True)
     subs={l:[] for l in langs}; done=False
@@ -68,10 +73,26 @@ if not a.skip_eros:
 # dropped (status=dropped). Full disclosure per line in placement_<lang>.json.
 VOICE={'en':'gU0LNdkMOQCOrPrwtbee','fr':'LcKoSBj8CeBInl4bQHtq','pt-BR':'HR2TRGmi4QbMsO5omv7l'}
 DEFAULT_VOICE='gU0LNdkMOQCOrPrwtbee'
-def tts_fetch(text, voice, f):
+SPEED={'fr':1.15,'pt-BR':1.08,'es':1.05}
+# vendor emotion label -> delivery (lower stability = more expressive)
+EMO_STAB={'Calm':0.55,'Tension':0.45,'Nervous':0.40,'Drama':0.34,'Excited':0.28}
+GUEST_VOICE='JBFqnCBsd6RMkjVDRZzb'   # George: warm analyst register, contrasts with the announcers
+def line_voice(l, lang):
+    sp=(l.get('delivery') or {}).get('speaker') or l.get('speaker')
+    return GUEST_VOICE if sp=='guest' else VOICE.get(lang, DEFAULT_VOICE)
+def line_speed(l, lang):
+    pace=(l.get('delivery') or {}).get('pace') or 1.0
+    return max(0.8, min(1.2, SPEED.get(lang,1.0)*pace))
+def line_stability(l):
+    d=l.get('delivery') or {}
+    if d.get('intensity') is not None:
+        return max(0.25, min(0.65, 0.62-0.55*d['intensity']))
+    return EMO_STAB.get(l.get('emotion'),0.5)
+def tts_fetch(text, voice, f, speed=1.0, stability=0.5):
     if f.exists() and f.stat().st_size>4000: return
-    body=json.dumps({"text":text,"model_id":"eleven_flash_v2_5",
-        "voice_settings":{"stability":0.5,"similarity_boost":0.8}}).encode()
+    vs={"stability":stability,"similarity_boost":0.8}
+    if speed!=1.0: vs["speed"]=speed
+    body=json.dumps({"text":text,"model_id":"eleven_flash_v2_5","voice_settings":vs}).encode()
     req=urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{voice}?output_format=pcm_16000",
         data=body,headers={"xi-api-key":ENV['ELEVENLABS_API_KEY'],"Content-Type":"application/json"})
     f.write_bytes(urllib.request.urlopen(req,timeout=60).read())
@@ -80,10 +101,10 @@ for lang in langs:
     if not sf.exists(): continue
     lines=[json.loads(x) for x in open(sf)]; lines.sort(key=lambda l:l['source_pts_ms'])
     td=WORK/f"tts_{lang.replace('-','_')}"; td.mkdir(exist_ok=True)
-    voice=VOICE.get(lang, DEFAULT_VOICE)
     import concurrent.futures as cf
     with cf.ThreadPoolExecutor(4) as ex:
-        list(ex.map(lambda t: tts_fetch(t[1]['text'], voice, td/f"{t[0]:02d}.pcm"), enumerate(lines)))
+        list(ex.map(lambda t: tts_fetch(t[1]['text'], line_voice(t[1],lang), td/f"{t[0]:02d}.pcm",
+                                        line_speed(t[1],lang), line_stability(t[1])), enumerate(lines)))
     track=bytearray(int(dur)*SR*2)
     cur=None   # {'i','end_sample','prio'}
     report=[]
@@ -97,7 +118,7 @@ for lang in langs:
         if p0+16 >= int(dur)*SR:
             report.append({'i':i,'seq':l['sequence'],'pts':round(pts,2),'prio':prio,'status':'dropped','reason':'beyond clip'}); continue
         if cur and p0 < cur['end_sample']:
-            if prio < cur['prio']:
+            if prio <= cur['prio']:   # equal priority also preempts: stay current, fade the old
                 # cut the running utterance NOW with a 60ms fade
                 fs=max(p0-int(0.06*SR), 0)
                 for k in range(fs, p0):
@@ -112,7 +133,7 @@ for lang in langs:
                 cur=None
             else:
                 report.append({'i':i,'seq':l['sequence'],'pts':round(pts,2),'prio':prio,'status':'dropped',
-                               'reason':f"p{cur['prio']} line still speaking"}); continue
+                               'reason':f"higher-priority p{cur['prio']} line speaking"}); continue
         ends=min(p0+dsamp, len(track)//2)
         track[p0*2:ends*2]=pcm[:(ends-p0)*2]
         cur={'i':i,'end_sample':ends,'prio':prio}

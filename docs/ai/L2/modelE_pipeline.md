@@ -118,6 +118,28 @@ Vendor guide saved verbatim at `~/moment_guide.md`. Key changes wired into `tria
   (`/blend_comments`); Alex has ~250 comments across versions; vendor demonstrably acts
   on them (their r7 guide answers his 38 std-window comments row by row).
 
+## v6/v7: two voices + delivery hints (2026-11-10)
+
+v6 lines already carry a `delivery` object (no need to ask the vendor):
+`speaker` (`commentator` | `guest`), `cue` (free-text direction, e.g. "anxious, holding
+breath"), `energy`, `intensity` 0-1, `pace`, `pause_before_ms`, `interrupting`,
+`continues`, `target_duration_ms`. The guest analyst carries most of the between-action
+talk (~25% of lines in v6). Vendor-stated timing: on-pitch calls median 3.6s after the
+picture (p90 5.2s); background talk deliberately 4.5-6s — inside our 7s budget.
+Per-match knobs at creation: `{"talk": 0}` sparser; `{"guest": "off"}` single voice.
+
+v7 pipeline (`trial.py`, `run_v7_tv.sh`):
+- Voice by speaker: commentator = per-language announcer voices; guest = George
+  (`JBFqnCBsd6RMkjVDRZzb`) in every language (flash v2_5 is multilingual).
+- `intensity` -> ElevenLabs stability (0.62-0.55*intensity, clamped 0.25..0.65; falls
+  back to the emotion map); `pace` x per-language speed, clamped 0.8..1.2.
+- Vendor guidance applied: matches PRE-CREATED >=15 min before streaming (their background
+  research needs it; our old create-then-arm runs had no talk for the first 30-80s) via
+  `trial.py --mid`; packages carry `match_date` + `kickoff_time_utc`.
+- Pages show the speaker under each line's priority/emotion chips.
+- Preemption rule unchanged (equal priority fades the running line), so a dialogue turn
+  can cut the other speaker's tail — watch the cut chips on review.
+
 ## Disk policy (2026-11-04)
 
 Only the MOST RECENT trial generation keeps its rendered videos (currently `*_5_tv`);
